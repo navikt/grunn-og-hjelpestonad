@@ -12,12 +12,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.1</version>
     </parent>
 
     <properties>
         <java.version>25</java.version>
-        <kotlin.version>2.4.0</kotlin.version>
+        <kotlin.version>2.4.10</kotlin.version>
         <kotlin.jvm.target>21</kotlin.jvm.target>
         <ktlint.version>1.8.0</ktlint.version>
     </properties>
@@ -85,7 +85,7 @@
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc8</artifactId>
-            <version>23.26.2.0.0</version>
+            <version>23.26.3.0.0</version>
         </dependency>
 
         <dependency>
