@@ -28,6 +28,10 @@ spring:
                     audiences: default
 
 # Azure AD mock konfigurasjon
+AZURE_OPENID_CONFIG_ISSUER: http://localhost:8089/default
+AZURE_APP_CLIENT_ID: mock-client-id
+AZURE_APP_TENANT_ID: mock-tenant-id
+
 azure:
     app:
         tenant:
