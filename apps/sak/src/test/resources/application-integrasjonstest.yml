@@ -1,0 +1,81 @@
+# Integrasjonstest konfigurasjon
+# Minimal konfig for integrasjonstester - kun datasource og Unleash greier
+
+# Spring konfigurasjon
+spring:
+    main:
+        allow-bean-definition-overriding: true
+    kafka:
+        security:
+            protocol: PLAINTEXT
+    datasource:
+        driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+        url: jdbc:tc:postgresql:17:///testdb
+        username: test
+        password: test
+        hikari:
+            maximum-pool-size: 3
+            connection-test-query: "select 1"
+            max-lifetime: 900000
+            minimum-idle: 1
+            data-source-properties:
+                sslmode: disable
+    lifecycle:
+        timeout-per-shutdown-phase: 3s
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: https://login.microsoftonline.com/test-tenant-id/v2.0
+                    jwk-set-uri: https://login.microsoftonline.com/test-tenant/v2.0/discovery/v2.0/keys
+                    audiences: test-client-id
+
+# Scheduling konfigurasjon
+scheduling:
+    enabled: false
+
+# Azure AD konfigurasjon (Mock-verdier for tester)
+azure:
+    app:
+        tenant:
+            id: test-tenant-id
+        client:
+            id: test-client-id
+            secret: test-client-secret
+
+AZURE_OPENID_CONFIG_ISSUER: https://login.microsoftonline.com/test-tenant-id/v2.0
+AZUREAD_TOKEN_ENDPOINT_URL: https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/token
+AZURE_APP_CLIENT_ID: test-client-id
+AZURE_APP_TENANT_ID: test-tenant-id
+
+# Ekstern tjeneste konfigurasjon (Mock-verdier for tester)
+PDL_URL: http://localhost:8080/pdl
+PDL_SCOPE: test-scope
+FAMILIE_DOKUMENT_URL: http://localhost:8087
+FAMILIE_DOKUMENT_SCOPE: test-scope
+
+# Texas token endpoints (Mock-verdier for tester)
+NAIS_TOKEN_EXCHANGE_ENDPOINT: http://localhost:7575/api/v1/token/exchange
+NAIS_TOKEN_ENDPOINT: http://localhost:7575/api/v1/token
+
+# Database konfigurasjon
+DB_JDBC_URL: jdbc:tc:postgresql:17:///testdb
+
+# Unleash konfigurasjon (Feature Toggles)
+unleash:
+    enabled: false
+
+UNLEASH_SERVER_API_URL: http://localhost:4242/api
+UNLEASH_SERVER_API_TOKEN: token
+UNLEASH_SERVER_API_ENV: server-env
+
+# Kafka (dummy-verdier for tester)
+KAFKA_SCHEMA_REGISTRY: http://localhost:8081
+KAFKA_SCHEMA_REGISTRY_USER: test-user
+KAFKA_SCHEMA_REGISTRY_PASSWORD: test-password
+
+app:
+    utbetaling:
+        utbetaling-topic: test.utbetaling-bs.v1
+        status-topic: test.status-bs.v1
+        simulering-response-topic: test.dryrun-bs.v1

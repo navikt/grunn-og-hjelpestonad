@@ -1,0 +1,130 @@
+.historikkListe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.gruppeBlokk {
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--ax-border-neutral-subtle);
+}
+
+.gruppeBlokk:last-child {
+  border-bottom: none;
+}
+
+.gruppeHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.375rem;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: var(--a-surface-action-subtle);
+  color: var(--a-text-action);
+  font-size: 0.625rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.gruppeEndringer {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  margin-left: 0.6875rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--ax-border-neutral-subtle);
+}
+
+.endringRad {
+  display: flex;
+  gap: 0;
+  padding: 0.375rem 0;
+  position: relative;
+}
+
+.tidslinjePunkt {
+  position: absolute;
+  left: -1.3125rem;
+  top: 0.625rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--ax-border-neutral-subtle);
+  border: 2px solid var(--a-surface-default);
+  z-index: 1;
+}
+
+.punkt_success {
+  background-color: var(--a-surface-success);
+}
+
+.punkt_info {
+  background-color: var(--a-surface-info);
+}
+
+.punkt_warning {
+  background-color: var(--a-surface-warning);
+}
+
+.punkt_danger {
+  background-color: var(--a-surface-danger);
+}
+
+.punkt_neutral {
+  background-color: var(--ax-border-neutral-subtle);
+}
+
+.endringInnhold {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.endringTittel {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.endringIkon {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-top: 0.0625rem;
+}
+
+.ikon_success {
+  color: var(--a-icon-success);
+}
+
+.ikon_info {
+  color: var(--a-icon-info);
+}
+
+.ikon_warning {
+  color: var(--a-icon-warning);
+}
+
+.ikon_danger {
+  color: var(--a-icon-danger);
+}
+
+.ikon_neutral {
+  color: var(--a-icon-subtle);
+}
+
+.tidspunkt {
+  cursor: default;
+  width: fit-content;
+}

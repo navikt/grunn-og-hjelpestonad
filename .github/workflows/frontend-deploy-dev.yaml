@@ -1,0 +1,62 @@
+name: "frontend: Deploy til dev"
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/frontend/**"
+      - ".github/workflows/frontend-deploy-dev.yaml"
+
+permissions:
+  contents: "read"
+  id-token: "write"
+  actions: "read"
+
+jobs:
+  build:
+    name: Bygg og push Docker-image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # ratchet:actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # ratchet:actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "npm"
+          cache-dependency-path: apps/frontend/package-lock.json
+          registry-url: "https://npm.pkg.github.com"
+      - name: Installer npm-avhengigheter
+        working-directory: apps/frontend
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.READER_TOKEN }}
+        run: npm ci
+      - name: Kjør ESLint
+        working-directory: apps/frontend
+        run: npm run lint
+      - name: Bygg applikasjon
+        working-directory: apps/frontend
+        run: |
+          npm run build
+          npm run build:server
+      - uses: nais/docker-build-push@05dbb6091b30bd84279c6d64a45ef8782fd410a5 # ratchet:nais/docker-build-push@v0
+        id: docker-push
+        with:
+          team: etterlatte
+          docker_context: apps/frontend
+          image_suffix: frontend
+    outputs:
+      image: ${{ steps.docker-push.outputs.image }}
+
+  deploy:
+    name: Deploy til dev
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # ratchet:actions/checkout@v4
+      - uses: nais/deploy/actions/deploy@a7f8690f9b367fcbf5348a0a1e21d44f1aae50eb # ratchet:nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: dev-gcp
+          RESOURCE: apps/frontend/.nais/dev.yaml
+          WORKLOAD_IMAGE: ${{ needs.build.outputs.image }}

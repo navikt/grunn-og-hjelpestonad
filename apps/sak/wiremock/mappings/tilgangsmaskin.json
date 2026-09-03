@@ -1,0 +1,15 @@
+{
+  "name": "Tilgangsmaskin - enkel tilgangssjekk (alltid tillat)",
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/dev/(kjerne|komplett)/.*"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": ""
+  },
+  "priority": 10
+}

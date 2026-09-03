@@ -1,0 +1,24 @@
+{
+  "name": "Tilgangsmaskin - ansattinfo",
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/dev/ansatt/.*"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "ansattId": "Z999999",
+      "bruker": null,
+      "grupper": [
+        {
+          "id": "928636f4-fd0d-4149-978e-a6fb68bb19de",
+          "displayName": "0000-GA-STDAPPS"
+        }
+      ]
+    }
+  },
+  "priority": 10
+}

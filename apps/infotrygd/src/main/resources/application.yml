@@ -1,0 +1,48 @@
+server.port: 8080
+
+spring:
+  application:
+    name: gjenlevende-bs-infotrygd
+  datasource:
+      url: ${APP_DATASOURCE_URL}
+      driver-class-name: ${APP_DATASOURCE_DRIVER}
+      hikari:
+          schema: ${APP_DEFAULT_SCHEMA}
+  jpa:
+      # For Oracle: org.hibernate.dialect.OracleDialect not database-platform: org.hibernate.dialect.Oracle10gDialect
+      database-platform: ${APP_JPA_PLATFORM}
+      hibernate:
+          ddl-auto: none
+      properties:
+          hibernate:
+              default_schema: ${APP_DEFAULT_SCHEMA}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AZURE_OPENID_CONFIG_ISSUER}
+          audiences: ${AZURE_APP_CLIENT_ID}
+
+management:
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus
+      base-path: /internal
+
+no.nav.security.jwt:
+  expirythreshold: 60 #threshold in minutes until token expires
+  issuer:
+    azure:
+      discoveryurl: ${AZURE_APP_WELL_KNOWN_URL}
+      accepted_audience: ${AZURE_APP_CLIENT_ID}
+      proxyurl: ${APP_AZURE_PROXY_URL}
+
+vault:
+    password: "/var/run/secrets/oracle/creds/password"
+    username: "/var/run/secrets/oracle/creds/username"

@@ -1,0 +1,12 @@
+.sidebarTabs {
+  flex-shrink: 0;
+}
+
+.sidebarTabs :global(.aksel-tabs__tab) {
+  flex: 1;
+  justify-content: center;
+}
+
+.tabPanel {
+  padding-top: 0.5rem;
+}

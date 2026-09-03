@@ -1,0 +1,35 @@
+:root {
+  --personheader-høyde: 49px;
+  --navbar-høyde: 37px;
+}
+
+.navbar {
+  border-bottom: 1px solid var(--a-border-default);
+  position: sticky;
+  top: var(--personheader-høyde);
+  background-color: var(--ax-bg-default);
+  box-shadow: var(--ax-shadow-dialog);
+  z-index: 1;
+}
+
+.link {
+  color: var(--a-text-default);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s;
+  font-weight: 500;
+}
+
+.link:hover {
+  background-color: var(--ax-bg-neutral-moderate-hover);
+  text-decoration: none;
+}
+
+.link.aktiv {
+  border-bottom: 1px solid var(--ax-bg-brand-blue-strong);
+}
+
+.disabled {
+  color: var(--a-gray-400);
+  pointer-events: none;
+}

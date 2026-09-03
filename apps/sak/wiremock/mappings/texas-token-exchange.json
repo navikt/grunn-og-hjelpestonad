@@ -1,0 +1,19 @@
+{
+  "name": "Texas - token exchange (OBO)",
+  "request": {
+    "method": "POST",
+    "urlPath": "/texas/api/v1/token/exchange"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "access_token": "mock-obo-token",
+      "token_type": "Bearer",
+      "expires_in": 3600
+    }
+  },
+  "priority": 10
+}

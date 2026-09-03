@@ -1,0 +1,138 @@
+version: 2
+
+registries:
+    npm-github:
+        type: npm-registry
+        url: https://npm.pkg.github.com
+        token: ${{ secrets.READER_TOKEN }}
+
+updates:
+    # ---------------------------------------------------------------- apps/sak
+    -   package-ecosystem: maven
+        directory: "/apps/sak"
+        schedule:
+            interval: weekly
+            day: "monday"
+            time: "06:00"
+            timezone: "Europe/Oslo"
+        cooldown:
+            default-days: 5
+        open-pull-requests-limit: 10
+        labels:
+            - "dependencies"
+            - "sak"
+        groups:
+            sak-spring-boot:
+                patterns:
+                    - "org.springframework*"
+                update-types:
+                    - "minor"
+                    - "patch"
+            sak-kotlin:
+                patterns:
+                    - "org.jetbrains.kotlin*"
+                    - "tools.jackson.module*"
+                update-types:
+                    - "minor"
+                    - "patch"
+            sak-nav-intern:
+                patterns:
+                    - "no.nav*"
+            sak-test-avhengigheter:
+                patterns:
+                    - "org.wiremock*"
+                    - "org.testcontainers*"
+                    - "com.ninja-squad*"
+                    - "io.mockk*"
+                update-types:
+                    - "minor"
+                    - "patch"
+            sak-logging:
+                patterns:
+                    - "net.logstash*"
+                    - "org.slf4j*"
+                    - "ch.qos.logback*"
+                update-types:
+                    - "minor"
+                    - "patch"
+            sak-andre-avhengigheter:
+                patterns:
+                    - "*"
+                update-types:
+                    - "minor"
+                    - "patch"
+
+    # ---------------------------------------------------------- apps/infotrygd
+    -   package-ecosystem: maven
+        directory: "/apps/infotrygd"
+        schedule:
+            interval: weekly
+            day: "monday"
+            time: "06:00"
+            timezone: "Europe/Oslo"
+        cooldown:
+            default-days: 5
+        open-pull-requests-limit: 10
+        labels:
+            - "dependencies"
+            - "infotrygd"
+        groups:
+            infotrygd-alle-avhengigheter:
+                patterns:
+                    - "*"
+
+    # ----------------------------------------------------------- apps/frontend
+    -   package-ecosystem: npm
+        directory: "/apps/frontend"
+        schedule:
+            interval: weekly
+            day: "monday"
+            time: "06:00"
+            timezone: "Europe/Oslo"
+        cooldown:
+            default-days: 5
+        open-pull-requests-limit: 30
+        registries: "*"
+        versioning-strategy: increase
+        labels:
+            - "dependencies"
+            - "frontend"
+        groups:
+            frontend-minor-og-patch:
+                patterns:
+                    - "*"
+                update-types:
+                    - "minor"
+                    - "patch"
+            frontend-major:
+                patterns:
+                    - "*"
+                update-types:
+                    - "major"
+
+    # -------------------------------------------------- workflows (hele repoet)
+    -   package-ecosystem: github-actions
+        directory: "/"
+        schedule:
+            interval: weekly
+            day: "monday"
+            time: "06:00"
+            timezone: "Europe/Oslo"
+        cooldown:
+            default-days: 5
+        open-pull-requests-limit: 5
+        labels:
+            - "dependencies"
+            - "github-actions"
+        groups:
+            github-actions-minor-og-patch:
+                patterns:
+                    - "*"
+                update-types:
+                    - "minor"
+                    - "patch"
+            github-actions-major:
+                patterns:
+                    - "*"
+                update-types:
+                    - "major"

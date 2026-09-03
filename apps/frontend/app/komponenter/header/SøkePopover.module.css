@@ -1,0 +1,6 @@
+.personIkon {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--a-icon-subtle);
+  flex-shrink: 0;
+}

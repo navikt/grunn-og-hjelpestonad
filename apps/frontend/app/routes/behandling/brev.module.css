@@ -1,0 +1,48 @@
+.side {
+  height: calc(100vh - 13rem);
+}
+
+.brevBoks {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fokusringPadding {
+  padding: var(--ax-space-8);
+  margin: calc(-1 * var(--ax-space-8));
+  margin-bottom: 0;
+}
+
+.venstreKolonne {
+  padding-bottom: 2rem;
+  mask-image: linear-gradient(to bottom, black calc(100% - 2rem), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 2rem), transparent);
+  scrollbar-color: auto transparent;
+}
+
+.venstreKolonne::-webkit-scrollbar {
+  width: 6px;
+}
+
+.venstreKolonne::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.venstreKolonne::-webkit-scrollbar-thumb {
+  background-color: var(--ax-border-neutral-subtle);
+  border-radius: 3px;
+}
+
+.innholdGrid {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.pdfTomtilstand {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ax-text-subtle);
+}

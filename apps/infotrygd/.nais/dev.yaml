@@ -1,0 +1,93 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+    name: gjenlevende-bs-infotrygd
+    namespace: etterlatte
+
+spec:
+    # Applikasjon konfigurasjon
+    image: {{ image }}
+    port: 8080
+    replicas:
+        min: 1
+        max: 2
+    resources:
+        requests:
+            cpu: 20m
+            memory: 256Mi
+        limits:
+            memory: 512Mi
+    env:
+        -   name: APP_DATASOURCE_URL
+            value: jdbc:oracle:thin:@a01dbfl058.adeo.no:1521/infotrygd_ebq
+        -   name: APP_DATASOURCE_PLATFORM
+            value: org.hibernate.dialect.OracleDialect
+        -   name: APP_DATASOURCE_DRIVER
+            value: oracle.jdbc.driver.OracleDriver
+        -   name: APP_JPA_PLATFORM
+            value: org.hibernate.dialect.OracleDialect
+        -   name: APP_DEFAULT_SCHEMA
+            value: INFOTRYGD_EBQ
+        -   name: APP_AZURE_PROXY_URL
+            value: https://webproxy-nais.nav.no:8088
+    vault:
+        enabled: true
+        paths:
+            -   kvPath: /oracle/data/dev/creds/eb_infotrygd_q1-user
+                mountPath: /var/run/secrets/oracle/creds
+
+    # Nettverk
+    ingresses:
+        - https://gjenlevende-bs-infotrygd.dev-fss-pub.nais.io
+    accessPolicy:
+        inbound:
+            rules:
+                -   application: gjenlevende-bs-sak
+                    cluster: dev-gcp
+                -   application: gjenlevende-bs-sak-lokal
+                    cluster: dev-gcp
+        outbound:
+            rules:
+                -   application: gjenlevende-bs-sak
+                    cluster: dev-gcp
+
+                    # Team logs
+                -   application: logging
+                    namespace: nais-system
+
+    # Helse
+    liveness:
+        path: /internal/health/liveness
+        initialDelay: 30
+        failureThreshold: 10
+    readiness:
+        path: /internal/health/readiness
+        initialDelay: 30
+        failureThreshold: 10
+
+    # Logging
+    prometheus:
+        enabled: true
+        path: /internal/prometheus
+    observability:
+        autoInstrumentation:
+            enabled: true
+            runtime: java
+        logging:
+            destinations:
+                -   id: loki
+                -   id: elastic
+
+    #Autentisering
+    azure:
+        application:
+            enabled: true
+            tenant: trygdeetaten.no
+            claims:
+                groups:
+                    -   id: 5b6745de-b65d-40eb-a6f5-860c8b61c27f # 0000-GA-GJENNY_SAKSBEHANDLER
+                    -   id: 70cfce24-7865-4676-9fdc-b676e90bfc92 # 0000-GA-GJENNY_ATTESTERING
+                    -   id: 609a78e7-e0bd-491c-a63b-96a09ec62b9b # 0000-GA-GJENNY_LES
+                extra:
+                    - "NAVident"
+                    - "azp_name"

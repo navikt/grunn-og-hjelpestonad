@@ -1,0 +1,34 @@
+{
+  "name": "PDL GraphQL - hentPerson",
+  "request": {
+    "method": "POST",
+    "urlPath": "/graphql"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "data": {
+        "hentPerson": {
+          "navn": [
+            {
+              "fornavn": "Test",
+              "mellomnavn": null,
+              "etternavn": "Testesen"
+            }
+          ],
+          "forelderBarnRelasjon": [
+            {
+              "relatertPersonsIdent": "12345678901",
+              "relatertPersonsRolle": "BARN",
+              "minRolleForPerson": "MOR"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "priority": 10
+}

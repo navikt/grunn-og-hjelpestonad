@@ -1,0 +1,17 @@
+{
+  "name": "Infotrygd - perioder",
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/infotrygd/perioder"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "perioder": []
+    }
+  },
+  "priority": 10
+}

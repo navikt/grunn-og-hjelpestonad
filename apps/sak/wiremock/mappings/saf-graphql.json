@@ -1,0 +1,26 @@
+{
+  "name": "SAF GraphQL - dokumentoversiktBruker",
+  "request": {
+    "method": "POST",
+    "urlPath": "/graphql",
+    "bodyPatterns": [
+      {
+        "contains": "dokumentoversiktBruker"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "data": {
+        "dokumentoversiktBruker": {
+          "journalposter": []
+        }
+      }
+    }
+  },
+  "priority": 5
+}

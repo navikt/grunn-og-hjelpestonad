@@ -1,0 +1,38 @@
+### macOS ###
+.DS_Store
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode/
+
+### Eclipse / STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### Maven (apps/sak, apps/infotrygd) ###
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### Node (apps/frontend) ###
+node_modules/
+dist/
+build/
+.react-router/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### Lokale miljøvariabler ###
+.env
+.env.local

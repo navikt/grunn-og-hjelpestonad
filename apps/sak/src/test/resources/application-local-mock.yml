@@ -1,0 +1,94 @@
+# Mock profil - Fullt lokal uten eksterne avhengigheter
+# Start: ./start-mock.sh, kjør ApplicationLocalMock i IntelliJ
+
+# Server konfigurasjon
+server:
+    port: 8082
+
+# Spring konfigurasjon
+spring:
+    main:
+        allow-bean-definition-overriding: true
+    datasource:
+        url: jdbc:postgresql://localhost:5432/gjenlevende-bs-sak
+        driver-class-name: org.postgresql.Driver
+        username: postgres
+        password: test
+        hikari:
+            maximum-pool-size: 3
+            connection-test-query: "select 1"
+            max-lifetime: 900000
+            minimum-idle: 1
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: http://localhost:8089/default
+                    jwk-set-uri: http://localhost:8089/default/jwks
+                    audiences: default
+
+# Azure AD mock konfigurasjon
+azure:
+    app:
+        tenant:
+            id: mock-tenant-id
+        client:
+            id: mock-client-id
+            secret: mock-client-secret
+
+# Azure AD miljøvariabler (mock)
+AZUREAD_TOKEN_ENDPOINT_URL: http://localhost:8089/default/token
+AUTHORIZATION_URL: http://localhost:8089/default/authorize
+API_SCOPE: mock-scope
+
+# Infotrygd
+gjenlevende-bs-infotrygd:
+    url: http://localhost:8090
+    audience: mock-scope
+
+# FAMILIE DOKUMENT
+FAMILIE_DOKUMENT_URL: http://localhost:8090
+FAMILIE_DOKUMENT_SCOPE: mock-scope
+
+# PDL
+PDL_URL: http://localhost:8090
+PDL_SCOPE: mock-scope
+
+# SAF -> WireMock
+SAF_URL: http://localhost:8090
+SAF_SCOPE: mock-scope
+
+# Tilgangsmaskin -> WireMock
+TILGANGSMASKIN_URL: http://localhost:8090
+TILGANGSMASKIN_SCOPE: mock-scope
+
+
+# Texas mock
+NAIS_TOKEN_EXCHANGE_ENDPOINT: http://localhost:8090/texas/api/v1/token/exchange
+NAIS_TOKEN_ENDPOINT: http://localhost:8090/texas/api/v1/token/token
+
+# Swagger/OpenAPI konfigurasjon
+springdoc:
+    api-docs:
+        path: /v3/api-docs
+    swagger-ui:
+        path: /swagger-ui.html
+        operations-sorter: method
+        tags-sorter: alpha
+        try-it-out-enabled: true
+        disable-swagger-default-url: true
+        persist-authorization: true
+        oauth:
+            use-pkce-with-authorization-code-grant: true
+            client-id: mock-client-id
+
+# NAIS
+NAIS_NAMESPACE: etterlatte
+NAIS_CLUSTER_NAME: local-mock
+
+# Task prosessering konfigurasjon
+prosessering:
+    rolle: 00000000-0000-0000-0000-000000000000
+    fixedDelayString:
+        in:
+            milliseconds: 3000

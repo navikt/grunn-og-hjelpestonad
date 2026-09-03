@@ -1,0 +1,52 @@
+{
+  "name": "gjenny-bs-sak",
+  "type": "module",
+  "scripts": {
+    "build": "react-router build",
+    "build:server": "tsc ./app/server/server.ts --outDir dist --target es2022 --module esnext --moduleResolution bundler --allowImportingTsExtensions false",
+    "dev": "tsx ./app/server/server.ts",
+    "dev:vite": "react-router dev",
+    "lint": "eslint . --max-warnings=0",
+    "start": "node dist/server.js",
+    "start:dev": "npm run build && react-router-serve ./build/server/index.js",
+    "typecheck": "react-router typegen && tsc"
+  },
+  "dependencies": {
+    "@navikt/aksel-icons": "8.13.1",
+    "@navikt/ds-css": "8.13.1",
+    "@navikt/ds-react": "8.13.1",
+    "@navikt/oasis": "4.1.4",
+    "@react-pdf/renderer": "4.5.1",
+    "@react-router/node": "7.15.0",
+    "@react-router/serve": "7.15.0",
+    "cookie-parser": "1.4.7",
+    "date-fns": "^4.4.0",
+    "dotenv": "17.4.2",
+    "express": "5.2.1",
+    "express-session": "1.19.0",
+    "isbot": "5.1.44",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-router": "7.15.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.2",
+    "@react-router/dev": "7.15.0",
+    "@types/cookie-parser": "1.4.10",
+    "@types/express": "5.0.6",
+    "@types/express-session": "1.19.0",
+    "@types/node": "25.7.0",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.2",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "16.5.0",
+    "jiti": "2.7.0",
+    "tsx": "4.22.4",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.62.0",
+    "vite": "7.3.1",
+    "vite-tsconfig-paths": "6.1.1"
+  }
+}

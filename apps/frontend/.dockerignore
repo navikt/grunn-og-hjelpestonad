@@ -1,0 +1,15 @@
+.git/
+.github/
+.nais/
+_.md
+.gitignore
+.npmrc
+tsconfig.json
+vite.config.ts
+react-router.config.ts
+.react-router
+server.ts
+app/
+komponenter/
+public/
+.env_

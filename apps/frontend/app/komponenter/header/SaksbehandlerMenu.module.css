@@ -1,0 +1,25 @@
+.meny ul {
+  flex-direction: column;
+}
+
+.meny .rad {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: var(--ax-font-size-sm);
+  color: var(--ax-text-neutral);
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  border-radius: var(--ax-radius-4);
+  cursor: pointer;
+}
+
+.meny .rad:hover {
+  background-color: var(--ax-bg-moderate-hoverA);
+}
+
+.meny .rad svg {
+  font-size: 1.125rem;
+}

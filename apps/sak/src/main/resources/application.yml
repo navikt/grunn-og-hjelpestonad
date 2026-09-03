@@ -1,0 +1,152 @@
+# Felles variabler
+NAIS_APP_NAME: gjenlevende-bs-sak
+DEPLOY_ENV: dev
+
+# Server konfigurasjon
+server:
+    port: 8080
+
+# Spring konfigurasjon
+spring:
+    application:
+        name: gjenlevende-bs-sak
+
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: ${AZURE_OPENID_CONFIG_ISSUER}
+                    audiences: ${AZURE_APP_CLIENT_ID}
+
+    # Flyway database migrering
+    flyway:
+        enabled: true
+        locations: classpath:db/migration
+        placeholders:
+            ignoreIfProd:
+
+    # Database konfigurasjon
+    datasource:
+        url: ${DB_JDBC_URL}
+        hikari:
+            maximum-pool-size: 20
+            connection-test-query: "select 1"
+            max-lifetime: 90000
+            minimum-idle: 1
+
+    # Kafka konfigurasjon
+    #    TODO lånt fra historisk, sjekk opp
+    kafka:
+        bootstrap-servers: ${KAFKA_BROKERS:localhost:9092}
+        security:
+            protocol: SSL
+        ssl:
+            trust-store-type: JKS
+            trust-store-location: file:${KAFKA_TRUSTSTORE_PATH:}
+            trust-store-password: ${KAFKA_CREDSTORE_PASSWORD:}
+            key-store-type: PKCS12
+            key-store-location: file:${KAFKA_KEYSTORE_PATH:}
+            key-store-password: ${KAFKA_CREDSTORE_PASSWORD:}
+        producer:
+            key-serializer: org.apache.kafka.common.serialization.StringSerializer
+            value-serializer: org.apache.kafka.common.serialization.StringSerializer
+        consumer:
+            group-id: ${spring.application.name}
+
+# Management og health endepunkter
+management:
+    endpoint:
+        health:
+            show-details: always
+            probes:
+                enabled: true
+    endpoints:
+        web:
+            exposure:
+                include: health,prometheus
+            base-path: /internal
+
+# Azure AD konfigurasjon
+azure:
+    app:
+        tenant:
+            id: ${AZURE_APP_TENANT_ID}
+        client:
+            id: ${AZURE_APP_CLIENT_ID}
+            secret: ${AZURE_APP_CLIENT_SECRET}
+
+# Azure AD miljøvariabler (for SwaggerConfig.kt)
+AZUREAD_TOKEN_ENDPOINT_URL: https://login.microsoftonline.com/${azure.app.tenant.id}/oauth2/v2.0/token
+AUTHORIZATION_URL: https://login.microsoftonline.com/${azure.app.tenant.id}/oauth2/v2.0/authorize
+API_SCOPE: api://${azure.app.client.id}/.default
+
+# Ekstern tjeneste konfigurasjon
+gjenlevende-bs-infotrygd:
+    url: https://gjenlevende-bs-infotrygd.dev-fss-pub.nais.io
+    audience: api://dev-fss.etterlatte.gjenlevende-bs-infotrygd/.default
+
+# Entra proxy
+ENTRA_PROXY_URL: http://entra-proxy.sikkerhetstjenesten
+ENTRA_PROXY_SCOPE: api://dev-gcp.sikkerhetstjenesten.entra-proxy/.default
+
+# FAMILIE DOKUMENT
+FAMILIE_DOKUMENT_URL: http://familie-dokument.teamfamilie
+FAMILIE_DOKUMENT_SCOPE: api://${DEPLOY_ENV}-gcp.teamfamilie.familie-dokument/.default
+
+# PDL (Persondataløsningen)
+PDL_URL: https://pdl-api.dev-fss-pub.nais.io
+PDL_SCOPE: api://dev-fss.pdl.pdl-api/.default
+
+# OPPGAVE
+OPPGAVE_URL: https://oppgave.dev-fss-pub.nais.io
+OPPGAVE_SCOPE: api://dev-fss.oppgavehandtering.oppgave/.default
+
+# DOKARKIV
+DOKARKIV_URL: https://dokarkiv-q2.dev-fss-pub.nais.io
+DOKARKIV_SCOPE: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
+
+# DOKDIST
+DOKDIST_URL: https://dokdistfordeling.dev-fss-pub.nais.io
+DOKDIST_SCOPE: api://dev-fss.teamdokumenthandtering.dokdistfordeling/.default
+
+#SAF
+SAF_URL: https://saf-q2.dev-fss-pub.nais.io
+SAF_SCOPE: api://dev-fss.teamdokumenthandtering.saf/.default
+
+# Tilgangsmaskin (Populasjonstilgangskontroll)
+TILGANGSMASKIN_URL: http://populasjonstilgangskontroll.tilgangsmaskin
+TILGANGSMASKIN_SCOPE: api://dev-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default
+
+# Swagger/OpenAPI konfigurasjon
+springdoc:
+    api-docs:
+        path: /v3/api-docs
+    swagger-ui:
+        path: /swagger-ui.html
+        operations-sorter: method
+        tags-sorter: alpha
+        try-it-out-enabled: true
+        disable-swagger-default-url: true
+        persist-authorization: true
+        oauth:
+            use-pkce-with-authorization-code-grant: true
+            client-id: ${azure.app.client.id}
+            scope-separator: ","
+
+app:
+    utbetaling:
+        utbetaling-topic: etterlatte.utbetaling-bs.v1
+        simulering-response-topic: helved.dryrun-respons.v1
+        status-topic: helved.status.v1
+
+# Task prosessering konfigurasjon
+prosessering:
+    rolle: 928636f4-fd0d-4149-978e-a6fb68bb19de # 0000-GA-STDAPPS
+    continuousRunning:
+        enabled: true
+    fixedDelayString:
+        in:
+            milliseconds: 15000
+    delete:
+        after:
+            weeks: 16

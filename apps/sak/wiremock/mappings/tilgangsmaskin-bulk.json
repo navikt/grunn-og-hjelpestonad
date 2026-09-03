@@ -1,0 +1,19 @@
+{
+  "name": "Tilgangsmaskin - bulk OBO tilgangssjekk",
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/api/v1/bulk/obo/.*"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "ansattId": "Z999999",
+      "resultater": []
+    },
+    "transformers": ["response-template"]
+  },
+  "priority": 10
+}

@@ -1,0 +1,119 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+    name: gjenlevende-bs-sak
+    namespace: etterlatte
+
+spec:
+    # Applikasjon konfigurasjon
+    image: {{image}}
+    port: 8080
+    replicas:
+        min: 2
+        max: 2
+    leaderElection: true
+    kafka:
+        pool: nav-dev
+    resources:
+        limits:
+            memory: 1024Mi
+        requests:
+            cpu: 162m
+            memory: 512Mi
+
+    env:
+        -   name: SPRING_PROFILES_ACTIVE
+            value: dev
+    gcp:
+        sqlInstances:
+            -   name: gjenlevende-bs-sak
+                type: POSTGRES_17
+                tier: db-g1-small
+                diskAutoresize: true
+                cascadingDelete: false
+                highAvailability: false
+                pointInTimeRecovery: true
+                maintenance:
+                    day: 7
+                    hour: 23
+                databases:
+                    -   name: gjenlevende-bs-sak
+                        envVarPrefix: DB
+
+    # Nettverk
+    ingresses:
+        - https://gjenlevende-bs-sak.intern.dev.nav.no
+    accessPolicy:
+        inbound:
+            rules:
+                -   application: gjenlevende-bs-sak-frontend
+                -   application: gjenlevende-bs-sak-frontend-lokal
+                -   application: etterlatte-prosessering
+        outbound:
+            rules:
+                -   application: gjenlevende-bs-sak-frontend
+                -   application: gjenlevende-bs-sak-frontend-lokal
+                -   application: populasjonstilgangskontroll
+                    namespace: tilgangsmaskin
+                -   application: familie-dokument
+                    namespace: teamfamilie
+                -   application: entra-proxy
+                    namespace: sikkerhetstjenesten
+                -   application: oppgave
+                    namespace: oppgavehandtering
+                    # Team Logs
+                -   application: logging
+                    namespace: nais-system
+            external:
+                -   host: gjenlevende-bs-infotrygd.dev-fss-pub.nais.io
+                -   host: etterlatte-unleash-api.nav.cloud.nais.io
+                -   host: familie-integrasjoner.dev-fss-pub.nais.io
+                -   host: saf-q2.dev-fss-pub.nais.io
+                -   host: dokarkiv-q2.dev-fss-pub.nais.io
+
+    # Toggle
+    envFrom:
+        -   secret: gjenlevende-bs-sak-unleash-api-token
+
+    # Helse
+    liveness:
+        path: /internal/health/liveness
+        initialDelay: 30
+        failureThreshold: 10
+    readiness:
+        path: /internal/health/readiness
+        initialDelay: 30
+        failureThreshold: 10
+
+    # Logging
+    prometheus:
+        enabled: true
+        path: /internal/prometheus
+    observability:
+        autoInstrumentation:
+            enabled: true
+            runtime: java
+        logging:
+            destinations:
+                -   id: loki
+                -   id: elastic
+
+    # Autentisering
+    azure:
+        application:
+            enabled: true
+            tenant: trygdeetaten.no
+            claims:
+                groups:
+                    -   id: 5b6745de-b65d-40eb-a6f5-860c8b61c27f # 0000-GA-GJENNY_SAKSBEHANDLER
+                    -   id: 70cfce24-7865-4676-9fdc-b676e90bfc92 # 0000-GA-GJENNY_ATTESTERING
+                    -   id: 609a78e7-e0bd-491c-a63b-96a09ec62b9b # 0000-GA-GJENNY_LES
+                    -   id: 928636f4-fd0d-4149-978e-a6fb68bb19de # prosessering.rolle - (0000-GA-STDAPPS)
+                extra:
+                    - "NAVident"
+                    - "azp_name"
+            replyURLs:
+                - https://gjenlevende-bs-sak.intern.dev.nav.no/swagger-ui/oauth2-redirect.html
+                - http://localhost:8080/oauth2/callback # TODO: Denne skal fjernes ved merge, kun for lokal-testing
+                - http://localhost:8080/swagger-ui/oauth2-redirect.html # TODO: Denne skal fjernes ved merge, kun for lokal-testing
+            singlePageApplication: true

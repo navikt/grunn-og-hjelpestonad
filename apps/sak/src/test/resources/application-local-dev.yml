@@ -1,0 +1,83 @@
+# Dev profil - Kobler mot ekte dev-tjenester
+# Krever: nais login + ./hent-og-lagre-miljøvariabler.sh
+# Start: ./start-dev.sh, konfigurer .env.local i IntelliJ, kjør ApplicationLocalDev
+
+# Server konfigurasjon
+server:
+    port: 8082
+
+# Spring konfigurasjon
+spring:
+    main:
+        allow-bean-definition-overriding: true
+    datasource:
+        # Bruker persistent Postgres
+        url: jdbc:postgresql://localhost:5432/gjenlevende-bs-sak
+        driver-class-name: org.postgresql.Driver
+        username: postgres
+        password: test
+        hikari:
+            maximum-pool-size: 3
+            connection-test-query: "select 1"
+            max-lifetime: 900000
+            minimum-idle: 1
+            data-source-properties:
+                sslmode: disable
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: ${AZURE_OPENID_CONFIG_ISSUER}
+                    audiences: ${AZURE_APP_CLIENT_ID}
+
+# Azure AD konfigurasjon
+azure:
+    app:
+        tenant:
+            id: ${AZURE_APP_TENANT_ID}
+        client:
+            id: ${AZURE_APP_CLIENT_ID}
+            secret: ${AZURE_APP_CLIENT_SECRET}
+
+# Azure AD miljøvariabler (For SwaggerConfig.kt)
+AZUREAD_TOKEN_ENDPOINT_URL: https://login.microsoftonline.com/${azure.app.tenant.id}/oauth2/v2.0/token
+AUTHORIZATION_URL: https://login.microsoftonline.com/${azure.app.tenant.id}/oauth2/v2.0/authorize
+API_SCOPE: api://${azure.app.client.id}/.default
+
+# Ekstern tjeneste konfigurasjon
+gjenlevende-bs-infotrygd:
+    url: https://gjenlevende-bs-infotrygd.dev-fss-pub.nais.io
+    audience: ${GJENLEVENDE_BS_INFOTRYGD_SCOPE}
+
+# Familie-dokument
+FAMILIE_DOKUMENT_URL: http://localhost:8087
+FAMILIE_DOKUMENT_SCOPE: api://dev-gcp.teamfamilie.familie-dokument/.default
+
+# PDL (Persondataløsningen)
+PDL_URL: https://pdl-api.dev-fss-pub.nais.io
+PDL_SCOPE: api://dev-fss.pdl.pdl-api/.default
+
+# SAF
+SAF_URL: https://saf-q2.dev-fss-pub.nais.io
+SAF_SCOPE: api://dev-fss.teamdokumenthandtering.saf/.default
+
+# Tilgangsmaskin (Populasjonstilgangskontroll) - ekstern URL for lokal utvikling
+TILGANGSMASKIN_URL: https://tilgangsmaskin.intern.dev.nav.no
+TILGANGSMASKIN_SCOPE: api://dev-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default
+
+# Swagger/OpenAPI konfigurasjon
+springdoc:
+    swagger-ui:
+        oauth:
+            client-id: ${AZURE_APP_CLIENT_ID}
+
+# NAIS miljøvariabler
+NAIS_NAMESPACE: etterlatte
+NAIS_CLUSTER_NAME: local
+
+# Task prosessering konfigurasjon
+prosessering:
+    rolle: 928636f4-fd0d-4149-978e-a6fb68bb19de # 0000-GA-STDAPPS
+    fixedDelayString:
+        in:
+            milliseconds: 3000
