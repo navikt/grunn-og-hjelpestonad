@@ -58,9 +58,9 @@ export async function handleLogin(req: Request, res: Response): Promise<void> {
   req.session.nonce = nonce;
   req.session.codeVerifier = codeVerifier;
 
-  const backendScope = process.env.GJENLEVENDE_BS_SAK_SCOPE;
+  const backendScope = process.env.GRUNN_OG_HJELPESTONAD_SCOPE;
   if (!backendScope) {
-    res.status(500).send("GJENLEVENDE_BS_SAK_SCOPE miljøvariabel må være satt");
+    res.status(500).send("GRUNN_OG_HJELPESTONAD_SCOPE miljøvariabel må være satt");
     return;
   }
 

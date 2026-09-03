@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { hentAccessToken } from "./utils/token.js";
 import { exchangeTokenForBackend } from "./obo-token-exchange.js";
 
-const GJENLEVENDE_BS_SAK_AUDIENCE = "api://dev-gcp.etterlatte.gjenlevende-bs-sak/.default";
+const GRUNN_OG_HJELPESTONAD_AUDIENCE = "api://dev-gcp.etterlatte.grunn-og-hjelpestonad/.default";
 
 const byggBackendUrl = (backendUrl: string, req: Request, backendApiPrefix: string): string => {
   return `${backendUrl}${backendApiPrefix}${req.url}`;
@@ -48,7 +48,7 @@ const kallBackend = async (url: string, req: Request, token: string) => {
 export function lagApiProxy(
   backendUrl: string,
   erLokalt: boolean,
-  audience = GJENLEVENDE_BS_SAK_AUDIENCE,
+  audience = GRUNN_OG_HJELPESTONAD_AUDIENCE,
   backendApiPrefix = "/api"
 ) {
   return async (req: Request, res: Response) => {

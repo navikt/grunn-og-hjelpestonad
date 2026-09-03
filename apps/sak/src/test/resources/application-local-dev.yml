@@ -12,7 +12,7 @@ spring:
         allow-bean-definition-overriding: true
     datasource:
         # Bruker persistent Postgres
-        url: jdbc:postgresql://localhost:5432/gjenlevende-bs-sak
+        url: jdbc:postgresql://localhost:5432/grunn-og-hjelpestonad
         driver-class-name: org.postgresql.Driver
         username: postgres
         password: test

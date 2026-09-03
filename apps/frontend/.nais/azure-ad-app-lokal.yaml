@@ -9,12 +9,12 @@
 apiVersion: nais.io/v1
 kind: AzureAdApplication
 metadata:
-  name: gjenlevende-bs-sak-frontend-lokal
+  name: grunn-og-hjelpestonad-frontend-lokal
   namespace: etterlatte
   labels:
     team: etterlatte
 spec:
-  secretName: azuread-gjenlevende-bs-sak-frontend-lokal
+  secretName: azuread-grunn-og-hjelpestonad-frontend-lokal
   logoutUrl: "http://localhost:8080"
   tenant: trygdeetaten.no
   replyUrls:

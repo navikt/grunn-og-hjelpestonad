@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-  name: gjenlevende-bs-sak-frontend
+  name: grunn-og-hjelpestonad-frontend
   namespace: etterlatte
   labels:
     team: etterlatte
@@ -53,7 +53,7 @@ spec:
   accessPolicy:
     outbound:
       rules:
-        - application: gjenlevende-bs-sak
+        - application: grunn-og-hjelpestonad
         - application: etterlatte-behandling
 
   env:

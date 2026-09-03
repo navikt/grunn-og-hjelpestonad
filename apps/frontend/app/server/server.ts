@@ -24,9 +24,9 @@ const hentBackendUrl = (): string => {
     return "http://localhost:8082";
   }
   if (MILJØ.erLokaltMotPreprod) {
-    return "https://gjenlevende-bs-sak.intern.dev.nav.no";
+    return "https://grunn-og-hjelpestonad.intern.dev.nav.no";
   }
-  return "http://gjenlevende-bs-sak";
+  return "http://grunn-og-hjelpestonad";
 };
 
 const BACKEND_URL = hentBackendUrl();

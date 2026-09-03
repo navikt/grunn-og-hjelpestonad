@@ -3,14 +3,14 @@
 Monorepo for saksbehandling av **barnetilsyn og skolepenger** for etterlatte/gjenlevende.
 
 > [!NOTE]
-> Koden er flyttet fra [navikt/gjenlevende-bs-sak](https://github.com/navikt/gjenlevende-bs-sak) med en clean-slate tilnærming.
+> Koden er flyttet fra [navikt/grunn-og-hjelpestonad](https://github.com/navikt/grunn-og-hjelpestonad) med en clean-slate tilnærming.
 
 ## Innhold
 
 | App | Katalog | Teknologi | Nais-app | Cluster |
 |-----|---------|-----------|----------|---------|
-| **Sak** (backend) | [`apps/sak`](apps/sak) | Kotlin / Spring Boot / Maven / PostgreSQL | `gjenlevende-bs-sak` | `dev-gcp` |
-| **Frontend** | [`apps/frontend`](apps/frontend) | TypeScript / React Router 7 / Express / Node | `gjenlevende-bs-sak-frontend` | `dev-gcp` |
+| **Sak** (backend) | [`apps/sak`](apps/sak) | Kotlin / Spring Boot / Maven / PostgreSQL | `grunn-og-hjelpestonad` | `dev-gcp` |
+| **Frontend** | [`apps/frontend`](apps/frontend) | TypeScript / React Router 7 / Express / Node | `grunn-og-hjelpestonad-frontend` | `dev-gcp` |
 | **Infotrygd** | [`apps/infotrygd`](apps/infotrygd) | Kotlin / Spring Boot / Maven / Oracle | `gjenlevende-bs-infotrygd` | `dev-fss` |
 
 Appene er selvstendige og har hver sin build- og deploy-pipeline. Det finnes ingen felles
@@ -81,9 +81,9 @@ Docker-images bygges med `nais/docker-build-push` og skilles med `image_suffix`:
 
 | App | Image |
 |-----|-------|
-| Sak | `.../etterlatte/gjenlevende-bs-sak` |
-| Frontend | `.../etterlatte/gjenlevende-bs-sak-frontend` |
-| Infotrygd | `.../etterlatte/gjenlevende-bs-sak-infotrygd` |
+| Sak | `.../etterlatte/grunn-og-hjelpestonad` |
+| Frontend | `.../etterlatte/grunn-og-hjelpestonad-frontend` |
+| Infotrygd | `.../etterlatte/grunn-og-hjelpestonad-infotrygd` |
 
 ## Avhengigheter
 

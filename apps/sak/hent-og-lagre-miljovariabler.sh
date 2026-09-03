@@ -22,14 +22,14 @@ function get_secrets() {
   kubectl -n etterlatte get secret ${repo} -o json | jq '.data | map_values(@base64d)'
 }
 
-GJENLEVENDE_BS_SAK_LOKAL_SECRETS=$(get_secrets TEST_SECRET)
+GRUNN_OG_HJELPESTONAD_LOKAL_SECRETS=$(get_secrets TEST_SECRET)
 
-GJENLEVENDE_BS_SAK_CLIENT_ID=$(echo "$GJENLEVENDE_BS_SAK_LOKAL_SECRETS" | jq -r '.AZURE_APP_CLIENT_ID')
-GJENLEVENDE_BS_SAK_CLIENT_SECRET=$(echo "$GJENLEVENDE_BS_SAK_LOKAL_SECRETS" | jq -r '.AZURE_APP_CLIENT_SECRET')
-GJENLEVENDE_BS_SAK_TENANT_ID=$(echo "$GJENLEVENDE_BS_SAK_LOKAL_SECRETS" | jq -r '.AZURE_APP_TENANT_ID')
-GJENLEVENDE_BS_SAK_JWK=$(echo "$GJENLEVENDE_BS_SAK_LOKAL_SECRETS" | jq -r '.AZURE_APP_JWK')
+GRUNN_OG_HJELPESTONAD_CLIENT_ID=$(echo "$GRUNN_OG_HJELPESTONAD_LOKAL_SECRETS" | jq -r '.AZURE_APP_CLIENT_ID')
+GRUNN_OG_HJELPESTONAD_CLIENT_SECRET=$(echo "$GRUNN_OG_HJELPESTONAD_LOKAL_SECRETS" | jq -r '.AZURE_APP_CLIENT_SECRET')
+GRUNN_OG_HJELPESTONAD_TENANT_ID=$(echo "$GRUNN_OG_HJELPESTONAD_LOKAL_SECRETS" | jq -r '.AZURE_APP_TENANT_ID')
+GRUNN_OG_HJELPESTONAD_JWK=$(echo "$GRUNN_OG_HJELPESTONAD_LOKAL_SECRETS" | jq -r '.AZURE_APP_JWK')
 
-if [ -z "$GJENLEVENDE_BS_SAK_CLIENT_ID" ]
+if [ -z "$GRUNN_OG_HJELPESTONAD_CLIENT_ID" ]
 then
       echo "Klarte ikke å hente miljøvariabler. Er du pålogget Naisdevice og google?"
       return 1
@@ -39,19 +39,19 @@ fi
 cat << EOF > .env.local
 # Denne filen er generert automatisk ved å kjøre \`hent-og-lagre-miljovariabler.sh\`
 
-export AZURE_APP_CLIENT_ID='$GJENLEVENDE_BS_SAK_CLIENT_ID'
-export AZURE_APP_CLIENT_SECRET='$GJENLEVENDE_BS_SAK_CLIENT_SECRET'
-export AZURE_APP_TENANT_ID='$GJENLEVENDE_BS_SAK_TENANT_ID'
-export AZURE_APP_JWK='$GJENLEVENDE_BS_SAK_JWK'
+export AZURE_APP_CLIENT_ID='$GRUNN_OG_HJELPESTONAD_CLIENT_ID'
+export AZURE_APP_CLIENT_SECRET='$GRUNN_OG_HJELPESTONAD_CLIENT_SECRET'
+export AZURE_APP_TENANT_ID='$GRUNN_OG_HJELPESTONAD_TENANT_ID'
+export AZURE_APP_JWK='$GRUNN_OG_HJELPESTONAD_JWK'
 
 # Database konfigurasjon for lokal kjøring
-export DB_JDBC_URL='jdbc:postgresql://localhost:5432/gjenlevende-bs-sak'
+export DB_JDBC_URL='jdbc:postgresql://localhost:5432/grunn-og-hjelpestonad'
 
 # Azure AD konfigurasjon
-export AZURE_OPENID_CONFIG_ISSUER='https://login.microsoftonline.com/$GJENLEVENDE_BS_SAK_TENANT_ID/v2.0'
-export AZUREAD_TOKEN_ENDPOINT_URL='https://login.microsoftonline.com/$GJENLEVENDE_BS_SAK_TENANT_ID/oauth2/v2.0/token'
-export AUTHORIZATION_URL='https://login.microsoftonline.com/$GJENLEVENDE_BS_SAK_TENANT_ID/oauth2/v2.0/authorize'
-export API_SCOPE='api://$GJENLEVENDE_BS_SAK_CLIENT_ID/.default'
+export AZURE_OPENID_CONFIG_ISSUER='https://login.microsoftonline.com/$GRUNN_OG_HJELPESTONAD_TENANT_ID/v2.0'
+export AZUREAD_TOKEN_ENDPOINT_URL='https://login.microsoftonline.com/$GRUNN_OG_HJELPESTONAD_TENANT_ID/oauth2/v2.0/token'
+export AUTHORIZATION_URL='https://login.microsoftonline.com/$GRUNN_OG_HJELPESTONAD_TENANT_ID/oauth2/v2.0/authorize'
+export API_SCOPE='api://$GRUNN_OG_HJELPESTONAD_CLIENT_ID/.default'
 
 # Scope for tjenester
 export GJENLEVENDE_BS_INFOTRYGD_SCOPE='api://dev-fss.etterlatte.gjenlevende-bs-infotrygd/.default'

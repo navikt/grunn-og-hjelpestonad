@@ -1,5 +1,5 @@
 # Felles variabler
-NAIS_APP_NAME: gjenlevende-bs-sak
+NAIS_APP_NAME: grunn-og-hjelpestonad
 DEPLOY_ENV: dev
 
 # Server konfigurasjon
@@ -9,7 +9,7 @@ server:
 # Spring konfigurasjon
 spring:
     application:
-        name: gjenlevende-bs-sak
+        name: grunn-og-hjelpestonad
 
     security:
         oauth2:

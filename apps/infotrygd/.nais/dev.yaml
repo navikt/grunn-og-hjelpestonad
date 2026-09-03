@@ -42,13 +42,13 @@ spec:
     accessPolicy:
         inbound:
             rules:
-                -   application: gjenlevende-bs-sak
+                -   application: grunn-og-hjelpestonad
                     cluster: dev-gcp
-                -   application: gjenlevende-bs-sak-lokal
+                -   application: grunn-og-hjelpestonad-lokal
                     cluster: dev-gcp
         outbound:
             rules:
-                -   application: gjenlevende-bs-sak
+                -   application: grunn-og-hjelpestonad
                     cluster: dev-gcp
 
                     # Team logs

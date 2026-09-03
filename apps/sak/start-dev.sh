@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Start-up script for gjenlevende-bs-sak dev profil med real stuff
+# Start-up script for grunn-og-hjelpestonad dev profil med real stuff
 
 set -e
 
-echo "Starter gjenlevende-bs-sak dev miljø..."
+echo "Starter grunn-og-hjelpestonad dev miljø..."
 echo ""
 
 # Sjekk om vi er i riktig directory
@@ -40,7 +40,7 @@ echo ""
 echo "Venter på at services skal bli ferdig..."
 
 echo -n "Venter på PostgreSQL..."
-until docker exec gjenlevende-bs-sak-postgres-1 pg_isready -U postgres > /dev/null 2>&1; do
+until docker exec grunn-og-hjelpestonad-postgres-1 pg_isready -U postgres > /dev/null 2>&1; do
     sleep 1
 done
 echo " Ferdig!"

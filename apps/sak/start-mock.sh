@@ -1,13 +1,13 @@
 #!/bin/bash
 set -e
 
-echo "Starter mock-miljo for gjenlevende-bs-sak..."
+echo "Starter mock-miljo for grunn-og-hjelpestonad..."
 
 # Start services med mock-profil
 docker compose --profile mock up -d
 
 echo "Venter på PostgreSQL..."
-until docker exec gjenlevende-bs-sak-postgres-1 pg_isready -U postgres > /dev/null 2>&1; do
+until docker exec grunn-og-hjelpestonad-postgres-1 pg_isready -U postgres > /dev/null 2>&1; do
     sleep 1
 done
 echo "PostgreSQL er ferdig"

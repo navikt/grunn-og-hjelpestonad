@@ -94,22 +94,22 @@ kubectl config set-context --current --namespace=etterlatte
 #### 4. Finn riktig Azure-hemmelighet
 
 ```bash
-kubectl get secrets | grep gjenlevende-bs-sak
+kubectl get secrets | grep grunn-og-hjelpestonad
 ```
 
 Du vil se noe lignende dette:
 ```
-azure-gjenlevende-bs-sak-1a2345bc-1337-1      Opaque   7      2d
+azure-grunn-og-hjelpestonad-1a2345bc-1337-1      Opaque   7      2d
 ```
 
-> **VIKTIG:** Kopier navnet på hemmeligheten som starter med `azure-gjenlevende-bs-sak-` og har en roterende ID (f.eks. `azure-gjenlevende-bs-sak-1a2345bc-1337-1`).
+> **VIKTIG:** Kopier navnet på hemmeligheten som starter med `azure-grunn-og-hjelpestonad-` og har en roterende ID (f.eks. `azure-grunn-og-hjelpestonad-1a2345bc-1337-1`).
 
 #### 5. Oppdater hent-og-lagre-miljøvariabler.sh
 
 Åpne filen `hent-og-lagre-miljøvariabler.sh` og finn linje 11. Erstatt hemmelighetsnavnet med det du kopierte:
 
 ```bash
-GJENLEVENDE_BS_SAK_LOKAL_SECRETS=$(get_secrets azure-gjenlevende-bs-sak-WHATEVER)
+GRUNN_OG_HJELPESTONAD_LOKAL_SECRETS=$(get_secrets azure-grunn-og-hjelpestonad-WHATEVER)
 ```
 
 #### 6. Kjør scriptet for å hente hemmeligheter
@@ -163,7 +163,7 @@ docker compose --profile dev down -v    # Slett data
 Begge profiler bruker en **persistent PostgreSQL**-database via Docker-volume.
 - Data overlever omstart av applikasjonen
 - Slett data: `docker compose --profile <mock|dev> down -v`
-- Se data i Docker Desktop under "gjenlevende-bs-sak"-gruppen
+- Se data i Docker Desktop under "grunn-og-hjelpestonad"-gruppen
 
 ---
 
@@ -177,4 +177,4 @@ Begge profiler bruker en **persistent PostgreSQL**-database via Docker-volume.
 - http://localhost:8082/swagger-ui/index.html
 
 **Ingress (deployed):**
-- https://gjenlevende-bs-sak.intern.dev.nav.no/swagger-ui/index.html
+- https://grunn-og-hjelpestonad.intern.dev.nav.no/swagger-ui/index.html
