@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - ikkemain
     paths:
       - "apps/infotrygd/**"
       - ".github/workflows/infotrygd-deploy-dev.yaml"
