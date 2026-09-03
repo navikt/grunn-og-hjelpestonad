@@ -45,7 +45,7 @@
         <flyway.version>11.15.0</flyway.version>
         <unleash.version>12.2.2</unleash.version>
         <mockk.version>1.14.11</mockk.version>
-        <prosessering.version>2.20260615101707_c105ab0</prosessering.version>
+        <prosessering.version>2.20260817115650_f13f507</prosessering.version>
 
     </properties>
     <dependencies>
