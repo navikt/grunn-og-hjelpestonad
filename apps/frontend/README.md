@@ -36,21 +36,10 @@ For å kunne installere private @navikt-pakker fra GitHub Package Registry treng
 
 ### 2. Hent og sett miljøvariabler
 
-Scriptet henter nødvendige hemmeligheter fra Kubernetes og oppretter en lokal `.env`-fil.
-
-**NB:** Du må være pålogget Naisdevice.
+Scriptet henter nødvendige hemmeligheter og oppretter en lokal `.env`-fil.
 
 ```bash
 sh hent-og-lagre-miljovariabler.sh
-```
-
-Scriptet setter opp frontend til å gå mot preprod som default.
-
-For å kjøre frontend mot lokal backend fjern `#` fra følgende variabler i `.env`:
-
-```bash
-ENV=lokalt
-ACCESS_TOKEN_LOKALT=$ACCESS_TOKEN_LOKALT
 ```
 
 ### 3. Start utviklingsserver

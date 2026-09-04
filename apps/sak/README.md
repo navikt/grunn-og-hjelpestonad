@@ -7,7 +7,7 @@ Denne appen er én av tre i monorepoet — se [rot-README](../../README.md) for 
 
 ## Forutsetninger
 
-- **Docker Desktop** må være installert og kjøre
+- **Colima** må være installert og kjøre
 - **IntelliJ IDEA** (anbefalt)
 - **nais CLI** (kun for dev-profil)
 
