@@ -9,24 +9,12 @@ Denne appen er én av tre i monorepoet — se [rot-README](../../README.md) for 
 
 - **Colima** må være installert og kjøre
 - **IntelliJ IDEA** (anbefalt)
-- **nais CLI** (kun for dev-profil)
 
 ---
 
 ## Lokal kjøring
 
-Applikasjonen har to lokale utviklingsprofiler:
-
-| Profil | Bruk | Fordeler |
-|--------|------|----------|
-| **Mock** (anbefalt) | Daglig utvikling | Ingen secrets, fullt offline, rask oppstart |
-| **Dev** | Testing mot ekte dev-tjenester | Ekte data fra PDL, SAF, etc. |
-
----
-
-### Mock-profil (Anbefalt for daglig utvikling)
-
-Denne profilen krever **ingen secrets** og fungerer fullt offline.
+Applikasjonen kjøres lokalt med mock-profilen, som krever **ingen secrets** og fungerer fullt offline.
 
 #### 1. Start mock-miljøet
 ```bash
@@ -59,110 +47,11 @@ docker compose --profile mock down -v   # Slett data
 
 ---
 
-### Dev-profil (For testing mot ekte tjenester)
-
-Bruk denne kun når du må teste mot ekte dev-tjenester (PDL, SAF, Tilgangsmaskin, etc.).
-
-#### 1. Logg på Nais
-
-```bash
-nais login
-```
-
-> **Husk:** Du må ha Nais device installert og kjørende!
-
-#### 2. Bytt til riktig Kubernetes-kontekst
-
-```bash
-kubectl config use-context dev-gcp
-```
-
-> ⚠️ **ADVARSEL:** Du **MÅ** bruke `dev-gcp` - scriptet fungerer **IKKE** med `prod-gcp`!
->
-> Verifiser at du er i riktig kontekst:
-> ```bash
-> kubectl config current-context
-> ```
-> Skal vise: `dev-gcp`
-
-#### 3. Sett namespace til etterlatte
-
-```bash
-kubectl config set-context --current --namespace=etterlatte
-```
-
-#### 4. Finn riktig Azure-hemmelighet
-
-```bash
-kubectl get secrets | grep grunn-og-hjelpestonad
-```
-
-Du vil se noe lignende dette:
-```
-azure-grunn-og-hjelpestonad-1a2345bc-1337-1      Opaque   7      2d
-```
-
-> **VIKTIG:** Kopier navnet på hemmeligheten som starter med `azure-grunn-og-hjelpestonad-` og har en roterende ID (f.eks. `azure-grunn-og-hjelpestonad-1a2345bc-1337-1`).
-
-#### 5. Oppdater hent-og-lagre-miljøvariabler.sh
-
-Åpne filen `hent-og-lagre-miljøvariabler.sh` og finn linje 11. Erstatt hemmelighetsnavnet med det du kopierte:
-
-```bash
-GRUNN_OG_HJELPESTONAD_LOKAL_SECRETS=$(get_secrets azure-grunn-og-hjelpestonad-WHATEVER)
-```
-
-#### 6. Kjør scriptet for å hente hemmeligheter
-
-```bash
-./hent-og-lagre-miljovariabler.sh
-```
-
-Dette oppretter en skjult `.env.local`-fil i `apps/sak`.
-
-#### 7. Start dev-miljøet
-
-```bash
-./start-dev.sh
-```
-
-Dette starter PostgreSQL og Texas (token-proxy) i Docker.
-
-#### 8. Konfigurer IntelliJ med miljøvariabler
-
-Dette er viktig - følg stegene nøye:
-
-1. Finn **ApplicationLocalDev** i prosjekt-treet (`apps/sak/src/test/kotlin/.../ApplicationLocalDev.kt`)
-2. Klikk på den **grønne play-knappen** ▶️ ved siden av `fun main()`
-3. Velg **Modify Run Configuration...**
-4. I vinduet som åpnes, se på høyre side under **Build and run**
-5. Klikk på **Modify options** (eller "More options")
-6. Velg **Environment variables**
-7. Et nytt felt for miljøvariabler vises
-8. Klikk på **mappe-ikonet** 📁 til høyre for feltet
-9. En fil-utforsker åpnes - naviger til `apps/sak` i repositoryet
-10. Filen `.env.local` er **skjult**. På Mac: trykk `Shift + Cmd + .` for å vise skjulte filer
-11. Velg `.env.local` og klikk **OK**
-12. Klikk **Apply** og deretter **OK**
-
-#### 9. Kjør applikasjonen
-
-Kjør **ApplicationLocalDev** fra IntelliJ (trykk ▶️ eller `Ctrl+R` / `Cmd+R`).
-
-#### 10. Stopp tjenestene
-
-```bash
-docker compose --profile dev down       # Behold data
-docker compose --profile dev down -v    # Slett data
-```
-
----
-
 ## Database
 
-Begge profiler bruker en **persistent PostgreSQL**-database via Docker-volume.
+**Persistent PostgreSQL**-database via Docker-volume.
 - Data overlever omstart av applikasjonen
-- Slett data: `docker compose --profile <mock|dev> down -v`
+- Slett data: `docker compose --profile mock down -v`
 - Se data i Docker Desktop under "grunn-og-hjelpestonad"-gruppen
 
 ---
@@ -172,9 +61,6 @@ Begge profiler bruker en **persistent PostgreSQL**-database via Docker-volume.
 **Mock-profil (lokalt):**
 - http://localhost:8082/swagger-ui/index.html
 - Hent token og lim inn i "Authorize"
-
-**Dev-profil (lokalt):**
-- http://localhost:8082/swagger-ui/index.html
 
 **Ingress (deployed):**
 - https://grunn-og-hjelpestonad.intern.dev.nav.no/swagger-ui/index.html

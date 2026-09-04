@@ -39,7 +39,7 @@ cd apps/sak
 ```
 
 Kjør deretter `ApplicationLocalMock` fra IntelliJ. Se [apps/sak/README.md](apps/sak/README.md)
-for dev-profil mot ekte tjenester, Swagger og databasehåndtering.
+for Swagger og databasehåndtering.
 
 ### Frontend
 

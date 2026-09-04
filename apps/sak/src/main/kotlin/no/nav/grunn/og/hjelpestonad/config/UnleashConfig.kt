@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 
-@Profile("!integrasjonstest & !local & !local-mock & !local-dev")
+@Profile("!integrasjonstest & !local & !local-mock")
 @Configuration
 open class UnleashConfig {
     private val logger = LoggerFactory.getLogger(javaClass)

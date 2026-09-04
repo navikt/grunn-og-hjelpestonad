@@ -1,9 +1,9 @@
 services:
-    # Delt: PostgreSQL (brukes av både mock og dev profiler)
+    # PostgreSQL (mock-profil)
     postgres:
         image: postgres:17
         container_name: grunn-og-hjelpestonad-postgres-1
-        profiles: ["mock", "dev"]
+        profiles: ["mock"]
         ports:
             - "5432:5432"
         environment:
