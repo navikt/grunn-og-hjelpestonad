@@ -19,6 +19,11 @@
               "etternavn": "Testesen"
             }
           ],
+          "foedselsdato": [
+            {
+              "foedselsdato": "1990-01-15"
+            }
+          ],
           "forelderBarnRelasjon": [
             {
               "relatertPersonsIdent": "12345678901",
