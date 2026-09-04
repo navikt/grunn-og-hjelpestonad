@@ -1,26 +1,12 @@
 #!/bin/bash
 
-kubectl config use-context dev-gcp
-kubectl config set-context --current --namespace=etterlatte
+GRUNN_OG_HJELPESTONAD_FRONTEND_LOKAL_SECRETS=grunn-og-hjelpestonad-client
 
-function get_secrets() {
-  local repo=$1
-  kubectl -n etterlatte get secret ${repo} -o json | jq '.data | map_values(@base64d)'
-}
-
-GRUNN_OG_HJELPESTONAD_FRONTEND_LOKAL_SECRETS=$(get_secrets azuread-grunn-og-hjelpestonad-frontend-lokal)
-
-GRUNN_OG_HJELPESTONAD_FRONTEND_CLIENT_ID=$(echo "$GRUNN_OG_HJELPESTONAD_FRONTEND_LOKAL_SECRETS" | jq -r '.AZURE_APP_CLIENT_ID')
-GRUNN_OG_HJELPESTONAD_FRONTEND_CLIENT_SECRET=$(echo "$GRUNN_OG_HJELPESTONAD_FRONTEND_LOKAL_SECRETS" | jq -r '.AZURE_APP_CLIENT_SECRET')
+GRUNN_OG_HJELPESTONAD_FRONTEND_CLIENT_ID=$(echo "$GRUNN_OG_HJELPESTONAD_FRONTEND_LOKAL_SECRETS")
+GRUNN_OG_HJELPESTONAD_FRONTEND_CLIENT_SECRET=$(echo "$GRUNN_OG_HJELPESTONAD_FRONTEND_LOKAL_SECRETS")
 
 # Generate random 32 character strings for the cookie and session keys
 SESSION_SECRET=$(openssl rand -hex 16)
-
-if [ -z "$GRUNN_OG_HJELPESTONAD_FRONTEND_CLIENT_ID" ]
-then
-      echo "Klarte ikke å hente miljøvariabler. Er du pålogget Naisdevice og google?"
-      return 1
-fi
 
 # Hent token fra mock OAuth-server for lokalt miljø
 echo "Henter token fra mock OAuth-server (localhost:8089)"
@@ -43,15 +29,10 @@ CLIENT_ID='$GRUNN_OG_HJELPESTONAD_FRONTEND_CLIENT_ID'
 CLIENT_SECRET='$GRUNN_OG_HJELPESTONAD_FRONTEND_CLIENT_SECRET'
 PORT=8080
 
-# Lokalt mot lokal-backend
-# ENV=lokalt
-# ACCESS_TOKEN_LOKALT=$ACCESS_TOKEN_LOKALT
-
-# Lokalt mot preprod
-ENV=lokalt-mot-preprod
-GRUNN_OG_HJELPESTONAD_SCOPE=api://dev-gcp.etterlatte.grunn-og-hjelpestonad/.default
+ENV=lokalt
+ACCESS_TOKEN_LOKALT=$ACCESS_TOKEN_LOKALT
 
 APP_VERSION=0.0.1
 EOF
 
-echo ".env-fil er opprettet med miljøvariabler fra dev-gcp"
+echo ".env-fil er opprettet."
