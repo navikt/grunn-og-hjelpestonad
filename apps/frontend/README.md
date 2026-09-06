@@ -36,7 +36,7 @@ For å kunne installere private @navikt-pakker fra GitHub Package Registry treng
 
 ### 2. Hent og sett miljøvariabler
 
-Scriptet henter nødvendige hemmeligheter og oppretter en lokal `.env`-fil.
+Scriptet oppretter en lokal `.env`-fil og konfigurerer Authorization Code Flow mot mock OAuth-serveren.
 
 ```bash
 sh hent-og-lagre-miljovariabler.sh
@@ -48,4 +48,4 @@ sh hent-og-lagre-miljovariabler.sh
 npm run dev
 ```
 
-Applikasjonen er tilgjengelig på http://localhost:8080/
+Applikasjonen er tilgjengelig på http://localhost:8080/. Første sidevisning fullfører Authorization Code Flow automatisk mot mock-serveren.

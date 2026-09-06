@@ -24,20 +24,14 @@ cd apps/sak
 Dette starter følgende Docker-containere:
 - PostgreSQL (persistent database)
 - mock-oauth2-server (for token-validering)
-- WireMock (mocker alle eksterne tjenester)
+- WireMock (mocker eksterne tjenester)
 
 #### 2. Kjør applikasjonen
 Kjør **ApplicationLocalMock** fra IntelliJ (ingen miljøvariabel-konfigurasjon nødvendig).
 
-#### 3. Test med mock-token
-```bash
-# Hent token
-TOKEN=$(curl -s -X POST http://localhost:8089/default/token \
-  -d 'grant_type=client_credentials&client_id=test&client_secret=test' | jq -r '.access_token')
+#### 3. Test med bruker-token
 
-# Test API
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8082/internal/health
-```
+Frontendens lokale Authorization Code Flow fullføres automatisk mot mock-serveren. For manuell testing kan du fortsatt åpne http://localhost:8089/default/debugger. Mock-serveren konfigurerer tokenet med `NAVident` og saksbehandlergruppen.
 
 #### 4. Stopp tjenestene
 ```bash
