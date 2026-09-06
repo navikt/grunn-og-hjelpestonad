@@ -68,10 +68,10 @@ class SimuleringController(
                         utbetalinger =
                             listOf(
                                 SimuleringUtbetaling(
-                                    fagsystem = "GJENLEVENDE_BS",
+                                    fagsystem = "GRUNN_OG_HJELP",
                                     sakId = "mock-sak-123",
                                     utbetalesTil = 12345678901L,
-                                    stønadstype = "GJENLEVENDE_BARNETILSYN",
+                                    stønadstype = "GRUNNSTØNAD",
                                     tidligereUtbetalt = 0,
                                     nyttBeløp = 4000,
                                 ),

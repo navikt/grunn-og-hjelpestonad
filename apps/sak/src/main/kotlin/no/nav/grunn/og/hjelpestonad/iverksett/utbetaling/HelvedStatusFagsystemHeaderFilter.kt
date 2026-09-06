@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component
 @Component
 class HelvedStatusFagsystemHeaderFilter : RecordFilterStrategy<String, String> {
     /**
+     * TODO Dette må endres fra GJENLEVENDE til grunn og hjelp
      * Filtrerer bort meldinger som ikke har "fagsystem" header satt til "GJENLEVENDE".
      * @return true hvis meldingen skal forkastes
      */

@@ -76,6 +76,7 @@ enum class Fagsystem(
     val navn: String,
     val tema: String,
 ) {
+    // TODO Hva skal her?
     EY("Gjenlevende", "EYO"),
 }
 

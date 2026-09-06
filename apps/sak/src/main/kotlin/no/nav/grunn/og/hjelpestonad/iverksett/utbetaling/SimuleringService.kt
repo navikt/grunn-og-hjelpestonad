@@ -45,6 +45,7 @@ class SimuleringService(
         behandlingId: UUID,
     ): UtbetalingMelding {
         val andeler = tilkjentYtelseService.hentTilkjentYtelse(behandlingId)?.andelerTilkjentYtelse ?: emptySet()
+        // TODO
         return UtbetalingMelding(
             behandlingId = behandlingId,
             sakId = "sakId",
