@@ -1,5 +1,5 @@
 export const ToggleNavn = {
-  TestToggle: "gjenlevende_frontend__test_setup",
+  TestToggle: "grunn-og-hjelp_frontend__test_setup",
 } as const;
 
 type ToggleNøkkel = keyof typeof ToggleNavn;
