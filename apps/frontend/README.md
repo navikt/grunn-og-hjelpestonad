@@ -1,6 +1,6 @@
 # Frontend
 
-Saksbehandlingsflate for gjenlevende barnetilsyn og skolepenger.
+Saksbehandlingsflate for grunn- og hjelpestønad.
 
 Denne appen er én av tre i monorepoet — se [rot-README](../../README.md) for oversikt.
 **Alle kommandoer under kjøres fra `apps/frontend`.**

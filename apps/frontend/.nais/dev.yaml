@@ -22,8 +22,8 @@ spec:
 
   # Nettverk
   ingresses:
-    - https://gjenlevende-bs.intern.dev.nav.no
-    - https://gjenlevende-bs.ansatt.dev.nav.no
+    - https://grunn-og-hjelpestonad.intern.dev.nav.no
+    - https://grunn-og-hjelpestonad.ansatt.dev.nav.no
 
   # Helse
   liveness:
@@ -40,7 +40,7 @@ spec:
       allowAllUsers: false
       tenant: trygdeetaten.no
       replyURLs:
-        - https://gjenlevende-bs.intern.dev.nav.no/oauth2/callback
+        - https://grunn-og-hjelpestonad.intern.dev.nav.no/oauth2/callback
       claims:
         groups:
           - id: 5b6745de-b65d-40eb-a6f5-860c8b61c27f # 0000-GA-GJENNY_SAKSBEHANDLER

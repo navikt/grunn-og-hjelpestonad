@@ -81,9 +81,9 @@ AUTHORIZATION_URL: https://login.microsoftonline.com/${azure.app.tenant.id}/oaut
 API_SCOPE: api://${azure.app.client.id}/.default
 
 # Ekstern tjeneste konfigurasjon
-gjenlevende-bs-infotrygd:
-    url: https://gjenlevende-bs-infotrygd.dev-fss-pub.nais.io
-    audience: api://dev-fss.etterlatte.gjenlevende-bs-infotrygd/.default
+grunn-og-hjelpestonad-infotrygd:
+    url: https://grunn-og-hjelpestonad-infotrygd.dev-fss-pub.nais.io
+    audience: api://dev-fss.etterlatte.grunn-og-hjelpestonad-infotrygd/.default
 
 # Entra proxy
 ENTRA_PROXY_URL: http://entra-proxy.sikkerhetstjenesten

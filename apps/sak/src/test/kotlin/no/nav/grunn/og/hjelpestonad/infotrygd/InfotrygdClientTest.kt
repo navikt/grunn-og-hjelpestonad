@@ -53,7 +53,7 @@ class InfotrygdClientTest {
                         .defaultHeader("Content-Type", "application/json")
                         .build(),
                 texasClient = texasClient,
-                gjenlevendeBsInfotrygdAudience = AUDIENCE,
+                grunnOgHjelpestonadInfotrygdAudience = AUDIENCE,
             )
         every { texasClient.hentOboToken(AUDIENCE) } returns "gyldig-token"
     }

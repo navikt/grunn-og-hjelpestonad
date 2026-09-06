@@ -50,7 +50,7 @@ ENTRA_PROXY_URL: http://localhost:8090
 ENTRA_PROXY_SCOPE: mock-scope
 
 # Infotrygd
-gjenlevende-bs-infotrygd:
+grunn-og-hjelpestonad-infotrygd:
     url: http://localhost:8090
     audience: mock-scope
 

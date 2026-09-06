@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/test/infotrygd")
 @Tag(
     name = "Infotrygd integrasjon test",
-    description = "Endepunkter for å teste integrasjon mot gjenlevende-bs-infotrygd",
+    description = "Endepunkter for å teste integrasjon mot grunn-og-hjelpestonad-infotrygd",
 )
 class InfotrygdController(
     private val infotrygdClient: InfotrygdClient,
@@ -35,7 +35,7 @@ class InfotrygdController(
     fun hentPerioderForPerson(
         @RequestBody request: PersonidentRequest,
     ): ResponseEntity<PersonPerioderResponse> {
-        logger.info("Henter perioder for person fra gjenlevende-bs-infotrygd")
+        logger.info("Henter perioder for person fra grunn-og-hjelpestonad-infotrygd")
 
         return try {
             PersonidentValidator.validerPersonident(request.personident)
@@ -48,7 +48,7 @@ class InfotrygdController(
             logger.info("Hentet perioder fra Infotrygd: ${response.barnetilsyn.size} barnetilsyn, ${response.skolepenger.size} skolepenger")
             ResponseEntity.ok(response)
         } catch (exception: Exception) {
-            logger.error("Feil ved henting av perioder fra gjenlevende-bs-infotrygd: ${exception.message}", exception)
+            logger.error("Feil ved henting av perioder fra grunn-og-hjelpestonad-infotrygd: ${exception.message}", exception)
             throw exception
         }
     }

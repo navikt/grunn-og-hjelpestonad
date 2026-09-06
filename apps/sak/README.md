@@ -1,6 +1,6 @@
 # Sak (backend)
 
-Saksbehandler-app som tar for seg barnetilsyn og skolepenger for etterlatte/gjenlevende.
+Saksbehandler-app for grunn- og hjelpestønad.
 
 Denne appen er én av tre i monorepoet — se [rot-README](../../README.md) for oversikt.
 **Alle kommandoer under kjøres fra `apps/sak`.**

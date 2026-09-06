@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-    name: gjenlevende-bs-infotrygd
+    name: grunn-og-hjelpestonad-infotrygd
     namespace: etterlatte
 
 spec:
@@ -38,7 +38,7 @@ spec:
 
     # Nettverk
     ingresses:
-        - https://gjenlevende-bs-infotrygd.dev-fss-pub.nais.io
+        - https://grunn-og-hjelpestonad-infotrygd.dev-fss-pub.nais.io
     accessPolicy:
         inbound:
             rules:

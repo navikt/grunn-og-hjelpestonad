@@ -1,6 +1,6 @@
 # grunn-og-hjelpestonad-backend
 
-Monorepo for saksbehandling av **barnetilsyn og skolepenger** for etterlatte/gjenlevende.
+Monorepo for saksbehandling av **grunn- og hjelpestønad**.
 
 > [!NOTE]
 > Koden er flyttet fra [navikt/grunn-og-hjelpestonad](https://github.com/navikt/grunn-og-hjelpestonad) med en clean-slate tilnærming.
@@ -11,7 +11,7 @@ Monorepo for saksbehandling av **barnetilsyn og skolepenger** for etterlatte/gje
 |-----|---------|-----------|----------|---------|
 | **Sak** (backend) | [`apps/sak`](apps/sak) | Kotlin / Spring Boot / Maven / PostgreSQL | `grunn-og-hjelpestonad` | `dev-gcp` |
 | **Frontend** | [`apps/frontend`](apps/frontend) | TypeScript / React Router 7 / Express / Node | `grunn-og-hjelpestonad-frontend` | `dev-gcp` |
-| **Infotrygd** | [`apps/infotrygd`](apps/infotrygd) | Kotlin / Spring Boot / Maven / Oracle | `gjenlevende-bs-infotrygd` | `dev-fss` |
+| **Infotrygd** | [`apps/infotrygd`](apps/infotrygd) | Kotlin / Spring Boot / Maven / Oracle | `grunn-og-hjelpestonad-infotrygd` | `dev-fss` |
 
 Appene er selvstendige og har hver sin build- og deploy-pipeline. Det finnes ingen felles
 parent-pom eller workspace — hver app bygges fra sin egen katalog.

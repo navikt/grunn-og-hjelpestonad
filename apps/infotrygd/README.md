@@ -1,6 +1,6 @@
 # Infotrygd
 
-App som henter ut data fra Infotrygd for gjenlevende med barnetilsyn og skolepenger.
+App som henter ut data fra Infotrygd for grunn- og hjelpestønad.
 Kjører i `dev-fss` og eksponeres for `apps/sak` via `dev-fss-pub.nais.io`.
 
 Denne appen er én av tre i monorepoet — se [rot-README](../../README.md) for oversikt.

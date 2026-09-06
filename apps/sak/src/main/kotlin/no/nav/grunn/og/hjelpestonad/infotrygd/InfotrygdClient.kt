@@ -20,7 +20,7 @@ import java.time.Duration
 class InfotrygdWebClientConfig {
     @Bean
     fun infotrygdWebClient(
-        @Value("\${gjenlevende-bs-infotrygd.url}")
+        @Value("\${grunn-og-hjelpestonad-infotrygd.url}")
         infotrygdUrl: String,
     ): WebClient =
         WebClient
@@ -34,8 +34,8 @@ class InfotrygdWebClientConfig {
 class InfotrygdClient(
     private val infotrygdWebClient: WebClient,
     private val texasClient: TexasClient,
-    @Value("\${gjenlevende-bs-infotrygd.audience}")
-    private val gjenlevendeBsInfotrygdAudience: String,
+    @Value("\${grunn-og-hjelpestonad-infotrygd.audience}")
+    private val grunnOgHjelpestonadInfotrygdAudience: String,
 ) {
     private val logger = LoggerFactory.getLogger(InfotrygdClient::class.java)
 
@@ -49,7 +49,7 @@ class InfotrygdClient(
     ): Mono<PersonPerioderResponse> {
         val oboToken =
             texasClient.hentOboToken(
-                targetAudience = gjenlevendeBsInfotrygdAudience,
+                targetAudience = grunnOgHjelpestonadInfotrygdAudience,
             )
 
         return infotrygdWebClient

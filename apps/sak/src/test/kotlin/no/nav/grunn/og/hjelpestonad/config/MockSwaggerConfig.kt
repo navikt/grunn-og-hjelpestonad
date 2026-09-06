@@ -24,10 +24,10 @@ open class MockSwaggerConfig {
             ).addSecurityItem(SecurityRequirement().addList("bearerAuth"))
             .info(
                 Info()
-                    .title("Gjenlevende BS Sak (Mock)")
+                    .title("Grunn- og hjelpestønad Sak (Mock)")
                     .description(
                         """
-                        Swagger for Gjenlevende-BS-Sak - Mock profil
+                        Swagger for Grunn- og hjelpestønad - Mock profil
 
                         Hent token med:
                         ```

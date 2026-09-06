@@ -50,8 +50,8 @@ class SecurityConfig(
 
         configuration.allowedOrigins =
             listOf(
-                "https://gjenlevende-bs.intern.dev.nav.no",
-                "https://gjenlevende-bs.ansatt.dev.nav.no",
+                "https://grunn-og-hjelpestonad.intern.dev.nav.no",
+                "https://grunn-og-hjelpestonad.ansatt.dev.nav.no",
                 "http://localhost:8080",
                 "http://localhost:3000",
             )

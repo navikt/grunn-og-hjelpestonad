@@ -1,4 +1,4 @@
-import no.nav.gjenlevende.bs.infotrygd.Application
+import no.nav.grunn.og.hjelpestonad.infotrygd.Application
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles

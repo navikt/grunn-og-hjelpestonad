@@ -1,7 +1,7 @@
 # https://github.com/navikt/tilleggsstonader-sak-frontend/blob/main/.nais/azure-ad-app-lokal.yaml
 # 
 # Denne er brukt til å gjøre det mulig å bruke tokens lokalt secret kan hentes fra cluster med:
-# "kubectl -n etterlatte get secret azuread-gjenlevende-sak-frontend-lokal -o json | jq '.data | map_values(@base64d)'"
+# "kubectl -n etterlatte get secret azuread-grunn-og-hjelpestonad-frontend-lokal -o json | jq '.data | map_values(@base64d)'"
 #
 # Kjøres en gang eller ved endringer med
 # kubectl apply -f .nais/azure-ad-app-lokal.yaml

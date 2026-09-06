@@ -1,5 +1,5 @@
 {
-  "name": "gjenny-bs-sak",
+  "name": "grunn-og-hjelpestonad-frontend",
   "type": "module",
   "scripts": {
     "build": "react-router build",

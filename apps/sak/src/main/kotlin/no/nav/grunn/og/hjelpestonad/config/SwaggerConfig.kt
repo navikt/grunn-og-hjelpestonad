@@ -34,8 +34,8 @@ open class SwaggerConfig(
             .addSecurityItem(SecurityRequirement().addList("oauth2", listOf("read", "write")))
             .info(
                 Info()
-                    .title("Gjenlevende BS Sak")
-                    .description("Swagger for Gjenlevende-BS-Sak")
+                    .title("Grunn- og hjelpestønad Sak")
+                    .description("Swagger for Grunn- og hjelpestønad")
                     .version("1.0.0")
                     .contact(
                         Contact()

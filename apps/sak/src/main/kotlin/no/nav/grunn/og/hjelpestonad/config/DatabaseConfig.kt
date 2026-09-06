@@ -22,7 +22,7 @@ import java.time.YearMonth
 import javax.sql.DataSource
 
 @Configuration
-@EnableJdbcRepositories("no.nav.familie", "no.nav.gjenlevende", "no.nav.grunn.og.hjelpestonad")
+@EnableJdbcRepositories("no.nav.familie", "no.nav.grunn.og.hjelpestonad")
 open class DatabaseConfig(
     private val objectMapper: ObjectMapper,
 ) : AbstractJdbcConfiguration() {

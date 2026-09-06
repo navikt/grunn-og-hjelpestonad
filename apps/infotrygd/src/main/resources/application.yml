@@ -2,7 +2,7 @@ server.port: 8080
 
 spring:
   application:
-    name: gjenlevende-bs-infotrygd
+    name: grunn-og-hjelpestonad-infotrygd
   datasource:
       url: ${APP_DATASOURCE_URL}
       driver-class-name: ${APP_DATASOURCE_DRIVER}
