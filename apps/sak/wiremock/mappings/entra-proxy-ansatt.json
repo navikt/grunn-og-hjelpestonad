@@ -1,0 +1,26 @@
+{
+  "name": "Entra proxy - ansattinfo",
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/v1/ansatt/.*"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "navIdent": "A123456",
+      "visningNavn": "Mock Saksbehandler",
+      "fornavn": "Mock",
+      "etternavn": "Saksbehandler",
+      "tIdent": "A123456",
+      "epost": "mock.saksbehandler@nav.no",
+      "enhet": {
+        "enhetnummer": "4415",
+        "navn": "NAV Mock"
+      }
+    }
+  },
+  "priority": 10
+}

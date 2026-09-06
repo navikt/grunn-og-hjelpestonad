@@ -45,6 +45,10 @@ AZUREAD_TOKEN_ENDPOINT_URL: http://localhost:8089/default/token
 AUTHORIZATION_URL: http://localhost:8089/default/authorize
 API_SCOPE: mock-scope
 
+# Entra proxy -> WireMock
+ENTRA_PROXY_URL: http://localhost:8090
+ENTRA_PROXY_SCOPE: mock-scope
+
 # Infotrygd
 gjenlevende-bs-infotrygd:
     url: http://localhost:8090
