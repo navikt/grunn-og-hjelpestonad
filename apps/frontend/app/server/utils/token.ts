@@ -29,7 +29,7 @@ export function hentSaksbehandlerFraHeaders(req: Request): Saksbehandler | undef
 
 export function hentAccessToken(req: Request, erLokalt: boolean): string | undefined {
   if (erLokalt) {
-    return req.session.user?.accessToken;
+    return req.session.localAuthUser?.accessToken;
   } else {
     const token = getToken(req);
 

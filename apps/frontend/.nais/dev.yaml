@@ -1,10 +1,10 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-  name: gjenlevende-bs-sak-frontend
-  namespace: etterlatte
+  name: grunn-og-hjelpestonad-frontend
+  namespace: grunn-og-hjelp
   labels:
-    team: etterlatte
+    team: grunn-og-hjelp
 
 spec:
   # Applikasjon konfigurasjon
@@ -22,8 +22,8 @@ spec:
 
   # Nettverk
   ingresses:
-    - https://gjenlevende-bs.intern.dev.nav.no
-    - https://gjenlevende-bs.ansatt.dev.nav.no
+    - https://grunn-og-hjelpestonad.intern.dev.nav.no
+    - https://grunn-og-hjelpestonad.ansatt.dev.nav.no
 
   # Helse
   liveness:
@@ -40,9 +40,10 @@ spec:
       allowAllUsers: false
       tenant: trygdeetaten.no
       replyURLs:
-        - https://gjenlevende-bs.intern.dev.nav.no/oauth2/callback
+        - https://grunn-og-hjelpestonad.intern.dev.nav.no/oauth2/callback
       claims:
         groups:
+          # TODO: Oppdater gruppenavn og GUID-er til grunn-og-hjelp når nye grupper er opprettet.
           - id: 5b6745de-b65d-40eb-a6f5-860c8b61c27f # 0000-GA-GJENNY_SAKSBEHANDLER
           - id: 70cfce24-7865-4676-9fdc-b676e90bfc92 # 0000-GA-GJENNY_ATTESTERING
           - id: 609a78e7-e0bd-491c-a63b-96a09ec62b9b # 0000-GA-GJENNY_LES
@@ -53,7 +54,7 @@ spec:
   accessPolicy:
     outbound:
       rules:
-        - application: gjenlevende-bs-sak
+        - application: grunn-og-hjelpestonad
         - application: etterlatte-behandling
 
   env:

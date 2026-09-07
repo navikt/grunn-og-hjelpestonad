@@ -12,7 +12,7 @@ export function meta(_: Route.MetaArgs) {
     { title: "Landingsside" },
     {
       name: "description",
-      content: "Landingsside for saksbehandling av gjenlevende barnetilsyn og skolepenger",
+      content: "Landingsside for saksbehandling av grunn- og hjelpestønad",
     },
   ];
 }
@@ -27,7 +27,7 @@ export default function Landingsside() {
     <Side>
       <VStack gap="space-8">
         <Heading level="1" size="large" spacing>
-          Gjenlevende barnetilsyn og skolepenger
+          Grunn- og hjelpestønad
         </Heading>
 
         {toggles[ToggleNavn.TestToggle] && (

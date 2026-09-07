@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-    name: gjenlevende-bs-sak
+    name: grunn-og-hjelpestonad
     namespace: etterlatte
 
 spec:
@@ -26,7 +26,7 @@ spec:
             value: dev
     gcp:
         sqlInstances:
-            -   name: gjenlevende-bs-sak
+            -   name: grunn-og-hjelpestonad
                 type: POSTGRES_17
                 tier: db-g1-small
                 diskAutoresize: true
@@ -37,22 +37,22 @@ spec:
                     day: 7
                     hour: 23
                 databases:
-                    -   name: gjenlevende-bs-sak
+                    -   name: grunn-og-hjelpestonad
                         envVarPrefix: DB
 
     # Nettverk
     ingresses:
-        - https://gjenlevende-bs-sak.intern.dev.nav.no
+        - https://grunn-og-hjelpestonad.intern.dev.nav.no
     accessPolicy:
         inbound:
             rules:
-                -   application: gjenlevende-bs-sak-frontend
-                -   application: gjenlevende-bs-sak-frontend-lokal
+                -   application: grunn-og-hjelpestonad-frontend
+                -   application: grunn-og-hjelpestonad-frontend-lokal
                 -   application: etterlatte-prosessering
         outbound:
             rules:
-                -   application: gjenlevende-bs-sak-frontend
-                -   application: gjenlevende-bs-sak-frontend-lokal
+                -   application: grunn-og-hjelpestonad-frontend
+                -   application: grunn-og-hjelpestonad-frontend-lokal
                 -   application: populasjonstilgangskontroll
                     namespace: tilgangsmaskin
                 -   application: familie-dokument
@@ -65,7 +65,7 @@ spec:
                 -   application: logging
                     namespace: nais-system
             external:
-                -   host: gjenlevende-bs-infotrygd.dev-fss-pub.nais.io
+                -   host: grunn-og-hjelpestonad-infotrygd.dev-fss-pub.nais.io
                 -   host: etterlatte-unleash-api.nav.cloud.nais.io
                 -   host: familie-integrasjoner.dev-fss-pub.nais.io
                 -   host: saf-q2.dev-fss-pub.nais.io
@@ -73,7 +73,7 @@ spec:
 
     # Toggle
     envFrom:
-        -   secret: gjenlevende-bs-sak-unleash-api-token
+        -   secret: grunn-og-hjelpestonad-unleash-api-token
 
     # Helse
     liveness:
@@ -105,6 +105,7 @@ spec:
             tenant: trygdeetaten.no
             claims:
                 groups:
+                    # TODO: Oppdater gruppenavn og GUID-er til grunn-og-hjelp når nye grupper er opprettet.
                     -   id: 5b6745de-b65d-40eb-a6f5-860c8b61c27f # 0000-GA-GJENNY_SAKSBEHANDLER
                     -   id: 70cfce24-7865-4676-9fdc-b676e90bfc92 # 0000-GA-GJENNY_ATTESTERING
                     -   id: 609a78e7-e0bd-491c-a63b-96a09ec62b9b # 0000-GA-GJENNY_LES
@@ -113,7 +114,7 @@ spec:
                     - "NAVident"
                     - "azp_name"
             replyURLs:
-                - https://gjenlevende-bs-sak.intern.dev.nav.no/swagger-ui/oauth2-redirect.html
+                - https://grunn-og-hjelpestonad.intern.dev.nav.no/swagger-ui/oauth2-redirect.html
                 - http://localhost:8080/oauth2/callback # TODO: Denne skal fjernes ved merge, kun for lokal-testing
                 - http://localhost:8080/swagger-ui/oauth2-redirect.html # TODO: Denne skal fjernes ved merge, kun for lokal-testing
             singlePageApplication: true

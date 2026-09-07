@@ -1,6 +1,6 @@
 # Frontend
 
-Saksbehandlingsflate for gjenlevende barnetilsyn og skolepenger.
+Saksbehandlingsflate for grunn- og hjelpestønad.
 
 Denne appen er én av tre i monorepoet — se [rot-README](../../README.md) for oversikt.
 **Alle kommandoer under kjøres fra `apps/frontend`.**
@@ -36,21 +36,10 @@ For å kunne installere private @navikt-pakker fra GitHub Package Registry treng
 
 ### 2. Hent og sett miljøvariabler
 
-Scriptet henter nødvendige hemmeligheter fra Kubernetes og oppretter en lokal `.env`-fil.
-
-**NB:** Du må være pålogget Naisdevice.
+Scriptet oppretter en lokal `.env`-fil og konfigurerer Authorization Code Flow mot mock OAuth-serveren.
 
 ```bash
 sh hent-og-lagre-miljovariabler.sh
-```
-
-Scriptet setter opp frontend til å gå mot preprod som default.
-
-For å kjøre frontend mot lokal backend fjern `#` fra følgende variabler i `.env`:
-
-```bash
-ENV=lokalt
-ACCESS_TOKEN_LOKALT=$ACCESS_TOKEN_LOKALT
 ```
 
 ### 3. Start utviklingsserver
@@ -59,4 +48,4 @@ ACCESS_TOKEN_LOKALT=$ACCESS_TOKEN_LOKALT
 npm run dev
 ```
 
-Applikasjonen er tilgjengelig på http://localhost:8080/
+Applikasjonen er tilgjengelig på http://localhost:8080/. Første sidevisning fullfører Authorization Code Flow automatisk mot mock-serveren.

@@ -9,10 +9,10 @@
         <relativePath/>
     </parent>
     <groupId>no.nav</groupId>
-    <artifactId>gjenlevende-bs-sak</artifactId>
+    <artifactId>grunn-og-hjelpestonad</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>gjenlevende-bs-sak</name>
-    <description>gjenlevende-bs-sak</description>
+    <name>grunn-og-hjelpestonad</name>
+    <description>grunn-og-hjelpestonad</description>
     <repositories>
         <repository>
             <id>confluent</id>

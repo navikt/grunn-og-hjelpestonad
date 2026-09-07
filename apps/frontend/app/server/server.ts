@@ -2,16 +2,13 @@ import express, { type Request, type Response } from "express";
 import { createRequestListener } from "@react-router/node";
 import type { ServerBuild } from "react-router";
 import type { ViteDevServer } from "vite";
-import cookieParser from "cookie-parser";
 import { AsyncLocalStorage } from "node:async_hooks";
 import "dotenv/config";
-import { initializeAuth, handleLogin, handleCallback, handleLogout } from "./auth.js";
+import { registerLocalAuthRoutes, setupLocalAuth } from "./local-auth.js";
 import type { Saksbehandler } from "./types.js";
 import { MILJØ } from "./env.js";
 import { hentSaksbehandlerFraHeaders } from "./utils/token.js";
 import { lagApiProxy } from "./api-proxy.js";
-import { kreverAuthMiddleware } from "./auth-middleware.js";
-import { session, lagSessionMiddleware } from "./session.js";
 import { lagViteDevServer } from "./vite-dev.js";
 
 const PORT_NUMMER = process.env.PORT;
@@ -23,10 +20,7 @@ const hentBackendUrl = (): string => {
   if (MILJØ.env === "lokalt") {
     return "http://localhost:8082";
   }
-  if (MILJØ.erLokaltMotPreprod) {
-    return "https://gjenlevende-bs-sak.intern.dev.nav.no";
-  }
-  return "http://gjenlevende-bs-sak";
+  return "http://grunn-og-hjelpestonad";
 };
 
 const BACKEND_URL = hentBackendUrl();
@@ -37,19 +31,9 @@ if (!BACKEND_URL) {
 
 console.log(`Backend URL: ${BACKEND_URL} (ENV: ${MILJØ.env})`);
 
-declare module "express-session" {
-  interface SessionData {
-    user?: Saksbehandler;
-    state?: string;
-    nonce?: string;
-    codeVerifier?: string;
-  }
-}
+const erLokaltMiljø = MILJØ.erLokalt;
 
-const erLokaltMiljø = MILJØ.erLokalt || MILJØ.erLokaltMotPreprod;
-const skalBrukeViteDevServer = MILJØ.erLokalt || MILJØ.erLokaltMotPreprod;
-
-const viteDevServer: ViteDevServer | undefined = skalBrukeViteDevServer
+const viteDevServer: ViteDevServer | undefined = erLokaltMiljø
   ? await lagViteDevServer()
   : undefined;
 
@@ -57,20 +41,7 @@ const app = express();
 const saksbehandlerStorage = new AsyncLocalStorage<Saksbehandler | undefined>();
 
 if (erLokaltMiljø) {
-  app.use(cookieParser());
-  app.use(session(lagSessionMiddleware()));
-
-  if (MILJØ.erLokaltMotPreprod && process.env.CLIENT_ID && process.env.CLIENT_SECRET) {
-    initializeAuth({
-      clientId: process.env.CLIENT_ID,
-      clientSecret: process.env.CLIENT_SECRET,
-      redirectUri: `http://localhost:${PORT_NUMMER}/oauth2/callback`,
-    });
-  }
-}
-
-function hentSaksbehandlerInfoFraHeaders(req: Request): Saksbehandler | undefined {
-  return hentSaksbehandlerFraHeaders(req);
+  setupLocalAuth(app, PORT_NUMMER);
 }
 
 app.get("/isAlive", (_req: Request, res: Response) => {
@@ -94,11 +65,7 @@ app.use(
 app.use("/api", lagApiProxy(BACKEND_URL, erLokaltMiljø));
 
 if (erLokaltMiljø) {
-  app.get("/oauth2/login", handleLogin);
-  app.get("/oauth2/callback", handleCallback);
-  app.get("/oauth2/logout", handleLogout);
-
-  app.use(kreverAuthMiddleware);
+  registerLocalAuthRoutes(app);
 } else {
   app.get("/oauth2/logout", (_req: Request, res: Response) => {
     res.redirect("/oauth2/logout");
@@ -138,8 +105,8 @@ const requestListener = createRequestListener({
 
 app.all("*splat", (req, res) => {
   const saksbehandler = erLokaltMiljø
-    ? req.session?.user || undefined
-    : hentSaksbehandlerInfoFraHeaders(req);
+    ? req.session?.localAuthUser || undefined
+    : hentSaksbehandlerFraHeaders(req);
 
   saksbehandlerStorage.run(saksbehandler, () => {
     requestListener(req, res);

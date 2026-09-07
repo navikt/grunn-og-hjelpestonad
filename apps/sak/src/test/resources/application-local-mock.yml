@@ -10,7 +10,7 @@ spring:
     main:
         allow-bean-definition-overriding: true
     datasource:
-        url: jdbc:postgresql://localhost:5432/gjenlevende-bs-sak
+        url: jdbc:postgresql://localhost:5432/grunn-og-hjelpestonad
         driver-class-name: org.postgresql.Driver
         username: postgres
         password: test
@@ -28,6 +28,10 @@ spring:
                     audiences: default
 
 # Azure AD mock konfigurasjon
+AZURE_OPENID_CONFIG_ISSUER: http://localhost:8089/default
+AZURE_APP_CLIENT_ID: mock-client-id
+AZURE_APP_TENANT_ID: mock-tenant-id
+
 azure:
     app:
         tenant:
@@ -41,8 +45,12 @@ AZUREAD_TOKEN_ENDPOINT_URL: http://localhost:8089/default/token
 AUTHORIZATION_URL: http://localhost:8089/default/authorize
 API_SCOPE: mock-scope
 
+# Entra proxy -> WireMock
+ENTRA_PROXY_URL: http://localhost:8090
+ENTRA_PROXY_SCOPE: mock-scope
+
 # Infotrygd
-gjenlevende-bs-infotrygd:
+grunn-og-hjelpestonad-infotrygd:
     url: http://localhost:8090
     audience: mock-scope
 

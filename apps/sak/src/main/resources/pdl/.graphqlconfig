@@ -6,7 +6,7 @@
       "PDL GraphQL Endpoint": {
         "url": "https://pdl-api.dev.adeo.no/graphql",
         "headers": {
-          "user-agent": "gjenlevende-bs-sak"
+          "user-agent": "grunn-og-hjelpestonad"
         },
         "introspect": false
       }

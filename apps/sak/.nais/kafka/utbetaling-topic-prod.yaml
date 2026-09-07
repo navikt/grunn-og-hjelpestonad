@@ -16,7 +16,7 @@ spec:
         retentionHours: 720
     acl:
         -   team: etterlatte
-            application: gjenlevende-bs-sak
+            application: grunn-og-hjelpestonad
             access: readwrite
         -   team: helved
             application: peisschtappern

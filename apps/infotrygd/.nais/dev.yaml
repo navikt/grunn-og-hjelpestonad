@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-    name: gjenlevende-bs-infotrygd
+    name: grunn-og-hjelpestonad-infotrygd
     namespace: etterlatte
 
 spec:
@@ -38,17 +38,17 @@ spec:
 
     # Nettverk
     ingresses:
-        - https://gjenlevende-bs-infotrygd.dev-fss-pub.nais.io
+        - https://grunn-og-hjelpestonad-infotrygd.dev-fss-pub.nais.io
     accessPolicy:
         inbound:
             rules:
-                -   application: gjenlevende-bs-sak
+                -   application: grunn-og-hjelpestonad
                     cluster: dev-gcp
-                -   application: gjenlevende-bs-sak-lokal
+                -   application: grunn-og-hjelpestonad-lokal
                     cluster: dev-gcp
         outbound:
             rules:
-                -   application: gjenlevende-bs-sak
+                -   application: grunn-og-hjelpestonad
                     cluster: dev-gcp
 
                     # Team logs
@@ -85,6 +85,7 @@ spec:
             tenant: trygdeetaten.no
             claims:
                 groups:
+                    # TODO: Oppdater gruppenavn og GUID-er til grunn-og-hjelp når nye grupper er opprettet.
                     -   id: 5b6745de-b65d-40eb-a6f5-860c8b61c27f # 0000-GA-GJENNY_SAKSBEHANDLER
                     -   id: 70cfce24-7865-4676-9fdc-b676e90bfc92 # 0000-GA-GJENNY_ATTESTERING
                     -   id: 609a78e7-e0bd-491c-a63b-96a09ec62b9b # 0000-GA-GJENNY_LES

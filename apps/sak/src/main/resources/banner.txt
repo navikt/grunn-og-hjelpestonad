@@ -29,4 +29,4 @@
  \____|/ |\___|_| |_|_|\___| \_/ \___|_| |_|\__,_|\___|     |____/____/     |____/ \__,_|_|\_\
      |__/
 
-:: Gjenlevende BS Sak :: Spring Boot ${spring-boot.version} ::
+:: Grunn- og hjelpestønad Sak :: Spring Boot ${spring-boot.version} ::

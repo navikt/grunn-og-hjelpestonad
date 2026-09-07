@@ -31,7 +31,7 @@ export const Header: React.FC = () => {
   return (
     <InternalHeader>
       <InternalHeader.Title as="a" href="/">
-        Gjenlevende BS
+        Grunn- og hjelpestønad
       </InternalHeader.Title>
       <Spacer />
 
