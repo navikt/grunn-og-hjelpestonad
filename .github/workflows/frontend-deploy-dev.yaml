@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - ikkemain
+      - main
     paths:
       - "apps/frontend/**"
       - ".github/workflows/frontend-deploy-dev.yaml"
