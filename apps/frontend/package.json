@@ -4,7 +4,7 @@
   "scripts": {
     "build": "react-router build",
     "build:server": "tsc ./app/server/server.ts --outDir dist --target es2022 --module esnext --moduleResolution bundler --allowImportingTsExtensions false",
-    "dev": "tsx ./app/server/server.ts",
+    "dev": "tsx --env-file=.env ./app/server/server.ts",
     "dev:vite": "react-router dev",
     "lint": "eslint . --max-warnings=0",
     "start": "node dist/server.js",
@@ -21,7 +21,6 @@
     "@react-router/serve": "7.15.0",
     "cookie-parser": "1.4.7",
     "date-fns": "^4.4.0",
-    "dotenv": "17.4.2",
     "express": "5.2.1",
     "express-session": "1.19.0",
     "isbot": "5.1.44",

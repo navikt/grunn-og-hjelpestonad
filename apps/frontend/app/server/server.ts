@@ -3,7 +3,6 @@ import { createRequestListener } from "@react-router/node";
 import type { ServerBuild } from "react-router";
 import type { ViteDevServer } from "vite";
 import { AsyncLocalStorage } from "node:async_hooks";
-import "dotenv/config";
 import { registerLocalAuthRoutes, setupLocalAuth } from "./local-auth.js";
 import type { Saksbehandler } from "./types.js";
 import { MILJØ } from "./env.js";
