@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([
@@ -49,14 +50,5 @@ export default defineConfig([
   },
   tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
-  {
-    plugins: {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      "react-hooks": require("eslint-plugin-react-hooks"),
-    },
-    rules: {
-      "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn",
-    },
-  },
+  reactHooks.configs.flat["recommended-latest"],
 ]);
