@@ -2,7 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "ESNext",
-    "target": "ES2022",
+    "target": "ES2025",
+    "lib": ["DOM", "DOM.Iterable", "ES2025"],
     "moduleResolution": "Bundler",
     "rootDir": "app/server",
     "outDir": "dist",
