@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/java21-debian12:nonroot
+FROM gcr.io/distroless/java25-debian13:nonroot
 ENV TZ="Europe/Oslo"
 COPY target/grunn-og-hjelpestonad.jar /app/app.jar
 ENV JDK_JAVA_OPTIONS="-XX:MaxRAMPercentage=75"
