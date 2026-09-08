@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { hentAccessToken } from "./utils/token.js";
 import { exchangeTokenForBackend } from "./obo-token-exchange.js";
 
-const GRUNN_OG_HJELPESTONAD_AUDIENCE = "api://dev-gcp.etterlatte.grunn-og-hjelpestonad/.default";
+const GRUNN_OG_HJELPESTONAD_AUDIENCE = "api://dev-gcp.grunn-og-hjelp.grunn-og-hjelpestonad/.default";
 
 const byggBackendUrl = (backendUrl: string, req: Request, backendApiPrefix: string): string => {
   return `${backendUrl}${backendApiPrefix}${req.url}`;
