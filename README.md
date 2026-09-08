@@ -10,7 +10,7 @@ Monorepo for saksbehandling av **grunn- og hjelpestønad**.
 | App | Katalog | Teknologi | Nais-app | Cluster |
 |-----|---------|-----------|----------|---------|
 | **Sak** (backend) | [`apps/sak`](apps/sak) | Kotlin / Spring Boot / Maven / PostgreSQL | `grunn-og-hjelpestonad` | `dev-gcp` |
-| **Frontend** | [`apps/frontend`](apps/frontend) | TypeScript / React Router 7 / Express / Node | `grunn-og-hjelpestonad-frontend` | `dev-gcp` |
+| **Frontend** | [`apps/frontend`](apps/frontend) | TypeScript / React Router 8 / Express / Node | `grunn-og-hjelpestonad-frontend` | `dev-gcp` |
 | **Infotrygd** | [`apps/infotrygd`](apps/infotrygd) | Kotlin / Spring Boot / Maven / Oracle | `grunn-og-hjelpestonad-infotrygd` | `dev-fss` |
 
 Appene er selvstendige og har hver sin build- og deploy-pipeline. Det finnes ingen felles

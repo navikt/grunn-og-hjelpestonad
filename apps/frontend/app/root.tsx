@@ -8,17 +8,17 @@ import {
   ScrollRestoration,
 } from "react-router";
 import type { Route } from "./+types/root";
-import type { Saksbehandler } from "~/server/types";
 import Header from "~/komponenter/header/Header";
 import "@navikt/ds-css";
 import "./global.css";
 import { TogglesProvider } from "./contexts/TogglesContext";
 import { TemaProvider } from "./contexts/TemaContext";
+import { envContext, saksbehandlerContext } from "./context";
 
 export async function loader({ context }: Route.LoaderArgs) {
   return {
-    saksbehandler: (context.saksbehandler || null) as Saksbehandler | null,
-    env: context.env as "lokalt" | "development" | "production",
+    saksbehandler: context.get(saksbehandlerContext),
+    env: context.get(envContext),
   };
 }
 

@@ -1,10 +1,6 @@
-import express, { type Request, type Response } from "express";
-import { createRequestListener } from "@react-router/node";
-import type { ServerBuild } from "react-router";
+import express, { type NextFunction, type Request, type RequestHandler, type Response, } from "express";
 import type { ViteDevServer } from "vite";
-import { AsyncLocalStorage } from "node:async_hooks";
 import { registerLocalAuthRoutes, setupLocalAuth } from "./local-auth.js";
-import type { Saksbehandler } from "./types.js";
 import { MILJØ } from "./env.js";
 import { hentSaksbehandlerFraHeaders } from "./utils/token.js";
 import { lagApiProxy } from "./api-proxy.js";
@@ -37,7 +33,6 @@ const viteDevServer: ViteDevServer | undefined = erLokaltMiljø
   : undefined;
 
 const app = express();
-const saksbehandlerStorage = new AsyncLocalStorage<Saksbehandler | undefined>();
 
 if (erLokaltMiljø) {
   setupLocalAuth(app, PORT_NUMMER);
@@ -85,32 +80,45 @@ if (viteDevServer) {
 
 app.use(express.static("build/client", { maxAge: "1h" }));
 
-const getBuild = async (): Promise<ServerBuild> => {
-  if (viteDevServer) {
-    return viteDevServer.ssrLoadModule("virtual:react-router/server-build") as Promise<ServerBuild>;
-  }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  return import("../build/server/index.js");
+type ReactRouterServerModule = {
+  app: RequestHandler;
 };
 
-const requestListener = createRequestListener({
-  build: getBuild,
-  getLoadContext: () => ({
-    saksbehandler: saksbehandlerStorage.getStore() || null,
-    env: MILJØ.env,
-  }),
-});
+const getReactRouterApp = async (): Promise<RequestHandler> => {
+  if (viteDevServer) {
+    const serverModule = (await viteDevServer.ssrLoadModule(
+      "./server/app.ts"
+    )) as ReactRouterServerModule;
+    return serverModule.app;
+  }
 
-app.all("*splat", (req, res) => {
-  const saksbehandler = erLokaltMiljø
-    ? req.session?.localAuthUser || undefined
-    : hentSaksbehandlerFraHeaders(req);
+  // Vite generates this module during the frontend build.
+  // @ts-expect-error The generated server module is unavailable during TypeScript compilation.
+  const serverModule = (await import("../build/server/index.js")) as ReactRouterServerModule;
+  return serverModule.app;
+};
 
-  saksbehandlerStorage.run(saksbehandler, () => {
-    requestListener(req, res);
-  });
-});
+const handleReactRouterRequest = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  res.locals.saksbehandler = erLokaltMiljø
+      ? (req.session?.localAuthUser || undefined)
+      : hentSaksbehandlerFraHeaders(req);
+
+  try {
+    const reactRouterApp = await getReactRouterApp();
+    await reactRouterApp(req, res, next);
+  } catch (error) {
+    if (viteDevServer && error instanceof Error) {
+      viteDevServer.ssrFixStacktrace(error);
+    }
+    next(error);
+  }
+};
+
+app.use(handleReactRouterRequest);
 
 app.listen(PORT_NUMMER, () => {
   if (!PORT_NUMMER) {
