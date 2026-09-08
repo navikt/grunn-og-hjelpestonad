@@ -55,7 +55,6 @@ spec:
     outbound:
       rules:
         - application: grunn-og-hjelpestonad
-        - application: etterlatte-behandling
 
   env:
     - name: APP_VERSION
