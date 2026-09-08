@@ -22,6 +22,7 @@ export default defineConfig({
     reactRouter(),
     babel({
       include: /\.[jt]sx?$/,
+      exclude: /node_modules/,
       babelConfig: {
         presets: ["@babel/preset-typescript"],
         plugins: [["babel-plugin-react-compiler", {}]],
