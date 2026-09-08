@@ -2,12 +2,14 @@ package no.nav.grunn.og.hjelpestonad.texas
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.containing
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
+import no.nav.grunn.og.hjelpestonad.config.testRestClientBuilder
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -35,6 +37,7 @@ class TexasClientTest {
                 TexasClient(
                     tokenExchangeEndpoint = "http://localhost:${wireMockServer.port()}/token/exchange",
                     tokenMachineEndpoint = "http://localhost:${wireMockServer.port()}/token",
+                    restClientBuilder = testRestClientBuilder(),
                 )
         }
 
@@ -63,6 +66,7 @@ class TexasClientTest {
         fun `returnerer token ved vellykket kall`() {
             wireMockServer.stubFor(
                 post(urlEqualTo("/token/exchange"))
+                    .withRequestBody(containing("target=api%3A%2F%2Ftarget%2F.default"))
                     .willReturn(
                         aResponse()
                             .withHeader("Content-Type", "application/json")
@@ -145,6 +149,7 @@ class TexasClientTest {
 
             wireMockServer.stubFor(
                 post(urlEqualTo("/token"))
+                    .withRequestBody(containing("target=api%3A%2F%2Ftarget%2F.default"))
                     .willReturn(
                         aResponse()
                             .withHeader("Content-Type", "application/json")

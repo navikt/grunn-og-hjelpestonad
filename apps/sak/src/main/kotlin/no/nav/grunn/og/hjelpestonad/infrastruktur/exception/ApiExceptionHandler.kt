@@ -5,7 +5,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.RestClientResponseException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 
 @ControllerAdvice(basePackages = ["no.nav.grunn.og.hjelpestonad"])
@@ -28,27 +29,20 @@ class ApiExceptionHandler {
             .body(FeilResponse(melding = e.message ?: "Ugyldig request", status = HttpStatus.BAD_REQUEST.value()))
     }
 
-    @ExceptionHandler(WebClientResponseException.Forbidden::class)
-    fun handleWebClientForbiddenException(e: WebClientResponseException.Forbidden): ResponseEntity<ManglerTilgangResponse> {
+    @ExceptionHandler(HttpClientErrorException.Forbidden::class)
+    fun handleRestClientForbiddenException(e: HttpClientErrorException.Forbidden): ResponseEntity<ManglerTilgangResponse> {
         logger.warn("Mangler tilgang til tjeneste (403)")
         return ResponseEntity
             .status(HttpStatus.FORBIDDEN)
             .body(ManglerTilgangResponse(melding = "Mangler tilgang"))
     }
 
-    @ExceptionHandler(WebClientResponseException::class)
-    fun handleWebClientResponseException(e: WebClientResponseException): ResponseEntity<FeilResponse> {
-        val feilmelding =
-            try {
-                e.responseBodyAsString
-            } catch (ex: Exception) {
-                "Feil fra downstream tjeneste"
-            }
-
-        logger.warn("WebClientResponseException: ${e.statusCode} - $feilmelding")
+    @ExceptionHandler(RestClientResponseException::class)
+    fun handleRestClientResponseException(e: RestClientResponseException): ResponseEntity<FeilResponse> {
+        logger.warn("Downstream-kall feilet med status {}", e.statusCode)
         return ResponseEntity
             .status(e.statusCode)
-            .body(FeilResponse(melding = feilmelding, status = e.statusCode.value()))
+            .body(FeilResponse(melding = "Feil fra downstream-tjeneste", status = e.statusCode.value()))
     }
 
     @ExceptionHandler(ManglerTilgang::class)

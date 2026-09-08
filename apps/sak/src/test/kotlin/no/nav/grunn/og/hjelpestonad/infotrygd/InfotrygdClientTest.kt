@@ -2,23 +2,27 @@ package no.nav.grunn.og.hjelpestonad.infotrygd
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import no.nav.grunn.og.hjelpestonad.config.testRestClientBuilder
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.http.HttpStatus
+import org.springframework.web.client.ResourceAccessException
+import java.time.Duration
 
 class InfotrygdClientTest {
     companion object {
@@ -46,13 +50,9 @@ class InfotrygdClientTest {
     fun setup() {
         client =
             InfotrygdClient(
-                infotrygdWebClient =
-                    WebClient
-                        .builder()
-                        .baseUrl("http://localhost:${wireMockServer.port()}")
-                        .defaultHeader("Content-Type", "application/json")
-                        .build(),
                 texasClient = texasClient,
+                restClientBuilder = testRestClientBuilder(),
+                infotrygdUrl = "http://localhost:${wireMockServer.port()}",
                 grunnOgHjelpestonadInfotrygdAudience = AUDIENCE,
             )
         every { texasClient.hentOboToken(AUDIENCE) } returns "gyldig-token"
@@ -66,9 +66,10 @@ class InfotrygdClientTest {
     @Nested
     inner class HentPerioderForPerson {
         @Test
-        fun `returnerer perioder ved vellykket kall`() {
+        fun `returnerer perioder og sender OBO-token ved vellykket kall`() {
             wireMockServer.stubFor(
                 post(urlEqualTo("/api/infotrygd/perioder"))
+                    .withHeader("Authorization", equalTo("Bearer gyldig-token"))
                     .willReturn(
                         aResponse()
                             .withHeader("Content-Type", "application/json")
@@ -84,25 +85,40 @@ class InfotrygdClientTest {
                     ),
             )
 
-            val resultat = client.hentPerioderForPersonSync("12345678901")
+            val resultat = client.hentPerioderForPerson("12345678901")
 
-            assertNotNull(resultat)
             assertEquals("12345678901", resultat.personident)
+            verify(exactly = 1) { texasClient.hentOboToken(AUDIENCE) }
         }
 
         @Test
-        fun `returnerer tom Mono ved 404 person ikke funnet`() {
+        fun `kaster Feil med not found ved 404`() {
             wireMockServer.stubFor(
                 post(urlEqualTo("/api/infotrygd/perioder"))
-                    .willReturn(
-                        aResponse()
-                            .withStatus(404),
-                    ),
+                    .willReturn(aResponse().withStatus(404)),
             )
 
-            val resultat = client.hentPerioderForPerson("12345678901").block()
+            val feil =
+                assertThrows(Feil::class.java) {
+                    client.hentPerioderForPerson("12345678901")
+                }
 
-            assertNull(resultat)
+            assertEquals(HttpStatus.NOT_FOUND, feil.httpStatus)
+        }
+
+        @Test
+        fun `kaster Feil med not found ved tom respons`() {
+            wireMockServer.stubFor(
+                post(urlEqualTo("/api/infotrygd/perioder"))
+                    .willReturn(aResponse().withStatus(204)),
+            )
+
+            val feil =
+                assertThrows(Feil::class.java) {
+                    client.hentPerioderForPerson("12345678901")
+                }
+
+            assertEquals(HttpStatus.NOT_FOUND, feil.httpStatus)
         }
 
         @Test
@@ -117,7 +133,39 @@ class InfotrygdClientTest {
             )
 
             assertThrows(Exception::class.java) {
-                client.hentPerioderForPersonSync("12345678901")
+                client.hentPerioderForPerson("12345678901")
+            }
+        }
+
+        @Test
+        fun `kaster ResourceAccessException ved responstimeout`() {
+            wireMockServer.stubFor(
+                post(urlEqualTo("/api/infotrygd/perioder"))
+                    .willReturn(
+                        aResponse()
+                            .withFixedDelay(500)
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(
+                                """
+                                {
+                                    "personident": "12345678901",
+                                    "barnetilsyn": [],
+                                    "skolepenger": []
+                                }
+                                """.trimIndent(),
+                            ),
+                    ),
+            )
+            val timeoutClient =
+                InfotrygdClient(
+                    texasClient = texasClient,
+                    restClientBuilder = testRestClientBuilder(readTimeout = Duration.ofMillis(100)),
+                    infotrygdUrl = "http://localhost:${wireMockServer.port()}",
+                    grunnOgHjelpestonadInfotrygdAudience = AUDIENCE,
+                )
+
+            assertThrows(ResourceAccessException::class.java) {
+                timeoutClient.hentPerioderForPerson("12345678901")
             }
         }
     }

@@ -4,41 +4,31 @@ import no.nav.grunn.og.hjelpestonad.iverksett.brev.domene.DistribuerJournalpostR
 import no.nav.grunn.og.hjelpestonad.iverksett.brev.domene.DistribuerJournalpostResponse
 import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.client.RestClient
 import java.net.URI
 
 @Component
 class DokdistClient(
-    @Value("\${DOKDIST_URL}") private val dokdistUrl: URI,
+    @Value("\${DOKDIST_URL}") dokdistUrl: URI,
     @Value("\${DOKDIST_SCOPE}") private val dokdistScope: URI,
     private val texasClient: TexasClient,
+    restClientBuilder: RestClient.Builder,
 ) {
-    val webClient =
-        WebClient
-            .builder()
-            .baseUrl(dokdistUrl.toString())
-            .defaultHeader("Content-Type", "application/json")
-            .build()
+    private val restClient = restClientBuilder.clone().baseUrl(dokdistUrl.toString()).build()
 
     fun distribuerDokument(distribuerJournalpostRequest: DistribuerJournalpostRequest) {
-        val headers =
-            HttpHeaders().apply {
-                setBearerAuth(texasClient.hentMaskinToken(targetAudience = dokdistScope.toString()))
-                this.contentType = MediaType.APPLICATION_JSON
-                this.accept = listOf(MediaType.APPLICATION_JSON)
-            }
-        webClient
+        restClient
             .post()
-            .uri { it.path(DISTRIBUER_DOKUMENT).build() }
-            .headers { it.addAll(headers) }
-            .bodyValue(distribuerJournalpostRequest)
+            .uri(DISTRIBUER_DOKUMENT)
+            .headers { it.setBearerAuth(texasClient.hentMaskinToken(dokdistScope.toString())) }
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(distribuerJournalpostRequest)
             .retrieve()
-            .bodyToMono<DistribuerJournalpostResponse>()
-            .block() ?: error("Ingen respons ved distribusjon av dokument")
+            .body(DistribuerJournalpostResponse::class.java)
+            ?: error("Ingen respons ved distribusjon av dokument")
     }
 
     companion object {

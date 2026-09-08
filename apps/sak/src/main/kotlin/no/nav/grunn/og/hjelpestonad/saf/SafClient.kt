@@ -6,31 +6,18 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Mono
-import java.time.Duration
+import org.springframework.web.client.RestClient
 import java.util.UUID
 
 @Service
 class SafClient(
     val safConfig: SafConfig,
     private val texasClient: TexasClient,
+    restClientBuilder: RestClient.Builder,
 ) {
     private val logger = LoggerFactory.getLogger(SafClient::class.java)
-
-    val safWebClient =
-        WebClient
-            .builder()
-            .baseUrl(safConfig.safUri.toString())
-            .defaultHeader("Content-Type", "application/json")
-            .build()
-
-    private val safRestWebClient =
-        WebClient
-            .builder()
-            .baseUrl(safConfig.safBaseUri.toString())
-            .build()
+    private val safGraphqlClient = restClientBuilder.clone().baseUrl(safConfig.safUri.toString()).build()
+    private val safDocumentClient = restClientBuilder.clone().baseUrl(safConfig.safBaseUri.toString()).build()
 
     fun hentSafJournalpostBrukerData(
         variables: JournalposterForBrukerRequest,
@@ -45,30 +32,23 @@ class SafClient(
 
         return try {
             val response =
-                safWebClient
+                safGraphqlClient
                     .post()
-                    .headers { it.addAll(lagSafHeaders()) }
-                    .bodyValue(request)
+                    .uri("")
+                    .headers { it.addAll(lagSafHeaders(MediaType.APPLICATION_JSON)) }
+                    .body(request)
                     .retrieve()
-                    .bodyToMono<SafJournalpostResponse>()
-                    .block() ?: throw SafException("Ingen respons fra SAF for hentSafJournalpostBrukerData")
+                    .body(SafJournalpostResponse::class.java)
+                    ?: throw SafException("Ingen respons fra SAF for hentSafJournalpostBrukerData")
 
-            val safResponse = response
+            håndterSafErrrors(response.errors, "hentSafJournalpostBrukerData")
 
-            håndterSafErrrors(safResponse.errors, "hentSafJournalpostBrukerData")
-
-            safResponse.data ?: throw SafException("Fant ingen person i SAF for brukerId")
+            response.data ?: throw SafException("Fant ingen person i SAF for brukerId")
+        } catch (e: SafException) {
+            throw e
         } catch (e: Exception) {
-            when (e) {
-                is SafException -> {
-                    throw e
-                }
-
-                else -> {
-                    logger.error("Teknisk feil ved SAF-operasjon: hentSafJournalpostBrukerData", e)
-                    throw SafException("Teknisk feil ved hentSafJournalpostBrukerData", e)
-                }
-            }
+            logger.error("Teknisk feil ved SAF-operasjon: hentSafJournalpostBrukerData", e)
+            throw SafException("Teknisk feil ved hentSafJournalpostBrukerData", e)
         }
     }
 
@@ -76,46 +56,44 @@ class SafClient(
         journalpostId: String,
         dokumentInfoId: String,
     ): ByteArray {
-        logger.info("Henter dokument fra SAF: journalpostId=$journalpostId, dokumentInfoId=$dokumentInfoId")
+        logger.info("Henter dokument fra SAF")
 
-        return safRestWebClient
-            .get()
-            .uri("/rest/hentdokument/$journalpostId/$dokumentInfoId/ARKIV")
-            .header("Authorization", "Bearer ${texasClient.hentOboToken(safConfig.safScope)}")
-            .header(NAV_CALL_ID, UUID.randomUUID().toString())
-            .accept(MediaType.APPLICATION_PDF)
-            .retrieve()
-            .bodyToMono<ByteArray>()
-            .switchIfEmpty(Mono.error(NoSuchElementException("Tomt svar fra SAF for journalpostId=$journalpostId")))
-            .timeout(Duration.ofSeconds(TIMEOUT_SEKUNDER))
-            .doOnNext { logger.info("Hentet dokument fra SAF: journalpostId=$journalpostId") }
-            .doOnError { logger.error("Feil ved henting av dokument fra SAF: journalpostId=$journalpostId: $it") }
-            .block() ?: throw RuntimeException("Klarte ikke hente dokument med journalpostId=$journalpostId")
+        return try {
+            safDocumentClient
+                .get()
+                .uri("/rest/hentdokument/{journalpostId}/{dokumentInfoId}/ARKIV", journalpostId, dokumentInfoId)
+                .headers { it.addAll(lagSafHeaders(MediaType.APPLICATION_PDF)) }
+                .retrieve()
+                .body(ByteArray::class.java)
+                ?.also { logger.info("Hentet dokument fra SAF") }
+                ?: throw NoSuchElementException("Tomt svar fra SAF")
+        } catch (e: Exception) {
+            logger.error("Feil ved henting av dokument fra SAF", e)
+            throw e
+        }
     }
 
     private fun håndterSafErrrors(
         errors: List<SafError>?,
         operasjon: String,
     ) {
-        if (errors != null && errors.isNotEmpty()) {
-            logger.error("Feil fra SAF ved $operasjon: $errors")
-            val firstError = errors.firstOrNull()
+        if (!errors.isNullOrEmpty()) {
+            logger.error("SAF returnerte {} feil ved {}", errors.size, operasjon)
             throw SafException(
-                "Feil ved $operasjon: ${firstError?.message ?: "Ukjent feil"}",
+                "Feil ved $operasjon: ${errors.first().message ?: "Ukjent feil"}",
             )
         }
     }
 
-    private fun lagSafHeaders(): HttpHeaders =
+    private fun lagSafHeaders(accept: MediaType): HttpHeaders =
         HttpHeaders().apply {
             setBearerAuth(texasClient.hentOboToken(safConfig.safScope))
             contentType = MediaType.APPLICATION_JSON
-            accept = listOf(MediaType.APPLICATION_JSON)
+            this.accept = listOf(accept)
             add(NAV_CALL_ID, UUID.randomUUID().toString())
         }
 
     companion object {
         private const val NAV_CALL_ID = "Nav-Callid"
-        private const val TIMEOUT_SEKUNDER = 10L
     }
 }

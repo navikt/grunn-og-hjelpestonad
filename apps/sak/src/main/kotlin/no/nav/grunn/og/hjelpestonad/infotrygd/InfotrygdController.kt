@@ -41,7 +41,7 @@ class InfotrygdController(
             PersonidentValidator.validerPersonident(request.personident)
 
             val response =
-                infotrygdClient.hentPerioderForPersonSync(
+                infotrygdClient.hentPerioderForPerson(
                     personident = request.personident,
                 )
 

@@ -6,12 +6,14 @@ import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import io.mockk.every
-import io.mockk.mockk
-import no.nav.grunn.og.hjelpestonad.texas.TexasClient
+import no.nav.grunn.og.hjelpestonad.config.testRestClientBuilder
+import no.nav.grunn.og.hjelpestonad.texas.StubTexasClient
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import tools.jackson.module.kotlin.jacksonObjectMapper
@@ -20,24 +22,12 @@ import java.time.LocalDate
 class PdlClientWiremockTest {
     companion object {
         private lateinit var wireMockServer: WireMockServer
-        private lateinit var pdlClient: PdlClient
 
         @BeforeAll
         @JvmStatic
         fun initClass() {
             wireMockServer = WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort())
             wireMockServer.start()
-            val texasClient =
-                mockk<TexasClient>().apply {
-                    every { hentOboToken(any()) } returns "texas-obo-token-xyz"
-                }
-
-            pdlClient =
-                PdlClient(
-                    texasClient = texasClient,
-                    pdlScope = "pdlScope",
-                    pdlUrl = "http://localhost:${wireMockServer.port()}",
-                )
         }
 
         @AfterAll
@@ -45,6 +35,26 @@ class PdlClientWiremockTest {
         fun tearDown() {
             wireMockServer.stop()
         }
+    }
+
+    private lateinit var texasClient: StubTexasClient
+    private lateinit var pdlClient: PdlClient
+
+    @BeforeEach
+    fun setup() {
+        texasClient = StubTexasClient()
+        pdlClient =
+            PdlClient(
+                texasClient = texasClient,
+                pdlScope = "pdlScope",
+                pdlUrl = "http://localhost:${wireMockServer.port()}",
+                restClientBuilder = testRestClientBuilder(),
+            )
+    }
+
+    @AfterEach
+    fun resetServer() {
+        wireMockServer.resetAll()
     }
 
     @Test
@@ -73,6 +83,23 @@ class PdlClientWiremockTest {
                 ?.first()
                 ?.etternavn,
         ).isEqualTo("Etternavn")
+        assertEquals(listOf("pdlScope"), texasClient.requestedOboAudiences)
+    }
+
+    @Test
+    fun `hentPersonData med maskintoken bruker riktig målgruppe`() {
+        stubForGraphql(lagPdlResponseHentPersonData())
+
+        val result =
+            pdlClient.hentPersonDataMaskinToken(
+                PdlRequest(
+                    query = "query {}",
+                    variables = mapOf("ident" to "123"),
+                ),
+            )
+
+        assertThat(result).isNotNull
+        assertEquals(listOf("pdlScope"), texasClient.requestedMaskinAudiences)
     }
 
     private fun stubForGraphql(response: String) {

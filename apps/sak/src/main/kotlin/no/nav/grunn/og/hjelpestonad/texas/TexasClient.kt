@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
-import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.WebClientResponseException
-import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientResponseException
+import org.springframework.web.client.body
 
 @Service
 open class TexasClient(
@@ -18,13 +18,11 @@ open class TexasClient(
     private val tokenExchangeEndpoint: String,
     @Value("\${NAIS_TOKEN_ENDPOINT}")
     private val tokenMachineEndpoint: String,
+    restClientBuilder: RestClient.Builder,
 ) {
     private val logger = LoggerFactory.getLogger(TexasClient::class.java)
 
-    private val webClient =
-        WebClient
-            .builder()
-            .build()
+    private val restClient = restClientBuilder.clone().build()
 
     open fun hentOboToken(
         targetAudience: String,
@@ -38,18 +36,18 @@ open class TexasClient(
                 formData.add("target", targetAudience)
                 formData.add("user_token", SikkerhetContext.hentBrukerToken())
 
-                webClient
+                restClient
                     .post()
                     .uri(tokenExchangeEndpoint)
-                    .body(BodyInserters.fromFormData(formData))
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(formData)
                     .retrieve()
-                    .bodyToMono<TexasTokenResponse>()
-                    .block()
-            } catch (e: WebClientResponseException) {
-                logger.error("Texas API feilet med status ${e.statusCode} og response body: ${e.responseBodyAsString}")
+                    .body<TexasTokenResponse>()
+            } catch (e: RestClientResponseException) {
+                logger.error("Texas API feilet med status {}", e.statusCode)
                 throw RuntimeException("Kunne ikke bytte token via Texas OBO: HTTP ${e.statusCode}", e)
             } catch (e: Exception) {
-                logger.error("Uventet feil ved henting av OBO token fra Texas: ${e.message}", e)
+                logger.error("Uventet feil ved henting av OBO token fra Texas", e)
                 throw RuntimeException("Kunne ikke bytte token via Texas OBO", e)
             }
 
@@ -71,18 +69,18 @@ open class TexasClient(
                 formData.add("identity_provider", "entra_id")
                 formData.add("target", targetAudience)
 
-                webClient
+                restClient
                     .post()
                     .uri(tokenMachineEndpoint)
-                    .body(BodyInserters.fromFormData(formData))
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(formData)
                     .retrieve()
-                    .bodyToMono<TexasTokenResponse>()
-                    .block()
-            } catch (e: WebClientResponseException) {
-                logger.error("Texas API feilet med status ${e.statusCode} og response body: ${e.responseBodyAsString}")
+                    .body<TexasTokenResponse>()
+            } catch (e: RestClientResponseException) {
+                logger.error("Texas API feilet med status {}", e.statusCode)
                 throw RuntimeException("Kunne ikke hente maskintoken via Texas: HTTP ${e.statusCode}", e)
             } catch (e: Exception) {
-                logger.error("Uventet feil ved henting av maskintoken fra Texas: ${e.message}", e)
+                logger.error("Uventet feil ved henting av maskintoken fra Texas", e)
                 throw RuntimeException("Kunne ikke hente maskintoken via Texas", e)
             }
 

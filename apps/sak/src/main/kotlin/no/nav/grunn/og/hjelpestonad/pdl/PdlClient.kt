@@ -13,17 +13,13 @@ import org.springframework.web.client.RestClient
 class PdlClient(
     private val texasClient: TexasClient,
     @Value("\${PDL_URL}")
-    private val pdlUrl: String,
+    pdlUrl: String,
     @Value("\${PDL_SCOPE}")
     private val pdlScope: String,
+    restClientBuilder: RestClient.Builder,
 ) {
     private val logger = LoggerFactory.getLogger(PdlClient::class.java)
-    val pdlRestClient =
-        RestClient
-            .builder()
-            .baseUrl(pdlUrl)
-            .defaultHeader("Content-Type", "application/json")
-            .build()
+    private val pdlRestClient = restClientBuilder.clone().baseUrl(pdlUrl).build()
 
     fun hentPersonDataOBOToken(
         request: PdlRequest,
@@ -116,19 +112,20 @@ class PdlClient(
     }
 
     private fun lagPdlOnBehalfOfHeaders(): HttpHeaders =
-        HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_JSON
-            set("Tema", "EYO")
-            set("behandlingsnummer", "B373")
-            set("Authorization", "Bearer ${texasClient.hentOboToken(pdlScope)}")
+        pdlHeaders().apply {
+            setBearerAuth(texasClient.hentOboToken(pdlScope))
         }
 
     private fun lagPdlMaskinTilMaskinToken(): HttpHeaders =
+        pdlHeaders().apply {
+            setBearerAuth(texasClient.hentMaskinToken(pdlScope))
+        }
+
+    private fun pdlHeaders(): HttpHeaders =
         HttpHeaders().apply {
             contentType = MediaType.APPLICATION_JSON
             set("Tema", "EYO")
             set("behandlingsnummer", "B373")
-            set("Authorization", "Bearer ${texasClient.hentMaskinToken(pdlScope)}")
         }
 
     private fun håndterPdlErrors(
@@ -137,7 +134,7 @@ class PdlClient(
     ) {
         if (errors.isNullOrEmpty()) return
 
-        logger.error("Feil fra PDL ved $operasjon: $errors")
+        logger.error("PDL returnerte {} feil ved {}", errors.size, operasjon)
 
         if (errors.any { it.extensions?.code == "unauthorized" }) {
             throw ManglerTilgang(melding = "Mangler tilgang til opplysningene for denne personen")

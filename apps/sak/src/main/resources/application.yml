@@ -11,6 +11,11 @@ spring:
     application:
         name: grunn-og-hjelpestonad
 
+    http:
+        clients:
+            connect-timeout: 5s
+            read-timeout: 10s
+
     security:
         oauth2:
             resourceserver:
