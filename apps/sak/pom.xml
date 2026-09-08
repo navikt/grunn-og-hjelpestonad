@@ -38,14 +38,14 @@
     </scm>
     <properties>
         <java.version>25</java.version>
-        <kotlin.version>2.4.0</kotlin.version>
+        <kotlin.version>2.4.20</kotlin.version>
         <kotlin.jvm.target>21</kotlin.jvm.target>
         <ktlint.version>1.8.0</ktlint.version>
-        <springdoc.version>3.0.3</springdoc.version>
-        <flyway.version>11.15.0</flyway.version>
-        <unleash.version>12.2.2</unleash.version>
+        <springdoc.version>3.1.1</springdoc.version>
+        <flyway.version>13.5.0</flyway.version>
+        <unleash.version>12.3.0</unleash.version>
         <mockk.version>1.14.11</mockk.version>
-        <prosessering.version>2.20260615101707_c105ab0</prosessering.version>
+        <prosessering.version>2.20260817115650_f13f507</prosessering.version>
 
     </properties>
     <dependencies>
@@ -212,7 +212,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.15.0</version>
+                <version>3.16.0</version>
                 <configuration>
                     <release>21</release>
                 </configuration>
