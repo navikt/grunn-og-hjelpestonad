@@ -42,7 +42,7 @@ spec:
 
     # Nettverk
     ingresses:
-        - https://grunn-og-hjelpestonad.intern.dev.nav.no
+        - https://grunn-og-hjelpestonad-backend.intern.dev.nav.no
     accessPolicy:
         inbound:
             rules:
