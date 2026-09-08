@@ -68,7 +68,7 @@ services:
             - "8090:8080"
         volumes:
             - ./wiremock:/home/wiremock
-        command: --verbose --global-response-templating
+        command: --verbose --global-response-templating --disable-http2-plain
         labels:
             - "com.docker.compose.project=grunn-og-hjelpestonad"
 
