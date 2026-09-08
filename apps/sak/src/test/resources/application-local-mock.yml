@@ -91,7 +91,7 @@ springdoc:
             client-id: mock-client-id
 
 # NAIS
-NAIS_NAMESPACE: etterlatte
+NAIS_NAMESPACE: grunn-og-hjelp
 NAIS_CLUSTER_NAME: local-mock
 
 # Task prosessering konfigurasjon

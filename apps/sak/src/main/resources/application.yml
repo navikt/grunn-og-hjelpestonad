@@ -88,7 +88,7 @@ API_SCOPE: api://${azure.app.client.id}/.default
 # Ekstern tjeneste konfigurasjon
 grunn-og-hjelpestonad-infotrygd:
     url: https://grunn-og-hjelpestonad-infotrygd.dev-fss-pub.nais.io
-    audience: api://dev-fss.etterlatte.grunn-og-hjelpestonad-infotrygd/.default
+    audience: api://dev-fss.grunn-og-hjelp.grunn-og-hjelpestonad-infotrygd/.default
 
 # Entra proxy
 ENTRA_PROXY_URL: http://entra-proxy.sikkerhetstjenesten

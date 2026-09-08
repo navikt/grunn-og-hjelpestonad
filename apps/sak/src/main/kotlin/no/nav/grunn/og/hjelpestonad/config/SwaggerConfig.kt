@@ -39,7 +39,7 @@ open class SwaggerConfig(
                     .version("1.0.0")
                     .contact(
                         Contact()
-                            .name("Team Etterlatte")
+                            .name("Team grunn- og hjelpestønad")
                             .url("https://github.com/navikt/grunn-og-hjelpestonad"),
                     ),
             ).servers(

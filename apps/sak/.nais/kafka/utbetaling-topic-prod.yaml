@@ -2,9 +2,9 @@ apiVersion: kafka.nais.io/v1
 kind: Topic
 metadata:
     name: utbetaling-bs.v1
-    namespace: etterlatte
+    namespace: grunn-og-hjelp
     labels:
-        team: etterlatte
+        team: grunn-og-hjelp
 spec:
     pool: nav-prod
     config:
@@ -15,7 +15,7 @@ spec:
         retentionBytes: -1
         retentionHours: 720
     acl:
-        -   team: etterlatte
+        -   team: grunn-og-hjelp
             application: grunn-og-hjelpestonad
             access: readwrite
         -   team: helved

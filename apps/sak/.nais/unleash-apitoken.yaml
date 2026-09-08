@@ -7,14 +7,14 @@ apiVersion: unleash.nais.io/v1
 kind: ApiToken
 metadata:
     name: grunn-og-hjelpestonad
-    namespace: etterlatte
+    namespace: grunn-og-hjelp
     labels:
-        team: etterlatte
+        team: grunn-og-hjelp
 spec:
     unleashInstance:
         apiVersion: unleash.nais.io/v1
         kind: RemoteUnleash
-        name: etterlatte
+        name: grunn-og-hjelp
     secretName: grunn-og-hjelpestonad-unleash-api-token
 
     # Specify which environment the API token should be created for.

@@ -41,7 +41,7 @@ open class MockSwaggerConfig {
                     ).version("1.0.0-mock")
                     .contact(
                         Contact()
-                            .name("Team Etterlatte")
+                            .name("Team grunn- og hjelpestønad")
                             .url("https://github.com/navikt/grunn-og-hjelpestonad"),
                     ),
             )
