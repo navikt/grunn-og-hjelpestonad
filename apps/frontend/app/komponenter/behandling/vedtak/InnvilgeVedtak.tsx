@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useMemo} from "react";
 import type {Barnetilsynperiode} from "~/komponenter/behandling/vedtak/vedtak";
 import type {Vedtak} from "~/komponenter/behandling/vedtak/vedtak";
 import {useParams} from "react-router";
@@ -29,6 +29,11 @@ interface InnvilgeVedtakProps {
     onLagreSuksess: () => void;
 }
 
+interface RedigertePerioder {
+    måned: string | null;
+    perioder: Barnetilsynperiode[];
+}
+
 const tomBarnetilsynperiode: Barnetilsynperiode = {
     datoFra: '',
     datoTil: '',
@@ -38,14 +43,67 @@ const tomBarnetilsynperiode: Barnetilsynperiode = {
     aktivitetstype: undefined,
 };
 
+const hentVedtakHistorikkFraMåned = (selectedMonth: Date, historiskVedak: HistoriskVedtakResponse): Barnetilsynperiode[] => {
+    const selectedYearMonth = format(selectedMonth, 'yyyy-MM');
+
+    if (!historiskVedak?.barnetilsynperioder) {
+        return [{
+            ...tomBarnetilsynperiode,
+            datoFra: selectedYearMonth,
+        }];
+    }
+
+    const filtrerteHistoriskePerioder = historiskVedak.barnetilsynperioder.filter(periode => {
+        const periodeTil = new Date(periode.datoTil);
+        return periodeTil >= selectedMonth;
+    }).map(periode => {
+        const periodeFra = new Date(periode.datoFra);
+        if (periodeFra < selectedMonth) {
+            return {
+                ...periode,
+                datoFra: selectedYearMonth
+            };
+        }
+        return periode;
+    });
+
+    if (filtrerteHistoriskePerioder.length === 0) {
+        return [{
+            ...tomBarnetilsynperiode,
+            datoFra: selectedYearMonth,
+        }];
+    }
+
+    const førstePeriode = filtrerteHistoriskePerioder[0];
+    const førstePeriodeYearMonth = førstePeriode.datoFra.substring(0, 7);
+
+    if (førstePeriodeYearMonth > selectedYearMonth) {
+
+        const tomPeriodeMedDatoer: Barnetilsynperiode = {
+            datoFra: selectedYearMonth,
+            datoTil: '',
+            utgifter: 0,
+            barn: [],
+            periodetype: undefined,
+            aktivitetstype: undefined,
+        };
+        return [tomPeriodeMedDatoer, ...filtrerteHistoriskePerioder];
+    }
+
+    return filtrerteHistoriskePerioder;
+};
+
 export const InnvilgeVedtak: React.FC<InnvilgeVedtakProps> = ({lagretVedtak, erLesevisning, låst, onLagreSuksess}) => {
     const {behandlingId} = useParams<{ behandlingId: string }>();
     const {behandling} = useBehandlingContext()
     const {personident } = usePersonContext();
 
-    const lagretPerioder = lagretVedtak?.barnetilsynperioder && lagretVedtak.barnetilsynperioder.length > 0
-        ? lagretVedtak.barnetilsynperioder
-        : [tomBarnetilsynperiode];
+    const lagretPerioder = useMemo(
+        () => lagretVedtak?.barnetilsynperioder && lagretVedtak.barnetilsynperioder.length > 0
+            ? lagretVedtak.barnetilsynperioder
+            : [tomBarnetilsynperiode],
+        [lagretVedtak]
+    );
 
     const {lagreVedtak, opprettFeilmelding} = useLagreVedtak();
     const {beløpsperioder, hentBeløpsperioder, beregnFeilmelding} = useHentBeløpsPerioderForVedtak();
@@ -72,70 +130,40 @@ export const InnvilgeVedtak: React.FC<InnvilgeVedtakProps> = ({lagretVedtak, erL
     );
     const revurderFraDatoFørFørsteVedtak = historiskVedtak?.fraErFørTidligsteVedtak ?? false
 
-    const [perioder, settPerioder] = useState<Barnetilsynperiode[]>(lagretPerioder);
     const [begrunnelse, settBegrunnelse] = useState<string>(lagretVedtak?.begrunnelse ?? "");
 
     useEffect(() => {
         settHarEndretMåned(false);
     }, [lagretVedtak]);
 
-    useEffect(() => {
-        const hentVedtakHistorikkFraMåned = (selectedMonth: Date, historiskVedak: HistoriskVedtakResponse): Barnetilsynperiode[] => {
-            const selectedYearMonth = format(selectedMonth, 'yyyy-MM');
-            
-            if (!historiskVedak?.barnetilsynperioder) {
-                return [{
-                    ...tomBarnetilsynperiode,
-                    datoFra: selectedYearMonth,
-                }];
-            }
+    const skalBrukeLagretVedtak = Boolean(lagretVedtak) && !harEndretMåned;
+    const grunnlagsperioder = useMemo(
+        () => erRevurdering && selectedMonth && historiskVedtak && !skalBrukeLagretVedtak
+            ? hentVedtakHistorikkFraMåned(selectedMonth, historiskVedtak)
+            : lagretPerioder,
+        [erRevurdering, selectedMonth, historiskVedtak, skalBrukeLagretVedtak, lagretPerioder]
+    );
 
-            const filtrerteHistoriskePerioder = historiskVedak.barnetilsynperioder.filter(periode => {
-                const periodeTil = new Date(periode.datoTil);
-                return periodeTil >= selectedMonth;
-            }).map(periode => {
-                const periodeFra = new Date(periode.datoFra);
-                if (periodeFra < selectedMonth) {
-                    return {
-                        ...periode,
-                        datoFra: selectedYearMonth
-                    };
-                }
-                return periode;
-            });
+    // Endringene saksbehandler gjør gjelder kun den valgte måneden. Byttes måned, faller vi
+    // tilbake til grunnlagsperiodene for den nye måneden.
+    const [redigertePerioder, settRedigertePerioder] = useState<RedigertePerioder | null>(null);
 
-            if (filtrerteHistoriskePerioder.length === 0) {
-                return [{
-                    ...tomBarnetilsynperiode,
-                    datoFra: selectedYearMonth,
-                }];
-            }
+    const perioder = redigertePerioder !== null && redigertePerioder.måned === formatertValgtMåned
+        ? redigertePerioder.perioder
+        : grunnlagsperioder;
 
-            const førstePeriode = filtrerteHistoriskePerioder[0];
-            const førstePeriodeYearMonth = førstePeriode.datoFra.substring(0, 7);
-            
-            if (førstePeriodeYearMonth > selectedYearMonth) {
+    const settPerioder: React.Dispatch<React.SetStateAction<Barnetilsynperiode[]>> = (oppdatering) => {
+        settRedigertePerioder(forrige => {
+            const gjeldende = forrige !== null && forrige.måned === formatertValgtMåned
+                ? forrige.perioder
+                : grunnlagsperioder;
 
-                const tomPeriodeMedDatoer: Barnetilsynperiode = {
-                    datoFra: format(selectedMonth, 'yyyy-MM'),
-                    datoTil: '',
-                    utgifter: 0,
-                    barn: [],
-                    periodetype: undefined,
-                    aktivitetstype: undefined,
-                };
-                return [tomPeriodeMedDatoer, ...filtrerteHistoriskePerioder];
-            }
-
-            return filtrerteHistoriskePerioder;
-        };
-
-        const skalBrukeLagretVedtak = lagretVedtak && !harEndretMåned;
-        if (erRevurdering && selectedMonth && historiskVedtak && !skalBrukeLagretVedtak) {
-            const nyePerioder = hentVedtakHistorikkFraMåned(selectedMonth, historiskVedtak);
-            settPerioder(nyePerioder);
-        }
-    }, [selectedMonth, historiskVedtak, erRevurdering, lagretVedtak, harEndretMåned]);
+            return {
+                måned: formatertValgtMåned,
+                perioder: typeof oppdatering === 'function' ? oppdatering(gjeldende) : oppdatering,
+            };
+        });
+    };
 
     const erLåst = erLesevisning || låst;
 

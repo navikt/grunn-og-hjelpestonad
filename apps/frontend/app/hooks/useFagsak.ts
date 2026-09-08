@@ -19,6 +19,7 @@ export interface FagsakRequest {
 }
 
 interface FagsakState {
+  fagsakPersonId?: string;
   fagsak: FagsakDto | null;
   melding: string | null;
   laster: boolean;
@@ -52,33 +53,21 @@ export const useFagsak = (fagsakPersonId: string | undefined) => {
   });
 
   useEffect(() => {
-    if (!fagsakPersonId) {
-      settState({
-        fagsak: null,
-        melding: null,
-        laster: false,
-      });
-      return;
-    }
+    if (!fagsakPersonId) return;
 
     let avbrutt = false;
 
     const hentFagsak = async () => {
-      settState((prev) => ({
-        ...prev,
-        melding: null,
-        laster: true,
-      }));
-
       const response = await hentEllerOpprettFagsak(fagsakPersonId);
       if (avbrutt) return;
 
       const fagsak = response.data ?? null;
 
       if (fagsak) {
-        settState({ fagsak, melding: null, laster: false });
+        settState({ fagsakPersonId, fagsak, melding: null, laster: false });
       } else {
         settState({
+          fagsakPersonId,
           fagsak: null,
           melding: response.melding || "Fagsak ikke funnet",
           laster: false,
@@ -93,5 +82,25 @@ export const useFagsak = (fagsakPersonId: string | undefined) => {
     };
   }, [fagsakPersonId]);
 
-  return state;
+  if (!fagsakPersonId) {
+    return {
+      fagsak: null,
+      melding: null,
+      laster: false,
+    };
+  }
+
+  if (state.fagsakPersonId !== fagsakPersonId) {
+    return {
+      fagsak: null,
+      melding: null,
+      laster: true,
+    };
+  }
+
+  return {
+    fagsak: state.fagsak,
+    melding: state.melding,
+    laster: state.laster,
+  };
 };

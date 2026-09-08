@@ -39,7 +39,6 @@ export default function VedtakOgBeregning() {
   const { behandlingId } = useParams<{ behandlingId: string }>();
   const { vedtak, laster: lasterVedtak } = useHentVedtak(behandlingId);
   const erLesevisning = useErLesevisning();
-  const [erFørstegangsBehandling, settErFørstegangsbehandling] = useState(false)
 
   const { vilkårState } = useVilkårVurdering(behandlingId ?? "");
   
@@ -48,12 +47,7 @@ export default function VedtakOgBeregning() {
   useMarkerStegFerdige("Vedtak og beregning", erLagret);
 
   const behandling = useBehandlingContext().behandling
-
-  React.useEffect(() => {
-    if (behandling && !behandling.forrigeBehandlingId) {
-      settErFørstegangsbehandling(true);
-    }
-  }, [behandling]);
+  const erFørstegangsBehandling = Boolean(behandling && !behandling.forrigeBehandlingId);
 
   const harSjekketInitiellLås = useRef(false);
 

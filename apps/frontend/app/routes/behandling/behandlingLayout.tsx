@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Outlet, useNavigate, useParams, useRevalidator } from "react-router";
 import { BehandlingContext, type ÅrsakState } from "~/contexts/BehandlingContext";
@@ -66,7 +66,6 @@ export default function BehandlingLayout() {
   const navigate = useNavigate();
   const henleggModalRef = useRef<HTMLDialogElement>(null);
   const { henleggBehandling, laster, henleggFeilmelding } = useHenleggBehandling();
-  const [personheaderActions, settPersonheaderActions] = useState<HTMLElement | null>(null);
 
   const {
     ansvarligSaksbehandler,
@@ -208,9 +207,13 @@ export default function BehandlingLayout() {
   const erBehandlingIverksetter = behandling?.status === "IVERKSETTER_VEDTAK";
   const kanHenlegges = behandling && !erBehandlingFerdigstilt && !erBehandlingIverksetter;
 
-  useEffect(() => {
-    settPersonheaderActions(document.getElementById("personheader-actions"));
-  }, []);
+  // Portal-målet rendres av Personheader utenfor dette komponenttreet, og finnes derfor
+  // først etter at klienten har montert. Elementet byttes aldri ut, så vi trenger ikke abonnere.
+  const personheaderActions = useSyncExternalStore(
+    () => () => {},
+    () => document.getElementById("personheader-actions"),
+    () => null
+  );
 
   const håndterHenlegg = async () => {
     if (!behandlingId) return;

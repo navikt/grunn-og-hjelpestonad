@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { apiCall, type ApiResponse } from "~/api/backend";
+import { apiCall } from "~/api/backend";
 import { erGyldigFagsakPersonId, erGyldigSøkestreng } from "~/utils/utils";
 
 interface UseSøkReturn {
@@ -19,60 +19,56 @@ export interface Søkeresultat {
   harFagsak: boolean;
 }
 
+interface FullførtSøk {
+  søkestreng: string;
+  resultat: Søkeresultat | null;
+  feilmelding: string | null;
+}
+
 export const useSøk = (): UseSøkReturn => {
   const [søk, settSøk] = useState<string>("");
-  const [søkeresultat, settSøkeresultat] = useState<Søkeresultat | null>(null);
-  const [søker, settSøker] = useState(false);
-  const [feilmelding, settFeilmelding] = useState<string | null>(null);
+  const [fullførtSøk, settFullførtSøk] = useState<FullførtSøk | null>(null);
 
-  const utførSøk = useCallback(async (søkestreng: string) => {
-    const søkPerson = (søkestreng: string): Promise<ApiResponse<Søkeresultat>> => {
-      const erFagsakPersonId = erGyldigFagsakPersonId(søkestreng);
-      const body = erFagsakPersonId ? { fagsakPersonId: søkestreng } : { personident: søkestreng };
+  const trimmetSøk = søk.trim();
+  const skalSøke = erGyldigSøkestreng(trimmetSøk);
+  const gjelderGjeldendeSøk = fullførtSøk !== null && fullførtSøk.søkestreng === trimmetSøk;
 
-      return apiCall(`/sok/person`, {
-        method: "POST",
-        body: JSON.stringify(body),
+  useEffect(() => {
+    if (!skalSøke) return;
+
+    let avbrutt = false;
+
+    const erFagsakPersonId = erGyldigFagsakPersonId(trimmetSøk);
+    const body = erFagsakPersonId ? { fagsakPersonId: trimmetSøk } : { personident: trimmetSøk };
+
+    void apiCall<Søkeresultat>(`/sok/person`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }).then((response) => {
+      if (avbrutt) return;
+
+      settFullførtSøk({
+        søkestreng: trimmetSøk,
+        resultat: response.data ?? null,
+        feilmelding: response.data ? null : (response.melding ?? "Kunne ikke utføre søket"),
       });
+    });
+
+    return () => {
+      avbrutt = true;
     };
-
-    settSøker(true);
-    settFeilmelding(null);
-    settSøkeresultat(null);
-
-    const response = await søkPerson(søkestreng);
-
-    if (response.data) {
-      settSøkeresultat(response.data);
-    } else {
-      settFeilmelding(response.melding ?? "Kunne ikke utføre søket");
-    }
-
-    settSøker(false);
-  }, []);
+  }, [trimmetSøk, skalSøke]);
 
   const tilbakestillSøk = useCallback(() => {
     settSøk("");
-    settSøkeresultat(null);
-    settFeilmelding(null);
+    settFullførtSøk(null);
   }, []);
-
-  useEffect(() => {
-    const trimmetSøk = søk.trim();
-
-    if (erGyldigSøkestreng(trimmetSøk)) {
-      utførSøk(trimmetSøk);
-    } else if (trimmetSøk === "") {
-      settSøkeresultat(null);
-      settFeilmelding(null);
-    }
-  }, [søk, utførSøk]);
 
   return {
     søk,
-    søkeresultat,
-    søker,
-    feilmelding,
+    søkeresultat: gjelderGjeldendeSøk ? fullførtSøk.resultat : null,
+    søker: skalSøke && !gjelderGjeldendeSøk,
+    feilmelding: gjelderGjeldendeSøk ? fullførtSøk.feilmelding : null,
     settSøk,
     tilbakestillSøk,
   };

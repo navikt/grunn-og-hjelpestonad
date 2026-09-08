@@ -1,5 +1,5 @@
 import { Button, HGrid, HStack, Modal, VStack } from "@navikt/ds-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { BrevmottakereListe } from "~/komponenter/brev/BrevmottakereListe";
 import { type Brevmottaker } from "~/hooks/useBrevmottaker";
 import { ManueltSøk } from "~/komponenter/brev/ManueltSøk";
@@ -20,12 +20,9 @@ export default function BrevmottakerModalInnhold({
   lukkModal,
   sendMottakereTilSak,
 }: Props) {
-  const [midlertidigMottakerliste, settMidlertidigMottakerliste] = useState<Brevmottaker[]>([]);
+  const [midlertidigMottakerliste, settMidlertidigMottakerliste] =
+    useState<Brevmottaker[]>(mottakere);
   const { behandlingId } = useBehandlingContext();
-
-  useEffect(() => {
-    settMidlertidigMottakerliste([...mottakere]);
-  }, [mottakere]);
 
   const leggTilMottaker = (mottaker: Brevmottaker) => {
     settMidlertidigMottakerliste((prev) => [...prev, mottaker]);

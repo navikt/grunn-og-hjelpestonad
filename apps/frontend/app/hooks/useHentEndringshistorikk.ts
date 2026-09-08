@@ -3,41 +3,36 @@ import { apiCall } from "~/api/backend";
 import type { BehandlingEndring } from "~/types/endringshistorikk";
 import { lyttPåEndringshistorikk } from "~/utils/endringshistorikkEvent";
 
-interface EndringshistorikkState {
-  endringshistorikk: BehandlingEndring[] | null;
-  laster: boolean;
-}
-
 export function useHentEndringshistorikk(behandlingId: string | undefined) {
-  const [state, settState] = useState<EndringshistorikkState>({
-    endringshistorikk: null,
-    laster: true,
-  });
+  const [endringshistorikk, settEndringshistorikk] = useState<BehandlingEndring[] | null>(null);
+  const [hentIndeks, settHentIndeks] = useState(0);
+  const [fullførtHenting, settFullførtHenting] = useState<string | null>(null);
 
-  const hent = useCallback(async () => {
-    if (!behandlingId) {
-      settState((prev) => ({ ...prev, laster: false }));
-      return;
-    }
+  const gjeldendeHenting = `${behandlingId}#${hentIndeks}`;
+  const laster = Boolean(behandlingId) && fullførtHenting !== gjeldendeHenting;
 
-    const response = await apiCall<BehandlingEndring[]>(
-      `/endringshistorikk/${behandlingId}`
-    );
+  const hentPåNytt = useCallback(() => settHentIndeks((indeks) => indeks + 1), []);
 
-    settState({
-      endringshistorikk: response.data ?? null,
-      laster: false,
+  useEffect(() => {
+    if (!behandlingId) return;
+
+    let avbrutt = false;
+
+    void apiCall<BehandlingEndring[]>(`/endringshistorikk/${behandlingId}`).then((respons) => {
+      if (avbrutt) return;
+
+      settEndringshistorikk(respons.data ?? null);
+      settFullførtHenting(gjeldendeHenting);
     });
-  }, [behandlingId]);
+
+    return () => {
+      avbrutt = true;
+    };
+  }, [behandlingId, gjeldendeHenting]);
 
   useEffect(() => {
-    settState((prev) => ({ ...prev, laster: true }));
-    hent();
-  }, [hent]);
+    return lyttPåEndringshistorikk(hentPåNytt);
+  }, [hentPåNytt]);
 
-  useEffect(() => {
-    return lyttPåEndringshistorikk(hent);
-  }, [hent]);
-
-  return state;
+  return { endringshistorikk, laster };
 }

@@ -105,12 +105,15 @@ export function BrevRedigering({
         header={{ heading: "Hvem skal motta brevet?" }}
         width="50rem"
       >
-        <BrevmottakerModalInnhold
-          mottakere={mottakere}
-          settMottakere={settMottakere}
-          lukkModal={() => settModalÅpen(false)}
-          sendMottakereTilSak={sendMottakereTilSak}
-        />
+        {modalÅpen && (
+          <BrevmottakerModalInnhold
+            key={JSON.stringify(mottakere)}
+            mottakere={mottakere}
+            settMottakere={settMottakere}
+            lukkModal={() => settModalÅpen(false)}
+            sendMottakereTilSak={sendMottakereTilSak}
+          />
+        )}
       </Modal>
     </>
   );

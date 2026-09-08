@@ -2,52 +2,40 @@ import { useCallback, useEffect, useState } from "react";
 import { apiCall } from "~/api/backend";
 import type { AnsvarligSaksbehandlerDto } from "~/types/saksbehandler";
 
-interface AnsvarligSaksbehandlerState {
-  ansvarligSaksbehandler: AnsvarligSaksbehandlerDto | null;
-  laster: boolean;
-}
-
 export function useHentAnsvarligSaksbehandler(behandlingId: string | undefined) {
-  const [state, settState] = useState<AnsvarligSaksbehandlerState>({
-    ansvarligSaksbehandler: null,
-    laster: true,
-  });
+  const [ansvarligSaksbehandler, settAnsvarligSaksbehandler] =
+    useState<AnsvarligSaksbehandlerDto | null>(null);
+  const [hentIndeks, settHentIndeks] = useState(0);
+  const [fullførtHenting, settFullførtHenting] = useState<string | null>(null);
 
-  const hentAnsvarligSaksbehandler = useCallback(async () => {
-    if (!behandlingId) {
-      settState((prev) => ({ ...prev, laster: false }));
-      return;
-    }
-
-    settState((prev) => ({ ...prev, laster: true }));
-
-    const response = await apiCall<AnsvarligSaksbehandlerDto>(
-      `/oppgave/ansvarlig-saksbehandler`,
-      {
-        method: "POST",
-        body: JSON.stringify({ behandlingId }),
-      }
-    );
-
-    if (response.data) {
-      settState({
-        ansvarligSaksbehandler: response.data,
-        laster: false,
-      });
-    } else {
-      settState({
-        ansvarligSaksbehandler: null,
-        laster: false,
-      });
-    }
-  }, [behandlingId]);
+  const gjeldendeHenting = `${behandlingId}#${hentIndeks}`;
+  const laster = Boolean(behandlingId) && fullførtHenting !== gjeldendeHenting;
 
   useEffect(() => {
-    hentAnsvarligSaksbehandler();
-  }, [hentAnsvarligSaksbehandler]);
+    if (!behandlingId) return;
+
+    let avbrutt = false;
+
+    void apiCall<AnsvarligSaksbehandlerDto>(`/oppgave/ansvarlig-saksbehandler`, {
+      method: "POST",
+      body: JSON.stringify({ behandlingId }),
+    }).then((respons) => {
+      if (avbrutt) return;
+
+      settAnsvarligSaksbehandler(respons.data ?? null);
+      settFullførtHenting(gjeldendeHenting);
+    });
+
+    return () => {
+      avbrutt = true;
+    };
+  }, [behandlingId, gjeldendeHenting]);
+
+  const hentPåNytt = useCallback(() => settHentIndeks((indeks) => indeks + 1), []);
 
   return {
-    ...state,
-    hentPåNytt: hentAnsvarligSaksbehandler,
+    ansvarligSaksbehandler,
+    laster,
+    hentPåNytt,
   };
 }

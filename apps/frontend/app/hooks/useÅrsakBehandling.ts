@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { ÅrsakType } from "~/types/årsak";
 import { useBehandlingContext } from "~/contexts/BehandlingContext";
 import { apiCall, type ApiResponse } from "~/api/backend";
@@ -47,19 +47,14 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
   const harEksisterendeData = årsakDataHentet && !!årsakState?.kravdato && !!årsakState?.årsak;
 
   const [laster, settLaster] = useState(false);
-  const [erLagret, settErLagret] = useState(harEksisterendeData);
-  const [låst, settLåst] = useState(harEksisterendeData);
+  const [erLagretOverstyring, settErLagretOverstyring] = useState<boolean | null>(null);
+  const [låstOverstyring, settLåstOverstyring] = useState<boolean | null>(null);
   const [feilmelding, settFeilmelding] = useState("");
 
-  const harSjekketInitiellLås = useRef(harEksisterendeData);
+  const erLagret = erLagretOverstyring ?? harEksisterendeData;
+  const låst = låstOverstyring ?? harEksisterendeData;
 
-  if (årsakDataHentet && !harSjekketInitiellLås.current) {
-    harSjekketInitiellLås.current = true;
-    if (årsakState?.kravdato && årsakState?.årsak) {
-      settLåst(true);
-      settErLagret(true);
-    }
-  }
+  const settLåst = useCallback((val: boolean) => settLåstOverstyring(val), []);
 
   useEffect(() => {
     if (!behandlingId || årsakDataHentet) return;
@@ -103,8 +98,8 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
 
   const tilbakestill = useCallback(() => {
     oppdaterÅrsakState({ kravdato: undefined, årsak: "" as ÅrsakType, beskrivelse: "" });
-    settLåst(false);
-    settErLagret(false);
+    settLåstOverstyring(false);
+    settErLagretOverstyring(false);
   }, [oppdaterÅrsakState]);
 
   const lagre = useCallback(async (): Promise<boolean> => {
@@ -133,7 +128,7 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
       });
 
       if (response.data) {
-        settErLagret(true);
+        settErLagretOverstyring(true);
         oppdaterEndringshistorikk();
         hentBehandlingPåNytt();
         return true;

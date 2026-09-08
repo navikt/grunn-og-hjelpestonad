@@ -26,6 +26,16 @@ export const useBrevmottaker = (behandlingId?: string) => {
   const { personident } = usePersonContext();
   const [mottakere, settMottakere] = useState<Brevmottaker[]>([]);
 
+  const sendMottakereTilSak = async (
+    behandlingId: string,
+    brevmottakere: Brevmottaker[]
+  ): Promise<ApiResponse<unknown>> => {
+    return apiCall(`/brevmottaker/settMottakere/${behandlingId}`, {
+      method: "POST",
+      body: JSON.stringify(brevmottakere),
+    });
+  };
+
   useEffect(() => {
     if (!behandlingId) return;
 
@@ -74,16 +84,6 @@ export const useBrevmottaker = (behandlingId?: string) => {
         }
       })
       .join(", ");
-  };
-
-  const sendMottakereTilSak = async (
-    behandlingId: string,
-    brevmottakere: Brevmottaker[]
-  ): Promise<ApiResponse<unknown>> => {
-    return apiCall(`/brevmottaker/settMottakere/${behandlingId}`, {
-      method: "POST",
-      body: JSON.stringify(brevmottakere),
-    });
   };
 
   return {

@@ -5,31 +5,38 @@ import type { TotrinnskontrollResponse } from "~/types/totrinnskontroll";
 export const useHentTotrinnskontrollStatus = (behandlingId: string | undefined) => {
   const [totrinnskontrollStatus, settTotrinnskontrollStatus] =
     useState<TotrinnskontrollResponse | null>(null);
-  const [laster, settLaster] = useState(true);
+  const [hentIndeks, settHentIndeks] = useState(0);
+  const [fullførtHenting, settFullførtHenting] = useState<string | null>(null);
 
-  const hentStatus = useCallback(async () => {
+  const gjeldendeHenting = `${behandlingId}#${hentIndeks}`;
+  const laster = Boolean(behandlingId) && fullførtHenting !== gjeldendeHenting;
+
+  useEffect(() => {
     if (!behandlingId) return;
 
-    settLaster(true);
-    try {
-      const respons = await apiCall<TotrinnskontrollResponse>(
-        `/beslutter/totrinnskontroll-status/${behandlingId}`
-      );
+    let avbrutt = false;
+
+    void apiCall<TotrinnskontrollResponse>(
+      `/beslutter/totrinnskontroll-status/${behandlingId}`
+    ).then((respons) => {
+      if (avbrutt) return;
+
       if (respons.data) {
         settTotrinnskontrollStatus(respons.data);
       }
-    } finally {
-      settLaster(false);
-    }
-  }, [behandlingId]);
+      settFullførtHenting(gjeldendeHenting);
+    });
 
-  useEffect(() => {
-    hentStatus();
-  }, [hentStatus]);
+    return () => {
+      avbrutt = true;
+    };
+  }, [behandlingId, gjeldendeHenting]);
+
+  const hentPåNytt = useCallback(() => settHentIndeks((indeks) => indeks + 1), []);
 
   return {
     totrinnskontrollStatus,
     laster,
-    hentPåNytt: hentStatus,
+    hentPåNytt,
   };
 };

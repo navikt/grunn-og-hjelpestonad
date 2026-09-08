@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from "react";
-import { apiCall, type ApiResponse } from "~/api/backend";
+import { apiCall } from "~/api/backend";
 import { type Toggles } from "~/types/toggles";
 
 export interface ToggleContext {
@@ -15,24 +15,15 @@ export const TogglesProvider: React.FC<{
   const [toggles, settToggles] = useState<Toggles>({});
   const [laster, settLaster] = useState(true);
 
-  const fetchToggles = async () => {
-    const hentToggles = async (): Promise<ApiResponse<Record<string, boolean>>> => {
-      return apiCall("/unleash/toggles");
-    };
-
-    settLaster(true);
-    const response = await hentToggles();
-
-    if (response.status) {
-      console.error("Feil ved henting av toggles:", response.status);
-    } else {
-      settToggles(response.data || {});
-    }
-    settLaster(false);
-  };
-
   useEffect(() => {
-    fetchToggles();
+    void apiCall<Record<string, boolean>>("/unleash/toggles").then((response) => {
+      if (response.status) {
+        console.error("Feil ved henting av toggles:", response.status);
+      } else {
+        settToggles(response.data || {});
+      }
+      settLaster(false);
+    });
   }, []);
 
   const value: ToggleContext = {
