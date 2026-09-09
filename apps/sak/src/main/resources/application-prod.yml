@@ -6,4 +6,5 @@ spring:
 unleash:
     enabled: false
     api:
+        url: https://grunn-og-hjelp-unleash-api.nav.cloud.nais.io/api
         token: UNLEASH_SERVER_API_TOKEN
