@@ -7,9 +7,9 @@ import { lagApiProxy } from "./api-proxy.js";
 import { lagViteDevServer } from "./vite-dev.js";
 
 const PORT_NUMMER = process.env.PORT;
-const GRUNN_OG_HJELP_BEHANDLING_URL_DEV = "http://grunn-og-hjelpestonad-backend";
+const GRUNN_OG_HJELP_BEHANDLING_URL_DEV = "http://grunn-og-hjelpestonad";
 const GRUNN_OG_HJELP_BEHANDLING_AUDIENCE_DEV =
-  "api://dev-gcp.grunn-og-hjelp.grunn-og-hjelpestonad-backend/.default";
+  "api://dev-gcp.grunn-og-hjelp.grunn-og-hjelpestonad/.default";
 
 const hentBackendUrl = (): string => {
   if (MILJØ.env === "lokalt") {
