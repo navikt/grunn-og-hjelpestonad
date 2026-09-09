@@ -35,7 +35,7 @@ open class UnleashConfig {
                 .builder()
                 .appName(appName)
                 .instanceId(appName)
-                .unleashAPI("$unleashUrl/api")
+                .unleashAPI(unleashUrl)
                 .apiKey(unleashToken)
                 .build()
 

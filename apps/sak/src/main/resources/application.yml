@@ -114,7 +114,7 @@ DOKARKIV_SCOPE: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
 DOKDIST_URL: https://dokdistfordeling.dev-fss-pub.nais.io
 DOKDIST_SCOPE: api://dev-fss.teamdokumenthandtering.dokdistfordeling/.default
 
-#SAF
+# SAF
 SAF_URL: https://saf-q2.dev-fss-pub.nais.io
 SAF_SCOPE: api://dev-fss.teamdokumenthandtering.saf/.default
 
