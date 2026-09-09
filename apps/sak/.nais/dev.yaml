@@ -105,16 +105,12 @@ spec:
             tenant: trygdeetaten.no
             claims:
                 groups:
-                    # TODO: Oppdater gruppenavn og GUID-er til grunn-og-hjelp når nye grupper er opprettet.
-                    -   id: 5b6745de-b65d-40eb-a6f5-860c8b61c27f # 0000-GA-GJENNY_SAKSBEHANDLER
-                    -   id: 70cfce24-7865-4676-9fdc-b676e90bfc92 # 0000-GA-GJENNY_ATTESTERING
-                    -   id: 609a78e7-e0bd-491c-a63b-96a09ec62b9b # 0000-GA-GJENNY_LES
-                    -   id: 928636f4-fd0d-4149-978e-a6fb68bb19de # prosessering.rolle - (0000-GA-STDAPPS)
+                    - id: 7ce9d1d2-d149-4324-832b-8d459762a102 # Saksbehandler
+                    - id: 84c4a287-abd6-46c1-bf93-dbf90f1a326d # Beslutter
+                    - id: a181921e-2a55-4198-896b-0086cc805278 # Lesetilgang
                 extra:
                     - "NAVident"
                     - "azp_name"
             replyURLs:
-                - https://grunn-og-hjelpestonad.intern.dev.nav.no/swagger-ui/oauth2-redirect.html
-                - http://localhost:8080/oauth2/callback # TODO: Denne skal fjernes ved merge, kun for lokal-testing
-                - http://localhost:8080/swagger-ui/oauth2-redirect.html # TODO: Denne skal fjernes ved merge, kun for lokal-testing
+                - https://grunn-og-hjelpestonad-backend.intern.dev.nav.no/swagger-ui/oauth2-redirect.html
             singlePageApplication: true

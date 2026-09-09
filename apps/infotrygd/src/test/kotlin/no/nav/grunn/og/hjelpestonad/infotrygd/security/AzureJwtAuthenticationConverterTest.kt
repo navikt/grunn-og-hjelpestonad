@@ -29,7 +29,7 @@ class AzureJwtAuthenticationConverterTest {
     }
 
     @Test
-    fun `skal konvertere gyldig token med attestering rolle`() {
+    fun `skal konvertere gyldig token med beslutter rolle`() {
         val jwt = JwtTestHelper.opprettAttestererToken(navIdent = "B123456")
 
         val resultat = converter.convert(jwt)
@@ -40,7 +40,7 @@ class AzureJwtAuthenticationConverterTest {
         val authorities = authToken.authorities.map { it.authority }
 
         assertEquals(1, authorities.size)
-        assertTrue(authorities.contains("ROLE_ATTESTERING"))
+        assertTrue(authorities.contains("ROLE_BESLUTTER"))
     }
 
     @Test
@@ -71,7 +71,7 @@ class AzureJwtAuthenticationConverterTest {
 
         assertEquals(2, authorities.size)
         assertTrue(authorities.contains("ROLE_SAKSBEHANDLER"))
-        assertTrue(authorities.contains("ROLE_ATTESTERING"))
+        assertTrue(authorities.contains("ROLE_BESLUTTER"))
     }
 
     @Test
@@ -87,7 +87,7 @@ class AzureJwtAuthenticationConverterTest {
 
         assertEquals(3, authorities.size)
         assertTrue(authorities.contains("ROLE_SAKSBEHANDLER"))
-        assertTrue(authorities.contains("ROLE_ATTESTERING"))
+        assertTrue(authorities.contains("ROLE_BESLUTTER"))
         assertTrue(authorities.contains("ROLE_LES"))
     }
 
@@ -148,9 +148,9 @@ class AzureJwtAuthenticationConverterTest {
                 navIdent = "MIKSED123",
                 azureGrupper =
                     listOf(
-                        "5b6745de-b65d-40eb-a6f5-860c8b61c27f", // SAKSBEHANDLER
+                        "7ce9d1d2-d149-4324-832b-8d459762a102", // SAKSBEHANDLER
                         "00000000-0000-0000-0000-000000000000", // Ukjent gruppe
-                        "70cfce24-7865-4676-9fdc-b676e90bfc92", // ATTESTERING
+                        "84c4a287-abd6-46c1-bf93-dbf90f1a326d", // BESLUTTER
                     ),
             )
 
@@ -160,6 +160,6 @@ class AzureJwtAuthenticationConverterTest {
 
         assertEquals(2, authorities.size)
         assertTrue(authorities.contains("ROLE_SAKSBEHANDLER"))
-        assertTrue(authorities.contains("ROLE_ATTESTERING"))
+        assertTrue(authorities.contains("ROLE_BESLUTTER"))
     }
 }

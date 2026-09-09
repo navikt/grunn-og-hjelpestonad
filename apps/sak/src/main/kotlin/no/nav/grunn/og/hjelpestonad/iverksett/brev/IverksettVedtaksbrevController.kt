@@ -22,7 +22,7 @@ class IverksettVedtaksbrevController(
     private val distribuerVedtaksbrevTask: DistribuerVedtaksbrevTask,
 ) {
     @PostMapping("/lag-iverksettVedtaksbrevController-task/{behandlingId}")
-    @PreAuthorize("hasRole('ATTESTERING')")
+    @PreAuthorize("hasRole('BESLUTTER')")
     @Operation(
         summary = "Oppretter brev-task",
         description = "Lager task som genererer pdf-brev",
@@ -37,7 +37,7 @@ class IverksettVedtaksbrevController(
     }
 
     @PostMapping("/distribuer-vedtaksbrev/{behandlingId}")
-    @PreAuthorize("hasRole('ATTESTERING')")
+    @PreAuthorize("hasRole('BESLUTTER')")
     @Operation(
         summary = "Distribuerer vedtaksbrev",
         description = "Testendepunkt for å distribuere vedtaksbrev basert på behandlingId",

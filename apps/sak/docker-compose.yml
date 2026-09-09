@@ -42,7 +42,7 @@ services:
                           "claims": {
                             "NAVident": "A123456",
                             "groups": [
-                              "5b6745de-b65d-40eb-a6f5-860c8b61c27f"
+                              "7ce9d1d2-d149-4324-832b-8d459762a102"
                             ],
                             "name": "Mock Saksbehandler",
                             "preferred_username": "mock.saksbehandler@nav.no",

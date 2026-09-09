@@ -9,9 +9,9 @@ object JwtTestHelper {
     private const val TEST_SUBJECT = "test-subject-123"
     private const val TEST_AUDIENCE = "test-client-id"
 
-    private const val AZURE_GROUP_ID_SAKSBEHANDLER = "5b6745de-b65d-40eb-a6f5-860c8b61c27f"
-    private const val AZURE_GROUP_ID_ATTESTERING = "70cfce24-7865-4676-9fdc-b676e90bfc92"
-    private const val AZURE_GROUP_ID_LES = "609a78e7-e0bd-491c-a63b-96a09ec62b9b"
+    private const val AZURE_GROUP_ID_SAKSBEHANDLER = "7ce9d1d2-d149-4324-832b-8d459762a102"
+    private const val AZURE_GROUP_ID_BESLUTTER = "84c4a287-abd6-46c1-bf93-dbf90f1a326d"
+    private const val AZURE_GROUP_ID_LESETILGANG = "a181921e-2a55-4198-896b-0086cc805278"
 
     fun opprettGyldigToken(
         navIdent: String = "A123456",
@@ -122,13 +122,13 @@ object JwtTestHelper {
     fun opprettAttestererToken(navIdent: String = "B123456"): Jwt =
         opprettGyldigToken(
             navIdent = navIdent,
-            azureGrupper = listOf(AZURE_GROUP_ID_ATTESTERING),
+            azureGrupper = listOf(AZURE_GROUP_ID_BESLUTTER),
         )
 
     fun opprettLeserToken(navIdent: String = "V123456"): Jwt =
         opprettGyldigToken(
             navIdent = navIdent,
-            azureGrupper = listOf(AZURE_GROUP_ID_LES),
+            azureGrupper = listOf(AZURE_GROUP_ID_LESETILGANG),
         )
 
     fun opprettSaksbehandlerOgAttestererToken(navIdent: String = "AB12345"): Jwt =
@@ -137,7 +137,7 @@ object JwtTestHelper {
             azureGrupper =
                 listOf(
                     AZURE_GROUP_ID_SAKSBEHANDLER,
-                    AZURE_GROUP_ID_ATTESTERING,
+                    AZURE_GROUP_ID_BESLUTTER,
                 ),
         )
 
@@ -147,8 +147,8 @@ object JwtTestHelper {
             azureGrupper =
                 listOf(
                     AZURE_GROUP_ID_SAKSBEHANDLER,
-                    AZURE_GROUP_ID_ATTESTERING,
-                    AZURE_GROUP_ID_LES,
+                    AZURE_GROUP_ID_BESLUTTER,
+                    AZURE_GROUP_ID_LESETILGANG,
                 ),
         )
 }

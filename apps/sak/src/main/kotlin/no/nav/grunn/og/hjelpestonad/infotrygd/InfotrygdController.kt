@@ -26,7 +26,7 @@ class InfotrygdController(
     private val logger = LoggerFactory.getLogger(InfotrygdController::class.java)
 
     @PostMapping("/perioder")
-    @PreAuthorize("hasRole('SAKSBEHANDLER') and hasRole('ATTESTERING') and hasRole('LES')")
+    @PreAuthorize("hasRole('SAKSBEHANDLER') and hasRole('BESLUTTER') and hasRole('LES')")
     @Operation(
         summary = "Hent vedtaksperioder for person fra Infotrygd",
         description = "Henter alle vedtaksperioder for en gitt person basert på personident.",

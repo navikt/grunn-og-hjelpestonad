@@ -25,7 +25,7 @@ class SafController(
         return ResponseEntity.ok(data)
     }
 
-    @PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('ATTESTERING')")
+    @PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('BESLUTTER')")
     @GetMapping(
         path = ["/{journalpostId}/dokument-pdf/{dokumentInfoId}", "/{journalpostId}/dokument-pdf/{dokumentInfoId}/{filnavn}"],
         produces = [MediaType.APPLICATION_PDF_VALUE],

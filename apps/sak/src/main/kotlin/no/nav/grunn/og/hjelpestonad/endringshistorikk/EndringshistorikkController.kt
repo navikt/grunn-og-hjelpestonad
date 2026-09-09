@@ -12,7 +12,7 @@ import java.util.UUID
 
 @RestController
 @Tilgangskontroll
-@PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('ATTESTERING')")
+@PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('BESLUTTER')")
 @RequestMapping(path = ["/api/endringshistorikk"])
 @Tag(name = "EndringshistorikkController", description = "Endepunkter for endringshistorikk")
 class EndringshistorikkController(

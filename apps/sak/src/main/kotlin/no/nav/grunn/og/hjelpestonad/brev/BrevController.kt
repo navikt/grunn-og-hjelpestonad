@@ -24,7 +24,7 @@ class BrevController(
     private val taskService: TaskService,
 ) {
     @PostMapping("/lag-task/{behandlingId}") // TODO renames til beslutte-behandling elr noe sånt
-    @PreAuthorize("hasRole('ATTESTERING')")
+    @PreAuthorize("hasRole('BESLUTTER')")
     @Operation(
         summary = "Oppretter brev-task",
         description = "Lager task som genererer pdf-brev",
@@ -54,7 +54,7 @@ class BrevController(
     }
 
     @GetMapping("/hentMellomlagretBrev/{behandlingId}")
-    @PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('ATTESTERING')")
+    @PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('BESLUTTER')")
     @Operation(
         summary = "Henter mellomlagret brev",
         description = "Returnerer brevJson for gitt behandlingId",

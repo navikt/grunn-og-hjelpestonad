@@ -19,7 +19,7 @@ open class InfotrygdController(
     private val logger = LoggerFactory.getLogger(InfotrygdController::class.java)
 
     @PostMapping("/perioder")
-    @PreAuthorize("hasRole('SAKSBEHANDLER') and hasRole('ATTESTERING') and hasRole('LES')")
+    @PreAuthorize("hasRole('SAKSBEHANDLER') and hasRole('BESLUTTER') and hasRole('LES')")
     fun hentPerioderForPerson(
         @RequestBody request: VedtakPeriodeRequest,
     ): ResponseEntity<VedtakPeriodeResponse> =
