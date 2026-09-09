@@ -73,7 +73,7 @@ spec:
 
     # Toggle
     envFrom:
-        -   secret: grunn-og-hjelpestonad-unleash-api-token
+        -   secret: grunn-og-hjelpestonad
 
     # Helse
     liveness:
