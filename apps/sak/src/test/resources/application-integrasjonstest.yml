@@ -64,10 +64,10 @@ DB_JDBC_URL: jdbc:tc:postgresql:17:///testdb
 # Unleash konfigurasjon (Feature Toggles)
 unleash:
     enabled: false
-
-UNLEASH_SERVER_API_URL: http://localhost:4242/api
-UNLEASH_SERVER_API_TOKEN: token
-UNLEASH_SERVER_API_ENV: server-env
+    api:
+        url: http://localhost:4242/api
+        env: development
+        token: ${UNLEASH_SERVER_API_TOKEN:test_token}
 
 # Kafka (dummy-verdier for tester)
 KAFKA_SCHEMA_REGISTRY: http://localhost:8081

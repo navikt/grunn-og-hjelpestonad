@@ -155,3 +155,7 @@ prosessering:
     delete:
         after:
             weeks: 16
+
+unleash:
+    api:
+        url: http://localhost:4242/api

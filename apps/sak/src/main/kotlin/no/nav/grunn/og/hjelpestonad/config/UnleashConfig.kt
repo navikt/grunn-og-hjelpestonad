@@ -14,22 +14,17 @@ import org.springframework.context.annotation.Profile
 open class UnleashConfig {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @Value("\${UNLEASH_SERVER_API_URL}")
+    @Value("\${unleash.api.url}")
     private lateinit var unleashUrl: String
 
-    @Value("\${UNLEASH_SERVER_API_TOKEN}")
+    @Value("\${unleash.api.token}")
     private lateinit var unleashToken: String
 
     @Value("\${NAIS_APP_NAME}")
     private lateinit var appName: String
 
-    @Value("\${UNLEASH_SERVER_API_ENV}")
-    private lateinit var environment: String
-
     @Bean
     open fun unleash(): Unleash {
-        logger.info("Konfigurerer Unleash med URL: $unleashUrl, App: $appName, Miljø: $environment")
-
         val config =
             UnleashConfig
                 .builder()
@@ -38,6 +33,8 @@ open class UnleashConfig {
                 .unleashAPI(unleashUrl)
                 .apiKey(unleashToken)
                 .build()
+
+        logger.info("Konfigurerer Unleash med URL: $unleashUrl, App: $appName, Miljø: ${config.environment}")
 
         val unleash = DefaultUnleash(config)
 

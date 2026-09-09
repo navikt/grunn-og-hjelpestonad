@@ -3,5 +3,7 @@ spring:
         placeholders:
             ignoreIfProd: --
 
-UNLEASH_SERVER_API_URL: http://localhost:4242/api/
-UNLEASH_SERVER_API_ENV: production
+unleash:
+    enabled: false
+    api:
+        token: UNLEASH_SERVER_API_TOKEN
