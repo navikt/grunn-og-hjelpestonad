@@ -39,6 +39,9 @@ spec:
       enabled: true
       runtime: nodejs
 
+  openSearch:
+    - instance: grunn-og-hjelpestonad
+
   # Autentisering
   azure:
     application:
@@ -55,10 +58,6 @@ spec:
     sidecar:
       enabled: true
       autoLogin: true
-
-  ## Logging
-  openSearch:
-      -   instance: grunn-og-hjelpestonad
 
   accessPolicy:
     outbound:
