@@ -14,7 +14,6 @@ spec:
     min: 2
   resources:
     limits:
-      cpu: 500m
       memory: 512Mi
     requests:
       cpu: 200m
@@ -28,7 +27,9 @@ spec:
   # Helse
   liveness:
     path: /isAlive
-    initialDelay: 5
+    initialDelay: 10
+    periodSeconds: 10
+    failureThreshold: 6
   readiness:
     path: /isReady
     initialDelay: 5

@@ -112,6 +112,13 @@ const getReactRouterApp = async (): Promise<RequestHandler> => {
   return serverModule.app;
 };
 
+// SSR-bundlen drar inn hele React-treet. Lastes den først ved første request, blokkeres
+// event loopen så lenge at helsesjekkene ryker. Derfor lastes den før vi tar imot trafikk.
+// I dev lastes den per request slik at Vite sin HMR fortsatt virker.
+const forhåndslastetReactRouterApp = viteDevServer
+  ? undefined
+  : await getReactRouterApp();
+
 const handleReactRouterRequest = async (
   req: Request,
   res: Response,
@@ -122,7 +129,7 @@ const handleReactRouterRequest = async (
       : hentSaksbehandlerFraHeaders(req);
 
   try {
-    const reactRouterApp = await getReactRouterApp();
+    const reactRouterApp = forhåndslastetReactRouterApp ?? (await getReactRouterApp());
     await reactRouterApp(req, res, next);
   } catch (error) {
     if (viteDevServer && error instanceof Error) {
