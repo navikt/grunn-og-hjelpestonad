@@ -38,9 +38,10 @@ spec:
     autoInstrumentation:
       enabled: true
       runtime: nodejs
-
-  openSearch:
-    - instance: grunn-og-hjelpestonad
+    logging:
+      destinations:
+        - id: loki
+        - id: elastic
 
   # Autentisering
   azure:
