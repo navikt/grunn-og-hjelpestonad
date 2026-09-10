@@ -1,4 +1,5 @@
 import { createHash } from "crypto";
+import { structuredLog } from "./structured-log.js";
 
 interface CachetToken {
   token: string;
@@ -26,21 +27,16 @@ export const hentCachetToken = (brukerToken: string): string | null => {
 
   if (cachet.utløperVed <= nå) {
     tokenCache.delete(nøkkel);
-    console.log(`Cache ${cachet.token} - token utløpt`);
+    structuredLog("info", "token_cache_expired");
     return null;
   }
-
-  const minutterIgjen = Math.round((cachet.utløperVed - nå) / ETT_MINUTT);
-  console.log(
-    `Cache ${cachet.token.slice(0, 10)}... - bruker cachet token (utløper om ${minutterIgjen} minutter)`
-  );
 
   return cachet.token;
 };
 
 export const lagreTokenICache = (
   brukerToken: string,
-  navIdent: string,
+  _navIdent: string,
   oboToken: string,
   utløperOmSekunder: number
 ) => {
@@ -56,15 +52,17 @@ export const lagreTokenICache = (
 
   const minutterGyldig = Math.round((utløperVed - Date.now()) / ETT_MINUTT);
 
-  console.log(
-    `Token cachet for ${navIdent} nøkkel ${nøkkel.slice(0, 10)}... - gyldig i ${minutterGyldig} minutter`
-  );
+  structuredLog("info", "token_cached", {
+    valid_minutes: minutterGyldig,
+  });
 };
 
 export const tømCache = () => {
   const størrelse = tokenCache.size;
   tokenCache.clear();
-  console.log(`Token cache tømt - fjernet ${størrelse} tokens`);
+  structuredLog("info", "token_cache_cleared", {
+    removed_count: størrelse,
+  });
 };
 
 export const ryddUtløpteTokens = () => {
@@ -79,7 +77,9 @@ export const ryddUtløpteTokens = () => {
   }
 
   if (fjernet > 0) {
-    console.log(`Token cache cleanup - fjernet ${fjernet} utløpte tokens`);
+    structuredLog("info", "token_cache_cleanup", {
+      removed_count: fjernet,
+    });
   }
 };
 

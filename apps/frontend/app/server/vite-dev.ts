@@ -1,4 +1,5 @@
 import type { ViteDevServer } from "vite";
+import { structuredLog } from "./structured-log.js";
 
 export async function lagViteDevServer(): Promise<ViteDevServer | undefined> {
   try {
@@ -10,7 +11,9 @@ export async function lagViteDevServer(): Promise<ViteDevServer | undefined> {
       },
     });
   } catch (error) {
-    console.error("Kunne ikke opprette Vite dev server:", error);
+    structuredLog("error", "vite_dev_server_creation_failed", {
+      error_type: error instanceof Error ? error.name : "unknown",
+    });
     return undefined;
   }
 }

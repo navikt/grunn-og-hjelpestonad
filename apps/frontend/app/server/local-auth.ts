@@ -3,6 +3,7 @@ import type { Express, NextFunction, Request, Response } from "express";
 import session from "express-session";
 import type { SessionOptions } from "express-session";
 import { MILJØ } from "./env.js";
+import { structuredLog } from "./structured-log.js";
 import type { Saksbehandler } from "./types.js";
 
 const LOCAL_AUTH_TENANT = "trygdeetaten.no";
@@ -182,8 +183,10 @@ async function handleLocalAuthCallback(req: Request, res: Response): Promise<voi
     });
 
     if (!localAuthTokenResponse.ok) {
-      const errorText = await localAuthTokenResponse.text();
-      console.error("Token exchange failed:", errorText);
+      await localAuthTokenResponse.text();
+      structuredLog("error", "local_auth_token_exchange_failed", {
+        status: localAuthTokenResponse.status,
+      });
       res.status(500).send("Failed to exchange code for tokens");
       return;
     }
@@ -207,7 +210,9 @@ async function handleLocalAuthCallback(req: Request, res: Response): Promise<voi
 
     res.redirect("/");
   } catch (error) {
-    console.error("Local authentication callback error:", error);
+    structuredLog("error", "local_authentication_failed", {
+      error_type: error instanceof Error ? error.name : "unknown",
+    });
     res.status(500).send("Authentication failed");
   }
 }
@@ -221,7 +226,9 @@ function handleLocalLogout(req: Request, res: Response): void {
 
   req.session.destroy((error) => {
     if (error) {
-      console.error("Local logout error:", error);
+      structuredLog("error", "local_logout_failed", {
+        error_type: error.name,
+      });
     }
     res.redirect("/");
   });

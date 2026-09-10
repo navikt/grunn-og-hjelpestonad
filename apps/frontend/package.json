@@ -15,10 +15,13 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
+    "@grafana/faro-web-sdk": "2.11.0",
+    "@grafana/faro-web-tracing": "2.11.0",
     "@navikt/aksel-icons": "8.16.2",
     "@navikt/ds-css": "8.16.2",
     "@navikt/ds-react": "8.16.2",
     "@navikt/oasis": "4.1.4",
+    "@opentelemetry/api": "1.9.1",
     "@react-pdf/renderer": "4.9.0",
     "@react-router/express": "8.3.1",
     "cookie-parser": "1.4.7",
@@ -26,6 +29,7 @@
     "express": "5.2.1",
     "express-session": "1.19.0",
     "isbot": "5.2.2",
+    "prom-client": "15.1.3",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-router": "8.3.1"

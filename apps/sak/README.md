@@ -58,3 +58,9 @@ docker compose --profile mock down -v   # Slett data
 
 **Ingress (deployed):**
 - https://grunn-og-hjelpestonad.intern.dev.nav.no/swagger-ui/index.html
+
+## Observability
+
+Actuator eksponerer liveness og readiness på `/internal/health/liveness` og
+`/internal/health/readiness`. Prometheus-metrikker er tilgjengelige på
+`/internal/prometheus` og inkluderer Spring Boot-, JVM-, database- og Kafka-metrikker.

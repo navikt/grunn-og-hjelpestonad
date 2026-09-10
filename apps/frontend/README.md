@@ -49,3 +49,14 @@ npm run dev
 ```
 
 Applikasjonen er tilgjengelig på http://localhost:8080/. Første sidevisning fullfører Authorization Code Flow automatisk mot mock-serveren.
+
+## Observability
+
+Frontend-serveren eksponerer følgende endepunkter:
+
+- `GET /isAlive` for liveness
+- `GET /isReady` for frontend readiness
+- `GET /metrics` for Prometheus-metrikker
+
+Klientfeil, web-vitals og nettverkstracing sendes via Grafana Faro i dev- og
+produksjonsmiljø. Lokal kjøring pauser Faro-eksport.

@@ -64,7 +64,10 @@ class SecurityConfig(
                 "Origin",
                 "Access-Control-Request-Method",
                 "Access-Control-Request-Headers",
+                "traceparent",
+                "tracestate",
             )
+        configuration.exposedHeaders = listOf("Server-Timing")
         configuration.allowCredentials = true
         configuration.maxAge = 3600L
 
