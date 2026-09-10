@@ -6,8 +6,10 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRouteLoaderData,
 } from "react-router";
 import type { Route } from "./+types/root";
+import Faro from "./Faro";
 import Header from "~/komponenter/header/Header";
 import "@navikt/ds-css";
 import "./global.css";
@@ -19,6 +21,7 @@ export async function loader({ context }: Route.LoaderArgs) {
   return {
     saksbehandler: context.get(saksbehandlerContext),
     env: context.get(envContext),
+    telemetryCollectorUrl: process.env.NAIS_FRONTEND_TELEMETRY_COLLECTOR_URL,
   };
 }
 
@@ -57,10 +60,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const rootData = useRouteLoaderData<{ telemetryCollectorUrl?: string }>("root");
+
   return (
-    <TogglesProvider>
-      <Outlet />
-    </TogglesProvider>
+    <>
+      <Faro collectorUrl={rootData?.telemetryCollectorUrl} />
+      <TogglesProvider>
+        <Outlet />
+      </TogglesProvider>
+    </>
   );
 }
 

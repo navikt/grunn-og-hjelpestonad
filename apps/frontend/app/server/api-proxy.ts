@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { hentAccessToken } from "./utils/token.js";
 import { exchangeTokenForBackend } from "./obo-token-exchange.js";
+import { structuredLog } from "./structured-log.js";
 
 const GRUNN_OG_HJELPESTONAD_AUDIENCE =
   "api://dev-gcp.grunn-og-hjelp.grunn-og-hjelpestonad/.default";
@@ -17,7 +18,9 @@ const hentTokenForBackend = async (
   const token = hentAccessToken(req, erLokalt);
 
   if (!token) {
-    console.error("Ingen token funnet. erLokalt:", erLokalt);
+    structuredLog("warn", "backend_token_missing", {
+      local_environment: erLokalt,
+    });
     return;
   }
 
@@ -25,13 +28,8 @@ const hentTokenForBackend = async (
     return token;
   }
 
-  try {
-    return await exchangeTokenForBackend(token, audience);
-  } catch (error) {
-    console.error("OBO token exchange feilet:", error);
-    throw error;
-  }
-};
+  return exchangeTokenForBackend(token, audience);
+}
 
 const kallBackend = async (url: string, req: Request, token: string) => {
   const harBody = req.method.toUpperCase() === "POST";
@@ -59,7 +57,9 @@ export function lagApiProxy(
       token = await hentTokenForBackend(req, erLokalt, audience);
     } catch (error) {
       const errorMelding = error instanceof Error ? error.message : "Ukjent feil";
-      console.error("Token-utveksling feilet:", error);
+      structuredLog("error", "backend_token_exchange_failed", {
+        error_type: error instanceof Error ? error.name : "unknown",
+      });
       res.status(401).json({ error: "Token-utveksling feilet", melding: errorMelding });
       return;
     }
@@ -71,10 +71,8 @@ export function lagApiProxy(
 
     try {
       const url = byggBackendUrl(backendUrl, req, backendApiPrefix);
-      console.log("Proxying request til:", url);
 
       const backendResponse = await kallBackend(url, req, token);
-      console.log("Backend response status:", backendResponse.status);
 
       if (backendResponse.status === 204) {
         res.status(204).end();
@@ -99,10 +97,11 @@ export function lagApiProxy(
 
       if (!contentType.includes("application/json")) {
         const body = await backendResponse.text();
-        console.error(
-          `Backend returnerte uventet Content-Type: ${contentType || "ukjent"} (HTTP ${backendResponse.status})`,
-          body.substring(0, 500)
-        );
+        structuredLog("error", "backend_unexpected_content_type", {
+          content_type: contentType || "unknown",
+          status: backendResponse.status,
+          body_length: body.length,
+        });
         res.status(backendResponse.status).json({
           error: "Uventet svar fra backend",
           melding: `Forventet JSON, men mottok ${contentType || "ukjent innholdstype"} (HTTP ${backendResponse.status})`,
@@ -114,12 +113,11 @@ export function lagApiProxy(
       res.status(backendResponse.status).send(data);
     } catch (error) {
       const errorMelding = error instanceof Error ? error.message : "Ukjent feil";
-      const url = byggBackendUrl(backendUrl, req, backendApiPrefix);
 
-      console.error(`Kall til backend feilet [${req.method} ${url}]:`, error);
-      if (error instanceof Error && error.cause) {
-        console.error("Rotårsak:", error.cause);
-      }
+      structuredLog("error", "backend_request_failed", {
+        error_type: error instanceof Error ? error.name : "unknown",
+        method: req.method,
+      });
 
       res.status(500).json({ error: "Feil ved kall til backend", melding: errorMelding });
     }

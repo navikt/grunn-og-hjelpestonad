@@ -5,6 +5,9 @@ import { MILJØ } from "./env.js";
 import { hentSaksbehandlerFraHeaders } from "./utils/token.js";
 import { lagApiProxy } from "./api-proxy.js";
 import { lagViteDevServer } from "./vite-dev.js";
+import { exposeMetrics, recordHttpMetrics } from "./metrics.js";
+import { setServerTimingHeader } from "./server-timing.js";
+import { structuredLog } from "./structured-log.js";
 
 const PORT_NUMMER = process.env.PORT;
 const GRUNN_OG_HJELP_BEHANDLING_URL_DEV = "http://grunn-og-hjelpestonad";
@@ -24,7 +27,10 @@ if (!BACKEND_URL) {
   throw new Error("BACKEND_URL miljøvariabel må være satt");
 }
 
-console.log(`Backend URL: ${BACKEND_URL} (ENV: ${MILJØ.env})`);
+structuredLog("info", "backend_configured", {
+  environment: MILJØ.env,
+  backend_host: new URL(BACKEND_URL).host,
+});
 
 const erLokaltMiljø = MILJØ.erLokalt;
 
@@ -33,6 +39,12 @@ const viteDevServer: ViteDevServer | undefined = erLokaltMiljø
   : undefined;
 
 const app = express();
+
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  setServerTimingHeader(res);
+  next();
+});
+app.use(recordHttpMetrics);
 
 if (erLokaltMiljø) {
   setupLocalAuth(app, PORT_NUMMER);
@@ -45,6 +57,8 @@ app.get("/isAlive", (_req: Request, res: Response) => {
 app.get("/isReady", (_req: Request, res: Response) => {
   res.status(200).send("OK");
 });
+
+app.get("/metrics", exposeMetrics);
 
 app.use(express.json());
 
@@ -125,5 +139,7 @@ app.listen(PORT_NUMMER, () => {
     throw new Error("PORT miljøvariabel må være satt. Har du kjørt scriptet for å hente secrets?");
   }
 
-  console.log(`\nhttp://localhost:${PORT_NUMMER}/`);
+  structuredLog("info", "server_started", {
+    port: Number(PORT_NUMMER),
+  });
 });

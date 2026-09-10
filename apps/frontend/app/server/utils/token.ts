@@ -1,12 +1,13 @@
 import type { Request } from "express";
 import { getToken, parseAzureUserToken } from "@navikt/oasis";
 import type { Saksbehandler } from "../types.js";
+import { structuredLog } from "../structured-log.js";
 
 export function parseToken(token: string): Saksbehandler | undefined {
   const parsed = parseAzureUserToken(token);
 
   if (!parsed.ok) {
-    console.error("Feil ved parsing av token med Oasis");
+    structuredLog("warn", "user_token_parse_failed");
     return;
   }
 
