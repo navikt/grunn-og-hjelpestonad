@@ -10,8 +10,8 @@ import java.net.URI
 
 @Component
 class FamilieDokumentClient(
-    @Value("\${FAMILIE_DOKUMENT_URL}") familieDokumentUrl: URI,
-    @Value("\${FAMILIE_DOKUMENT_SCOPE}") private val familieDokumentScope: URI,
+    @Value("\${integrasjoner.familie-dokument.url}") familieDokumentUrl: URI,
+    @Value("\${integrasjoner.familie-dokument.scope}") private val familieDokumentScope: URI,
     private val texasClient: TexasClient,
     restClientBuilder: RestClient.Builder,
 ) {

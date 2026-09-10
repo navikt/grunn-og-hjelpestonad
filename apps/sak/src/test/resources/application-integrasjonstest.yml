@@ -35,6 +35,12 @@ scheduling:
     enabled: false
 
 # Azure AD konfigurasjon (Mock-verdier for tester)
+# De flate AZURE_*-nøklene mater plassholdere i application.yml som ikke
+# overstyres her (blant annet spring.security.oauth2...audiences).
+AZURE_OPENID_CONFIG_ISSUER: https://login.microsoftonline.com/test-tenant-id/v2.0
+AZURE_APP_CLIENT_ID: test-client-id
+AZURE_APP_TENANT_ID: test-tenant-id
+
 azure:
     app:
         tenant:
@@ -42,21 +48,22 @@ azure:
         client:
             id: test-client-id
             secret: test-client-secret
+    token-endpoint-url: https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/token
 
-AZURE_OPENID_CONFIG_ISSUER: https://login.microsoftonline.com/test-tenant-id/v2.0
-AZUREAD_TOKEN_ENDPOINT_URL: https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/token
-AZURE_APP_CLIENT_ID: test-client-id
-AZURE_APP_TENANT_ID: test-tenant-id
+nais:
+    miljo: integrasjonstest
+    texas:
+        token-endpoint: http://localhost:7575/api/v1/token
+        token-exchange-endpoint: http://localhost:7575/api/v1/token/exchange
 
 # Ekstern tjeneste konfigurasjon (Mock-verdier for tester)
-PDL_URL: http://localhost:8080/pdl
-PDL_SCOPE: test-scope
-FAMILIE_DOKUMENT_URL: http://localhost:8087
-FAMILIE_DOKUMENT_SCOPE: test-scope
-
-# Texas token endpoints (Mock-verdier for tester)
-NAIS_TOKEN_EXCHANGE_ENDPOINT: http://localhost:7575/api/v1/token/exchange
-NAIS_TOKEN_ENDPOINT: http://localhost:7575/api/v1/token
+integrasjoner:
+    pdl:
+        url: http://localhost:8080/pdl
+        scope: test-scope
+    familie-dokument:
+        url: http://localhost:8087
+        scope: test-scope
 
 # Database konfigurasjon
 DB_JDBC_URL: jdbc:tc:postgresql:17:///testdb

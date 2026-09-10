@@ -11,8 +11,8 @@ import org.springframework.web.client.body
 
 @Service
 class EntraProxyClient(
-    @Value("\${ENTRA_PROXY_URL}") entraProxyUrl: String,
-    @Value("\${ENTRA_PROXY_SCOPE}") private val entraProxyAudience: String,
+    @Value("\${integrasjoner.entra-proxy.url}") entraProxyUrl: String,
+    @Value("\${integrasjoner.entra-proxy.scope}") private val entraProxyAudience: String,
     private val texasClient: TexasClient,
     restClientBuilder: RestClient.Builder,
 ) {

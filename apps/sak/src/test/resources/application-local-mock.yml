@@ -28,6 +28,8 @@ spring:
                     audiences: default
 
 # Azure AD mock konfigurasjon
+# De flate AZURE_*-nøklene mater plassholdere i application.yml som ikke
+# overstyres her (blant annet spring.security.oauth2...audiences).
 AZURE_OPENID_CONFIG_ISSUER: http://localhost:8089/default
 AZURE_APP_CLIENT_ID: mock-client-id
 AZURE_APP_TENANT_ID: mock-tenant-id
@@ -39,41 +41,36 @@ azure:
         client:
             id: mock-client-id
             secret: mock-client-secret
+    authorization-url: http://localhost:8089/default/authorize
+    token-endpoint-url: http://localhost:8089/default/token
+    api-scope: mock-scope
 
-# Azure AD miljøvariabler (mock)
-AZUREAD_TOKEN_ENDPOINT_URL: http://localhost:8089/default/token
-AUTHORIZATION_URL: http://localhost:8089/default/authorize
-API_SCOPE: mock-scope
+nais:
+    miljo: local-mock
+    texas:
+        token-endpoint: http://localhost:8090/texas/api/v1/token/token
+        token-exchange-endpoint: http://localhost:8090/texas/api/v1/token/exchange
 
-# Entra proxy -> WireMock
-ENTRA_PROXY_URL: http://localhost:8090
-ENTRA_PROXY_SCOPE: mock-scope
-
-# Infotrygd
-grunn-og-hjelpestonad-infotrygd:
-    url: http://localhost:8090
-    audience: mock-scope
-
-# FAMILIE DOKUMENT
-FAMILIE_DOKUMENT_URL: http://localhost:8090
-FAMILIE_DOKUMENT_SCOPE: mock-scope
-
-# PDL
-PDL_URL: http://localhost:8090
-PDL_SCOPE: mock-scope
-
-# SAF -> WireMock
-SAF_URL: http://localhost:8090
-SAF_SCOPE: mock-scope
-
-# Tilgangsmaskin -> WireMock
-TILGANGSMASKIN_URL: http://localhost:8090
-TILGANGSMASKIN_SCOPE: mock-scope
-
-
-# Texas mock
-NAIS_TOKEN_EXCHANGE_ENDPOINT: http://localhost:8090/texas/api/v1/token/exchange
-NAIS_TOKEN_ENDPOINT: http://localhost:8090/texas/api/v1/token/token
+# Eksterne tjenester -> WireMock
+integrasjoner:
+    infotrygd:
+        url: http://localhost:8090
+        scope: mock-scope
+    entra-proxy:
+        url: http://localhost:8090
+        scope: mock-scope
+    familie-dokument:
+        url: http://localhost:8090
+        scope: mock-scope
+    pdl:
+        url: http://localhost:8090
+        scope: mock-scope
+    saf:
+        url: http://localhost:8090
+        scope: mock-scope
+    tilgangsmaskin:
+        url: http://localhost:8090
+        scope: mock-scope
 
 # Swagger/OpenAPI konfigurasjon
 springdoc:

@@ -1,7 +1,3 @@
-# Felles variabler
-NAIS_APP_NAME: grunn-og-hjelpestonad
-DEPLOY_ENV: dev
-
 # Server konfigurasjon
 server:
     port: 8080
@@ -71,6 +67,12 @@ management:
                 include: health,prometheus
             base-path: /internal
 
+nais:
+    app-navn: ${NAIS_APP_NAME:grunn-og-hjelpestonad}
+    texas:
+        token-endpoint: ${NAIS_TOKEN_ENDPOINT}
+        token-exchange-endpoint: ${NAIS_TOKEN_EXCHANGE_ENDPOINT}
+
 # Azure AD konfigurasjon
 azure:
     app:
@@ -79,48 +81,39 @@ azure:
         client:
             id: ${AZURE_APP_CLIENT_ID}
             secret: ${AZURE_APP_CLIENT_SECRET}
+    authorization-url: https://login.microsoftonline.com/${azure.app.tenant.id}/oauth2/v2.0/authorize
+    token-endpoint-url: https://login.microsoftonline.com/${azure.app.tenant.id}/oauth2/v2.0/token
+    api-scope: api://${azure.app.client.id}/.default
 
-# Azure AD miljøvariabler (for SwaggerConfig.kt)
-AZUREAD_TOKEN_ENDPOINT_URL: https://login.microsoftonline.com/${azure.app.tenant.id}/oauth2/v2.0/token
-AUTHORIZATION_URL: https://login.microsoftonline.com/${azure.app.tenant.id}/oauth2/v2.0/authorize
-API_SCOPE: api://${azure.app.client.id}/.default
-
-# Ekstern tjeneste konfigurasjon
-grunn-og-hjelpestonad-infotrygd:
-    url: https://grunn-og-hjelpestonad-infotrygd.dev-fss-pub.nais.io
-    audience: api://dev-fss.grunn-og-hjelp.grunn-og-hjelpestonad-infotrygd/.default
-
-# Entra proxy
-ENTRA_PROXY_URL: http://entra-proxy.sikkerhetstjenesten
-ENTRA_PROXY_SCOPE: api://dev-gcp.sikkerhetstjenesten.entra-proxy/.default
-
-# FAMILIE DOKUMENT
-FAMILIE_DOKUMENT_URL: http://familie-dokument.teamfamilie
-FAMILIE_DOKUMENT_SCOPE: api://${DEPLOY_ENV}-gcp.teamfamilie.familie-dokument/.default
-
-# PDL (Persondataløsningen)
-PDL_URL: https://pdl-api.dev-fss-pub.nais.io
-PDL_SCOPE: api://dev-fss.pdl.pdl-api/.default
-
-# OPPGAVE
-OPPGAVE_URL: https://oppgave.dev-fss-pub.nais.io
-OPPGAVE_SCOPE: api://dev-fss.oppgavehandtering.oppgave/.default
-
-# DOKARKIV
-DOKARKIV_URL: https://dokarkiv-q2.dev-fss-pub.nais.io
-DOKARKIV_SCOPE: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
-
-# DOKDIST
-DOKDIST_URL: https://dokdistfordeling.dev-fss-pub.nais.io
-DOKDIST_SCOPE: api://dev-fss.teamdokumenthandtering.dokdistfordeling/.default
-
-# SAF
-SAF_URL: https://saf-q2.dev-fss-pub.nais.io
-SAF_SCOPE: api://dev-fss.teamdokumenthandtering.saf/.default
-
-# Tilgangsmaskin (Populasjonstilgangskontroll)
-TILGANGSMASKIN_URL: http://populasjonstilgangskontroll.tilgangsmaskin
-TILGANGSMASKIN_SCOPE: api://dev-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default
+# Eksterne tjenester
+integrasjoner:
+    infotrygd:
+        url: https://grunn-og-hjelpestonad-infotrygd.dev-fss-pub.nais.io
+        scope: api://dev-fss.grunn-og-hjelp.grunn-og-hjelpestonad-infotrygd/.default
+    entra-proxy:
+        url: http://entra-proxy.sikkerhetstjenesten
+        scope: api://dev-gcp.sikkerhetstjenesten.entra-proxy/.default
+    familie-dokument:
+        url: http://familie-dokument.teamfamilie
+        scope: api://${nais.miljo}-gcp.teamfamilie.familie-dokument/.default
+    pdl:
+        url: https://pdl-api.dev-fss-pub.nais.io
+        scope: api://dev-fss.pdl.pdl-api/.default
+    oppgave:
+        url: https://oppgave.dev-fss-pub.nais.io
+        scope: api://dev-fss.oppgavehandtering.oppgave/.default
+    dokarkiv:
+        url: https://dokarkiv-q2.dev-fss-pub.nais.io
+        scope: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
+    dokdist:
+        url: https://dokdistfordeling.dev-fss-pub.nais.io
+        scope: api://dev-fss.teamdokumenthandtering.dokdistfordeling/.default
+    saf:
+        url: https://saf-q2.dev-fss-pub.nais.io
+        scope: api://dev-fss.teamdokumenthandtering.saf/.default
+    tilgangsmaskin:
+        url: http://populasjonstilgangskontroll.tilgangsmaskin
+        scope: api://dev-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default
 
 # Swagger/OpenAPI konfigurasjon
 springdoc:

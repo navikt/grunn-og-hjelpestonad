@@ -20,7 +20,7 @@ open class UnleashConfig {
     @Value("\${unleash.api.token}")
     private lateinit var unleashToken: String
 
-    @Value("\${NAIS_APP_NAME}")
+    @Value("\${nais.app-navn}")
     private lateinit var appName: String
 
     @Bean

@@ -18,11 +18,11 @@ import org.springframework.context.annotation.Profile
 @Configuration
 @Profile("!local-mock")
 open class SwaggerConfig(
-    @Value("\${AUTHORIZATION_URL}")
+    @Value("\${azure.authorization-url}")
     val authorizationUrl: String,
-    @Value("\${AZUREAD_TOKEN_ENDPOINT_URL}")
+    @Value("\${azure.token-endpoint-url}")
     val tokenUrl: String,
-    @Value("\${API_SCOPE}")
+    @Value("\${azure.api-scope}")
     val apiScope: String,
 ) {
     private val preprodServer: Server = Server().description("Pre-prod")

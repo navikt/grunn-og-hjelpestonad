@@ -11,8 +11,8 @@ import java.net.URI
 
 @Component
 class DokdistClient(
-    @Value("\${DOKDIST_URL}") dokdistUrl: URI,
-    @Value("\${DOKDIST_SCOPE}") private val dokdistScope: URI,
+    @Value("\${integrasjoner.dokdist.url}") dokdistUrl: URI,
+    @Value("\${integrasjoner.dokdist.scope}") private val dokdistScope: URI,
     private val texasClient: TexasClient,
     restClientBuilder: RestClient.Builder,
 ) {

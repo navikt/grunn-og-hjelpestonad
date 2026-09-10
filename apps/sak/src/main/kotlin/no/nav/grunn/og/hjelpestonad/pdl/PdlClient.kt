@@ -12,9 +12,9 @@ import org.springframework.web.client.RestClient
 @Component
 class PdlClient(
     private val texasClient: TexasClient,
-    @Value("\${PDL_URL}")
+    @Value("\${integrasjoner.pdl.url}")
     pdlUrl: String,
-    @Value("\${PDL_SCOPE}")
+    @Value("\${integrasjoner.pdl.scope}")
     private val pdlScope: String,
     restClientBuilder: RestClient.Builder,
 ) {

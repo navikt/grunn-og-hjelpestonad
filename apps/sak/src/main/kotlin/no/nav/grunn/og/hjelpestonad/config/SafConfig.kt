@@ -8,8 +8,8 @@ import java.net.URI
 
 @Configuration
 open class SafConfig(
-    @Value("\${SAF_URL}") safBaseUri: URI,
-    @Value("\${SAF_SCOPE}") val safScope: String,
+    @Value("\${integrasjoner.saf.url}") safBaseUri: URI,
+    @Value("\${integrasjoner.saf.scope}") val safScope: String,
 ) {
     val safBaseUri: URI = safBaseUri
 

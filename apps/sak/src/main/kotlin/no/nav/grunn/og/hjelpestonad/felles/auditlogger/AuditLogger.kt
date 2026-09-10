@@ -40,7 +40,7 @@ data class CustomKeyValue(
 
 @Component
 class AuditLogger(
-    @Value("\${NAIS_APP_NAME}") private val applicationName: String,
+    @Value("\${nais.app-navn}") private val applicationName: String,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val audit = LoggerFactory.getLogger("auditLogger")

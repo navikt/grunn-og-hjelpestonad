@@ -12,8 +12,8 @@ import java.net.URI
 
 @Component
 class TilgangsmaskinClient(
-    @Value("\${TILGANGSMASKIN_URL}") private val tilgangsmaskinUrl: URI,
-    @Value("\${TILGANGSMASKIN_SCOPE}") private val tilgangsmaskinScope: String,
+    @Value("\${integrasjoner.tilgangsmaskin.url}") private val tilgangsmaskinUrl: URI,
+    @Value("\${integrasjoner.tilgangsmaskin.scope}") private val tilgangsmaskinScope: String,
     private val texasClient: TexasClient,
     restClientBuilder: RestClient.Builder,
 ) {

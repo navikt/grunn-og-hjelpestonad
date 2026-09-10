@@ -12,8 +12,8 @@ import java.net.URI
 
 @Component
 class DokarkivClient(
-    @Value("\${DOKARKIV_URL}") dokarkivUrl: URI,
-    @Value("\${DOKARKIV_SCOPE}") private val dokarkivScope: URI,
+    @Value("\${integrasjoner.dokarkiv.url}") dokarkivUrl: URI,
+    @Value("\${integrasjoner.dokarkiv.scope}") private val dokarkivScope: URI,
     private val texasClient: TexasClient,
     restClientBuilder: RestClient.Builder,
 ) {

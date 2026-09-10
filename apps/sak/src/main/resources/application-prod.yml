@@ -1,3 +1,6 @@
+nais:
+    miljo: prod
+
 spring:
     flyway:
         placeholders:

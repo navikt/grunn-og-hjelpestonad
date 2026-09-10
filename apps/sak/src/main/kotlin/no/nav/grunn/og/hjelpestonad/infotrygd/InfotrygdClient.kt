@@ -15,9 +15,9 @@ import org.springframework.web.client.RestClient
 class InfotrygdClient(
     private val texasClient: TexasClient,
     restClientBuilder: RestClient.Builder,
-    @Value("\${grunn-og-hjelpestonad-infotrygd.url}")
+    @Value("\${integrasjoner.infotrygd.url}")
     infotrygdUrl: String,
-    @Value("\${grunn-og-hjelpestonad-infotrygd.audience}")
+    @Value("\${integrasjoner.infotrygd.scope}")
     private val grunnOgHjelpestonadInfotrygdAudience: String,
 ) {
     private val logger = LoggerFactory.getLogger(InfotrygdClient::class.java)

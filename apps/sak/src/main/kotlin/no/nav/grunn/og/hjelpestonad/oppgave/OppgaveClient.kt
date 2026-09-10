@@ -13,9 +13,9 @@ import java.util.UUID
 @Component
 class OppgaveClient(
     private val texasClient: TexasClient,
-    @Value("\${OPPGAVE_URL}")
+    @Value("\${integrasjoner.oppgave.url}")
     oppgaveUrl: String,
-    @Value("\${OPPGAVE_SCOPE}")
+    @Value("\${integrasjoner.oppgave.scope}")
     private val oppgaveScope: URI,
     restClientBuilder: RestClient.Builder,
 ) {

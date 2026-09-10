@@ -14,9 +14,9 @@ import org.springframework.web.client.body
 
 @Service
 open class TexasClient(
-    @Value("\${NAIS_TOKEN_EXCHANGE_ENDPOINT}")
+    @Value("\${nais.texas.token-exchange-endpoint}")
     private val tokenExchangeEndpoint: String,
-    @Value("\${NAIS_TOKEN_ENDPOINT}")
+    @Value("\${nais.texas.token-endpoint}")
     private val tokenMachineEndpoint: String,
     restClientBuilder: RestClient.Builder,
 ) {

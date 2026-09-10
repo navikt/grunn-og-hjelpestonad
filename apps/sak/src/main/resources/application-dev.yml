@@ -1,3 +1,6 @@
+nais:
+    miljo: dev
+
 unleash:
     enabled: true
     api:
