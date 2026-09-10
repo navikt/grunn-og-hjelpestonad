@@ -50,6 +50,10 @@ spec:
       enabled: true
       autoLogin: true
 
+  ## Logging
+  openSearch:
+      -   instance: grunn-og-hjelpestonad
+
   accessPolicy:
     outbound:
       rules:
