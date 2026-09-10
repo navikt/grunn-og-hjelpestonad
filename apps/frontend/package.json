@@ -35,9 +35,9 @@
     "react-router": "8.3.1"
   },
   "devDependencies": {
-    "@babel/core": "7.29.0",
-    "@babel/preset-typescript": "7.28.5",
-    "@eslint/js": "9.39.2",
+    "@babel/core": "8.0.1",
+    "@babel/preset-typescript": "8.0.1",
+    "@eslint/js": "10.0.1",
     "@react-router/dev": "8.3.1",
     "@types/cookie-parser": "1.4.10",
     "@types/express": "5.0.6",
@@ -46,7 +46,7 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "9.39.2",
+    "eslint": "10.9.1",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "17.12.0",
