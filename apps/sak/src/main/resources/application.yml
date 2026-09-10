@@ -7,6 +7,13 @@ spring:
     application:
         name: grunn-og-hjelpestonad
 
+    threads:
+        virtual:
+            enabled: true
+
+    main:
+        keep-alive: true
+
     http:
         clients:
             connect-timeout: 5s

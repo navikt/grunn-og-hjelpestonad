@@ -3,6 +3,11 @@ server.port: 8080
 spring:
   application:
     name: grunn-og-hjelpestonad-infotrygd
+  threads:
+    virtual:
+      enabled: true
+  main:
+    keep-alive: true
   datasource:
       url: ${APP_DATASOURCE_URL}
       driver-class-name: ${APP_DATASOURCE_DRIVER}
