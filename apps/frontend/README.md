@@ -60,3 +60,18 @@ Frontend-serveren eksponerer følgende endepunkter:
 
 Klientfeil, web-vitals og nettverkstracing sendes via Grafana Faro i dev- og
 produksjonsmiljø. Lokal kjøring pauser Faro-eksport.
+
+### Server-side tracing (OpenTelemetry)
+
+Serveren setter opp OpenTelemetry-SDK-en selv i `app/server/otel.ts`, og produserer
+spans for innkommende HTTP-kall (Express) og utgående `fetch`-kall (undici) mot
+backend, texas og PDL.
+
+Fordi appen er ren ESM må ESM-loaderen registreres før noe annet lastes. Derfor
+startes serveren med `node --import ./dist/instrumentation.js dist/server.js`
+(se `package.json` og `Dockerfile`) — Nais sin Node-agent bruker `--require` og
+patcher derfor ikke `import`-setninger. Av samme grunn står nais-configen på
+`autoInstrumentation.runtime: sdk`, som kun injiserer `OTEL_*`-miljøvariablene.
+
+SDK-en starter kun når `OTEL_EXPORTER_OTLP_ENDPOINT` er satt, så lokal kjøring
+er upåvirket.

@@ -13,4 +13,4 @@ ENV ENV=production
 
 EXPOSE 8080
 
-CMD ["dist/server.js"]
+CMD ["--import", "./dist/instrumentation.js", "dist/server.js"]

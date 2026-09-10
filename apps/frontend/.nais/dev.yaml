@@ -42,8 +42,11 @@ spec:
       mountPath: /tmp/nais.js
   observability:
     autoInstrumentation:
+      # runtime: sdk gir OTEL-miljøvariablene uten å injisere agenten.
+      # Node-agenten bruker `--require`, som ikke patcher ESM-imports – appen
+      # setter derfor opp OpenTelemetry-SDK-en selv i app/server/otel.ts.
       enabled: true
-      runtime: nodejs
+      runtime: sdk
     logging:
       destinations:
         - id: loki
