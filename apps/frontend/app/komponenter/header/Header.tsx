@@ -1,7 +1,7 @@
 import React from "react";
 import { InternalHeader, Spacer } from "@navikt/ds-react";
 import type { Saksbehandler } from "~/server/types";
-import { useNavigate, useRouteLoaderData } from "react-router";
+import { Link, useNavigate, useRouteLoaderData } from "react-router";
 import { Søkefelt } from "./Søkefelt";
 import { SaksbehandlerMenu } from "./SaksbehandlerMenu";
 import { useSøk } from "~/hooks/useSøk";
@@ -30,7 +30,7 @@ export const Header: React.FC = () => {
 
   return (
     <InternalHeader>
-      <InternalHeader.Title as="a" href="/">
+      <InternalHeader.Title as={Link} to="/">
         Grunn- og hjelpestønad
       </InternalHeader.Title>
       <Spacer />
