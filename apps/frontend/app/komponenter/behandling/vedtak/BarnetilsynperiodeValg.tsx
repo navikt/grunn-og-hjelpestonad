@@ -22,6 +22,13 @@ import { TrashIcon, PlusIcon } from "@navikt/aksel-icons";
 import { useParams } from "react-router";
 import type { Barn } from "~/hooks/useHentBarn";
 
+const parseMonth = (value: string | undefined): Date | undefined => {
+  if (!value?.trim()) return undefined;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+};
+
 export const BarnetilsynperiodeValg: React.FC<{
   perioder: Barnetilsynperiode[];
   settPerioder: React.Dispatch<React.SetStateAction<Barnetilsynperiode[]>>;
@@ -194,7 +201,7 @@ export const BarnetilsynperiodeValg: React.FC<{
               )}
               <Table.DataCell>
                 <MonthPicker
-                  selected={periode.datoFra ? new Date(periode.datoFra) : undefined}
+                  selected={parseMonth(periode.datoFra)}
                   onMonthSelect={(date) =>
                     handlePeriodeMonthChange(
                       index,
@@ -223,7 +230,7 @@ export const BarnetilsynperiodeValg: React.FC<{
               </Table.DataCell>
               <Table.DataCell>
                 <MonthPicker
-                  selected={periode.datoTil ? new Date(periode.datoTil) : undefined}
+                  selected={parseMonth(periode.datoTil)}
                   onMonthSelect={(date) =>
                     handlePeriodeMonthChange(
                       index,
@@ -238,7 +245,7 @@ export const BarnetilsynperiodeValg: React.FC<{
                         : ""
                     )
                   }
-                  fromDate={periode.datoFra ? new Date(periode.datoFra) : undefined}
+                  fromDate={parseMonth(periode.datoFra)}
                 >
                   <MonthPicker.Input
                     size="small"
