@@ -112,6 +112,10 @@ const getReactRouterApp = async (): Promise<RequestHandler> => {
   return serverModule.app;
 };
 
+const forhåndslastetReactRouterApp = viteDevServer
+    ? undefined
+    : await getReactRouterApp();
+
 const handleReactRouterRequest = async (
   req: Request,
   res: Response,
@@ -122,7 +126,7 @@ const handleReactRouterRequest = async (
       : hentSaksbehandlerFraHeaders(req);
 
   try {
-    const reactRouterApp = await getReactRouterApp();
+    const reactRouterApp = forhåndslastetReactRouterApp ?? (await getReactRouterApp());
     await reactRouterApp(req, res, next);
   } catch (error) {
     if (viteDevServer && error instanceof Error) {
