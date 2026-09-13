@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.beslutter.dto
 import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.grunn.og.hjelpestonad.beslutter.ÅrsakUnderkjent
 import java.time.LocalDateTime
+import kotlin.jvm.JvmName
 
 data class TotrinnskontrollStatusDto(
     val status: TotrinnskontrollStatus,
@@ -14,6 +15,7 @@ data class TotrinnskontrollDto(
     val opprettetTid: LocalDateTime,
     val godkjent: Boolean? = null,
     @JsonProperty("årsakUnderkjent")
+    @get:JvmName("getÅrsakUnderkjent")
     val årsakUnderkjent: ÅrsakUnderkjent? = null,
     val begrunnelse: String? = null,
 )

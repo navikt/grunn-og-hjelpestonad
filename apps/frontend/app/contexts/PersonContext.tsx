@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { FagsakDto } from "~/hooks/useFagsak";
+import type { FagsakDto } from "~/api/generated/types.gen";
 
 export interface Person {
   navn: Navn;

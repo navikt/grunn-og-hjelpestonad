@@ -1,10 +1,4 @@
-export type SaksbehandlerRolle =
-  | "INNLOGGET_SAKSBEHANDLER"
-  | "ANNEN_SAKSBEHANDLER"
-  | "IKKE_SATT";
+import type { AnsvarligSaksbehandlerDto } from "~/api/generated/types.gen";
 
-export interface AnsvarligSaksbehandlerDto {
-  fornavn: string;
-  etternavn: string;
-  rolle: SaksbehandlerRolle;
-}
+export type SaksbehandlerRolle = AnsvarligSaksbehandlerDto["rolle"];
+export type { AnsvarligSaksbehandlerDto };

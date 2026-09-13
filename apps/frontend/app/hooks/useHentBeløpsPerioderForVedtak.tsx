@@ -1,10 +1,7 @@
 import {useCallback, useState} from "react";
 import {apiCall, type ApiResponse} from "~/api/backend";
-import type {
-    Beløpsperioder,
-    Barnetilsynperiode
-} from "~/komponenter/behandling/vedtak/vedtak";
-import type {BarnetilsynBeregningRequest} from "~/komponenter/behandling/vedtak/vedtak";
+import type {BarnetilsynBeregningRequest} from "~/api/generated/types.gen";
+import type {Barnetilsynperiode, Beløpsperioder} from "~/komponenter/behandling/vedtak/vedtak";
 
 interface BeløpsperioderState {
     beløpsperioder: Beløpsperioder | null;
@@ -42,15 +39,12 @@ export function useHentBeløpsPerioderForVedtak() {
                 body: JSON.stringify(request),
             }
         );
-        settState((prev) => ({...prev, oppretter: false, beregnFeilmelding: response.melding ?? null}));
-        if (response.data) {
-            settState((prev) => ({
-                ...prev,
-                beregnFeilmelding: response.melding ?? null,
-                beløpsperioder: response.data ?? null,
-                laster: false,
-            }));
-        }
+        settState((prev) => ({
+            ...prev,
+            beregnFeilmelding: response.melding ?? null,
+            beløpsperioder: response.data ?? prev.beløpsperioder,
+            laster: false,
+        }));
     }, []);
 
     return {...state, hentBeløpsperioder};

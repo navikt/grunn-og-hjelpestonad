@@ -1,22 +1,7 @@
 import { useEffect, useState } from "react";
 import { type ApiResponse, apiCall } from "~/api/backend";
+import type { FagsakDto, FagsakRequest } from "~/api/generated/types.gen";
 import { erGyldigFagsakPersonId, erGyldigPersonident } from "~/utils/utils";
-
-export type StønadType = "BARNETILSYN" | "SKOLEPENGER";
-
-export interface FagsakDto {
-  id: string;
-  fagsakPersonId: string;
-  personident: string;
-  stønadstype: StønadType;
-  eksternId?: number;
-}
-
-export interface FagsakRequest {
-  personident?: string;
-  fagsakPersonId?: string;
-  stønadstype: StønadType;
-}
 
 interface FagsakState {
   fagsakPersonId?: string;

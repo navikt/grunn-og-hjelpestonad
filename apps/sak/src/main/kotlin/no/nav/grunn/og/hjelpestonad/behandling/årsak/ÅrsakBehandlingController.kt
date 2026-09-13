@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.jvm.JvmName
 
 data class ÅrsakBehandlingRequest(
     val kravdato: LocalDate,
+    @get:JvmName("getÅrsak")
     val årsak: Årsak,
     val beskrivelse: String = "",
 )

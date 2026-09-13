@@ -1,15 +1,12 @@
 import {useState} from "react";
-import type {Vedtak} from "~/komponenter/behandling/vedtak/vedtak";
+import type { LagreVedtakResponse } from "~/api/generated/types.gen";
+import {type Vedtak} from "~/komponenter/behandling/vedtak/vedtak";
 import {apiCall, type ApiResponse} from "~/api/backend";
 import {oppdaterEndringshistorikk} from "~/utils/endringshistorikkEvent";
 
 interface LagreVedtakState {
     oppretter: boolean;
     opprettFeilmelding: string | null;
-}
-
-interface LagreVedtakResponse {
-    status: string;
 }
 
 export function useLagreVedtak() {

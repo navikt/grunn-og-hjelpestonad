@@ -1,16 +1,11 @@
 import {useEffect, useState} from "react";
 import {apiCall, type ApiResponse} from "~/api/backend";
-import type {Barnetilsynperiode} from "~/komponenter/behandling/vedtak/vedtak";
+import type {HistoriskVedtakResponse} from "~/api/generated/types.gen";
 
 interface HistoriskVedtakState {
     historiskVedtak: HistoriskVedtakResponse | null;
     melding: string | null;
     laster: boolean;
-}
-
-export interface HistoriskVedtakResponse{
-    barnetilsynperioder: Barnetilsynperiode[] | null;
-    fraErFørTidligsteVedtak: boolean;
 }
 
 export function useHentVedtakHistorikk(behandlingId: string | undefined, fra: string | null) {

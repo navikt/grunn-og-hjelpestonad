@@ -1,13 +1,10 @@
-export type VilkårType =
-  | "INNGANGSVILKÅR"
-  | "AKTIVITET"
-  | "INNTEKT"
-  | "ALDER_PÅ_BARN"
-  | "DOKUMENTASJON_TILSYNSUTGIFTER";
+import type { VilkårVurderingDto } from "~/api/generated/types.gen";
+
+export type VilkårType = VilkårVurderingDto["vilkårType"];
 
 export const Vurdering = {
   JA: "JA",
   NEI: "NEI",
 } as const;
 
-export type Vurdering = (typeof Vurdering)[keyof typeof Vurdering];
+export type Vurdering = VilkårVurderingDto["vurdering"];

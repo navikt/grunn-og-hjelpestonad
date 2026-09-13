@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { apiCall, type ApiResponse } from "~/api/backend";
-import type { ÅrsakUnderkjent } from "~/types/totrinnskontroll";
-
-interface BeslutteVedtakDto {
-  godkjent: boolean;
-  årsakUnderkjent?: ÅrsakUnderkjent;
-  begrunnelse?: string;
-}
+import type { BeslutteVedtakDto } from "~/api/generated/types.gen";
 
 export const useBeslutter = () => {
   const [sender, settSender] = useState(false);
@@ -15,7 +9,7 @@ export const useBeslutter = () => {
     endpoint: string,
     behandlingId: string,
     body?: unknown
-  ): Promise<ApiResponse<unknown>> => {
+  ): Promise<ApiResponse> => {
     settSender(true);
     try {
       return await apiCall(`/beslutter/${endpoint}/${behandlingId}`, {

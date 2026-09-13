@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import type { Vedtak } from "~/komponenter/behandling/vedtak/vedtak";
+import type {Vedtak} from "~/komponenter/behandling/vedtak/vedtak";
 import {useLagreVedtak} from "~/hooks/useLagreVedtak";
 import {Button, HStack, MonthPicker, Textarea, useMonthpicker, VStack} from "@navikt/ds-react";
 import {useParams} from "react-router";
@@ -29,13 +29,13 @@ export const OpphørVedtak: React.FC<OpphørVedtakProps> = ({lagretVedtak, erLes
 
     async function handleLagreVedtak() {
         if (!behandlingId || !selectedMonth) return;
-        const Vedtak = {
-            resultatType: 'OPPHØR' as const,
+        const vedtak: Vedtak = {
+            resultatType: 'OPPHØR',
             begrunnelse: begrunnelse,
             barnetilsynperioder: [],
             opphørFom: format(selectedMonth, 'yyyy-MM')
         };
-        const response = await lagreVedtak(behandlingId, Vedtak);
+        const response = await lagreVedtak(behandlingId, vedtak);
         if (response) {
             onLagreSuksess();
         }

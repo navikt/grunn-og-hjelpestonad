@@ -124,6 +124,8 @@ integrasjoner:
 
 # Swagger/OpenAPI konfigurasjon
 springdoc:
+    paths-to-exclude:
+        - /api/task/**
     api-docs:
         path: /v3/api-docs
     swagger-ui:

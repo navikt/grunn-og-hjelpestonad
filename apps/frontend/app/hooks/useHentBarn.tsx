@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import { apiCall, type ApiResponse } from "~/api/backend";
+import type { HentBarnResponse } from "~/api/generated/types.gen";
 
-export interface Barn {
-  id: string;
-  personIdent: string;
-  navn: string;
-  fødselsdato: string;
-  hentetTidspunkt: string;
-}
+export type Barn = HentBarnResponse;
 
 interface HentBarnState {
   barn: Barn[];

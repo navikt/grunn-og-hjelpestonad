@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import type { Vedtak } from "~/komponenter/behandling/vedtak/vedtak";
+import type {Vedtak} from "~/komponenter/behandling/vedtak/vedtak";
 import {useLagreVedtak} from "~/hooks/useLagreVedtak";
 import {Button, HStack, Textarea, VStack} from "@navikt/ds-react";
 import {useParams} from "react-router";
@@ -21,12 +21,12 @@ export const AvslåVedtak: React.FC<AvslåVedtakProps> = ({lagretVedtak, erLesev
 
     async function handleLagreVedtak() {
         if (!behandlingId) return;
-        const Vedtak = {
-            resultatType: 'AVSLÅTT' as const,
+        const vedtak: Vedtak = {
+            resultatType: 'AVSLÅTT',
             begrunnelse: begrunnelse,
             barnetilsynperioder: [],
         };
-        const response = await lagreVedtak(behandlingId, Vedtak);
+        const response = await lagreVedtak(behandlingId, vedtak);
         if (response) {
             onLagreSuksess();
         }

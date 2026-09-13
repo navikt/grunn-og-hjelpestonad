@@ -17,3 +17,4 @@ utover å oppdatere status og lenke til den nye ADR-en.
 | ADR | Tittel | Status |
 |-----|--------|--------|
 | [ADR-0001](ADR-0001-restclient-for-utgaaende-http-kall.md) | RestClient for utgående HTTP-kall | Godkjent |
+| [ADR-0002](ADR-0002-openapi-basert-generering-av-frontend-typer.md) | OpenAPI-basert generering av frontend-typer | Foreslått |

@@ -10,10 +10,26 @@ import io.swagger.v3.oas.models.security.Scopes
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.servers.Server
+import org.springdoc.core.customizers.OpenApiCustomizer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
+
+/**
+ * Server-listen settes uavhengig av profil slik at /v3/api-docs blir likt
+ * lokalt og i deployede miljøer. Uten dette får OpenAPI-dokumentet en
+ * auto-utledet server-URL lokalt, og genererte frontend-typer blir
+ * avhengige av hvilken backend de ble generert fra.
+ */
+@Configuration
+open class OpenApiServerConfig {
+    @Bean
+    open fun relativeServerCustomizer(): OpenApiCustomizer =
+        OpenApiCustomizer { openApi ->
+            openApi.servers(listOf(Server().url("/").description("Samme opphav som API-et")))
+        }
+}
 
 @Configuration
 @Profile("!local-mock")
@@ -25,8 +41,6 @@ open class SwaggerConfig(
     @Value("\${azure.api-scope}")
     val apiScope: String,
 ) {
-    private val preprodServer: Server = Server().description("Pre-prod")
-
     @Bean
     open fun swaggerApiConfig(): OpenAPI =
         OpenAPI()
@@ -42,8 +56,6 @@ open class SwaggerConfig(
                             .name("Team grunn- og hjelpestønad")
                             .url("https://github.com/navikt/grunn-og-hjelpestonad"),
                     ),
-            ).servers(
-                listOf(preprodServer),
             )
 
     private fun securitySchemes(): SecurityScheme =

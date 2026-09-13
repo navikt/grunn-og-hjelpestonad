@@ -1,6 +1,9 @@
 import React, {useState, useEffect, useMemo} from "react";
-import type {Barnetilsynperiode} from "~/komponenter/behandling/vedtak/vedtak";
-import type {Vedtak} from "~/komponenter/behandling/vedtak/vedtak";
+import {
+    type Barnetilsynperiode,
+    type Vedtak,
+} from "~/komponenter/behandling/vedtak/vedtak";
+import type {HistoriskVedtakResponse} from "~/api/generated/types.gen";
 import {useParams} from "react-router";
 import {useLagreVedtak} from "~/hooks/useLagreVedtak";
 import {
@@ -14,7 +17,7 @@ import {
 import {useHentBeløpsPerioderForVedtak} from "~/hooks/useHentBeløpsPerioderForVedtak";
 import {BarnetilsynperiodeValg} from "~/komponenter/behandling/vedtak/BarnetilsynperiodeValg";
 import {BeregningBarnetilsynTabell} from "~/komponenter/behandling/vedtak/BeregningBarnetilsynTabell";
-import {type HistoriskVedtakResponse, useHentVedtakHistorikk} from "~/hooks/useHentVedtakHistorikk";
+import {useHentVedtakHistorikk} from "~/hooks/useHentVedtakHistorikk";
 import {useBehandlingContext} from "~/contexts/BehandlingContext";
 import {format} from "date-fns";
 import {useHentBarn} from "~/hooks/useHentBarn";
@@ -98,7 +101,7 @@ export const InnvilgeVedtak: React.FC<InnvilgeVedtakProps> = ({lagretVedtak, erL
     const {behandling} = useBehandlingContext()
     const {personident } = usePersonContext();
 
-    const lagretPerioder = useMemo(
+    const lagretPerioder = useMemo<Barnetilsynperiode[]>(
         () => lagretVedtak?.barnetilsynperioder && lagretVedtak.barnetilsynperioder.length > 0
             ? lagretVedtak.barnetilsynperioder
             : [tomBarnetilsynperiode],
@@ -173,12 +176,12 @@ export const InnvilgeVedtak: React.FC<InnvilgeVedtakProps> = ({lagretVedtak, erL
         for (let i = 0; i < perioder.length; i++) {
             const periode = perioder[i];
             const mangler: string[] = [];
-            
+
             if (!periode.periodetype) mangler.push('periodetype');
             if (!periode.aktivitetstype) mangler.push('aktivitet');
             if (!periode.datoFra) mangler.push('periode fra');
             if (!periode.datoTil) mangler.push('periode til');
-            
+
             if (mangler.length > 0) {
                 settValideringsFeil(`Periode ${i + 1} mangler: ${mangler.join(', ')}`);
                 return false;
@@ -197,13 +200,13 @@ export const InnvilgeVedtak: React.FC<InnvilgeVedtakProps> = ({lagretVedtak, erL
     async function handleLagreVedtak() {
         if (!behandlingId) return;
         if (!validerPerioder()) return;
-        
-        const Vedtak = {
-            resultatType: 'INNVILGET' as const,
+
+        const vedtak: Vedtak = {
+            resultatType: 'INNVILGET',
             begrunnelse: begrunnelse,
             barnetilsynperioder: perioder,
         };
-        const response = await lagreVedtak(behandlingId, Vedtak);
+        const response = await lagreVedtak(behandlingId, vedtak);
         if (response?.status === 'OK') {
             onLagreSuksess();
         }
