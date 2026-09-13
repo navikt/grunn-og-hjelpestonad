@@ -50,6 +50,15 @@ npm run dev
 
 Applikasjonen er tilgjengelig på http://localhost:8080/. Første sidevisning fullfører Authorization Code Flow automatisk mot mock-serveren.
 
+## API-typer fra OpenAPI
+For å generere typefiler fra backend kan du kjøre:
+```bash
+npm run generate:api
+```
+
+Typene hentes fra `http://localhost:8082/v3/api-docs`. Overstyr med
+`OPENAPI_URL=<url>` for å bruke en annen kilde.
+
 ## Observability
 
 Frontend-serveren eksponerer følgende endepunkter:
