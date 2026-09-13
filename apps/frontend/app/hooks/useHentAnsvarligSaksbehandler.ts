@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiCall } from "~/api/backend";
-import type { AnsvarligSaksbehandlerDto } from "~/types/saksbehandler";
+import type { AnsvarligSaksbehandlerResponse } from "~/types/saksbehandler";
 
 export function useHentAnsvarligSaksbehandler(behandlingId: string | undefined) {
   const [ansvarligSaksbehandler, settAnsvarligSaksbehandler] =
-    useState<AnsvarligSaksbehandlerDto | null>(null);
+    useState<AnsvarligSaksbehandlerResponse | null>(null);
   const [hentIndeks, settHentIndeks] = useState(0);
   const [fullførtHenting, settFullførtHenting] = useState<string | null>(null);
 
@@ -16,7 +16,7 @@ export function useHentAnsvarligSaksbehandler(behandlingId: string | undefined) 
 
     let avbrutt = false;
 
-    void apiCall<AnsvarligSaksbehandlerDto>(`/oppgave/ansvarlig-saksbehandler`, {
+    void apiCall<AnsvarligSaksbehandlerResponse>(`/oppgave/ansvarlig-saksbehandler`, {
       method: "POST",
       body: JSON.stringify({ behandlingId }),
     }).then((respons) => {

@@ -1,6 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.fagsak
 
-import no.nav.grunn.og.hjelpestonad.fagsak.dto.FagsakDto
+import no.nav.grunn.og.hjelpestonad.fagsak.dto.FagsakResponse
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
@@ -19,5 +19,5 @@ open class FagsakController(
     @PostMapping
     fun hentEllerOpprettFagsakForPerson(
         @RequestBody request: FagsakRequest,
-    ): ResponseEntity<FagsakDto> = ResponseEntity.ok(fagsakService.hentEllerOpprettFagsak(request))
+    ): ResponseEntity<FagsakResponse> = ResponseEntity.ok(fagsakService.hentEllerOpprettFagsak(request))
 }

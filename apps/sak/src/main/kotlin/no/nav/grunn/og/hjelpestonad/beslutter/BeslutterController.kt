@@ -1,8 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.beslutter
 
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakDto
-import no.nav.grunn.og.hjelpestonad.beslutter.dto.TotrinnskontrollStatusDto
+import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
+import no.nav.grunn.og.hjelpestonad.beslutter.dto.TotrinnskontrollStatusResponse
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -42,11 +42,11 @@ class BeslutterController(
     @PostMapping("/beslutt-vedtak/{behandlingId}")
     fun besluttVedtak(
         @PathVariable behandlingId: UUID,
-        @RequestBody beslutteVedtakDto: BeslutteVedtakDto,
+        @RequestBody beslutteVedtakRequest: BeslutteVedtakRequest,
     ): ResponseEntity<Map<String, String>> {
         beslutterService.besluttVedtak(
             behandlingId = behandlingId,
-            beslutteVedtakDto = beslutteVedtakDto,
+            beslutteVedtakRequest = beslutteVedtakRequest,
         )
         return ResponseEntity.ok(mapOf("status" to "OK"))
     }
@@ -54,7 +54,7 @@ class BeslutterController(
     @GetMapping("/totrinnskontroll-status/{behandlingId}")
     fun hentTotrinnskontrollStatus(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<TotrinnskontrollStatusDto> {
+    ): ResponseEntity<TotrinnskontrollStatusResponse> {
         val status = totrinnskontrollService.hentTotrinnskontrollStatus(behandlingId)
         return ResponseEntity.ok(status)
     }

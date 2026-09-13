@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import type { BehandlingSteg, Steg } from "~/komponenter/navbar/BehandlingFaner";
 import type { ÅrsakType } from "~/types/årsak";
 import type { Behandling } from "~/types/behandling";
-import type { AnsvarligSaksbehandlerDto } from "~/types/saksbehandler";
+import type { AnsvarligSaksbehandlerResponse } from "~/types/saksbehandler";
 import type { TotrinnskontrollResponse } from "~/types/totrinnskontroll";
 
 export interface ÅrsakState {
@@ -23,7 +23,7 @@ export const BehandlingContext = React.createContext<{
   årsakDataHentet: boolean;
   hentBehandlingPåNytt: () => void;
   revaliderBehandling: () => void;
-  ansvarligSaksbehandler: AnsvarligSaksbehandlerDto | null;
+  ansvarligSaksbehandler: AnsvarligSaksbehandlerResponse | null;
   lasterAnsvarligSaksbehandler: boolean;
   hentAnsvarligSaksbehandlerPåNytt: () => void;
   totrinnskontrollStatus: TotrinnskontrollResponse | null;

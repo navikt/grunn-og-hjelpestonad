@@ -5,7 +5,7 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.jvm.JvmName
 
-data class ÅrsakBehandlingDto(
+data class ÅrsakBehandlingResponse(
     val behandlingId: UUID,
     val kravdato: LocalDate,
     @JsonProperty("årsak")
@@ -14,8 +14,8 @@ data class ÅrsakBehandlingDto(
     val beskrivelse: String,
 )
 
-fun ÅrsakBehandling.tilDto() =
-    ÅrsakBehandlingDto(
+fun ÅrsakBehandling.tilResponse() =
+    ÅrsakBehandlingResponse(
         behandlingId = this.behandlingId,
         kravdato = this.kravdato,
         årsak = this.årsak,

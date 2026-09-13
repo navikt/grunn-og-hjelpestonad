@@ -5,7 +5,7 @@ import no.nav.grunn.og.hjelpestonad.beslutter.ÅrsakUnderkjent
 import java.time.LocalDateTime
 import kotlin.jvm.JvmName
 
-data class TotrinnskontrollStatusDto(
+data class TotrinnskontrollStatusResponse(
     val status: TotrinnskontrollStatus,
     val totrinnskontroll: TotrinnskontrollDto? = null,
 )

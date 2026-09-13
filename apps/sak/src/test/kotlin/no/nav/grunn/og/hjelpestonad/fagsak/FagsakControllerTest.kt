@@ -5,7 +5,7 @@ import io.mockk.every
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.ApplicationLocalSetup
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
-import no.nav.grunn.og.hjelpestonad.fagsak.dto.FagsakDto
+import no.nav.grunn.og.hjelpestonad.fagsak.dto.FagsakResponse
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -52,7 +52,7 @@ open class FagsakControllerTest {
             )
 
         val forventetFagsak =
-            FagsakDto(
+            FagsakResponse(
                 personident = personident,
                 stønadstype = stønadstype,
                 id = UUID.randomUUID(),
@@ -82,9 +82,9 @@ open class FagsakControllerTest {
                 }.andReturn()
                 .response.contentAsString
 
-        val fagsakDto: FagsakDto = objectMapper.readValue(responseJson)
-        assertThat(fagsakDto.personident).isEqualTo(personident)
-        assertThat(fagsakDto.stønadstype).isEqualTo(stønadstype)
+        val fagsakResponse: FagsakResponse = objectMapper.readValue(responseJson)
+        assertThat(fagsakResponse.personident).isEqualTo(personident)
+        assertThat(fagsakResponse.stønadstype).isEqualTo(stønadstype)
 
         verify(exactly = 1) {
             fagsakService.hentEllerOpprettFagsak(request)
@@ -104,7 +104,7 @@ open class FagsakControllerTest {
             )
 
         val forventetFagsak =
-            FagsakDto(
+            FagsakResponse(
                 personident = personident,
                 stønadstype = stønadstype,
                 id = UUID.randomUUID(),
@@ -136,9 +136,9 @@ open class FagsakControllerTest {
                 }.andReturn()
                 .response.contentAsString
 
-        val fagsakDto: FagsakDto = objectMapper.readValue(responseJson)
-        assertThat(fagsakDto.fagsakPersonId).isEqualTo(fagsakPersonId)
-        assertThat(fagsakDto.stønadstype).isEqualTo(stønadstype)
+        val fagsakResponse: FagsakResponse = objectMapper.readValue(responseJson)
+        assertThat(fagsakResponse.fagsakPersonId).isEqualTo(fagsakPersonId)
+        assertThat(fagsakResponse.stønadstype).isEqualTo(stønadstype)
 
         verify(exactly = 1) {
             fagsakService.hentEllerOpprettFagsak(request)
@@ -181,7 +181,7 @@ open class FagsakControllerTest {
         every {
             fagsakService.hentEllerOpprettFagsak(any())
         } returns
-            FagsakDto(
+            FagsakResponse(
                 personident = "12345678910",
                 stønadstype = StønadType.BARNETILSYN,
                 id = UUID.randomUUID(),

@@ -1,4 +1,4 @@
-import type { BehandlingEndringDto } from "~/api/generated/types.gen";
+import type { BehandlingEndringResponse } from "~/api/generated/types.gen";
 
-export type BehandlingEndring = BehandlingEndringDto;
+export type BehandlingEndring = BehandlingEndringResponse;
 export type EndringType = BehandlingEndring["endringType"];

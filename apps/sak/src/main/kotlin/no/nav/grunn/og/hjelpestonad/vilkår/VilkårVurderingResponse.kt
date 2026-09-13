@@ -3,7 +3,7 @@ package no.nav.grunn.og.hjelpestonad.vilkår
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.util.UUID
 
-data class VilkårVurderingDto(
+data class VilkårVurderingResponse(
     val id: UUID?,
     val behandlingId: UUID,
     @JsonProperty("vilkårType")
@@ -19,8 +19,8 @@ data class VilkårVurderingRequest(
     val begrunnelse: String = "",
 )
 
-fun VilkårVurdering.tilDto() =
-    VilkårVurderingDto(
+fun VilkårVurdering.tilResponse() =
+    VilkårVurderingResponse(
         id = this.id,
         behandlingId = this.behandlingId,
         vilkårType = this.vilkårType,

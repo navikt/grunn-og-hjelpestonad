@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
+import no.nav.grunn.og.hjelpestonad.brev.domain.BrevResponse
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -61,8 +62,13 @@ class BrevController(
     )
     fun hentMellomlagretBrev(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<BrevRequest> {
+    ): ResponseEntity<BrevResponse> {
         val brev = brevService.hentBrev(behandlingId) ?: return ResponseEntity.noContent().build()
-        return ResponseEntity.ok(brev.brevJson)
+        return ResponseEntity.ok(
+            BrevResponse(
+                brevmal = brev.brevJson.brevmal,
+                fritekstbolker = brev.brevJson.fritekstbolker,
+            ),
+        )
     }
 }

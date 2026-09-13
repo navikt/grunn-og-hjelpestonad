@@ -4,7 +4,7 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.BehandlingEndring
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class BehandlingDto(
+data class BehandlingResponse(
     val id: UUID,
     val fagsakId: UUID,
     val forrigeBehandlingId: UUID? = null,
@@ -16,8 +16,8 @@ data class BehandlingDto(
     val resultat: BehandlingResultat,
 )
 
-fun Behandling.tilDto(sisteEndring: BehandlingEndring? = null): BehandlingDto =
-    BehandlingDto(
+fun Behandling.tilResponse(sisteEndring: BehandlingEndring? = null): BehandlingResponse =
+    BehandlingResponse(
         id = this.id,
         fagsakId = this.fagsakId,
         forrigeBehandlingId = this.forrigeBehandlingId,

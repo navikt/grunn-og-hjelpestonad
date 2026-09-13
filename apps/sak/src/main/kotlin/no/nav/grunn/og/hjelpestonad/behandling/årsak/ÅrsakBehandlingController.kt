@@ -28,13 +28,13 @@ class ÅrsakBehandlingController(
     @GetMapping("/{behandlingId}")
     fun hentÅrsakBehandling(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<ÅrsakBehandlingDto> {
+    ): ResponseEntity<ÅrsakBehandlingResponse> {
         val årsak = årsakBehandlingService.hentÅrsakBehandling(behandlingId)
 
         return if (årsak == null) {
             ResponseEntity.noContent().build()
         } else {
-            ResponseEntity.ok(årsak.tilDto())
+            ResponseEntity.ok(årsak.tilResponse())
         }
     }
 
@@ -42,8 +42,8 @@ class ÅrsakBehandlingController(
     fun lagreÅrsakBehandling(
         @PathVariable behandlingId: UUID,
         @RequestBody årsakBehandlingRequest: ÅrsakBehandlingRequest,
-    ): ResponseEntity<ÅrsakBehandlingDto> {
+    ): ResponseEntity<ÅrsakBehandlingResponse> {
         val årsak = årsakBehandlingService.lagreÅrsakForBehandling(behandlingId, årsakBehandlingRequest)
-        return ResponseEntity.ok(årsak.tilDto())
+        return ResponseEntity.ok(årsak.tilResponse())
     }
 }

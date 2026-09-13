@@ -1,4 +1,4 @@
-import type { ÅrsakBehandlingDto } from "~/api/generated/types.gen";
+import type { ÅrsakBehandlingResponse } from "~/api/generated/types.gen";
 
 export const ÅRSAK = {
   SØKNAD: "SØKNAD",
@@ -6,4 +6,4 @@ export const ÅRSAK = {
   ANNET: "ANNET",
 } as const;
 
-export type ÅrsakType = ÅrsakBehandlingDto["årsak"];
+export type ÅrsakType = ÅrsakBehandlingResponse["årsak"];

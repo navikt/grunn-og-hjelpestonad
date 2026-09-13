@@ -1,3 +1,3 @@
-import type { BehandlingDto } from "~/api/generated/types.gen";
+import type { BehandlingResponse } from "~/api/generated/types.gen";
 
-export type Behandling = BehandlingDto;
+export type Behandling = BehandlingResponse;

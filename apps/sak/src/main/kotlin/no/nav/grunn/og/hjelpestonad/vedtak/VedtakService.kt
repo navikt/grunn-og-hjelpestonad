@@ -24,18 +24,18 @@ class VedtakService(
     fun hentVedtak(behandlingId: UUID): Vedtak? = vedtakRepository.findByBehandlingId(behandlingId)
 
     fun lagreVedtak(
-        vedtakDto: VedtakDto,
+        vedtakRequest: VedtakRequest,
         behandlingId: UUID,
     ): UUID {
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
-        val vedtak = vedtakRepository.insert(vedtakDto.tilVedtak(behandlingId))
+        val vedtak = vedtakRepository.insert(vedtakRequest.tilVedtak(behandlingId))
         tilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtak)
 
         endringshistorikkService.registrerEndring(
             behandlingId = behandlingId,
             endringType = EndringType.VEDTAK_LAGRET,
-            detaljer = "Resultat: ${vedtakDto.resultatType}",
+            detaljer = "Resultat: ${vedtakRequest.resultatType}",
         )
         return vedtak.behandlingId
     }
@@ -48,13 +48,13 @@ class VedtakService(
         }
     }
 
-    fun lagBeløpsperioder(barnetilsynBeregningRequest: BarnetilsynBeregningRequest): List<BeløpsperioderDto> = beregnBarnetilsynperiode(barnetilsynBeregningRequest.barnetilsynBeregning)
+    fun lagBeløpsperioder(barnetilsynBeregningRequest: BarnetilsynBeregningRequest): List<BeløpsperioderResponse> = beregnBarnetilsynperiode(barnetilsynBeregningRequest.barnetilsynBeregning)
 
     fun validerKanLagreVedtak(
-        vedtakDto: VedtakDto,
+        vedtakRequest: VedtakRequest,
     ) {
-        if (vedtakDto.resultatType == ResultatType.INNVILGET) {
-            val barnetilsynperioder = vedtakDto.barnetilsynperioder
+        if (vedtakRequest.resultatType == ResultatType.INNVILGET) {
+            val barnetilsynperioder = vedtakRequest.barnetilsynperioder
 
             val månedsPerioder = barnetilsynperioder.map { periode -> Månedsperiode(periode.datoFra, periode.datoTil) }
             validerGyldigePerioder(månedsPerioder)
@@ -65,20 +65,20 @@ class VedtakService(
             validerAntallBarnAktivitetstypeOgUtgifter(barnetilsynperioder)
             validerOpphørIkkeFørsteEllerSistePeriode(barnetilsynperioder)
         }
-        if (vedtakDto.resultatType == ResultatType.OPPHØR) {
-            if (vedtakDto.opphørFom == null) {
+        if (vedtakRequest.resultatType == ResultatType.OPPHØR) {
+            if (vedtakRequest.opphørFom == null) {
                 throw Feil("Kan ikke opphøre uten å velge opphørsdato")
             }
-            if (vedtakDto.barnetilsynperioder.isNotEmpty()) {
+            if (vedtakRequest.barnetilsynperioder.isNotEmpty()) {
                 throw Feil("Kan ikke være barnetilsynsperioder på et opphørsvedtak")
             }
         }
-        if (vedtakDto.resultatType == ResultatType.AVSLÅTT) {
-            if (vedtakDto.barnetilsynperioder.isNotEmpty()) {
+        if (vedtakRequest.resultatType == ResultatType.AVSLÅTT) {
+            if (vedtakRequest.barnetilsynperioder.isNotEmpty()) {
                 throw Feil("Kan ikke være barnetilsynsperioder på et opphørsvedtak")
             }
         }
-        validerBegrunnelse(vedtakDto)
+        validerBegrunnelse(vedtakRequest)
     }
 
     fun validerKanBeregne(
@@ -153,9 +153,9 @@ class VedtakService(
     }
 
     private fun validerBegrunnelse(
-        vedtakDto: VedtakDto,
+        vedtakRequest: VedtakRequest,
     ) {
-        if (vedtakDto.begrunnelse.isNullOrEmpty()) {
+        if (vedtakRequest.begrunnelse.isNullOrEmpty()) {
             throw Feil("Mangler begrunnelse")
         }
     }

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.util.UUID
 
-data class Søkeresultat(
+data class SøkeresultatResponse(
     val navn: String,
     val fødselsdato: LocalDate?,
     val personident: String,
@@ -34,7 +34,7 @@ class SøkController(
     @PostMapping("/person")
     fun søkPerson(
         @RequestBody søkRequest: SøkRequest,
-    ): Søkeresultat {
+    ): SøkeresultatResponse {
         val personident = søkRequest.personident
         when {
             personident != null -> {

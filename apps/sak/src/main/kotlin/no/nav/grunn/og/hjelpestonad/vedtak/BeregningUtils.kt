@@ -76,11 +76,11 @@ object BeregningUtils {
         return maxOf(BigDecimal.ZERO, minBeløp)
     }
 
-    fun beregnBarnetilsynperiode(barnetilsynBeregninger: List<BarnetilsynBeregning>): List<BeløpsperioderDto> {
+    fun beregnBarnetilsynperiode(barnetilsynBeregninger: List<BarnetilsynBeregning>): List<BeløpsperioderResponse> {
         val splittetBarnetilsynpBeregninger = delOppPerÅr(barnetilsynBeregninger)
-        val beløpsperioderDtoListe = tilBeløpsPerioderDto(splittetBarnetilsynpBeregninger)
+        val beløpsperioderResponseListe = tilBeløpsperioderResponse(splittetBarnetilsynpBeregninger)
 
-        return sammenslåSammenhengendeBeløpsperioder(beløpsperioderDtoListe)
+        return sammenslåSammenhengendeBeløpsperioder(beløpsperioderResponseListe)
     }
 
     private fun delOppPerÅr(barnetilsynBeregninger: List<BarnetilsynBeregning>): List<BarnetilsynBeregning> =
@@ -95,12 +95,12 @@ object BeregningUtils {
             }
         }
 
-    private fun tilBeløpsPerioderDto(barnetilsynperioder: List<BarnetilsynBeregning>): List<BeløpsperioderDto> {
-        val perioder = mutableListOf<BeløpsperioderDto>()
+    private fun tilBeløpsperioderResponse(barnetilsynperioder: List<BarnetilsynBeregning>): List<BeløpsperioderResponse> {
+        val perioder = mutableListOf<BeløpsperioderResponse>()
 
         barnetilsynperioder.forEach { barnetilsynperiode ->
             perioder.add(
-                BeløpsperioderDto(
+                BeløpsperioderResponse(
                     datoFra = barnetilsynperiode.datoFra,
                     datoTil = barnetilsynperiode.datoTil,
                     utgifter = barnetilsynperiode.utgifter,
@@ -113,11 +113,11 @@ object BeregningUtils {
         return perioder
     }
 
-    private fun sammenslåSammenhengendeBeløpsperioder(beløpsperioder: List<BeløpsperioderDto>): List<BeløpsperioderDto> {
+    private fun sammenslåSammenhengendeBeløpsperioder(beløpsperioder: List<BeløpsperioderResponse>): List<BeløpsperioderResponse> {
         if (beløpsperioder.isEmpty()) return emptyList()
 
         val sorterteBeløpsperioder = beløpsperioder.sortedBy { it.datoFra }
-        val sammenslåttBeløpsperioder = mutableListOf<BeløpsperioderDto>()
+        val sammenslåttBeløpsperioder = mutableListOf<BeløpsperioderResponse>()
 
         var gjeldendePeriode = sorterteBeløpsperioder.first()
 
@@ -138,8 +138,8 @@ object BeregningUtils {
     }
 
     private fun kanSammenslå(
-        gjeldendePeriode: BeløpsperioderDto,
-        nestePeriode: BeløpsperioderDto,
+        gjeldendePeriode: BeløpsperioderResponse,
+        nestePeriode: BeløpsperioderResponse,
     ): Boolean {
         val erSammenhengende = gjeldendePeriode.datoTil.plusMonths(1) == nestePeriode.datoFra
 

@@ -26,7 +26,7 @@ data class HenleggRequest(
     val behandlingId: UUID,
 )
 
-data class OpprettBehandlingResponseDto(
+data class OpprettBehandlingResponse(
     val behandlingId: UUID,
 )
 
@@ -40,7 +40,7 @@ class BehandlingController(
     @PostMapping("/opprett")
     fun opprettBehandling(
         @RequestBody opprettRequest: OpprettRequest,
-    ): ResponseEntity<OpprettBehandlingResponseDto> {
+    ): ResponseEntity<OpprettBehandlingResponse> {
         val fagsakId = opprettRequest.fagsakId
 
         if (behandlingService.finnesÅpenBehandling(opprettRequest.fagsakId)) {
@@ -49,7 +49,7 @@ class BehandlingController(
 
         val behandling = behandlingService.opprettBehandling(fagsakId)
 
-        return ResponseEntity.ok(OpprettBehandlingResponseDto(behandlingId = behandling.id))
+        return ResponseEntity.ok(OpprettBehandlingResponse(behandlingId = behandling.id))
     }
 
     @PostMapping("/henlegg")
@@ -63,14 +63,14 @@ class BehandlingController(
     @PostMapping("/hentBehandlinger")
     fun hentBehandlinger(
         @RequestBody hentBehandlingerRequest: HentBehandlingerRequest,
-    ): ResponseEntity<List<BehandlingDto>> {
+    ): ResponseEntity<List<BehandlingResponse>> {
         val fagsakId = hentBehandlingerRequest.fagsakId
 
         val behandlinger = behandlingService.hentBehandlingerFraFagsak(fagsakId)
         return ResponseEntity.ok(
             behandlinger?.map {
                 val sisteEndring = endringshistorikkService.hentSisteEndring(it.id)
-                it.tilDto(sisteEndring)
+                it.tilResponse(sisteEndring)
             },
         )
     }
@@ -78,11 +78,11 @@ class BehandlingController(
     @PostMapping("/hent")
     fun hentBehandling(
         @RequestBody hentRequest: HentRequest,
-    ): ResponseEntity<BehandlingDto> {
+    ): ResponseEntity<BehandlingResponse> {
         val behandlingId = hentRequest.behandlingId
 
         val behandling = behandlingService.hentBehandling(behandlingId)
         val sisteEndring = behandling?.let { endringshistorikkService.hentSisteEndring(it.id) }
-        return ResponseEntity.ok(behandling?.tilDto(sisteEndring))
+        return ResponseEntity.ok(behandling?.tilResponse(sisteEndring))
     }
 }

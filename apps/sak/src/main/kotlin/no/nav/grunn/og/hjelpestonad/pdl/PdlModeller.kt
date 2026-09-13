@@ -48,7 +48,7 @@ data class Foedselsdato(
     val foedselsdato: LocalDate,
 )
 
-data class Person(
+data class PersonResponse(
     val navn: Navn,
     val foedselsdato: LocalDate,
 )

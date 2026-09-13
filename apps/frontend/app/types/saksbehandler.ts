@@ -1,4 +1,4 @@
-import type { AnsvarligSaksbehandlerDto } from "~/api/generated/types.gen";
+import type { AnsvarligSaksbehandlerResponse } from "~/api/generated/types.gen";
 
-export type SaksbehandlerRolle = AnsvarligSaksbehandlerDto["rolle"];
-export type { AnsvarligSaksbehandlerDto };
+export type SaksbehandlerRolle = AnsvarligSaksbehandlerResponse["rolle"];
+export type { AnsvarligSaksbehandlerResponse };

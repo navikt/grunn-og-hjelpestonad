@@ -4,7 +4,7 @@ import no.nav.grunn.og.hjelpestonad.fagsak.domain.Fagsak
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
 import java.util.UUID
 
-data class FagsakDto(
+data class FagsakResponse(
     val id: UUID,
     val fagsakPersonId: UUID,
     val personident: String,
@@ -12,8 +12,8 @@ data class FagsakDto(
     val eksternId: Long,
 )
 
-fun Fagsak.tilDto(personident: String): FagsakDto =
-    FagsakDto(
+fun Fagsak.tilResponse(personident: String): FagsakResponse =
+    FagsakResponse(
         id = this.id,
         fagsakPersonId = this.fagsakPersonId,
         personident = personident,

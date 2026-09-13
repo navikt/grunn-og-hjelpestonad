@@ -5,6 +5,11 @@ data class BrevRequest(
     val fritekstbolker: List<TekstbolkDto>,
 )
 
+data class BrevResponse(
+    val brevmal: BrevmalDto,
+    val fritekstbolker: List<TekstbolkDto>,
+)
+
 data class BrevmalDto(
     val tittel: String,
     val informasjonOmBruker: InformasjonOmBrukerDto,

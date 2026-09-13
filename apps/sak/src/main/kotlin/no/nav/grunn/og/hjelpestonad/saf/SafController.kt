@@ -18,7 +18,7 @@ class SafController(
     @PostMapping("/dokumenter")
     fun hentJournalPostForBrukerId(
         @RequestBody request: HentDokumenterRequest,
-    ): ResponseEntity<List<DokumentinfoDto>> {
+    ): ResponseEntity<List<DokumentinfoResponse>> {
         val data =
             safService.finnDokumenterForPerson(request.fagsakPersonId)
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { apiCall, type ApiResponse } from "~/api/backend";
-import type { BeslutteVedtakDto } from "~/api/generated/types.gen";
+import type { BeslutteVedtakRequest } from "~/api/generated/types.gen";
 
 export const useBeslutter = () => {
   const [sender, settSender] = useState(false);
@@ -27,8 +27,8 @@ export const useBeslutter = () => {
   const angreSendTilBeslutter = (behandlingId: string) =>
     kallBeslutterEndepunkt("angre-send-til-beslutter", behandlingId);
 
-  const besluttVedtak = (behandlingId: string, beslutteVedtakDto: BeslutteVedtakDto) =>
-    kallBeslutterEndepunkt("beslutt-vedtak", behandlingId, beslutteVedtakDto);
+  const besluttVedtak = (behandlingId: string, beslutteVedtakRequest: BeslutteVedtakRequest) =>
+    kallBeslutterEndepunkt("beslutt-vedtak", behandlingId, beslutteVedtakRequest);
 
   return {
     sender,

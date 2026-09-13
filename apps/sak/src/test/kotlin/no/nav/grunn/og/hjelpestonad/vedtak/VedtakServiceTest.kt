@@ -23,8 +23,8 @@ class VedtakServiceTest {
     @Test
     fun `lagreVedtak kaster feil når behandling ikke er redigerbar`() {
         val behandlingId = UUID.randomUUID()
-        val vedtakDto =
-            VedtakDto(
+        val vedtakRequest =
+            VedtakRequest(
                 resultatType = ResultatType.INNVILGET,
                 begrunnelse = "Test",
                 barnetilsynperioder = emptyList(),
@@ -32,7 +32,7 @@ class VedtakServiceTest {
 
         every { behandlingService.validerBehandlingErRedigerbar(behandlingId) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
 
-        assertThatThrownBy { vedtakService.lagreVedtak(vedtakDto, behandlingId) }
+        assertThatThrownBy { vedtakService.lagreVedtak(vedtakRequest, behandlingId) }
             .isInstanceOf(Feil::class.java)
             .hasMessageContaining("Behandlingen er ikke redigerbar")
     }
@@ -40,8 +40,8 @@ class VedtakServiceTest {
     @Test
     fun `lagreVedtak kaster ManglerTilgang når bruker ikke er ansvarlig saksbehandler`() {
         val behandlingId = UUID.randomUUID()
-        val vedtakDto =
-            VedtakDto(
+        val vedtakRequest =
+            VedtakRequest(
                 resultatType = ResultatType.INNVILGET,
                 begrunnelse = "Test",
                 barnetilsynperioder = emptyList(),
@@ -50,7 +50,7 @@ class VedtakServiceTest {
         every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
             ManglerTilgang("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
 
-        assertThatThrownBy { vedtakService.lagreVedtak(vedtakDto, behandlingId) }
+        assertThatThrownBy { vedtakService.lagreVedtak(vedtakRequest, behandlingId) }
             .isInstanceOf(ManglerTilgang::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }

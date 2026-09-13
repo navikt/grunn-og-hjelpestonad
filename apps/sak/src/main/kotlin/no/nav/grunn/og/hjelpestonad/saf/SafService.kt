@@ -19,12 +19,12 @@ class SafService(
         return data.dokumentoversiktBruker.journalposter
     }
 
-    fun finnDokumenterForPerson(fagsakPersonId: UUID): List<DokumentinfoDto> {
+    fun finnDokumenterForPerson(fagsakPersonId: UUID): List<DokumentinfoResponse> {
         val ident = fagsakPersonService.hentAktivIdent(fagsakPersonId)
         val journalposter = hentJournalposterForIdent(ident)
 
         return journalposter
-            ?.flatMap { journalpost -> journalpost.dokumenter?.map { tilDokumentInfoDto(it, journalpost) } ?: emptyList() } ?: emptyList()
+            ?.flatMap { journalpost -> journalpost.dokumenter?.map { tilDokumentInfoResponse(it, journalpost) } ?: emptyList() } ?: emptyList()
     }
 
     fun hentDokument(
@@ -32,11 +32,11 @@ class SafService(
         dokumentInfoId: String,
     ): ByteArray = safClient.hentDokument(journalpostId, dokumentInfoId)
 
-    private fun tilDokumentInfoDto(
+    private fun tilDokumentInfoResponse(
         dokumentInfo: DokumentInfo,
         journalpost: Journalpost,
-    ): DokumentinfoDto =
-        DokumentinfoDto(
+    ): DokumentinfoResponse =
+        DokumentinfoResponse(
             dokumentinfoId = dokumentInfo.dokumentInfoId,
             filnavn = dokumentInfo.dokumentvarianter?.find { it.variantformat == Dokumentvariantformat.ARKIV }?.filnavn,
             tittel = dokumentInfo.tittel ?: "Tittel mangler",

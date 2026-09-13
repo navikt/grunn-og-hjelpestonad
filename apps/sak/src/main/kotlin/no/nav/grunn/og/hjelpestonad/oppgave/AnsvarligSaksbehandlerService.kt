@@ -3,7 +3,7 @@ package no.nav.grunn.og.hjelpestonad.oppgave
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingRepository
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
-import no.nav.grunn.og.hjelpestonad.oppgave.dto.AnsvarligSaksbehandlerDto
+import no.nav.grunn.og.hjelpestonad.oppgave.dto.AnsvarligSaksbehandlerResponse
 import no.nav.grunn.og.hjelpestonad.oppgave.dto.SaksbehandlerRolle
 import no.nav.grunn.og.hjelpestonad.saksbehandler.EntraProxyClient
 import org.slf4j.LoggerFactory
@@ -20,12 +20,12 @@ class AnsvarligSaksbehandlerService(
 ) {
     private val logger = LoggerFactory.getLogger(AnsvarligSaksbehandlerService::class.java)
 
-    fun hentAnsvarligSaksbehandler(behandlingId: UUID): AnsvarligSaksbehandlerDto {
+    fun hentAnsvarligSaksbehandler(behandlingId: UUID): AnsvarligSaksbehandlerResponse {
         val innloggetSaksbehandler = SikkerhetContext.hentSaksbehandler()
         val ansvarligSaksbehandler = hentAnsvarligSaksbehandlerIdent(behandlingId)
 
         if (ansvarligSaksbehandler.isNullOrBlank()) {
-            return AnsvarligSaksbehandlerDto(
+            return AnsvarligSaksbehandlerResponse(
                 fornavn = "",
                 etternavn = "",
                 rolle = SaksbehandlerRolle.IKKE_SATT,
@@ -40,7 +40,7 @@ class AnsvarligSaksbehandlerService(
                 SaksbehandlerRolle.ANNEN_SAKSBEHANDLER
             }
 
-        return AnsvarligSaksbehandlerDto(
+        return AnsvarligSaksbehandlerResponse(
             fornavn = saksbehandlerInfo.fornavn,
             etternavn = saksbehandlerInfo.etternavn,
             rolle = rolle,

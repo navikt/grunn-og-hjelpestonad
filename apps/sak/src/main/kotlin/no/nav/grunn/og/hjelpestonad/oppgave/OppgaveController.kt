@@ -1,7 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.oppgave
 
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
-import no.nav.grunn.og.hjelpestonad.oppgave.dto.AnsvarligSaksbehandlerDto
+import no.nav.grunn.og.hjelpestonad.oppgave.dto.AnsvarligSaksbehandlerResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
@@ -30,7 +30,7 @@ class OppgaveController(
     @PostMapping("/ansvarlig-saksbehandler")
     fun hentAnsvarligSaksbehandler(
         @RequestBody request: HentAnsvarligSaksbehandlerRequest,
-    ): ResponseEntity<AnsvarligSaksbehandlerDto> {
+    ): ResponseEntity<AnsvarligSaksbehandlerResponse> {
         val ansvarligSaksbehandler = ansvarligSaksbehandlerService.hentAnsvarligSaksbehandler(request.behandlingId)
         return ResponseEntity.ok(ansvarligSaksbehandler)
     }

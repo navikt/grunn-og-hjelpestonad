@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { apiCall, type ApiResponse } from "~/api/backend";
 import type { Vurdering, VilkårType } from "~/types/vilkår";
 import type {
-  VilkårVurderingDto,
   VilkårVurderingRequest,
+  VilkårVurderingResponse,
 } from "~/api/generated/types.gen";
 import { oppdaterEndringshistorikk } from "~/utils/endringshistorikkEvent";
 
-export type VilkårVurderingResponse = VilkårVurderingDto;
 export type { VilkårVurderingRequest };
+export type { VilkårVurderingResponse };
 
 export interface VilkårState {
   spørsmålSvar: Vurdering | "";

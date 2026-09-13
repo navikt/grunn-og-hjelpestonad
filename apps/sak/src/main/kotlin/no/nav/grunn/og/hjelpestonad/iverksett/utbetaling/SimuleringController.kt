@@ -32,9 +32,9 @@ class SimuleringController(
     @GetMapping("/{behandlingId}/resultat")
     fun hentSimuleringsresultat(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<SimuleringResultatDto> {
+    ): ResponseEntity<SimuleringResultatResponse> {
         if (environment.matchesProfiles("dev")) {
-            return ResponseEntity.ok(mockSimuleringsrespons().tilResultatDto())
+            return ResponseEntity.ok(mockSimuleringsrespons().tilResultatResponse())
         }
 
         val simulering =
@@ -47,7 +47,7 @@ class SimuleringController(
             }
 
             SimuleringStatus.FERDIG -> {
-                simulering.respons?.let { ResponseEntity.ok(it.tilResultatDto()) }
+                simulering.respons?.let { ResponseEntity.ok(it.tilResultatResponse()) }
                     ?: ResponseEntity.internalServerError().build()
             }
 

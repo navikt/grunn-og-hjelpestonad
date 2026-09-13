@@ -3,7 +3,7 @@ package no.nav.grunn.og.hjelpestonad.endringshistorikk
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class BehandlingEndringDto(
+data class BehandlingEndringResponse(
     val id: UUID,
     val behandlingId: UUID,
     val endringType: EndringType,
@@ -12,8 +12,8 @@ data class BehandlingEndringDto(
     val detaljer: String?,
 )
 
-fun BehandlingEndring.tilDto() =
-    BehandlingEndringDto(
+fun BehandlingEndring.tilResponse() =
+    BehandlingEndringResponse(
         id = this.id,
         behandlingId = this.behandlingId,
         endringType = this.endringType,

@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { FagsakDto } from "~/api/generated/types.gen";
+import type { FagsakResponse } from "~/api/generated/types.gen";
 
 export interface Person {
   navn: Navn;
@@ -16,7 +16,7 @@ interface PersonContextType {
   person: Person | null;
   personident: string;
   fagsakPersonId: string;
-  fagsak: FagsakDto | null;
+  fagsak: FagsakResponse | null;
   fagsakId: string | undefined;
   laster: boolean;
 }

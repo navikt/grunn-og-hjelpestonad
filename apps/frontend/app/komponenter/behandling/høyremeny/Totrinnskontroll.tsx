@@ -22,7 +22,7 @@ import {
   årsakUnderkjentTekst,
 } from "~/types/totrinnskontroll";
 import { formaterIsoDatoTid } from "~/utils/utils";
-import type { AnsvarligSaksbehandlerDto } from "~/types/saksbehandler";
+import type { AnsvarligSaksbehandlerResponse } from "~/types/saksbehandler";
 
 enum Totrinnsresultat {
   IKKE_VALGT = "IKKE_VALGT",
@@ -159,7 +159,7 @@ const FatterVedtak: React.FC<{
   revaliderBehandling: () => void;
   hentTotrinnskontrollStatusPåNytt: () => void;
   hentAnsvarligSaksbehandlerPåNytt: () => void;
-  ansvarligSaksbehandler: AnsvarligSaksbehandlerDto | null;
+  ansvarligSaksbehandler: AnsvarligSaksbehandlerResponse | null;
 }> = ({
   behandlingId,
   besluttVedtak,

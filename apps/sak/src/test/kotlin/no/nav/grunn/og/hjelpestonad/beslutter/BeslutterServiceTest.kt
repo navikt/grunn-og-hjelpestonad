@@ -5,7 +5,7 @@ import io.mockk.mockk
 import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.LagBehandleSakOppgaveTask
-import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakDto
+import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
@@ -70,12 +70,12 @@ class BeslutterServiceTest {
     @Test
     fun `besluttVedtak kaster ManglerTilgang når bruker ikke er ansvarlig saksbehandler`() {
         val behandlingId = UUID.randomUUID()
-        val beslutteVedtakDto = BeslutteVedtakDto(godkjent = true)
+        val beslutteVedtakRequest = BeslutteVedtakRequest(godkjent = true)
 
         every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
             ManglerTilgang("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
 
-        assertThatThrownBy { beslutterService.besluttVedtak(behandlingId, beslutteVedtakDto) }
+        assertThatThrownBy { beslutterService.besluttVedtak(behandlingId, beslutteVedtakRequest) }
             .isInstanceOf(ManglerTilgang::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }

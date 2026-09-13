@@ -4,7 +4,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingRepository
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.TotrinnskontrollDto
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.TotrinnskontrollStatus
-import no.nav.grunn.og.hjelpestonad.beslutter.dto.TotrinnskontrollStatusDto
+import no.nav.grunn.og.hjelpestonad.beslutter.dto.TotrinnskontrollStatusResponse
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.BehandlingEndringRepository
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
@@ -17,7 +17,7 @@ class TotrinnskontrollService(
     private val behandlingEndringRepository: BehandlingEndringRepository,
     private val behandlingRepository: BehandlingRepository,
 ) {
-    fun hentTotrinnskontrollStatus(behandlingId: UUID): TotrinnskontrollStatusDto {
+    fun hentTotrinnskontrollStatus(behandlingId: UUID): TotrinnskontrollStatusResponse {
         val behandling =
             behandlingRepository.findByIdOrNull(behandlingId)
                 ?: throw IllegalStateException("Finner ikke behandling med id=$behandlingId")
@@ -25,7 +25,7 @@ class TotrinnskontrollService(
         return when (behandling.status) {
             BehandlingStatus.FATTER_VEDTAK -> finnStatusForVedtakSomSkalFattes(behandlingId)
             BehandlingStatus.UTREDES -> finnStatusForVedtakSomErFattet(behandlingId)
-            else -> TotrinnskontrollStatusDto(TotrinnskontrollStatus.UAKTUELT)
+            else -> TotrinnskontrollStatusResponse(TotrinnskontrollStatus.UAKTUELT)
         }
     }
 
@@ -48,18 +48,18 @@ class TotrinnskontrollService(
         }
     }
 
-    private fun finnStatusForVedtakSomSkalFattes(behandlingId: UUID): TotrinnskontrollStatusDto {
+    private fun finnStatusForVedtakSomSkalFattes(behandlingId: UUID): TotrinnskontrollStatusResponse {
         val sisteEndring =
             behandlingEndringRepository.finnSisteForBehandlingMedType(
                 behandlingId = behandlingId,
                 endringType = EndringType.SENDT_TIL_BESLUTTER,
-            ) ?: return TotrinnskontrollStatusDto(TotrinnskontrollStatus.UAKTUELT)
+            ) ?: return TotrinnskontrollStatusResponse(TotrinnskontrollStatus.UAKTUELT)
 
         val innloggetSaksbehandler = SikkerhetContext.hentSaksbehandler()
         val erSammeSomSaksbehandler = innloggetSaksbehandler == sisteEndring.utførtAv
 
         return if (erSammeSomSaksbehandler) {
-            TotrinnskontrollStatusDto(
+            TotrinnskontrollStatusResponse(
                 status = TotrinnskontrollStatus.IKKE_AUTORISERT,
                 totrinnskontroll =
                     TotrinnskontrollDto(
@@ -68,18 +68,18 @@ class TotrinnskontrollService(
                     ),
             )
         } else {
-            TotrinnskontrollStatusDto(TotrinnskontrollStatus.KAN_FATTE_VEDTAK)
+            TotrinnskontrollStatusResponse(TotrinnskontrollStatus.KAN_FATTE_VEDTAK)
         }
     }
 
-    private fun finnStatusForVedtakSomErFattet(behandlingId: UUID): TotrinnskontrollStatusDto {
+    private fun finnStatusForVedtakSomErFattet(behandlingId: UUID): TotrinnskontrollStatusResponse {
         val sisteUnderkjentEndring =
             behandlingEndringRepository.finnSisteForBehandlingMedType(
                 behandlingId = behandlingId,
                 endringType = EndringType.BESLUTTER_UNDERKJENT,
-            ) ?: return TotrinnskontrollStatusDto(TotrinnskontrollStatus.UAKTUELT)
+            ) ?: return TotrinnskontrollStatusResponse(TotrinnskontrollStatus.UAKTUELT)
 
-        return TotrinnskontrollStatusDto(
+        return TotrinnskontrollStatusResponse(
             status = TotrinnskontrollStatus.TOTRINNSKONTROLL_UNDERKJENT,
             totrinnskontroll =
                 TotrinnskontrollDto(

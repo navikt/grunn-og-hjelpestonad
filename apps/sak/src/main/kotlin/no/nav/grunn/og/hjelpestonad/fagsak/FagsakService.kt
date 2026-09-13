@@ -3,8 +3,8 @@ package no.nav.grunn.og.hjelpestonad.fagsak
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.Fagsak
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.FagsakPerson
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
-import no.nav.grunn.og.hjelpestonad.fagsak.dto.FagsakDto
-import no.nav.grunn.og.hjelpestonad.fagsak.dto.tilDto
+import no.nav.grunn.og.hjelpestonad.fagsak.dto.FagsakResponse
+import no.nav.grunn.og.hjelpestonad.fagsak.dto.tilResponse
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -17,11 +17,11 @@ open class FagsakService(
     @Transactional
     fun hentEllerOpprettFagsak(
         request: FagsakRequest,
-    ): FagsakDto {
+    ): FagsakResponse {
         val (fagsakPerson, personident) = hentFagsakPersonMedIdent(request)
         val fagsak = hentEllerOpprett(fagsakPerson = fagsakPerson, stønadstype = request.stønadstype)
 
-        return fagsak.tilDto(personident)
+        return fagsak.tilResponse(personident)
     }
 
     private fun hentFagsakPersonMedIdent(request: FagsakRequest): Pair<FagsakPerson, String> =

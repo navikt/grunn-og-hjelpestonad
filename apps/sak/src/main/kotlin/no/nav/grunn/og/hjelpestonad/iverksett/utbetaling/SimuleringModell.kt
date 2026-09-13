@@ -28,8 +28,8 @@ data class SimuleringUtbetaling(
     val nyttBeløp: Int,
 )
 
-data class SimuleringResultatDto(
-    val perioder: List<SimuleringPeriodeDto>,
+data class SimuleringResultatResponse(
+    val perioder: List<SimuleringPeriodeResponse>,
     @field:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val fom: LocalDate,
     @field:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -40,7 +40,7 @@ data class SimuleringResultatDto(
     val feilutbetaling: Int,
 )
 
-data class SimuleringPeriodeDto(
+data class SimuleringPeriodeResponse(
     @field:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val fom: LocalDate,
     @field:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -51,7 +51,7 @@ data class SimuleringPeriodeDto(
     val feilutbetaling: Int,
 )
 
-fun SimuleringResponse.tilResultatDto(dagensDato: LocalDate = LocalDate.now()): SimuleringResultatDto {
+fun SimuleringResponse.tilResultatResponse(dagensDato: LocalDate = LocalDate.now()): SimuleringResultatResponse {
     val nestePeriodeFom = perioder.firstOrNull { !it.fom.isBefore(dagensDato.withDayOfMonth(1)) }?.fom
 
     val periodeDtoer =
@@ -59,7 +59,7 @@ fun SimuleringResponse.tilResultatDto(dagensDato: LocalDate = LocalDate.now()): 
             val nyttBeløp = periode.utbetalinger.sumOf { it.nyttBeløp }
             val tidligereUtbetalt = periode.utbetalinger.sumOf { it.tidligereUtbetalt }
             val resultat = nyttBeløp - tidligereUtbetalt
-            SimuleringPeriodeDto(
+            SimuleringPeriodeResponse(
                 fom = periode.fom,
                 tom = periode.tom,
                 nyttBeløp = nyttBeløp,
@@ -72,7 +72,7 @@ fun SimuleringResponse.tilResultatDto(dagensDato: LocalDate = LocalDate.now()): 
     val historiskePerioder =
         if (nestePeriodeFom != null) periodeDtoer.filter { it.fom.isBefore(nestePeriodeFom) } else periodeDtoer
 
-    return SimuleringResultatDto(
+    return SimuleringResultatResponse(
         perioder = periodeDtoer,
         fom = perioder.minOf { it.fom },
         tomSisteUtbetaling = historiskePerioder.maxOfOrNull { it.tom } ?: perioder.minOf { it.fom },

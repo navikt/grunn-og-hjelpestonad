@@ -24,7 +24,7 @@ import no.nav.grunn.og.hjelpestonad.iverksett.brev.domene.Dokumenttype
 import no.nav.grunn.og.hjelpestonad.iverksett.brev.domene.JournalpostType
 import no.nav.grunn.og.hjelpestonad.pdl.Navn
 import no.nav.grunn.og.hjelpestonad.pdl.PdlService
-import no.nav.grunn.og.hjelpestonad.pdl.Person
+import no.nav.grunn.og.hjelpestonad.pdl.PersonResponse
 import no.nav.grunn.og.hjelpestonad.saf.BrukerIdType
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -66,7 +66,7 @@ class JournalføringServiceTest {
         every { fagsakPersonService.hentAktivIdent(fagsakPersonId) } returns personident
         every { brevService.hentBrev(behandlingId) } returns brev
         every { brevmottakerService.hentBrevmottakere(behandlingId) } returns listOf(mottaker)
-        every { pdlService.hentPersonMedPersonIdent(personident) } returns Person(Navn("Ola", null, "Nordmann"), LocalDate.of(1990, 1, 15))
+        every { pdlService.hentPersonMedPersonIdent(personident) } returns PersonResponse(Navn("Ola", null, "Nordmann"), LocalDate.of(1990, 1, 15))
         val result = journalføringService.lagJournalføringRequester(behandlingId)
 
         assertThat(result).hasSize(1)
@@ -101,8 +101,8 @@ class JournalføringServiceTest {
         every { fagsakPersonService.hentAktivIdent(fagsakPersonId) } returns personident
         every { brevService.hentBrev(behandlingId) } returns brev
         every { brevmottakerService.hentBrevmottakere(behandlingId) } returns mottakere
-        every { pdlService.hentPersonMedPersonIdent(personident) } returns Person(Navn("Ola", null, "Nordmann"), LocalDate.of(1990, 1, 15))
-        every { pdlService.hentPersonMedPersonIdent(vergeIdent) } returns Person(Navn("Kari", "Marie", "Hansen"), LocalDate.of(1990, 1, 15))
+        every { pdlService.hentPersonMedPersonIdent(personident) } returns PersonResponse(Navn("Ola", null, "Nordmann"), LocalDate.of(1990, 1, 15))
+        every { pdlService.hentPersonMedPersonIdent(vergeIdent) } returns PersonResponse(Navn("Kari", "Marie", "Hansen"), LocalDate.of(1990, 1, 15))
         val result = journalføringService.lagJournalføringRequester(behandlingId)
 
         assertThat(result).hasSize(2)

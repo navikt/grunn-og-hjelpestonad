@@ -1,13 +1,13 @@
 import type {
-    Barnetilsynperiode as BarnetilsynperiodeDto,
-    BeløpsperioderDto,
-    VedtakDto,
+    Barnetilsynperiode as ApiBarnetilsynperiode,
+    BeløpsperioderResponse,
+    VedtakRequest,
 } from "~/api/generated/types.gen";
 
-type ApiPeriodetype = BarnetilsynperiodeDto['periodetype'];
-type ApiAktivitetstypeBarnetilsyn = BarnetilsynperiodeDto['aktivitetstype'];
+type ApiPeriodetype = ApiBarnetilsynperiode['periodetype'];
+type ApiAktivitetstypeBarnetilsyn = ApiBarnetilsynperiode['aktivitetstype'];
 
-export type ResultatType = VedtakDto['resultatType'];
+export type ResultatType = VedtakRequest['resultatType'];
 export type Periodetype = ApiPeriodetype;
 export type AktivitetstypeBarnetilsyn = ApiAktivitetstypeBarnetilsyn;
 
@@ -25,14 +25,14 @@ export const AktivitetstypeBarnetilsyn = {
 // Redigeringsmodellene under er skjematilstand: perioden har ingen persistens-id
 // før den er lagret, og periodetype/aktivitetstype er tomme til saksbehandleren
 // har fylt dem ut. Ellers følger de API-kontrakten.
-export type Barnetilsynperiode = Omit<BarnetilsynperiodeDto, 'id' | 'periodetype' | 'aktivitetstype'> & {
+export type Barnetilsynperiode = Omit<ApiBarnetilsynperiode, 'id' | 'periodetype' | 'aktivitetstype'> & {
     id?: string;
     periodetype: Periodetype | undefined;
     aktivitetstype: AktivitetstypeBarnetilsyn | undefined;
 };
 
-export type Vedtak = Omit<VedtakDto, 'barnetilsynperioder'> & {
+export type Vedtak = Omit<VedtakRequest, 'barnetilsynperioder'> & {
     barnetilsynperioder: Barnetilsynperiode[];
 };
 
-export type Beløpsperioder = BeløpsperioderDto[];
+export type Beløpsperioder = BeløpsperioderResponse[];

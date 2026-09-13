@@ -42,7 +42,7 @@ open class PdlControllerTest {
 
         every {
             pdlService.hentPersonMedFagsakPersonId(fagsakPersonId)
-        } returns Person(Navn("fornavn", null, "etternavn"), LocalDate.of(1990, 1, 15))
+        } returns PersonResponse(Navn("fornavn", null, "etternavn"), LocalDate.of(1990, 1, 15))
         val responseJson =
             mockMvc
                 .post("/api/pdl/person") {
@@ -53,7 +53,7 @@ open class PdlControllerTest {
                     content { contentType(MediaType.APPLICATION_JSON) }
                 }.andReturn()
                 .response.contentAsString
-        val response = objectMapper.readValue<Person>(responseJson)
+        val response = objectMapper.readValue<PersonResponse>(responseJson)
         Assertions.assertThat(response.navn.fornavn).isEqualTo("fornavn")
         Assertions.assertThat(response.navn.etternavn).isEqualTo("etternavn")
         Assertions.assertThat(response.foedselsdato).isEqualTo("1990-01-15")

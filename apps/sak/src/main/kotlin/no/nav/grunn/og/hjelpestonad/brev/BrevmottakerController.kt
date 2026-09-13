@@ -3,8 +3,8 @@ package no.nav.grunn.og.hjelpestonad.brev
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevmottakerRequest
-import no.nav.grunn.og.hjelpestonad.brev.dto.BrevmottakerDto
-import no.nav.grunn.og.hjelpestonad.brev.dto.tilDto
+import no.nav.grunn.og.hjelpestonad.brev.dto.BrevmottakerResponse
+import no.nav.grunn.og.hjelpestonad.brev.dto.tilResponse
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -31,8 +31,8 @@ class BrevmottakerController(
     )
     fun hentBrevmottakere(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<List<BrevmottakerDto>> {
-        val brevmottakere = brevmottakerService.hentBrevmottakere(behandlingId).map { it.tilDto() }
+    ): ResponseEntity<List<BrevmottakerResponse>> {
+        val brevmottakere = brevmottakerService.hentBrevmottakere(behandlingId).map { it.tilResponse() }
         return ResponseEntity.ok(brevmottakere)
     }
 

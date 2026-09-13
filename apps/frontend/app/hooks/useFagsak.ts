@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { type ApiResponse, apiCall } from "~/api/backend";
-import type { FagsakDto, FagsakRequest } from "~/api/generated/types.gen";
+import type { FagsakRequest, FagsakResponse } from "~/api/generated/types.gen";
 import { erGyldigFagsakPersonId, erGyldigPersonident } from "~/utils/utils";
 
 interface FagsakState {
   fagsakPersonId?: string;
-  fagsak: FagsakDto | null;
+  fagsak: FagsakResponse | null;
   melding: string | null;
   laster: boolean;
 }
 
-export async function hentEllerOpprettFagsak(søkestreng: string): Promise<ApiResponse<FagsakDto>> {
+export async function hentEllerOpprettFagsak(søkestreng: string): Promise<ApiResponse<FagsakResponse>> {
   // TODO: Refaktorer - kanskje dele opp i to funksjoner
   const id = søkestreng.trim();
 

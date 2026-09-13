@@ -21,8 +21,8 @@ class EndringshistorikkController(
     @GetMapping("/{behandlingId}")
     fun hentEndringshistorikk(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<List<BehandlingEndringDto>> {
+    ): ResponseEntity<List<BehandlingEndringResponse>> {
         val historikk = endringshistorikkService.hentEndringshistorikk(behandlingId)
-        return ResponseEntity.ok(historikk.map { it.tilDto() })
+        return ResponseEntity.ok(historikk.map { it.tilResponse() })
     }
 }

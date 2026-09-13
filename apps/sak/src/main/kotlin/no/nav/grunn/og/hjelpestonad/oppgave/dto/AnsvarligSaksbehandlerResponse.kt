@@ -6,7 +6,7 @@ enum class SaksbehandlerRolle {
     IKKE_SATT,
 }
 
-data class AnsvarligSaksbehandlerDto(
+data class AnsvarligSaksbehandlerResponse(
     val fornavn: String,
     val etternavn: String,
     val rolle: SaksbehandlerRolle,

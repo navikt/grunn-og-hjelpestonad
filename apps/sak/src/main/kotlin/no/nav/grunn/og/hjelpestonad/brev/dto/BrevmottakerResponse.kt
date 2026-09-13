@@ -4,7 +4,7 @@ import no.nav.grunn.og.hjelpestonad.brev.domain.Brevmottaker
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevmottakerRolle
 import no.nav.grunn.og.hjelpestonad.brev.domain.MottakerType
 
-data class BrevmottakerDto(
+data class BrevmottakerResponse(
     val personRolle: BrevmottakerRolle,
     val mottakerType: MottakerType,
     val personident: String? = null,
@@ -12,8 +12,8 @@ data class BrevmottakerDto(
     val navnHosOrganisasjon: String? = null,
 )
 
-fun Brevmottaker.tilDto() =
-    BrevmottakerDto(
+fun Brevmottaker.tilResponse() =
+    BrevmottakerResponse(
         personRolle = this.personRolle,
         mottakerType = this.mottakerType,
         personident = this.personident,

@@ -1,7 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.tilkjentytelse
 
 import no.nav.grunn.og.hjelpestonad.vedtak.BarnetilsynBeregning
-import no.nav.grunn.og.hjelpestonad.vedtak.BeløpsperioderDto
+import no.nav.grunn.og.hjelpestonad.vedtak.BeløpsperioderResponse
 import no.nav.grunn.og.hjelpestonad.vedtak.BeregningUtils.beregnBarnetilsynperiode
 import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
@@ -68,7 +68,7 @@ class TilkjentYtelseService(
     }
 }
 
-private fun BeløpsperioderDto.tilAndelTilkjentYtelse(kildeBehandlingId: UUID) =
+private fun BeløpsperioderResponse.tilAndelTilkjentYtelse(kildeBehandlingId: UUID) =
     AndelTilkjentYtelse(
         beløp = this.beløp,
         fom = this.datoFra.atDay(1),

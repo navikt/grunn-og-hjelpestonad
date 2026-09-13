@@ -4,7 +4,7 @@ import no.nav.grunn.og.hjelpestonad.fagsak.domain.FagsakPerson
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import no.nav.grunn.og.hjelpestonad.pdl.Navn
 import no.nav.grunn.og.hjelpestonad.pdl.PdlService
-import no.nav.grunn.og.hjelpestonad.pdl.Person
+import no.nav.grunn.og.hjelpestonad.pdl.PersonResponse
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -14,7 +14,7 @@ class SøkService(
     private val fagsakPersonService: FagsakPersonService,
     private val pdlService: PdlService,
 ) {
-    fun søkPerson(personident: String): Søkeresultat {
+    fun søkPerson(personident: String): SøkeresultatResponse {
         val fagsakPerson = fagsakPersonService.finnPerson(setOf(personident))
 
         val person =
@@ -27,7 +27,7 @@ class SøkService(
         return tilSøkeresultat(personident = personident, fagsakPerson = fagsakPerson, person = person)
     }
 
-    fun søkMedFagsakPersonId(fagsakPersonId: UUID): Søkeresultat {
+    fun søkMedFagsakPersonId(fagsakPersonId: UUID): SøkeresultatResponse {
         val fagsakPerson = fagsakPersonService.finnPersonMedId(fagsakPersonId)
 
         if (fagsakPerson == null) {
@@ -42,9 +42,9 @@ class SøkService(
     private fun tilSøkeresultat(
         personident: String,
         fagsakPerson: FagsakPerson?,
-        person: Person?,
-    ): Søkeresultat =
-        Søkeresultat(
+        person: PersonResponse?,
+    ): SøkeresultatResponse =
+        SøkeresultatResponse(
             navn = person?.navn?.let { "${it.fornavn} ${it.etternavn}" } ?: "Ukjent navn",
             fødselsdato = person?.foedselsdato,
             personident = personident,

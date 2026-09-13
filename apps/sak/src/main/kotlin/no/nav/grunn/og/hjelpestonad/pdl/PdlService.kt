@@ -14,17 +14,17 @@ class PdlService(
 ) {
     private val logger = LoggerFactory.getLogger(PdlService::class.java)
 
-    fun hentPersonMedFagsakPersonId(fagsakPersonId: UUID): Person? {
+    fun hentPersonMedFagsakPersonId(fagsakPersonId: UUID): PersonResponse? {
         val ident = fagsakPersonService.hentAktivIdent(fagsakPersonId)
         return hentPersonFraPdl(ident)
     }
 
-    fun hentPersonMedPersonIdent(personident: String?): Person? {
+    fun hentPersonMedPersonIdent(personident: String?): PersonResponse? {
         if (personident == null) throw PdlException("Personident er null, kan ikke hente navn fra PDL")
         return hentPersonFraPdl(personident)
     }
 
-    private fun hentPersonFraPdl(personident: String): Person? {
+    private fun hentPersonFraPdl(personident: String): PersonResponse? {
         val request =
             PdlRequest(
                 query = graphqlQuery("/pdl/hent_navn_og_foedselsdato.graphql"),
@@ -54,7 +54,7 @@ class PdlService(
             return null
         }
 
-        return Person(navnListe.first(), fødselsdato.first().foedselsdato)
+        return PersonResponse(navnListe.first(), fødselsdato.first().foedselsdato)
     }
 
     fun hentBarnPersonidenter(personident: String): List<String> =

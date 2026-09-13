@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import type { ÅrsakType } from "~/types/årsak";
 import type {
-  ÅrsakBehandlingDto,
-  ÅrsakBehandlingRequest
+  ÅrsakBehandlingRequest,
+  ÅrsakBehandlingResponse,
 } from "~/api/generated/types.gen";
 import { useBehandlingContext } from "~/contexts/BehandlingContext";
 import { apiCall, type ApiResponse } from "~/api/backend";
 import { oppdaterEndringshistorikk } from "~/utils/endringshistorikkEvent";
 
-export type ÅrsakBehandlingResponse = ÅrsakBehandlingDto;
+export type { ÅrsakBehandlingResponse };
 
 interface UseÅrsakBehandling {
   kravdato: Date | undefined;

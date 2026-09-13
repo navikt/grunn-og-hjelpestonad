@@ -214,7 +214,7 @@ data class LogiskVedlegg(
     val tittel: String,
 )
 
-data class DokumentinfoDto(
+data class DokumentinfoResponse(
     val dokumentinfoId: String,
     val filnavn: String?,
     val tittel: String,

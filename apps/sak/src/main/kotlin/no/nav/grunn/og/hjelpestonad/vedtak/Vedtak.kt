@@ -50,7 +50,7 @@ data class BarnetilsynBeregning(
     val periodetype: PeriodetypeBarnetilsyn,
 )
 
-data class BeløpsperioderDto(
+data class BeløpsperioderResponse(
     val datoFra: YearMonth,
     val datoTil: YearMonth,
     val utgifter: BigDecimal,
@@ -85,7 +85,7 @@ enum class AktivitetstypeBarnetilsyn {
     IKKE_RELEVANT,
 }
 
-data class VedtakDto(
+data class VedtakRequest(
     val resultatType: ResultatType,
     val begrunnelse: String? = null,
     val barnetilsynperioder: List<Barnetilsynperiode>,
@@ -94,7 +94,16 @@ data class VedtakDto(
     val beslutterIdent: String? = null,
 )
 
-fun VedtakDto.tilVedtak(behandlingId: UUID): Vedtak =
+data class VedtakResponse(
+    val resultatType: ResultatType,
+    val begrunnelse: String? = null,
+    val barnetilsynperioder: List<Barnetilsynperiode>,
+    val saksbehandlerIdent: String? = null,
+    val opphørFom: YearMonth? = null,
+    val beslutterIdent: String? = null,
+)
+
+fun VedtakRequest.tilVedtak(behandlingId: UUID): Vedtak =
     Vedtak(
         behandlingId = behandlingId,
         resultatType = this.resultatType,
@@ -105,8 +114,8 @@ fun VedtakDto.tilVedtak(behandlingId: UUID): Vedtak =
         beslutterIdent = this.beslutterIdent,
     )
 
-fun Vedtak.tilDto(): VedtakDto =
-    VedtakDto(
+fun Vedtak.tilResponse(): VedtakResponse =
+    VedtakResponse(
         resultatType = this.resultatType,
         begrunnelse = this.begrunnelse,
         barnetilsynperioder = this.barnetilsynperioder.sortedBy { it.datoFra },

@@ -14,7 +14,7 @@ class PdlController(
     @PostMapping("/person")
     fun hentPerson(
         @RequestBody request: HentPersonRequest,
-    ): ResponseEntity<Person> {
+    ): ResponseEntity<PersonResponse> {
         val person =
             pdlService.hentPersonMedFagsakPersonId(request.fagsakPersonId)
                 ?: return ResponseEntity.notFound().build()

@@ -21,21 +21,21 @@ class VilkårVurderingController(
     @GetMapping("/{behandlingId}")
     fun hentVilkårVurderinger(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<List<VilkårVurderingDto>> {
+    ): ResponseEntity<List<VilkårVurderingResponse>> {
         val vurderinger = vilkårVurderingService.hentVilkårVurderinger(behandlingId)
-        return ResponseEntity.ok(vurderinger.map { it.tilDto() })
+        return ResponseEntity.ok(vurderinger.map { it.tilResponse() })
     }
 
     @PostMapping("/{behandlingId}")
     fun lagreVilkårVurdering(
         @PathVariable behandlingId: UUID,
         @RequestBody request: VilkårVurderingRequest,
-    ): ResponseEntity<VilkårVurderingDto> {
+    ): ResponseEntity<VilkårVurderingResponse> {
         val vurdering =
             vilkårVurderingService.lagreVilkårVurdering(
                 behandlingId = behandlingId,
                 request = request,
             )
-        return ResponseEntity.ok(vurdering.tilDto())
+        return ResponseEntity.ok(vurdering.tilResponse())
     }
 }

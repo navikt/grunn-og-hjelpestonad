@@ -5,7 +5,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.LagBehandleSakOppgaveTask
-import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakDto
+import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
@@ -108,15 +108,15 @@ class BeslutterService(
     @Transactional
     fun besluttVedtak(
         behandlingId: UUID,
-        beslutteVedtakDto: BeslutteVedtakDto,
+        beslutteVedtakRequest: BeslutteVedtakRequest,
     ) {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         totrinnskontrollService.validerAtBeslutterIkkeErSammeSomSaksbehandler(behandlingId)
 
-        if (beslutteVedtakDto.godkjent) {
+        if (beslutteVedtakRequest.godkjent) {
             godkjennVedtak(behandlingId)
         } else {
-            underkjennVedtak(behandlingId = behandlingId, beslutteVedtakDto = beslutteVedtakDto)
+            underkjennVedtak(behandlingId = behandlingId, beslutteVedtakRequest = beslutteVedtakRequest)
         }
     }
 
@@ -147,7 +147,7 @@ class BeslutterService(
         )
     }
 
-    private fun validerUnderkjennelse(dto: BeslutteVedtakDto): Pair<ÅrsakUnderkjent, String> {
+    private fun validerUnderkjennelse(dto: BeslutteVedtakRequest): Pair<ÅrsakUnderkjent, String> {
         val årsak = requireNotNull(dto.årsakUnderkjent) { "Årsak for underkjennelse må være satt" }
         val begrunnelse = requireNotNull(dto.begrunnelse?.takeIf { it.isNotBlank() }) { "Begrunnelse for underkjennelse må være utfylt" }
         return årsak to begrunnelse
@@ -155,9 +155,9 @@ class BeslutterService(
 
     private fun underkjennVedtak(
         behandlingId: UUID,
-        beslutteVedtakDto: BeslutteVedtakDto,
+        beslutteVedtakRequest: BeslutteVedtakRequest,
     ) {
-        val (årsakUnderkjent, begrunnelse) = validerUnderkjennelse(beslutteVedtakDto)
+        val (årsakUnderkjent, begrunnelse) = validerUnderkjennelse(beslutteVedtakRequest)
 
         val saksbehandlerSomSendteTilBeslutter =
             totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId)
