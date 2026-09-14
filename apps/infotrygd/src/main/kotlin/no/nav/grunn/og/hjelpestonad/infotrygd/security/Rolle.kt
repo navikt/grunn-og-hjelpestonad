@@ -15,7 +15,7 @@ enum class Rolle(
             mapOf(
                 "7ce9d1d2-d149-4324-832b-8d459762a102" to setOf(SAKSBEHANDLER),
                 "84c4a287-abd6-46c1-bf93-dbf90f1a326d" to setOf(BESLUTTER),
-                "a181921e-2a55-4198-896b-0086cc805278" to setOf(LES),
+                "a181921e-2a55-4198-896b-0086cc805278" to setOf(LESETILGANG),
             )
 
         fun fraAzureGrupper(gruppeIder: List<String>): Set<Rolle> =

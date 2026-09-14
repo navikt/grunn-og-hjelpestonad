@@ -9,7 +9,7 @@ class RolleTest {
     fun `authority skal returnere ROLE_ prefiks med rollenavn`() {
         assertEquals("ROLE_SAKSBEHANDLER", Rolle.SAKSBEHANDLER.authority())
         assertEquals("ROLE_BESLUTTER", Rolle.BESLUTTER.authority())
-        assertEquals("ROLE_LES", Rolle.LES.authority())
+        assertEquals("ROLE_LESETILGANG", Rolle.LESETILGANG.authority())
     }
 
     @Test
@@ -33,13 +33,13 @@ class RolleTest {
     }
 
     @Test
-    fun `fraAzureGrupper skal mappe LES Azure gruppe til LES rolle`() {
+    fun `fraAzureGrupper skal mappe LESETILGANG Azure gruppe til LESETILGANG rolle`() {
         val azureGrupper = listOf("a181921e-2a55-4198-896b-0086cc805278")
 
         val roller = Rolle.fraAzureGrupper(azureGrupper)
 
         assertEquals(1, roller.size)
-        assertTrue(roller.contains(Rolle.LES))
+        assertTrue(roller.contains(Rolle.LESETILGANG))
     }
 
     @Test
@@ -63,7 +63,7 @@ class RolleTest {
             listOf(
                 "7ce9d1d2-d149-4324-832b-8d459762a102", // SAKSBEHANDLER
                 "84c4a287-abd6-46c1-bf93-dbf90f1a326d", // BESLUTTER
-                "a181921e-2a55-4198-896b-0086cc805278", // LES
+                "a181921e-2a55-4198-896b-0086cc805278", // LESETILGANG
             )
 
         val roller = Rolle.fraAzureGrupper(azureGrupper)
@@ -71,7 +71,7 @@ class RolleTest {
         assertEquals(3, roller.size)
         assertTrue(roller.contains(Rolle.SAKSBEHANDLER))
         assertTrue(roller.contains(Rolle.BESLUTTER))
-        assertTrue(roller.contains(Rolle.LES))
+        assertTrue(roller.contains(Rolle.LESETILGANG))
     }
 
     @Test
@@ -128,6 +128,6 @@ class RolleTest {
     fun `skal ha korrekt beskrivelse for hver rolle`() {
         assertEquals("Kan saksbehandle i saksbehandler-løsningen", Rolle.SAKSBEHANDLER.beskrivelse)
         assertEquals("Kan attestere vedtak i saksbehandling-løsningen", Rolle.BESLUTTER.beskrivelse)
-        assertEquals("Kan lese og se informasjon i saksbehandling-løsningen", Rolle.LES.beskrivelse)
+        assertEquals("Kan lese og se informasjon i saksbehandling-løsningen", Rolle.LESETILGANG.beskrivelse)
     }
 }
