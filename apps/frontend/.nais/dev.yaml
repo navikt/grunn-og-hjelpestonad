@@ -27,10 +27,10 @@ spec:
   # Helse
   liveness:
     path: /isAlive
-    initialDelay: 5
+    initialDelay: 15
   readiness:
     path: /isReady
-    initialDelay: 5
+    initialDelay: 15
 
   # Observability
   prometheus:
