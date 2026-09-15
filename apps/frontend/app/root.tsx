@@ -1,4 +1,5 @@
 import React from "react";
+import { trace } from "@opentelemetry/api";
 import {
   isRouteErrorResponse,
   Links,
@@ -17,12 +18,23 @@ import { TogglesProvider } from "./contexts/TogglesContext";
 import { TemaProvider } from "./contexts/TemaContext";
 import { envContext, saksbehandlerContext } from "./context";
 
+const debugTracer = trace.getTracer("grunn-og-hjelpestonad-frontend-debug");
+
 export async function loader({ context }: Route.LoaderArgs) {
-  return {
-    saksbehandler: context.get(saksbehandlerContext),
-    env: context.get(envContext),
-    telemetryCollectorUrl: process.env.NAIS_FRONTEND_TELEMETRY_COLLECTOR_URL,
-  };
+  return debugTracer.startActiveSpan("frontend.react_router.root_loader", async (span) => {
+    try {
+      const result = {
+        saksbehandler: context.get(saksbehandlerContext),
+        env: context.get(envContext),
+        telemetryCollectorUrl: process.env.NAIS_FRONTEND_TELEMETRY_COLLECTOR_URL,
+      };
+
+      span.setAttribute("frontend.environment", result.env);
+      return result;
+    } finally {
+      span.end();
+    }
+  });
 }
 
 export const links: Route.LinksFunction = () => [

@@ -1,4 +1,5 @@
 import express, { type NextFunction, type Request, type RequestHandler, type Response, } from "express";
+import { SpanStatusCode, trace } from "@opentelemetry/api";
 import type { ViteDevServer } from "vite";
 import { registerLocalAuthRoutes, setupLocalAuth } from "./local-auth.js";
 import { MILJØ } from "./env.js";
@@ -33,6 +34,7 @@ structuredLog("info", "backend_configured", {
 });
 
 const erLokaltMiljø = MILJØ.erLokalt;
+const debugTracer = trace.getTracer("grunn-og-hjelpestonad-frontend-debug");
 
 const viteDevServer: ViteDevServer | undefined = erLokaltMiljø
   ? await lagViteDevServer()
@@ -121,19 +123,57 @@ const handleReactRouterRequest = async (
   res: Response,
   next: NextFunction
 ) => {
-  res.locals.saksbehandler = erLokaltMiljø
-      ? (req.session?.localAuthUser || undefined)
-      : hentSaksbehandlerFraHeaders(req);
+  await debugTracer.startActiveSpan("frontend.react_router.request", async (requestSpan) => {
+    requestSpan.setAttributes({
+      "http.request.method": req.method,
+      "frontend.request.kind": req.path.endsWith(".data") ? "react-router-data" : "page",
+    });
 
-  try {
-    const reactRouterApp = forhåndslastetReactRouterApp ?? (await getReactRouterApp());
-    await reactRouterApp(req, res, next);
-  } catch (error) {
-    if (viteDevServer && error instanceof Error) {
-      viteDevServer.ssrFixStacktrace(error);
+    try {
+      await debugTracer.startActiveSpan("frontend.react_router.context", async (contextSpan) => {
+        contextSpan.setAttribute("frontend.auth.mode", erLokaltMiljø ? "local" : "header-token");
+
+        try {
+          res.locals.saksbehandler = erLokaltMiljø
+            ? req.session?.localAuthUser || undefined
+            : hentSaksbehandlerFraHeaders(req);
+        } finally {
+          contextSpan.end();
+        }
+      });
+
+      await debugTracer.startActiveSpan("frontend.react_router.handle", async (handleSpan) => {
+        try {
+          const reactRouterApp = await debugTracer.startActiveSpan(
+            "frontend.react_router.load_app",
+            async (loadSpan) => {
+              try {
+                return forhåndslastetReactRouterApp ?? (await getReactRouterApp());
+              } finally {
+                loadSpan.end();
+              }
+            }
+          );
+          await reactRouterApp(req, res, next);
+        } finally {
+          handleSpan.end();
+        }
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        requestSpan.recordException(error);
+      }
+      requestSpan.setStatus({ code: SpanStatusCode.ERROR });
+
+      if (viteDevServer && error instanceof Error) {
+        viteDevServer.ssrFixStacktrace(error);
+      }
+      next(error);
+    } finally {
+      requestSpan.setAttribute("http.response.status_code", res.statusCode);
+      requestSpan.end();
     }
-    next(error);
-  }
+  });
 };
 
 app.use(handleReactRouterRequest);
