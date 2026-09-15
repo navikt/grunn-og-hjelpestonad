@@ -1,7 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.endringshistorikk
 
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-@Tilgangskontroll
 @PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('BESLUTTER')")
 @RequestMapping(path = ["/api/endringshistorikk"])
 @Tag(name = "EndringshistorikkController", description = "Endepunkter for endringshistorikk")

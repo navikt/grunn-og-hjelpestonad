@@ -1,6 +1,5 @@
 package no.nav.grunn.og.hjelpestonad.oppgave
 
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import no.nav.grunn.og.hjelpestonad.oppgave.dto.AnsvarligSaksbehandlerResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -20,7 +19,6 @@ data class FordelOppgaveRequest(
 )
 
 @RestController
-@Tilgangskontroll
 @PreAuthorize("hasRole('SAKSBEHANDLER')")
 @RequestMapping(path = ["/api/oppgave"])
 class OppgaveController(

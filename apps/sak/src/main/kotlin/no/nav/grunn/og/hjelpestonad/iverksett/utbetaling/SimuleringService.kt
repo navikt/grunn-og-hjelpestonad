@@ -1,7 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.iverksett.utbetaling
 
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -9,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.UUID
 
-@Tilgangskontroll
 @Service
 class SimuleringService(
     val utbetalingProducer: UtbetalingProducer,

@@ -1,7 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.fagsak
 
 import no.nav.grunn.og.hjelpestonad.fagsak.dto.FagsakResponse
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.PostMapping
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @Validated
 @RestController
-@Tilgangskontroll
 @RequestMapping(path = ["/api/fagsak"])
 open class FagsakController(
     private val fagsakService: FagsakService,

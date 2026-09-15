@@ -1,6 +1,5 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
-@Tilgangskontroll
 @RestController
 @PreAuthorize("hasRole('SAKSBEHANDLER')")
 @RequestMapping("/api/vilkar")

@@ -1,6 +1,5 @@
 package no.nav.grunn.og.hjelpestonad.vedtak
 
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -12,7 +11,6 @@ import java.time.YearMonth
 import java.util.UUID
 
 @RestController
-@Tilgangskontroll
 @RequestMapping("/api/vedtak")
 class VedtakController(
     private val vedtakService: VedtakService,

@@ -26,7 +26,6 @@ open class UnleashMock {
         every { mockk.hentFeatureToggles() } returns
             mapOf(
                 "grunn-og-hjelp_frontend__test_setup" to true,
-                "grunn-og-hjelp_backend_toggle_tilgangsmaskin_i_dev" to true,
             )
         return mockk
     }

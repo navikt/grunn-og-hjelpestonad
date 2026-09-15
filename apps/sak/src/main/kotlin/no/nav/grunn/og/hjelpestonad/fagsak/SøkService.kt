@@ -1,7 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.fagsak
 
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.FagsakPerson
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import no.nav.grunn.og.hjelpestonad.pdl.Navn
 import no.nav.grunn.og.hjelpestonad.pdl.PdlService
 import no.nav.grunn.og.hjelpestonad.pdl.PersonResponse
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
-@Tilgangskontroll
 class SøkService(
     private val fagsakPersonService: FagsakPersonService,
     private val pdlService: PdlService,

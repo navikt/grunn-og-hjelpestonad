@@ -3,7 +3,6 @@ package no.nav.grunn.og.hjelpestonad.iverksett.brev
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.familie.prosessering.internal.TaskService
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-@Tilgangskontroll
 @RequestMapping(path = ["/api/iverksett"])
 @Tag(name = "iverksettVedtaksbrevController", description = "Endepunkt for utvikling")
 class IverksettVedtaksbrevController(

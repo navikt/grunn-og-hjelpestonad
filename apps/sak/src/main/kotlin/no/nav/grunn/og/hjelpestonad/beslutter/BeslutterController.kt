@@ -3,7 +3,6 @@ package no.nav.grunn.og.hjelpestonad.beslutter
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.TotrinnskontrollStatusResponse
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.Tilgangskontroll
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-@Tilgangskontroll
 @PreAuthorize("hasRole('SAKSBEHANDLER')")
 @RequestMapping(path = ["/api/beslutter"])
 @Tag(name = "BeslutterController", description = "Endepunkter for beslutter-funksjonalitet")
