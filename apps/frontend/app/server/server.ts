@@ -124,6 +124,20 @@ const handleReactRouterRequest = async (
   next: NextFunction
 ) => {
   await debugTracer.startActiveSpan("frontend.react_router.request", async (requestSpan) => {
+    let requestSpanEnded = false;
+    const endRequestSpan = () => {
+      if (requestSpanEnded) {
+        return;
+      }
+
+      requestSpanEnded = true;
+      requestSpan.setAttribute("http.response.status_code", res.statusCode);
+      requestSpan.end();
+    };
+
+    res.once("finish", endRequestSpan);
+    res.once("close", endRequestSpan);
+
     requestSpan.setAttributes({
       "http.request.method": req.method,
       "frontend.request.kind": req.path.endsWith(".data") ? "react-router-data" : "page",
@@ -142,23 +156,17 @@ const handleReactRouterRequest = async (
         }
       });
 
-      await debugTracer.startActiveSpan("frontend.react_router.handle", async (handleSpan) => {
-        try {
-          const reactRouterApp = await debugTracer.startActiveSpan(
-            "frontend.react_router.load_app",
-            async (loadSpan) => {
-              try {
-                return forhåndslastetReactRouterApp ?? (await getReactRouterApp());
-              } finally {
-                loadSpan.end();
-              }
-            }
-          );
-          await reactRouterApp(req, res, next);
-        } finally {
-          handleSpan.end();
+      const reactRouterApp = await debugTracer.startActiveSpan(
+        "frontend.react_router.load_app",
+        async (loadSpan) => {
+          try {
+            return forhåndslastetReactRouterApp ?? (await getReactRouterApp());
+          } finally {
+            loadSpan.end();
+          }
         }
-      });
+      );
+      reactRouterApp(req, res, next);
     } catch (error) {
       if (error instanceof Error) {
         requestSpan.recordException(error);
@@ -169,9 +177,7 @@ const handleReactRouterRequest = async (
         viteDevServer.ssrFixStacktrace(error);
       }
       next(error);
-    } finally {
-      requestSpan.setAttribute("http.response.status_code", res.statusCode);
-      requestSpan.end();
+      endRequestSpan();
     }
   });
 };
