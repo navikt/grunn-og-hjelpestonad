@@ -10,9 +10,9 @@ export const app = express();
 
 const debugTracer = trace.getTracer("grunn-og-hjelpestonad-frontend-debug");
 
-const build = () =>
+const loadServerBuild = () =>
   debugTracer.startActiveSpan(
-    "frontend.react_router.build_import",
+    "frontend.react_router.build_preload",
     async (span) => {
       try {
         return await import("virtual:react-router/server-build");
@@ -28,8 +28,10 @@ const build = () =>
     }
   );
 
+const serverBuild = await loadServerBuild();
+
 const reactRouterHandler = createRequestHandler({
-  build,
+  build: serverBuild,
   getLoadContext: (_request, response) => {
     const context = new RouterContextProvider();
     const locals: { saksbehandler?: Saksbehandler } = response.locals;
