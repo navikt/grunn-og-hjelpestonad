@@ -29,6 +29,14 @@ class ApiExceptionHandler {
             .body(FeilResponse(melding = e.message ?: "Ugyldig request", status = HttpStatus.BAD_REQUEST.value()))
     }
 
+    @ExceptionHandler(IllegalStateException::class)
+    fun handleIllegalStateException(e: IllegalStateException): ResponseEntity<FeilResponse> {
+        logger.warn("IllegalStateException: ${e.message}", e)
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(FeilResponse(melding = e.message ?: "Ugyldig request", status = HttpStatus.BAD_REQUEST.value()))
+    }
+
     @ExceptionHandler(HttpClientErrorException.Forbidden::class)
     fun handleRestClientForbiddenException(e: HttpClientErrorException.Forbidden): ResponseEntity<ManglerTilgangResponse> {
         logger.warn("Mangler tilgang til tjeneste (403)")

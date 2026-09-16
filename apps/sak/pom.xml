@@ -46,6 +46,7 @@
         <unleash.version>12.3.0</unleash.version>
         <mockk.version>1.14.11</mockk.version>
         <prosessering.version>2.20260817115650_f13f507</prosessering.version>
+        <familie-felles.version>4.20260818093920_16ad74a</familie-felles.version>
 
     </properties>
     <dependencies>
@@ -125,6 +126,11 @@
             <groupId>no.nav.familie</groupId>
             <artifactId>prosessering-web-spring-security</artifactId>
             <version>${prosessering.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.familie.felles</groupId>
+            <artifactId>tidslinje</artifactId>
+            <version>${familie-felles.version}</version>
         </dependency>
 
         <dependency>

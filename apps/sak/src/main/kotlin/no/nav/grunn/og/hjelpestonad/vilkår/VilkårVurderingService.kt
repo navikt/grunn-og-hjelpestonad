@@ -27,8 +27,7 @@ class VilkårVurderingService(
     ): VilkårVurdering {
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
-        validerPeriode(request)
-        validerIngenOverlappendePerioder(behandlingId, request)
+        validerPerioder(behandlingId, request)
 
         return if (request.id == null) {
             opprettPeriode(behandlingId, request)
@@ -108,34 +107,14 @@ class VilkårVurderingService(
                 httpStatus = HttpStatus.NOT_FOUND,
             )
 
-    private fun validerPeriode(request: VilkårVurderingRequest) {
-        val fraOgMedDato = request.fraOgMedDato
-        val tilOgMedDato = request.tilOgMedDato
-        if (fraOgMedDato != null && tilOgMedDato != null && tilOgMedDato < fraOgMedDato) {
-            throw Feil(
-                melding = "Til og med-dato $tilOgMedDato kan ikke være før fra og med-dato $fraOgMedDato",
-                httpStatus = HttpStatus.BAD_REQUEST,
-            )
-        }
-    }
-
-    // Todo: Kan håndteres av tidslinjerammeverk.
-    private fun validerIngenOverlappendePerioder(
+    private fun validerPerioder(
         behandlingId: UUID,
         request: VilkårVurderingRequest,
     ) {
-        val overlapper =
-            vilkårVurderingRepository
-                .findByBehandlingIdAndVilkårType(behandlingId = behandlingId, vilkårType = request.vilkårType)
-                .filterNot { it.id == request.id }
-                .any { it.overlapper(request.fraOgMedDato, request.tilOgMedDato) }
-
-        if (overlapper) {
-            throw Feil(
-                melding = "Perioden overlapper en eksisterende periode for vilkåret ${request.vilkårType}",
-                httpStatus = HttpStatus.BAD_REQUEST,
-            )
-        }
+        vilkårVurderingRepository
+            .findByBehandlingIdAndVilkårType(behandlingId = behandlingId, vilkårType = request.vilkårType)
+            .filterNot { it.id == request.id }
+            .validerIngenOverlappMed(request)
     }
 
     /**

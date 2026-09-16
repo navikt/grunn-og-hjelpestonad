@@ -46,16 +46,4 @@ data class VilkårVurdering(
     val sporbar: Sporbar = Sporbar(),
 ) {
     fun erVilkårOppfylt(): Boolean = vurdering == Vurdering.JA
-
-    /**
-     * Åpen [fraOgMedDato] regnes som uendelig bakover og åpen [tilOgMedDato] som løpende,
-     * slik at to perioder uten datoer overlapper hverandre.
-     */
-    fun overlapper(
-        annenFraOgMedDato: LocalDate?,
-        annenTilOgMedDato: LocalDate?,
-    ): Boolean =
-        (fraOgMedDato ?: LocalDate.MIN) <= (annenTilOgMedDato ?: LocalDate.MAX) &&
-            (annenFraOgMedDato ?: LocalDate.MIN) <= (tilOgMedDato ?: LocalDate.MAX)
 }
-
