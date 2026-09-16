@@ -18,3 +18,4 @@ utover å oppdatere status og lenke til den nye ADR-en.
 |-----|--------|--------|
 | [ADR-0001](ADR-0001-restclient-for-utgaaende-http-kall.md) | RestClient for utgående HTTP-kall | Godkjent |
 | [ADR-0002](ADR-0002-openapi-basert-generering-av-frontend-typer.md) | OpenAPI-basert generering av frontend-typer | Foreslått |
+| [ADR-0003](ADR-0003-vilkaarsmodell-for-grunnstoenad.md) | Vilkårsmodell for grunnstønad | Foreslått |

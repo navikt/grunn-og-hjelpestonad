@@ -2,6 +2,7 @@ package no.nav.grunn.og.hjelpestonad.vilkår
 
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -35,5 +36,17 @@ class VilkårVurderingController(
                 request = request,
             )
         return ResponseEntity.ok(vurdering.tilResponse())
+    }
+
+    @DeleteMapping("/{behandlingId}/{vurderingId}")
+    fun slettVilkårVurdering(
+        @PathVariable behandlingId: UUID,
+        @PathVariable vurderingId: UUID,
+    ): ResponseEntity<Void> {
+        vilkårVurderingService.slettVilkårVurdering(
+            behandlingId = behandlingId,
+            vurderingId = vurderingId,
+        )
+        return ResponseEntity.noContent().build()
     }
 }

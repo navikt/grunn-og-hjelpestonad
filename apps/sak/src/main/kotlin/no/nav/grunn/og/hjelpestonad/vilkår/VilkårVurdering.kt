@@ -5,14 +5,25 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Embedded
 import org.springframework.data.relational.core.mapping.Table
+import java.time.LocalDate
 import java.util.UUID
 
+/**
+ * Vilkår for grunnstønad etter folketrygdloven kapittel 6.
+ */
 enum class VilkårType {
-    INNGANGSVILKÅR,
-    AKTIVITET,
-    INNTEKT,
-    ALDER_PÅ_BARN,
-    DOKUMENTASJON_TILSYNSUTGIFTER,
+    /** ftrl. § 6-2 */
+    VARIG_SYKDOM_SKADE_ELLER_LYTE,
+
+    /** ftrl. § 6-3 første ledd */
+    NØDVENDIGE_EKSTRAUTGIFTER,
+
+    /**
+     * ftrl. § 6-8. Navnet er bevisst negert. § 6-8 er en bortfallsbestemmelse, og uten
+     * negeringen ville JA betydd at vilkåret ikke er oppfylt — motsatt av alle andre
+     * vilkår. Ikke «rett opp» navnet.
+     */
+    IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM,
 }
 
 enum class Vurdering {
@@ -29,8 +40,22 @@ data class VilkårVurdering(
     val vilkårType: VilkårType,
     val vurdering: Vurdering,
     val begrunnelse: String = "",
+    val fraOgMedDato: LocalDate? = null,
+    val tilOgMedDato: LocalDate? = null,
     @Embedded(onEmpty = Embedded.OnEmpty.USE_EMPTY)
     val sporbar: Sporbar = Sporbar(),
 ) {
     fun erVilkårOppfylt(): Boolean = vurdering == Vurdering.JA
+
+    /**
+     * Åpen [fraOgMedDato] regnes som uendelig bakover og åpen [tilOgMedDato] som løpende,
+     * slik at to perioder uten datoer overlapper hverandre.
+     */
+    fun overlapper(
+        annenFraOgMedDato: LocalDate?,
+        annenTilOgMedDato: LocalDate?,
+    ): Boolean =
+        (fraOgMedDato ?: LocalDate.MIN) <= (annenTilOgMedDato ?: LocalDate.MAX) &&
+            (annenFraOgMedDato ?: LocalDate.MIN) <= (tilOgMedDato ?: LocalDate.MAX)
 }
+
