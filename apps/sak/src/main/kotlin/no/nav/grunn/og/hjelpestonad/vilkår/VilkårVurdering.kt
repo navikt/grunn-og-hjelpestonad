@@ -46,4 +46,42 @@ data class VilkårVurdering(
     val sporbar: Sporbar = Sporbar(),
 ) {
     fun erVilkårOppfylt(): Boolean = vurdering == Vurdering.JA
+
+    /**
+     * Åpen [fraOgMedDato] regnes som uendelig bakover og åpen [tilOgMedDato] som løpende,
+     * slik at to perioder uten datoer overlapper hverandre.
+     */
+    fun overlapper(
+        annenFraOgMedDato: LocalDate?,
+        annenTilOgMedDato: LocalDate?,
+    ): Boolean =
+        (fraOgMedDato ?: LocalDate.MIN) <= (annenTilOgMedDato ?: LocalDate.MAX) &&
+            (annenFraOgMedDato ?: LocalDate.MIN) <= (tilOgMedDato ?: LocalDate.MAX)
 }
+
+/**
+ * Diagnose knyttet til en vilkårsperiode for [VilkårType.VARIG_SYKDOM_SKADE_ELLER_LYTE].
+ *
+ * Diagnose er helseopplysning etter GDPR artikkel 9 og er derfor et eget aggregat med egen
+ * repository og eget endepunkt, ikke en del av [VilkårVurdering]. Det holder opplysningen
+ * utenfor de generiske vilkårsresponsene og gir et eget punkt for tilgangsstyring og
+ * auditspor, jf. ADR-0003. Diagnosen skal aldri havne i logg eller endringshistorikk.
+ *
+ * At diagnosen bare kan henge på riktig vilkårstype håndheves av databasen gjennom
+ * fremmednøkkelen mot `vilkar_vurdering (id, vilkar_type)` og en CHECK på `vilkar_type`.
+ * Kolonnen `vilkar_type` settes av databasen og er derfor bevisst utelatt her.
+ *
+ * Raden har ingen egne datoer — vilkårsperioden den henger på bærer dem.
+ */
+@Table("vilkar_diagnose")
+data class VilkårDiagnose(
+    @Id
+    val id: UUID = UUID.randomUUID(),
+    @Column("vilkar_vurdering_id")
+    val vilkårVurderingId: UUID,
+    val diagnose: String,
+    val yrkesskade: Boolean = false,
+    val yrkesskadeDato: LocalDate? = null,
+    @Embedded(onEmpty = Embedded.OnEmpty.USE_EMPTY)
+    val sporbar: Sporbar = Sporbar(),
+)
