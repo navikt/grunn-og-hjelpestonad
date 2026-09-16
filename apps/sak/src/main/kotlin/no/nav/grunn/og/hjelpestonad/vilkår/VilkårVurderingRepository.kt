@@ -14,5 +14,5 @@ interface VilkårVurderingRepository :
     fun findByBehandlingIdAndVilkårType(
         behandlingId: UUID,
         vilkårType: VilkårType,
-    ): VilkårVurdering?
+    ): List<VilkårVurdering>
 }
