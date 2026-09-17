@@ -18,18 +18,18 @@ class VilkårDiagnoseController(
     private val vilkårDiagnoseService: VilkårDiagnoseService,
 ) {
     @GetMapping
-    fun hentPerioder(
+    fun hentDiagnosePerioder(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<List<VilkårDiagnoseResponse>> = ResponseEntity.ok(vilkårDiagnoseService.hentPerioder(behandlingId).map { it.tilResponse() })
 
     @PostMapping
-    fun lagrePeriode(
+    fun lagreDiagnosePeriode(
         @PathVariable behandlingId: UUID,
         @RequestBody request: VilkårDiagnoseRequest,
     ): ResponseEntity<VilkårDiagnoseResponse> = ResponseEntity.ok(vilkårDiagnoseService.lagrePeriode(behandlingId, request).tilResponse())
 
     @DeleteMapping("/{vilkårPeriodeId}")
-    fun slettPeriode(
+    fun slettDiagnosePeriode(
         @PathVariable behandlingId: UUID,
         @PathVariable vilkårPeriodeId: UUID,
     ): ResponseEntity<Void> {
