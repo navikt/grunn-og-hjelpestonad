@@ -83,9 +83,11 @@ Dette medfører:
   `id == null` betyr ny periode.
 - Det finnes et reelt slette-endepunkt for én periode:
   `DELETE /api/vilkar/{behandlingId}/{vilkår}/{vilkårPeriodeId}`.
-- Perioder som gjelder samme forhold kan ikke overlappe. Overlapp valideres i
-  service via `no.nav.familie.tidslinje`, og gir `Feil` med HTTP 400 — ikke et
-  databaseunntak. Diagnose er unntaket, se under.
+- Perioder som gjelder samme forhold kan ikke overlappe, men overlapp avvises
+  ikke. Den nye eller endrede perioden vinner på tidslinjen i
+  `no.nav.familie.tidslinje`, og lagrede perioder den overlapper blir forkortet,
+  splittet i to hvis den nye ligger midt inni, eller slettet hvis de dekkes helt.
+  Diagnose er unntaket, se under.
 - Det legges **ikke** inn unique-constraint på `(behandling_id, …)`. Fraværet er
   en bevisst beslutning, ikke en forglemmelse.
 
@@ -113,8 +115,8 @@ noe strukturen kan uttrykke direkte. Fellesskapet som faktisk finnes, ligger i
 
 - `VilkårPeriode` / `VilkårPeriodeRequest` — grensesnittene med fellesfeltene.
 - `VilkårPeriodeService` — abstrakt baseservice med redigerbarhetssjekk,
-  ansvarlig saksbehandler, overlappvalidering og endringshistorikk.
-- `VilkårTidslinje` — felles overlapp- og datovalidering.
+  ansvarlig saksbehandler, forkorting ved overlapp og endringshistorikk.
+- `VilkårTidslinje` — felles forkorting ved overlapp og datovalidering.
 - `VilkårPeriodeRepository` — felles `findByBehandlingId`.
 
 Referansemodellen i familie-ba-sak bruker ett felles listefelt
@@ -368,10 +370,10 @@ preferanse.
 - **Infrastrukturkrav:** Eksisterende PostgreSQL. Ingen nye Nais-ressurser,
   nettverkstillatelser eller secrets.
 - **Ressursbehov:** Uendret. Tabellene er små og skrives kun av saksbehandler.
-- **Observerbarhet:** Ingen nye metrikker. Overlappende perioder og ugyldig
-  datorekkefølge avvises av tidslinjen i `no.nav.familie.tidslinje`, og
-  `ApiExceptionHandler` mapper unntakene til HTTP 400. Databasen har i tillegg
-  CHECK-constraints som bakstopp.
+- **Observerbarhet:** Ingen nye metrikker. Overlapp løses ved at tidslinjen i
+  `no.nav.familie.tidslinje` forkorter de lagrede periodene, mens ugyldig
+  datorekkefølge avvises av samme tidslinje og mappes til HTTP 400 av
+  `ApiExceptionHandler`. Databasen har i tillegg CHECK-constraints som bakstopp.
 - **CI/CD-endringer:** Ingen. `sak-build.yaml` og `sak-deploy-dev.yaml` dekker
   endringen. Frontend-migreringen går gjennom `frontend-build.yaml` som egen PR.
 
@@ -425,8 +427,11 @@ preferanse.
   kan brukes i saksbehandling.
 - Vilkårssteget alene avgjør ikke utfallet; satssteget må levere avslagsløpet
   for § 6-3 tredje ledd.
-- Feilmeldingene ved overlapp kommer fra tidslinjebiblioteket og er ikke
+- Feilmeldingene ved ugyldige datoer kommer fra tidslinjebiblioteket og er ikke
   formulert i saksbehandlerens språk.
+- Forkorting av naboperioder skjer stille. Saksbehandleren ser resultatet i
+  periodelista, men får ingen varsling om at en lagret periode ble endret eller
+  fjernet.
 
 ### Risiko
 
@@ -435,7 +440,7 @@ preferanse.
 | Diagnose havner i logg, endringshistorikk eller generisk API-respons | Middels | Høy | Egen tabell, egen response-type, eksplisitt forbud i KDoc på `VilkårPeriodeService.registrerEndring` |
 | Frontend-bygget står rødt for lenge | Middels | Middels | Frontend-migrering er registrert som egen oppgave og bør tas umiddelbart etter backend |
 | Institusjonsvilkåret tas i bruk med ufagverifiserte enum-verdier | Middels | Høy | Dokumentert i KDoc og i «Enum-verdiene for institusjon må fagverifiseres»; aksjonspunkt til fag |
-| Overlappende perioder lagres | Lav | Middels | Tidslinjevalidering i service med test, og CHECK-constraints i databasen |
+| Overlappende perioder lagres | Lav | Middels | Tidslinjen forkorter lagrede perioder ved overlapp, dekket av test, og CHECK-constraints i databasen |
 | § 6-3 tredje ledd glemmes i satssteget, så avslag mangler hjemmel | Lav | Høy | Eksplisitt aksjonspunkt og hjemmelsreferanse i brevbygging |
 
 ## Teknisk gjeld
@@ -458,7 +463,7 @@ preferanse.
   Flyway-migrering som sletter eksisterende rader.
 - [x] Backend (G2, G3, G4) — innfør periodisering: liste-retur fra repository,
   lagring nøklet på `id`, datofelter i request og response, slette-endepunkt og
-  validering mot overlappende perioder.
+  forkorting av overlappende perioder.
 - [x] Backend — opprett `vilkar_diagnose` med støtte for flere diagnoser,
   diagnose som `String`, og `er_yrkesskade` der skadedatoen er `fra_og_med_dato`.
 - [x] Backend — verifiser at diagnose ikke havner i `detaljer` i

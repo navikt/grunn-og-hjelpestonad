@@ -105,31 +105,51 @@ class VilkårDiagnoseServiceTest {
     }
 
     @Test
-    fun `lagrePeriode avviser overlappende perioder for samme diagnose`() {
-        every { repository.findByBehandlingId(any()) } returns
-            listOf(diagnose("Diabetes type 1", LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)))
+    fun `lagrePeriode forkorter overlappende periode for samme diagnose`() {
+        val eksisterende = diagnose("Diabetes type 1", LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31))
+        every { repository.findByBehandlingId(any()) } returns listOf(eksisterende)
+        val innsatte = mutableListOf<VilkårDiagnose>()
+        every { repository.insert(capture(innsatte)) } answers { firstArg() }
 
-        assertThatThrownBy {
-            service.lagrePeriode(
-                behandlingId,
-                request(diagnose = "Diabetes type 1", fraOgMedDato = LocalDate.of(2025, 6, 1), tilOgMedDato = LocalDate.of(2026, 1, 31)),
-            )
-        }.isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
+        service.lagrePeriode(
+            behandlingId,
+            request(diagnose = "Diabetes type 1", fraOgMedDato = LocalDate.of(2025, 6, 1), tilOgMedDato = LocalDate.of(2026, 1, 31)),
+        )
 
-        verify(exactly = 0) { repository.insert(any()) }
+        verify(exactly = 1) { repository.deleteById(eksisterende.id) }
+        assertThat(innsatte.single { it.begrunnelse == eksisterende.begrunnelse }.tilOgMedDato)
+            .isEqualTo(LocalDate.of(2025, 5, 31))
     }
 
     @Test
     fun `lagrePeriode kjenner igjen samme diagnose uavhengig av store og små bokstaver`() {
-        every { repository.findByBehandlingId(any()) } returns
-            listOf(diagnose("Diabetes type 1", LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)))
+        val eksisterende = diagnose("Diabetes type 1", LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31))
+        every { repository.findByBehandlingId(any()) } returns listOf(eksisterende)
+        val innsatte = mutableListOf<VilkårDiagnose>()
+        every { repository.insert(capture(innsatte)) } answers { firstArg() }
 
-        assertThatThrownBy {
-            service.lagrePeriode(
-                behandlingId,
-                request(diagnose = " diabetes TYPE 1 ", fraOgMedDato = LocalDate.of(2025, 6, 1), tilOgMedDato = LocalDate.of(2026, 1, 31)),
-            )
-        }.isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
+        service.lagrePeriode(
+            behandlingId,
+            request(diagnose = " diabetes TYPE 1 ", fraOgMedDato = LocalDate.of(2025, 6, 1), tilOgMedDato = LocalDate.of(2026, 1, 31)),
+        )
+
+        verify(exactly = 1) { repository.deleteById(eksisterende.id) }
+        assertThat(innsatte.single { it.begrunnelse == eksisterende.begrunnelse }.tilOgMedDato)
+            .isEqualTo(LocalDate.of(2025, 5, 31))
+    }
+
+    @Test
+    fun `lagrePeriode rører ikke perioder for en annen diagnose`() {
+        every { repository.findByBehandlingId(any()) } returns
+            listOf(diagnose("Cøliaki", LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)))
+
+        service.lagrePeriode(
+            behandlingId,
+            request(diagnose = "Diabetes type 1", fraOgMedDato = LocalDate.of(2025, 6, 1), tilOgMedDato = LocalDate.of(2026, 1, 31)),
+        )
+
+        verify(exactly = 0) { repository.deleteById(any()) }
+        verify(exactly = 1) { repository.insert(any()) }
     }
 
     @Test

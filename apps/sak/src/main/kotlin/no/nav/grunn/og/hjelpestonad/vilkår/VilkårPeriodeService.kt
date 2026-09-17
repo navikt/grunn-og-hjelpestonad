@@ -10,8 +10,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
-abstract class VilkårPeriodeService<T : VilkårPeriode, R : VilkårPeriodeRequest>(
-    private val repository: VilkårPeriodeRepository<T>,
+abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PERIODE>, R : VilkårPeriodeRequest>(
+    private val repository: VilkårPeriodeRepository<VILKÅR_PERIODE>,
     private val behandlingService: BehandlingService,
     private val endringshistorikkService: EndringshistorikkService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
@@ -21,26 +21,26 @@ abstract class VilkårPeriodeService<T : VilkårPeriode, R : VilkårPeriodeReque
     protected abstract fun nyPeriode(
         behandlingId: UUID,
         request: R,
-    ): T
+    ): VILKÅR_PERIODE
 
     protected abstract fun oppdatertPeriode(
-        eksisterende: T,
+        eksisterende: VILKÅR_PERIODE,
         request: R,
-    ): T
+    ): VILKÅR_PERIODE
 
     protected open fun perioderSomIkkeKanOverlappe(
-        lagredePerioder: List<T>,
+        lagredePerioder: List<VILKÅR_PERIODE>,
         request: R,
-    ): List<T> = lagredePerioder
+    ): List<VILKÅR_PERIODE> = lagredePerioder
 
     protected open fun valider(request: R) = Unit
 
-    fun hentPerioder(behandlingId: UUID): List<T> = repository.findByBehandlingId(behandlingId)
+    fun hentPerioder(behandlingId: UUID): List<VILKÅR_PERIODE> = repository.findByBehandlingId(behandlingId)
 
     fun hentPeriodePåBehandling(
         behandlingId: UUID,
         periodeId: UUID,
-    ): T =
+    ): VILKÅR_PERIODE =
         repository
             .findByIdOrNull(periodeId)
             ?.takeIf { it.behandlingId == behandlingId }
@@ -53,11 +53,11 @@ abstract class VilkårPeriodeService<T : VilkårPeriode, R : VilkårPeriodeReque
     fun lagrePeriode(
         behandlingId: UUID,
         request: R,
-    ): T {
+    ): VILKÅR_PERIODE {
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         valider(request)
-        validerIngenOverlapp(behandlingId, request)
+        forkortOverlappendePerioder(behandlingId, request)
 
         val periodeId = request.id
         return if (periodeId == null) {
@@ -85,12 +85,41 @@ abstract class VilkårPeriodeService<T : VilkårPeriode, R : VilkårPeriodeReque
         registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_SLETTET, periode.vurdering)
     }
 
-    private fun validerIngenOverlapp(
+    /**
+     * Den nye eller endrede perioden vinner ved overlapp. Lagrede perioder som overlapper blir
+     * forkortet, splittet i to hvis den nye perioden ligger midt inni dem, eller slettet hvis de
+     * blir dekket i sin helhet.
+     */
+    private fun forkortOverlappendePerioder(
         behandlingId: UUID,
         request: R,
-    ) = perioderSomIkkeKanOverlappe(repository.findByBehandlingId(behandlingId), request)
-        .filterNot { it.id == request.id }
-        .validerIngenOverlappMed(request)
+    ) {
+        val lagredePerioder =
+            perioderSomIkkeKanOverlappe(repository.findByBehandlingId(behandlingId), request)
+                .filterNot { it.id == request.id }
+        val gjenværendeTidsrom = lagredePerioder.forkortetAv(request).groupBy { it.verdi.id }
+
+        lagredePerioder.forEach { lagret ->
+            val tidsrom = gjenværendeTidsrom[lagret.id].orEmpty()
+
+            if (
+                tidsrom.isEmpty() ||
+                tidsrom.any { it.fom != lagret.fraOgMedDato } ||
+                tidsrom.any { it.tom != lagret.tilOgMedDato }
+            ) {
+                repository.deleteById(lagret.id)
+                tidsrom.forEach {
+                    repository.insert(
+                        it.verdi.kopierMedTidsrom(
+                            id = UUID.randomUUID(),
+                            fraOgMedDato = it.fom,
+                            tilOgMedDato = it.tom,
+                        ),
+                    )
+                }
+            }
+        }
+    }
 
     /**
      * Diagnose er helseopplysning etter GDPR artikkel 9 og skal aldri registreres i

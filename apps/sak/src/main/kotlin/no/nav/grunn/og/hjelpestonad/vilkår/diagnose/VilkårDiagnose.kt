@@ -22,4 +22,10 @@ data class VilkårDiagnose(
     override val sporbar: Sporbar = Sporbar(),
     val diagnose: String,
     val erYrkesskade: Boolean = false,
-) : VilkårPeriode
+) : VilkårPeriode<VilkårDiagnose> {
+    override fun kopierMedTidsrom(
+        id: UUID,
+        fraOgMedDato: LocalDate?,
+        tilOgMedDato: LocalDate?,
+    ) = copy(id = id, fraOgMedDato = fraOgMedDato, tilOgMedDato = tilOgMedDato)
+}

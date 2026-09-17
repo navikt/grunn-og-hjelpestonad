@@ -33,7 +33,7 @@ interface Periodisert {
     val tilOgMedDato: LocalDate?
 }
 
-interface VilkårPeriode : Periodisert {
+interface VilkårPeriode<SELV : VilkårPeriode<SELV>> : Periodisert {
     val id: UUID
     val behandlingId: UUID
     val vurdering: Vurdering
@@ -41,6 +41,12 @@ interface VilkårPeriode : Periodisert {
     val sporbar: Sporbar
 
     fun erVilkårOppfylt(): Boolean = vurdering == Vurdering.JA
+
+    fun kopierMedTidsrom(
+        id: UUID,
+        fraOgMedDato: LocalDate?,
+        tilOgMedDato: LocalDate?,
+    ): SELV
 }
 
 interface VilkårPeriodeRequest : Periodisert {

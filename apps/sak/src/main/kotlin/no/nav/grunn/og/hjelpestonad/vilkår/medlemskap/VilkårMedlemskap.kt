@@ -26,4 +26,10 @@ data class VilkårMedlemskap(
     @Embedded(onEmpty = Embedded.OnEmpty.USE_EMPTY)
     override val sporbar: Sporbar = Sporbar(),
     val regelverk: Regelverk,
-) : VilkårPeriode
+) : VilkårPeriode<VilkårMedlemskap> {
+    override fun kopierMedTidsrom(
+        id: UUID,
+        fraOgMedDato: LocalDate?,
+        tilOgMedDato: LocalDate?,
+    ) = copy(id = id, fraOgMedDato = fraOgMedDato, tilOgMedDato = tilOgMedDato)
+}

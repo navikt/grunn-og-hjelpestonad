@@ -36,4 +36,10 @@ data class VilkårInstitusjon(
     override val sporbar: Sporbar = Sporbar(),
     val oppholdstype: Oppholdstype? = null,
     val unntakshjemmel: Unntakshjemmel? = null,
-) : VilkårPeriode
+) : VilkårPeriode<VilkårInstitusjon> {
+    override fun kopierMedTidsrom(
+        id: UUID,
+        fraOgMedDato: LocalDate?,
+        tilOgMedDato: LocalDate?,
+    ) = copy(id = id, fraOgMedDato = fraOgMedDato, tilOgMedDato = tilOgMedDato)
+}

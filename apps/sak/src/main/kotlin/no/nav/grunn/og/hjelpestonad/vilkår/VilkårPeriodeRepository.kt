@@ -6,7 +6,7 @@ import org.springframework.data.repository.NoRepositoryBean
 import java.util.UUID
 
 @NoRepositoryBean
-interface VilkårPeriodeRepository<T : VilkårPeriode> :
+interface VilkårPeriodeRepository<T : VilkårPeriode<T>> :
     RepositoryInterface<T, UUID>,
     InsertUpdateRepository<T> {
     fun findByBehandlingId(behandlingId: UUID): List<T>

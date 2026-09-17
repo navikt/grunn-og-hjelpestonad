@@ -149,29 +149,6 @@ class VilkårMedlemskapServiceTest {
     }
 
     @Test
-    fun `lagrePeriode avviser overlappende periode`() {
-        every { repository.findByBehandlingId(any()) } returns
-            listOf(periode(fraOgMedDato = LocalDate.of(2025, 1, 1), tilOgMedDato = LocalDate.of(2025, 6, 30)))
-
-        assertThatThrownBy {
-            service.lagrePeriode(
-                behandlingId,
-                request(fraOgMedDato = LocalDate.of(2025, 6, 30), tilOgMedDato = LocalDate.of(2025, 12, 31)),
-            )
-        }.isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
-
-        verify(exactly = 0) { repository.insert(any()) }
-    }
-
-    @Test
-    fun `lagrePeriode avviser to løpende perioder uten datoer`() {
-        every { repository.findByBehandlingId(any()) } returns listOf(periode())
-
-        assertThatThrownBy { service.lagrePeriode(behandlingId, request()) }
-            .isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
-    }
-
-    @Test
     fun `lagrePeriode regner ikke perioden som overlappende med seg selv`() {
         val eksisterende = periode(fraOgMedDato = LocalDate.of(2025, 1, 1), tilOgMedDato = LocalDate.of(2025, 6, 30))
         every { repository.findById(eksisterende.id) } returns Optional.of(eksisterende)
