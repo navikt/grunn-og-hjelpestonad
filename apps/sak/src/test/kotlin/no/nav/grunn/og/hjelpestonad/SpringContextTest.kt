@@ -17,11 +17,13 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
 import org.springframework.data.jdbc.core.JdbcAggregateOperations
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.TestConstructor
 
 @SpringBootTest(classes = [ApplicationLocalSetup::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(
     "integrasjonstest",
 )
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 open class SpringContextTest {
     @Autowired
     private lateinit var applicationContext: ApplicationContext

@@ -7,225 +7,152 @@ import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
-import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
+import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseRepository
+import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseRequest
+import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.springframework.http.HttpStatus
 import java.time.LocalDate
-import java.util.Optional
 import java.util.UUID
 import kotlin.test.Test
 
 class VilkårDiagnoseServiceTest {
-    private val vilkårDiagnoseRepository = mockk<VilkårDiagnoseRepository>(relaxed = true)
-    private val vilkårVurderingService = mockk<VilkårVurderingService>(relaxed = true)
+    private val repository = mockk<VilkårDiagnoseRepository>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
-    private val vilkårDiagnoseService =
-        VilkårDiagnoseService(
-            vilkårDiagnoseRepository,
-            vilkårVurderingService,
-            behandlingService,
-            endringshistorikkService,
-            ansvarligSaksbehandlerService,
-        )
+    private val service = VilkårDiagnoseService(repository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService)
 
     private val behandlingId = UUID.randomUUID()
-    private val vurdering =
-        VilkårVurdering(
-            behandlingId = behandlingId,
-            vilkårType = VilkårType.VARIG_SYKDOM_SKADE_ELLER_LYTE,
-            vurdering = Vurdering.JA,
-            begrunnelse = "Varig sykdom",
-        )
 
     init {
-        every { vilkårDiagnoseRepository.insert(any()) } answers { firstArg() }
-        every { vilkårDiagnoseRepository.update(any()) } answers { firstArg() }
-        every { vilkårVurderingService.hentVurderingPåBehandling(behandlingId, vurdering.id) } returns vurdering
+        every { repository.insert(any()) } answers { firstArg() }
+        every { repository.update(any()) } answers { firstArg() }
+        every { repository.findByBehandlingId(any()) } returns emptyList()
     }
+
+    private fun request(
+        id: UUID? = null,
+        diagnose: String = "Diabetes type 1",
+        erYrkesskade: Boolean = false,
+        fraOgMedDato: LocalDate? = null,
+        tilOgMedDato: LocalDate? = null,
+    ) = VilkårDiagnoseRequest(
+        id = id,
+        diagnose = diagnose,
+        erYrkesskade = erYrkesskade,
+        vurdering = Vurdering.JA,
+        begrunnelse = "Test",
+        fraOgMedDato = fraOgMedDato,
+        tilOgMedDato = tilOgMedDato,
+    )
 
     private fun diagnose(
-        id: UUID = UUID.randomUUID(),
-        vilkårVurderingId: UUID = vurdering.id,
         diagnose: String = "Diabetes type 1",
-    ) = VilkårDiagnose(id = id, vilkårVurderingId = vilkårVurderingId, diagnose = diagnose)
+        fraOgMedDato: LocalDate? = null,
+        tilOgMedDato: LocalDate? = null,
+    ) = VilkårDiagnose(
+        behandlingId = behandlingId,
+        diagnose = diagnose,
+        vurdering = Vurdering.JA,
+        begrunnelse = "Eksisterende",
+        fraOgMedDato = fraOgMedDato,
+        tilOgMedDato = tilOgMedDato,
+    )
 
     @Test
-    fun `lagreDiagnose oppretter ny diagnose på vilkårsperioden`() {
-        val resultat =
-            vilkårDiagnoseService.lagreDiagnose(
-                behandlingId,
-                vurdering.id,
-                DiagnoseRequest(diagnose = "Diabetes type 1"),
-            )
+    fun `lagrePeriode avviser tom diagnose`() {
+        assertThatThrownBy { service.lagrePeriode(behandlingId, request(diagnose = "   ")) }
+            .isInstanceOf(Feil::class.java)
+            .hasMessageContaining("Diagnose kan ikke være tom")
+            .extracting { (it as Feil).httpStatus }
+            .isEqualTo(HttpStatus.BAD_REQUEST)
+
+        verify(exactly = 0) { repository.insert(any()) }
+    }
+
+    @Test
+    fun `lagrePeriode trimmer diagnosen før lagring`() {
+        val resultat = service.lagrePeriode(behandlingId, request(diagnose = "  Diabetes type 1  "))
 
         assertThat(resultat.diagnose).isEqualTo("Diabetes type 1")
-        assertThat(resultat.vilkårVurderingId).isEqualTo(vurdering.id)
-        verify(exactly = 1) { vilkårDiagnoseRepository.insert(any()) }
     }
 
     @Test
-    fun `lagreDiagnose støtter flere diagnoser på samme vilkårsperiode`() {
-        vilkårDiagnoseService.lagreDiagnose(behandlingId, vurdering.id, DiagnoseRequest(diagnose = "Diabetes type 1"))
-        vilkårDiagnoseService.lagreDiagnose(behandlingId, vurdering.id, DiagnoseRequest(diagnose = "Cøliaki"))
+    fun `lagrePeriode lagrer yrkesskade med skadedato som fra og med-dato`() {
+        val resultat = service.lagrePeriode(behandlingId, request(erYrkesskade = true, fraOgMedDato = LocalDate.of(2020, 3, 1)))
 
-        verify(exactly = 2) { vilkårDiagnoseRepository.insert(any()) }
+        assertThat(resultat.erYrkesskade).isTrue()
+        assertThat(resultat.fraOgMedDato).isEqualTo(LocalDate.of(2020, 3, 1))
     }
 
     @Test
-    fun `lagreDiagnose lagrer yrkesskade med dato`() {
-        val resultat =
-            vilkårDiagnoseService.lagreDiagnose(
-                behandlingId,
-                vurdering.id,
-                DiagnoseRequest(diagnose = "Støyskade", yrkesskade = true, yrkesskadeDato = LocalDate.of(2020, 3, 1)),
-            )
-
-        assertThat(resultat.yrkesskade).isTrue()
-        assertThat(resultat.yrkesskadeDato).isEqualTo(LocalDate.of(2020, 3, 1))
-    }
-
-    @Test
-    fun `lagreDiagnose med id oppdaterer eksisterende diagnose`() {
-        val eksisterende = diagnose()
-        every { vilkårDiagnoseRepository.findById(eksisterende.id) } returns Optional.of(eksisterende)
+    fun `lagrePeriode tillater at ulike diagnoser løper samtidig`() {
+        every { repository.findByBehandlingId(any()) } returns
+            listOf(diagnose("Diabetes type 1", LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)))
 
         val resultat =
-            vilkårDiagnoseService.lagreDiagnose(
+            service.lagrePeriode(
                 behandlingId,
-                vurdering.id,
-                DiagnoseRequest(id = eksisterende.id, diagnose = "Cøliaki"),
+                request(diagnose = "Cøliaki", fraOgMedDato = LocalDate.of(2025, 1, 1), tilOgMedDato = LocalDate.of(2025, 12, 31)),
             )
 
-        assertThat(resultat.id).isEqualTo(eksisterende.id)
         assertThat(resultat.diagnose).isEqualTo("Cøliaki")
-        verify(exactly = 1) { vilkårDiagnoseRepository.update(any()) }
-        verify(exactly = 0) { vilkårDiagnoseRepository.insert(any()) }
+        verify(exactly = 1) { repository.insert(any()) }
     }
 
     @Test
-    fun `lagreDiagnose avviser tom diagnose`() {
-        assertThatThrownBy {
-            vilkårDiagnoseService.lagreDiagnose(behandlingId, vurdering.id, DiagnoseRequest(diagnose = "   "))
-        }.isInstanceOf(Feil::class.java)
-            .hasMessageContaining("Diagnose kan ikke være tom")
-    }
+    fun `lagrePeriode avviser overlappende perioder for samme diagnose`() {
+        every { repository.findByBehandlingId(any()) } returns
+            listOf(diagnose("Diabetes type 1", LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)))
 
-    @Test
-    fun `lagreDiagnose avviser yrkesskadedato uten yrkesskadeflagg`() {
         assertThatThrownBy {
-            vilkårDiagnoseService.lagreDiagnose(
+            service.lagrePeriode(
                 behandlingId,
-                vurdering.id,
-                DiagnoseRequest(diagnose = "Støyskade", yrkesskade = false, yrkesskadeDato = LocalDate.of(2020, 3, 1)),
+                request(diagnose = "Diabetes type 1", fraOgMedDato = LocalDate.of(2025, 6, 1), tilOgMedDato = LocalDate.of(2026, 1, 31)),
             )
-        }.isInstanceOf(Feil::class.java)
-            .hasMessageContaining("Yrkesskadedato")
+        }.isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
+
+        verify(exactly = 0) { repository.insert(any()) }
     }
 
     @Test
-    fun `lagreDiagnose gir ikke tilgang til diagnose på en annen vilkårsperiode`() {
-        val annenPeriode = diagnose(vilkårVurderingId = UUID.randomUUID())
-        every { vilkårDiagnoseRepository.findById(annenPeriode.id) } returns Optional.of(annenPeriode)
+    fun `lagrePeriode kjenner igjen samme diagnose uavhengig av store og små bokstaver`() {
+        every { repository.findByBehandlingId(any()) } returns
+            listOf(diagnose("Diabetes type 1", LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)))
 
         assertThatThrownBy {
-            vilkårDiagnoseService.lagreDiagnose(
+            service.lagrePeriode(
                 behandlingId,
-                vurdering.id,
-                DiagnoseRequest(id = annenPeriode.id, diagnose = "Cøliaki"),
+                request(diagnose = " diabetes TYPE 1 ", fraOgMedDato = LocalDate.of(2025, 6, 1), tilOgMedDato = LocalDate.of(2026, 1, 31)),
             )
-        }.isInstanceOf(Feil::class.java)
-            .extracting { (it as Feil).httpStatus }
-            .isEqualTo(HttpStatus.NOT_FOUND)
-
-        verify(exactly = 0) { vilkårDiagnoseRepository.update(any()) }
+        }.isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
     }
 
     @Test
-    fun `lagreDiagnose kaster ManglerTilgang når bruker ikke er ansvarlig saksbehandler`() {
-        every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
-            ManglerTilgang("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
+    fun `lagrePeriode tillater at samme diagnose periodiseres etter hverandre`() {
+        every { repository.findByBehandlingId(any()) } returns
+            listOf(diagnose("Diabetes type 1", LocalDate.of(2025, 1, 1), LocalDate.of(2025, 6, 30)))
 
-        assertThatThrownBy {
-            vilkårDiagnoseService.lagreDiagnose(behandlingId, vurdering.id, DiagnoseRequest(diagnose = "Diabetes type 1"))
-        }.isInstanceOf(ManglerTilgang::class.java)
+        service.lagrePeriode(
+            behandlingId,
+            request(diagnose = "Diabetes type 1", fraOgMedDato = LocalDate.of(2025, 7, 1), tilOgMedDato = LocalDate.of(2025, 12, 31)),
+        )
 
-        verify(exactly = 0) { vilkårDiagnoseRepository.insert(any()) }
+        verify(exactly = 1) { repository.insert(any()) }
     }
 
     @Test
-    fun `lagreDiagnose kaster feil når behandling ikke er redigerbar`() {
-        every { behandlingService.validerBehandlingErRedigerbar(behandlingId) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
-
-        assertThatThrownBy {
-            vilkårDiagnoseService.lagreDiagnose(behandlingId, vurdering.id, DiagnoseRequest(diagnose = "Diabetes type 1"))
-        }.isInstanceOf(Feil::class.java)
-            .hasMessageContaining("Behandlingen er ikke redigerbar")
-
-        verify(exactly = 0) { vilkårDiagnoseRepository.insert(any()) }
-    }
-
-    @Test
-    fun `lagreDiagnose skriver aldri diagnose til endringshistorikk`() {
+    fun `endringshistorikken røper ikke diagnosen`() {
         val detaljer = slot<String>()
         every { endringshistorikkService.registrerEndring(any(), any(), capture(detaljer)) } returns Unit
 
-        vilkårDiagnoseService.lagreDiagnose(
-            behandlingId,
-            vurdering.id,
-            DiagnoseRequest(diagnose = "Diabetes type 1", yrkesskade = true, yrkesskadeDato = LocalDate.of(2020, 3, 1)),
-        )
+        service.lagrePeriode(behandlingId, request(diagnose = "Diabetes type 1"))
 
+        assertThat(detaljer.captured).isEqualTo("${VilkårType.DIAGNOSE}: ${Vurdering.JA}")
         assertThat(detaljer.captured).doesNotContain("Diabetes")
-        assertThat(detaljer.captured).isEqualTo("${VilkårType.VARIG_SYKDOM_SKADE_ELLER_LYTE}: ${Vurdering.JA}")
-    }
-
-    @Test
-    fun `slettDiagnose sletter diagnosen`() {
-        val eksisterende = diagnose()
-        every { vilkårDiagnoseRepository.findById(eksisterende.id) } returns Optional.of(eksisterende)
-
-        vilkårDiagnoseService.slettDiagnose(behandlingId, vurdering.id, eksisterende.id)
-
-        verify(exactly = 1) { vilkårDiagnoseRepository.deleteById(eksisterende.id) }
-    }
-
-    @Test
-    fun `slettDiagnose sletter ikke diagnose på en annen vilkårsperiode`() {
-        val annenPeriode = diagnose(vilkårVurderingId = UUID.randomUUID())
-        every { vilkårDiagnoseRepository.findById(annenPeriode.id) } returns Optional.of(annenPeriode)
-
-        assertThatThrownBy { vilkårDiagnoseService.slettDiagnose(behandlingId, vurdering.id, annenPeriode.id) }
-            .isInstanceOf(Feil::class.java)
-            .extracting { (it as Feil).httpStatus }
-            .isEqualTo(HttpStatus.NOT_FOUND)
-
-        verify(exactly = 0) { vilkårDiagnoseRepository.deleteById(any()) }
-    }
-
-    @Test
-    fun `hentDiagnoser validerer at vilkårsperioden hører til behandlingen`() {
-        val annenBehandling = UUID.randomUUID()
-        every { vilkårVurderingService.hentVurderingPåBehandling(annenBehandling, vurdering.id) } throws
-            Feil(melding = "Fant ikke vilkårsvurdering", httpStatus = HttpStatus.NOT_FOUND)
-
-        assertThatThrownBy { vilkårDiagnoseService.hentDiagnoser(annenBehandling, vurdering.id) }
-            .isInstanceOf(Feil::class.java)
-
-        verify(exactly = 0) { vilkårDiagnoseRepository.findByVilkårVurderingId(any()) }
-    }
-
-    @Test
-    fun `hentDiagnoser returnerer diagnosene på vilkårsperioden`() {
-        every { vilkårDiagnoseRepository.findByVilkårVurderingId(vurdering.id) } returns
-            listOf(diagnose(diagnose = "Diabetes type 1"), diagnose(diagnose = "Cøliaki"))
-
-        val resultat = vilkårDiagnoseService.hentDiagnoser(behandlingId, vurdering.id)
-
-        assertThat(resultat).hasSize(2)
-        assertThat(resultat.map { it.diagnose }).containsExactlyInAnyOrder("Diabetes type 1", "Cøliaki")
     }
 }

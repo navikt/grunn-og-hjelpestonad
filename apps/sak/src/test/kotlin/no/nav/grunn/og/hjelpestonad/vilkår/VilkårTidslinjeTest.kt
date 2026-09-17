@@ -1,6 +1,9 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
 import no.nav.familie.tidslinje.utvidelser.tilPerioder
+import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
+import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
+import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -12,11 +15,20 @@ class VilkårTidslinjeTest {
     private fun periode(
         fraOgMedDato: String? = null,
         tilOgMedDato: String? = null,
-        vilkårType: VilkårType = VilkårType.VARIG_SYKDOM_SKADE_ELLER_LYTE,
-    ) = VilkårVurdering(
+    ) = VilkårMedlemskap(
         id = UUID.randomUUID(),
         behandlingId = UUID.randomUUID(),
-        vilkårType = vilkårType,
+        regelverk = Regelverk.NASJONALE_REGLER,
+        vurdering = Vurdering.JA,
+        fraOgMedDato = fraOgMedDato?.let { LocalDate.parse(it) },
+        tilOgMedDato = tilOgMedDato?.let { LocalDate.parse(it) },
+    )
+
+    private fun request(
+        fraOgMedDato: String? = null,
+        tilOgMedDato: String? = null,
+    ) = VilkårMedlemskapRequest(
+        regelverk = Regelverk.NASJONALE_REGLER,
         vurdering = Vurdering.JA,
         fraOgMedDato = fraOgMedDato?.let { LocalDate.parse(it) },
         tilOgMedDato = tilOgMedDato?.let { LocalDate.parse(it) },
@@ -42,81 +54,58 @@ class VilkårTidslinjeTest {
     }
 
     @Test
-    fun `validerer innkommende request mot lagrede vurderinger`() {
-        val lagret = periode("2025-01-01", "2025-06-30")
-        val request =
-            VilkårVurderingRequest(
-                vilkårType = lagret.vilkårType,
-                vurdering = Vurdering.JA,
-                fraOgMedDato = LocalDate.of(2025, 7, 1),
-                tilOgMedDato = LocalDate.of(2025, 12, 31),
-            )
-
-        assertThatCode { listOf(lagret).validerIngenOverlappMed(request) }.doesNotThrowAnyException()
+    fun `tom liste gir en tom tidslinje`() {
+        assertThat(emptyList<VilkårMedlemskap>().tilTidslinje().erTom()).isTrue()
     }
 
     @Test
-    fun `avviser innkommende request som overlapper en lagret vurdering`() {
-        val lagret = periode("2025-01-01", "2025-06-30")
-        val request =
-            VilkårVurderingRequest(
-                vilkårType = lagret.vilkårType,
-                vurdering = Vurdering.JA,
-                fraOgMedDato = LocalDate.of(2025, 3, 1),
-                tilOgMedDato = LocalDate.of(2025, 12, 31),
-            )
-
-        assertThatThrownBy { listOf(lagret).validerIngenOverlappMed(request) }
-            .isInstanceOf(IllegalStateException::class.java)
-    }
-
-    @Test
-    fun `tillater perioder som ligger inntil hverandre`() {
+    fun `godtar periode som ligger inntil en lagret periode`() {
         assertThatCode {
-            listOf(periode("2025-01-01", "2025-06-30"), periode("2025-07-01", "2025-12-31")).tilTidslinje()
+            listOf(periode("2025-01-01", "2025-06-30")).validerIngenOverlappMed(request("2025-07-01", "2025-12-31"))
         }.doesNotThrowAnyException()
     }
 
     @Test
-    fun `tillater periode på én enkelt dag`() {
-        assertThatCode { listOf(periode("2025-01-01", "2025-01-01")).tilTidslinje() }.doesNotThrowAnyException()
+    fun `godtar periode på én enkelt dag`() {
+        assertThatCode { emptyList<VilkårMedlemskap>().validerIngenOverlappMed(request("2025-01-01", "2025-01-01")) }
+            .doesNotThrowAnyException()
     }
 
     @Test
-    fun `tom liste gir en tom tidslinje`() {
-        assertThat(emptyList<VilkårVurdering>().tilTidslinje().erTom()).isTrue()
+    fun `godtar løpende periode når det ikke finnes lagrede perioder`() {
+        assertThatCode { emptyList<VilkårMedlemskap>().validerIngenOverlappMed(request()) }.doesNotThrowAnyException()
     }
 
     @Test
-    fun `avviser overlappende perioder`() {
+    fun `avviser periode som overlapper en lagret periode`() {
         assertThatThrownBy {
-            listOf(periode("2025-01-01", "2025-06-30"), periode("2025-03-01", "2025-12-31")).tilTidslinje()
-        }.isInstanceOf(IllegalStateException::class.java)
+            listOf(periode("2025-01-01", "2025-06-30")).validerIngenOverlappMed(request("2025-03-01", "2025-12-31"))
+        }.isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
     }
 
     @Test
     fun `avviser perioder som møtes på samme dag`() {
         assertThatThrownBy {
-            listOf(periode("2025-01-01", "2025-06-30"), periode("2025-06-30", "2025-12-31")).tilTidslinje()
-        }.isInstanceOf(IllegalArgumentException::class.java)
+            listOf(periode("2025-01-01", "2025-06-30")).validerIngenOverlappMed(request("2025-06-30", "2025-12-31"))
+        }.isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
     }
 
     @Test
-    fun `avviser to perioder uten datoer fordi begge dekker hele tidslinjen`() {
-        assertThatThrownBy { listOf(periode(), periode()).tilTidslinje() }
-            .isInstanceOf(IllegalStateException::class.java)
+    fun `avviser to løpende perioder fordi begge dekker hele tidslinjen`() {
+        assertThatThrownBy { listOf(periode()).validerIngenOverlappMed(request()) }
+            .isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
     }
 
     @Test
-    fun `avviser løpende periode som overlapper en senere periode`() {
+    fun `avviser løpende periode som overlapper en senere lagret periode`() {
         assertThatThrownBy {
-            listOf(periode(fraOgMedDato = "2025-01-01"), periode("2026-01-01", "2026-02-01")).tilTidslinje()
-        }.isInstanceOf(IllegalStateException::class.java)
+            listOf(periode("2026-01-01", "2026-02-01")).validerIngenOverlappMed(request(fraOgMedDato = "2025-01-01"))
+        }.isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
     }
 
     @Test
     fun `avviser til og med-dato før fra og med-dato`() {
-        assertThatThrownBy { listOf(periode("2025-06-01", "2025-01-01")).tilTidslinje() }
-            .isInstanceOf(IllegalArgumentException::class.java)
+        assertThatThrownBy { emptyList<VilkårMedlemskap>().validerIngenOverlappMed(request("2025-06-01", "2025-01-01")) }
+            .isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
     }
 }
