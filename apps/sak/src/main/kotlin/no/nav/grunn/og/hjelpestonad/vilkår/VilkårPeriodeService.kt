@@ -35,9 +35,9 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
 
     protected open fun valider(request: R) = Unit
 
-    fun hentPerioder(behandlingId: UUID): List<VILKÅR_PERIODE> = repository.findByBehandlingId(behandlingId)
+    open fun hentPerioder(behandlingId: UUID): List<VILKÅR_PERIODE> = repository.findByBehandlingId(behandlingId)
 
-    fun hentPeriodePåBehandling(
+    open fun hentPeriodePåBehandling(
         behandlingId: UUID,
         periodeId: UUID,
     ): VILKÅR_PERIODE =
@@ -50,7 +50,7 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
             )
 
     @Transactional
-    fun lagrePeriode(
+    open fun lagrePeriode(
         behandlingId: UUID,
         request: R,
     ): VILKÅR_PERIODE {
@@ -72,7 +72,7 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
     }
 
     @Transactional
-    fun slettPeriode(
+    open fun slettPeriode(
         behandlingId: UUID,
         periodeId: UUID,
     ) {
