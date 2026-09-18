@@ -13,7 +13,7 @@ import java.util.UUID
 
 @RestController
 @PreAuthorize("hasRole('SAKSBEHANDLER')")
-@RequestMapping("/api/vilkar/{behandlingId}/diagnose")
+@RequestMapping("/api/behandling/{behandlingId}/vilkar/diagnose")
 class VilkårDiagnoseController(
     private val vilkårDiagnoseService: VilkårDiagnoseService,
 ) {

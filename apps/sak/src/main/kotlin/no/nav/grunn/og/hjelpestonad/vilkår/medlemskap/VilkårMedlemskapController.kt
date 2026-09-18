@@ -13,7 +13,7 @@ import java.util.UUID
 
 @RestController
 @PreAuthorize("hasRole('SAKSBEHANDLER')")
-@RequestMapping("/api/vilkar/{behandlingId}/medlemskap")
+@RequestMapping("/api/behandling/{behandlingId}/vilkar/medlemskap")
 class VilkårMedlemskapController(
     private val vilkårMedlemskapService: VilkårMedlemskapService,
 ) {
