@@ -6,6 +6,7 @@ import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.vilkår.VilkårPeriodeService
 import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
+import no.nav.grunn.og.hjelpestonad.vilkår.Vurdering
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -29,8 +30,8 @@ class VilkårInstitusjonService(
         request: VilkårInstitusjonRequest,
     ) = VilkårInstitusjon(
         behandlingId = behandlingId,
-        oppholdstype = request.oppholdstype,
-        unntakshjemmel = request.unntakshjemmel,
+        oppholdstype = request.oppholdstype.takeIf { request.vurdering == Vurdering.NEI },
+        unntakshjemmel = request.unntakshjemmel.takeIf { request.vurdering == Vurdering.NEI },
         vurdering = request.vurdering,
         begrunnelse = request.begrunnelse,
         fraOgMedDato = request.fraOgMedDato,
@@ -41,8 +42,8 @@ class VilkårInstitusjonService(
         eksisterende: VilkårInstitusjon,
         request: VilkårInstitusjonRequest,
     ) = eksisterende.copy(
-        oppholdstype = request.oppholdstype,
-        unntakshjemmel = request.unntakshjemmel,
+        oppholdstype = request.oppholdstype.takeIf { request.vurdering == Vurdering.NEI },
+        unntakshjemmel = request.unntakshjemmel.takeIf { request.vurdering == Vurdering.NEI },
         vurdering = request.vurdering,
         begrunnelse = request.begrunnelse,
         fraOgMedDato = request.fraOgMedDato,
