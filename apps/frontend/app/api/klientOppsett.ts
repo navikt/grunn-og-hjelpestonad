@@ -25,5 +25,3 @@ export function registrerApiInterceptorer(): void {
     return response;
   });
 }
-
-registrerApiInterceptorer();
