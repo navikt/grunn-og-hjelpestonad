@@ -82,7 +82,7 @@ Dette medfører:
 - Lagring nøkler på `id` i requesten, ikke på `(behandlingId, vilkårType)`.
   `id == null` betyr ny periode.
 - Det finnes et reelt slette-endepunkt for én periode:
-  `DELETE /api/vilkar/{behandlingId}/{vilkår}/{vilkårPeriodeId}`.
+  `DELETE /api/behandling/{behandlingId}/vilkar/{vilkår}/{vilkårPeriodeId}`.
 - Perioder som gjelder samme forhold kan ikke overlappe, men overlapp avvises
   ikke. Den nye eller endrede perioden vinner på tidslinjen i
   `no.nav.familie.tidslinje`, og lagrede perioder den overlapper blir forkortet,
@@ -380,7 +380,7 @@ preferanse.
 ### Team og organisasjon
 
 - **Berørte team:** Kun teamet som eier `sak` og `frontend`. Ingen eksterne
-  konsumenter av `/api/vilkar`.
+  konsumenter av `/api/behandling/{behandlingId}/vilkar`.
 - **Migrasjonsstrategi:** Backend først, frontend i egen PR.
 - **Tilbakerulling:** Revert av kode og migrering i én endring. Ingen datatap av
   betydning siden dataene slettes uansett.
@@ -390,7 +390,7 @@ preferanse.
 ### Migrasjon
 
 - **Bakoverkompatibilitet:** Nei. `VilkårType`-verdiene byttes ut, og
-  `/api/vilkar` endrer kontrakt med `id` og datofelter. Dette er akseptabelt
+  `/api/behandling/{behandlingId}/vilkar` endrer kontrakt med `id` og datofelter. Dette er akseptabelt
   fordi løsningen kun kjører i `dev-gcp` uten eksterne konsumenter.
 - **Utrullingsstrategi:** Big bang i backend. Frontend følger i egen PR.
   Frontend-bygget vil feile i mellomperioden, se risikotabellen.
@@ -450,7 +450,7 @@ preferanse.
 | G1 | Vilkårstyper uten hjemmel i grunnstønad | 3 | 3 | 3 | 27 | Løst — `VilkårType` erstattet, gamle tabeller droppet i `V35` |
 | G2 | Uthenting returnerte ett treff uten at databasen garanterte det | 3 | 2 | 1 | 6 | Løst — `findByBehandlingId` returnerer `List<T>` |
 | G3 | `fra_og_med_dato`/`til_og_med_dato` fantes i databasen, men var ubrukt | 2 | 2 | 2 | 8 | Løst — i bruk i entitet, request og response |
-| G4 | Sletting av vilkår fantes kun i klientstate | 2 | 2 | 2 | 8 | Løst — `DELETE /api/vilkar/{behandlingId}/{vilkår}/{vilkårPeriodeId}` |
+| G4 | Sletting av vilkår fantes kun i klientstate | 2 | 2 | 2 | 8 | Løst — `DELETE /api/behandling/{behandlingId}/vilkar/{vilkår}/{vilkårPeriodeId}` |
 | G5 | Frontend antar én vurdering per vilkårstype i `Record<VilkårType, VilkårState>` | 2 | 2 | 1 | 4 | Åpen — håndteres i frontend-migreringen |
 
 ## Aksjonspunkter
