@@ -170,9 +170,16 @@ class VilkårDiagnoseServiceTest {
         val detaljer = slot<String>()
         every { endringshistorikkService.registrerEndring(any(), any(), capture(detaljer)) } returns Unit
 
-        service.lagrePeriode(behandlingId, request(diagnose = "Diabetes type 1"))
+        service.lagrePeriode(
+            behandlingId,
+            request(
+                diagnose = "Diabetes type 1",
+                fraOgMedDato = LocalDate.of(2025, 1, 1),
+                tilOgMedDato = LocalDate.of(2025, 6, 30),
+            ),
+        )
 
-        assertThat(detaljer.captured).isEqualTo("${VilkårType.DIAGNOSE}: ${Vurdering.JA}")
+        assertThat(detaljer.captured).isEqualTo("${VilkårType.DIAGNOSE}: ${Vurdering.JA}, Periode: 01.01.2025 – 30.06.2025")
         assertThat(detaljer.captured).doesNotContain("Diabetes")
     }
 }

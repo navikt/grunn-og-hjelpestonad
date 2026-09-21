@@ -54,6 +54,21 @@ class VilkårInstitusjonServiceTest {
     }
 
     @Test
+    fun `lagrePeriode nullstiller oppholdsinformasjon når vurdering er JA`() {
+        val resultat =
+            service.lagrePeriode(
+                behandlingId,
+                request(
+                    oppholdstype = Oppholdstype.SPESIALISTHELSETJENESTEN,
+                    unntakshjemmel = Unntakshjemmel.KORTTIDSOPPHOLD,
+                ),
+            )
+
+        assertThat(resultat.oppholdstype).isNull()
+        assertThat(resultat.unntakshjemmel).isNull()
+    }
+
+    @Test
     fun `lagrePeriode godtar unntak når det foreligger et opphold`() {
         val resultat =
             service.lagrePeriode(
@@ -61,6 +76,7 @@ class VilkårInstitusjonServiceTest {
                 request(
                     oppholdstype = Oppholdstype.SPESIALISTHELSETJENESTEN,
                     unntakshjemmel = Unntakshjemmel.KORTTIDSOPPHOLD,
+                    vurdering = Vurdering.NEI,
                 ),
             )
 
@@ -71,7 +87,13 @@ class VilkårInstitusjonServiceTest {
     @Test
     fun `lagrePeriode avviser unntakshjemmel uten opphold`() {
         assertThatThrownBy {
-            service.lagrePeriode(behandlingId, request(unntakshjemmel = Unntakshjemmel.KORTTIDSOPPHOLD))
+            service.lagrePeriode(
+                behandlingId,
+                request(
+                    unntakshjemmel = Unntakshjemmel.KORTTIDSOPPHOLD,
+                    vurdering = Vurdering.NEI,
+                ),
+            )
         }.isInstanceOf(Feil::class.java)
             .hasMessageContaining("uten at det er registrert et opphold")
             .extracting { (it as Feil).httpStatus }
@@ -88,6 +110,7 @@ class VilkårInstitusjonServiceTest {
                 request(
                     oppholdstype = Oppholdstype.PSYKISK_HELSEVERN,
                     unntakshjemmel = Unntakshjemmel.EKSTRAUTGIFTER_IKKE_DEKKET_AV_INSTITUSJONEN,
+                    vurdering = Vurdering.NEI,
                 ),
             )
 

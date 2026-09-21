@@ -186,13 +186,21 @@ class VilkårMedlemskapServiceTest {
     }
 
     @Test
-    fun `lagrePeriode skriver bare vilkårstype og vurdering til endringshistorikk`() {
+    fun `lagrePeriode skriver vilkårstype, vurdering og periode til endringshistorikk`() {
         val detaljer = slot<String>()
         every { endringshistorikkService.registrerEndring(any(), any(), capture(detaljer)) } returns Unit
 
-        service.lagrePeriode(behandlingId, request())
+        service.lagrePeriode(
+            behandlingId,
+            request(
+                fraOgMedDato = LocalDate.of(2025, 1, 1),
+                tilOgMedDato = LocalDate.of(2025, 6, 30),
+            ),
+        )
 
-        assertThat(detaljer.captured).isEqualTo("${VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN}: ${Vurdering.JA}")
+        assertThat(detaljer.captured).isEqualTo(
+            "${VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN}: ${Vurdering.JA}, Periode: 01.01.2025 – 30.06.2025",
+        )
     }
 
     @Test

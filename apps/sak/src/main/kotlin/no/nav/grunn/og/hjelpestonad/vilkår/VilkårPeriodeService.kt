@@ -8,6 +8,7 @@ import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PERIODE>, R : VilkårPeriodeRequest>(
@@ -62,11 +63,11 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
         val periodeId = request.id
         return if (periodeId == null) {
             repository.insert(nyPeriode(behandlingId, request)).also {
-                registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_OPPRETTET, it.vurdering)
+                registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_OPPRETTET, it)
             }
         } else {
             repository.update(oppdatertPeriode(hentPeriodePåBehandling(behandlingId, periodeId), request)).also {
-                registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_OPPDATERT, it.vurdering)
+                registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_OPPDATERT, it)
             }
         }
     }
@@ -82,7 +83,7 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
 
         repository.deleteById(periode.id)
 
-        registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_SLETTET, periode.vurdering)
+        registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_SLETTET, periode)
     }
 
     /**
@@ -123,17 +124,31 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
 
     /**
      * Diagnose er helseopplysning etter GDPR artikkel 9 og skal aldri registreres i
-     * endringshistorikk eller logg. Detaljer inneholder derfor bare vilkårstype og vurdering.
-     * Ikke utvid feltet med diagnosekode, diagnosebeskrivelse eller andre opplysninger om
-     * saken.
+     * endringshistorikk eller logg. Detaljer inneholder derfor bare vilkårstype, vurdering
+     * og periode. Ikke utvid feltet med diagnosekode, diagnosebeskrivelse eller andre
+     * opplysninger om saken.
      */
     private fun registrerEndring(
         behandlingId: UUID,
         endringType: EndringType,
-        vurdering: Vurdering,
+        periode: VilkårPeriode<*>,
     ) = endringshistorikkService.registrerEndring(
         behandlingId = behandlingId,
         endringType = endringType,
-        detaljer = "$vilkårType: $vurdering",
+        detaljer = "$vilkårType: ${periode.vurdering}, Periode: ${formaterPeriode(periode)}",
     )
+
+    private fun formaterPeriode(periode: Periodisert): String {
+        if (periode.fraOgMedDato == null && periode.tilOgMedDato == null) {
+            return "Hele behandlingsperioden"
+        }
+
+        val fra = periode.fraOgMedDato?.format(DATOFORMAT) ?: "Fra fødsel"
+        val til = periode.tilOgMedDato?.format(DATOFORMAT) ?: "løpende"
+        return "$fra – $til"
+    }
+
+    private companion object {
+        val DATOFORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    }
 }
