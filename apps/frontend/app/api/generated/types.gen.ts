@@ -4,21 +4,6 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
-export type VilkårVurderingRequest = {
-    vilkårType: 'INNGANGSVILKÅR' | 'AKTIVITET' | 'INNTEKT' | 'ALDER_PÅ_BARN' | 'DOKUMENTASJON_TILSYNSUTGIFTER';
-    vurdering: 'JA' | 'NEI';
-    begrunnelse: string;
-};
-
-export type VilkårVurderingResponse = {
-    id?: string | null;
-    behandlingId: string;
-    vilkårType: 'INNGANGSVILKÅR' | 'AKTIVITET' | 'INNTEKT' | 'ALDER_PÅ_BARN' | 'DOKUMENTASJON_TILSYNSUTGIFTER';
-    vurdering: 'JA' | 'NEI';
-    begrunnelse: string;
-    erVilkårOppfylt: boolean;
-};
-
 export type Barnetilsynperiode = {
     id: string;
     datoFra: string;
@@ -71,7 +56,7 @@ export type ForenkletBulkTilgangsResponse = {
 export type ForenkletTilgangsResultat = {
     personident: string;
     harTilgang: boolean;
-    avvisningskode?: 'AVVIST_STRENGT_FORTROLIG_ADRESSE' | 'AVVIST_STRENGT_FORTROLIG_UTLAND' | 'AVVIST_AVDØD' | 'AVVIST_PERSON_UTLAND' | 'AVVIST_SKJERMING' | 'AVVIST_FORTROLIG_ADRESSE' | 'AVVIST_UKJENT_BOSTED' | 'AVVIST_GEOGRAFISK' | 'AVVIST_HABILITET';
+    avvisningskode?: 'AVVIST_STRENGT_FORTROLIG_ADRESSE' | 'AVVIST_STRENGT_FORTROLIG_UTLAND' | 'AVVIST_AVDØD' | 'AVVIST_PERSON_UTLAND' | 'AVVIST_SKJERMING' | 'AVVIST_FORTROLIG_ADRESSE' | 'AVVIST_UKJENT_BOSTED' | 'AVVIST_GEOGRAFISK' | 'AVVIST_HABILITET' | null;
     begrunnelse?: string | null;
 };
 
@@ -182,7 +167,7 @@ export type HentDokumenterRequest = {
 
 export type AvsenderMottaker = {
     id?: string | null;
-    type?: 'FNR' | 'HPRNR' | 'NULL' | 'ORGNR' | 'UKJENT' | 'UTL_ORG';
+    type?: 'FNR' | 'HPRNR' | 'NULL' | 'ORGNR' | 'UKJENT' | 'UTL_ORG' | null;
     navn?: string | null;
     land?: string | null;
     erLikBruker: boolean;
@@ -281,8 +266,72 @@ export type TekstbolkDto = {
 
 export type BeslutteVedtakRequest = {
     godkjent: boolean;
-    årsakUnderkjent?: 'ÅRSAK_BEHANDLING' | 'VILKÅR' | 'VEDTAK_OG_BEREGNING' | 'SIMULERING' | 'BREV' | 'RETUR_ETTER_EGET_ØNSKE';
+    årsakUnderkjent?: 'ÅRSAK_BEHANDLING' | 'VILKÅR' | 'VEDTAK_OG_BEREGNING' | 'SIMULERING' | 'BREV' | 'RETUR_ETTER_EGET_ØNSKE' | null;
     begrunnelse?: string | null;
+};
+
+export type VilkårMedlemskapRequest = {
+    id?: string | null;
+    regelverk: 'NASJONALE_REGLER' | 'EØS_FORORDNINGEN';
+    vurdering: 'JA' | 'NEI';
+    begrunnelse: string;
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+};
+
+export type VilkårMedlemskapResponse = {
+    id: string;
+    behandlingId: string;
+    regelverk: 'NASJONALE_REGLER' | 'EØS_FORORDNINGEN';
+    vurdering: 'JA' | 'NEI';
+    begrunnelse: string;
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+    erVilkårOppfylt: boolean;
+};
+
+export type VilkårInstitusjonRequest = {
+    id?: string | null;
+    oppholdstype?: 'HELSE_OG_OMSORGSINSTITUSJON' | 'SPESIALISTHELSETJENESTEN' | 'PSYKISK_HELSEVERN' | 'FENGSEL_ELLER_ANNEN_LOVREGULERT_BOFORM' | null;
+    unntakshjemmel?: 'EKSTRAUTGIFTER_IKKE_DEKKET_AV_INSTITUSJONEN' | 'KORTTIDSOPPHOLD' | 'BARN_UNDER_18_I_SPESIALISTHELSETJENESTEN' | 'ANNET_UNNTAK_I_FORSKRIFT' | null;
+    vurdering: 'JA' | 'NEI';
+    begrunnelse: string;
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+};
+
+export type VilkårInstitusjonResponse = {
+    id: string;
+    behandlingId: string;
+    oppholdstype?: 'HELSE_OG_OMSORGSINSTITUSJON' | 'SPESIALISTHELSETJENESTEN' | 'PSYKISK_HELSEVERN' | 'FENGSEL_ELLER_ANNEN_LOVREGULERT_BOFORM' | null;
+    unntakshjemmel?: 'EKSTRAUTGIFTER_IKKE_DEKKET_AV_INSTITUSJONEN' | 'KORTTIDSOPPHOLD' | 'BARN_UNDER_18_I_SPESIALISTHELSETJENESTEN' | 'ANNET_UNNTAK_I_FORSKRIFT' | null;
+    vurdering: 'JA' | 'NEI';
+    begrunnelse: string;
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+    erVilkårOppfylt: boolean;
+};
+
+export type VilkårDiagnoseRequest = {
+    id?: string | null;
+    diagnose: string;
+    erYrkesskade: boolean;
+    vurdering: 'JA' | 'NEI';
+    begrunnelse: string;
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+};
+
+export type VilkårDiagnoseResponse = {
+    id: string;
+    behandlingId: string;
+    diagnose: string;
+    erYrkesskade: boolean;
+    vurdering: 'JA' | 'NEI';
+    begrunnelse: string;
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+    erVilkårOppfylt: boolean;
 };
 
 export type OpprettRequest = {
@@ -378,7 +427,7 @@ export type SimuleringResultatResponse = {
 export type BehandlingEndringResponse = {
     id: string;
     behandlingId: string;
-    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'ANGRET_SEND_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
+    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'ANGRET_SEND_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
     utførtAv: string;
     utførtTid: string;
     detaljer?: string | null;
@@ -401,7 +450,7 @@ export type TotrinnskontrollDto = {
     opprettetAv: string;
     opprettetTid: string;
     godkjent?: boolean | null;
-    årsakUnderkjent?: 'ÅRSAK_BEHANDLING' | 'VILKÅR' | 'VEDTAK_OG_BEREGNING' | 'SIMULERING' | 'BREV' | 'RETUR_ETTER_EGET_ØNSKE';
+    årsakUnderkjent?: 'ÅRSAK_BEHANDLING' | 'VILKÅR' | 'VEDTAK_OG_BEREGNING' | 'SIMULERING' | 'BREV' | 'RETUR_ETTER_EGET_ØNSKE' | null;
     begrunnelse?: string | null;
 };
 
@@ -409,36 +458,6 @@ export type TotrinnskontrollStatusResponse = {
     status: 'TOTRINNSKONTROLL_UNDERKJENT' | 'KAN_FATTE_VEDTAK' | 'IKKE_AUTORISERT' | 'UAKTUELT';
     totrinnskontroll?: TotrinnskontrollDto | null;
 };
-
-export type HentVilkårVurderingerData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/vilkar/{behandlingId}';
-};
-
-export type HentVilkårVurderingerResponses = {
-    200: Array<VilkårVurderingResponse>;
-};
-
-export type HentVilkårVurderingerResponse = HentVilkårVurderingerResponses[keyof HentVilkårVurderingerResponses];
-
-export type LagreVilkårVurderingData = {
-    body: VilkårVurderingRequest;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/vilkar/{behandlingId}';
-};
-
-export type LagreVilkårVurderingResponses = {
-    200: VilkårVurderingResponse;
-};
-
-export type LagreVilkårVurderingResponse = LagreVilkårVurderingResponses[keyof LagreVilkårVurderingResponses];
 
 export type LagreVedtakData = {
     body: VedtakRequest;
@@ -741,6 +760,96 @@ export type AngreSendTilBeslutterResponses = {
 
 export type AngreSendTilBeslutterResponse = AngreSendTilBeslutterResponses[keyof AngreSendTilBeslutterResponses];
 
+export type HentMedlemskapPerioderData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/medlemskap';
+};
+
+export type HentMedlemskapPerioderResponses = {
+    200: Array<VilkårMedlemskapResponse>;
+};
+
+export type HentMedlemskapPerioderResponse = HentMedlemskapPerioderResponses[keyof HentMedlemskapPerioderResponses];
+
+export type LagreMedlemskapPeriodeData = {
+    body: VilkårMedlemskapRequest;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/medlemskap';
+};
+
+export type LagreMedlemskapPeriodeResponses = {
+    200: VilkårMedlemskapResponse;
+};
+
+export type LagreMedlemskapPeriodeResponse = LagreMedlemskapPeriodeResponses[keyof LagreMedlemskapPeriodeResponses];
+
+export type HentInstitusjonPerioderData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/institusjon';
+};
+
+export type HentInstitusjonPerioderResponses = {
+    200: Array<VilkårInstitusjonResponse>;
+};
+
+export type HentInstitusjonPerioderResponse = HentInstitusjonPerioderResponses[keyof HentInstitusjonPerioderResponses];
+
+export type LagreInstitusjonPeriodeData = {
+    body: VilkårInstitusjonRequest;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/institusjon';
+};
+
+export type LagreInstitusjonPeriodeResponses = {
+    200: VilkårInstitusjonResponse;
+};
+
+export type LagreInstitusjonPeriodeResponse = LagreInstitusjonPeriodeResponses[keyof LagreInstitusjonPeriodeResponses];
+
+export type HentDiagnosePerioderData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/diagnose';
+};
+
+export type HentDiagnosePerioderResponses = {
+    200: Array<VilkårDiagnoseResponse>;
+};
+
+export type HentDiagnosePerioderResponse = HentDiagnosePerioderResponses[keyof HentDiagnosePerioderResponses];
+
+export type LagreDiagnosePeriodeData = {
+    body: VilkårDiagnoseRequest;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/diagnose';
+};
+
+export type LagreDiagnosePeriodeResponses = {
+    200: VilkårDiagnoseResponse;
+};
+
+export type LagreDiagnosePeriodeResponse = LagreDiagnosePeriodeResponses[keyof LagreDiagnosePeriodeResponses];
+
 export type OpprettBehandlingData = {
     body: OpprettRequest;
     path?: never;
@@ -986,3 +1095,45 @@ export type HentTotrinnskontrollStatusResponses = {
 };
 
 export type HentTotrinnskontrollStatusResponse = HentTotrinnskontrollStatusResponses[keyof HentTotrinnskontrollStatusResponses];
+
+export type SlettMedlemskapPeriodeData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+        vilkårPeriodeId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/medlemskap/{vilkårPeriodeId}';
+};
+
+export type SlettMedlemskapPeriodeResponses = {
+    200: unknown;
+};
+
+export type SlettInstitusjonPeriodeData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+        vilkårPeriodeId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/institusjon/{vilkårPeriodeId}';
+};
+
+export type SlettInstitusjonPeriodeResponses = {
+    200: unknown;
+};
+
+export type SlettDiagnosePeriodeData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+        vilkårPeriodeId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/diagnose/{vilkårPeriodeId}';
+};
+
+export type SlettDiagnosePeriodeResponses = {
+    200: unknown;
+};

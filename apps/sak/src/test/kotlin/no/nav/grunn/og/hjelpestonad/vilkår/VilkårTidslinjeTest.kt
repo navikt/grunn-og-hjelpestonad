@@ -1,8 +1,10 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
 import no.nav.familie.tidslinje.utvidelser.tilPerioder
+import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
+import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
+import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapRequest
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import java.time.LocalDate
 import java.util.UUID
@@ -12,11 +14,20 @@ class VilkårTidslinjeTest {
     private fun periode(
         fraOgMedDato: String? = null,
         tilOgMedDato: String? = null,
-        vilkårType: VilkårType = VilkårType.VARIG_SYKDOM_SKADE_ELLER_LYTE,
-    ) = VilkårVurdering(
+    ) = VilkårMedlemskap(
         id = UUID.randomUUID(),
         behandlingId = UUID.randomUUID(),
-        vilkårType = vilkårType,
+        regelverk = Regelverk.NASJONALE_REGLER,
+        vurdering = Vurdering.JA,
+        fraOgMedDato = fraOgMedDato?.let { LocalDate.parse(it) },
+        tilOgMedDato = tilOgMedDato?.let { LocalDate.parse(it) },
+    )
+
+    private fun request(
+        fraOgMedDato: String? = null,
+        tilOgMedDato: String? = null,
+    ) = VilkårMedlemskapRequest(
+        regelverk = Regelverk.NASJONALE_REGLER,
         vurdering = Vurdering.JA,
         fraOgMedDato = fraOgMedDato?.let { LocalDate.parse(it) },
         tilOgMedDato = tilOgMedDato?.let { LocalDate.parse(it) },
@@ -42,81 +53,107 @@ class VilkårTidslinjeTest {
     }
 
     @Test
-    fun `validerer innkommende request mot lagrede vurderinger`() {
-        val lagret = periode("2025-01-01", "2025-06-30")
-        val request =
-            VilkårVurderingRequest(
-                vilkårType = lagret.vilkårType,
-                vurdering = Vurdering.JA,
-                fraOgMedDato = LocalDate.of(2025, 7, 1),
-                tilOgMedDato = LocalDate.of(2025, 12, 31),
-            )
-
-        assertThatCode { listOf(lagret).validerIngenOverlappMed(request) }.doesNotThrowAnyException()
-    }
-
-    @Test
-    fun `avviser innkommende request som overlapper en lagret vurdering`() {
-        val lagret = periode("2025-01-01", "2025-06-30")
-        val request =
-            VilkårVurderingRequest(
-                vilkårType = lagret.vilkårType,
-                vurdering = Vurdering.JA,
-                fraOgMedDato = LocalDate.of(2025, 3, 1),
-                tilOgMedDato = LocalDate.of(2025, 12, 31),
-            )
-
-        assertThatThrownBy { listOf(lagret).validerIngenOverlappMed(request) }
-            .isInstanceOf(IllegalStateException::class.java)
-    }
-
-    @Test
-    fun `tillater perioder som ligger inntil hverandre`() {
-        assertThatCode {
-            listOf(periode("2025-01-01", "2025-06-30"), periode("2025-07-01", "2025-12-31")).tilTidslinje()
-        }.doesNotThrowAnyException()
-    }
-
-    @Test
-    fun `tillater periode på én enkelt dag`() {
-        assertThatCode { listOf(periode("2025-01-01", "2025-01-01")).tilTidslinje() }.doesNotThrowAnyException()
-    }
-
-    @Test
     fun `tom liste gir en tom tidslinje`() {
-        assertThat(emptyList<VilkårVurdering>().tilTidslinje().erTom()).isTrue()
+        assertThat(emptyList<VilkårMedlemskap>().tilTidslinje().erTom()).isTrue()
     }
 
     @Test
-    fun `avviser overlappende perioder`() {
-        assertThatThrownBy {
-            listOf(periode("2025-01-01", "2025-06-30"), periode("2025-03-01", "2025-12-31")).tilTidslinje()
-        }.isInstanceOf(IllegalStateException::class.java)
+    fun `lar periode som ligger inntil en lagret periode stå urørt`() {
+        val lagret = periode("2025-01-01", "2025-06-30")
+
+        val gjenværende = listOf(lagret).forkortetAv(request("2025-07-01", "2025-12-31"))
+
+        assertThat(gjenværende).hasSize(1)
+        assertThat(gjenværende[0].verdi).isEqualTo(lagret)
+        assertThat(gjenværende[0].fom).isEqualTo(LocalDate.of(2025, 1, 1))
+        assertThat(gjenværende[0].tom).isEqualTo(LocalDate.of(2025, 6, 30))
     }
 
     @Test
-    fun `avviser perioder som møtes på samme dag`() {
-        assertThatThrownBy {
-            listOf(periode("2025-01-01", "2025-06-30"), periode("2025-06-30", "2025-12-31")).tilTidslinje()
-        }.isInstanceOf(IllegalArgumentException::class.java)
+    fun `forkorter lagret periode bakfra når den nye perioden starter inni den`() {
+        val gjenværende = listOf(periode("2025-01-01", "2025-06-30")).forkortetAv(request("2025-03-01", "2025-12-31"))
+
+        assertThat(gjenværende).hasSize(1)
+        assertThat(gjenværende[0].fom).isEqualTo(LocalDate.of(2025, 1, 1))
+        assertThat(gjenværende[0].tom).isEqualTo(LocalDate.of(2025, 2, 28))
     }
 
     @Test
-    fun `avviser to perioder uten datoer fordi begge dekker hele tidslinjen`() {
-        assertThatThrownBy { listOf(periode(), periode()).tilTidslinje() }
-            .isInstanceOf(IllegalStateException::class.java)
+    fun `forkorter lagret periode forfra når den nye perioden slutter inni den`() {
+        val gjenværende = listOf(periode("2025-01-01", "2025-06-30")).forkortetAv(request("2024-01-01", "2025-02-28"))
+
+        assertThat(gjenværende).hasSize(1)
+        assertThat(gjenværende[0].fom).isEqualTo(LocalDate.of(2025, 3, 1))
+        assertThat(gjenværende[0].tom).isEqualTo(LocalDate.of(2025, 6, 30))
     }
 
     @Test
-    fun `avviser løpende periode som overlapper en senere periode`() {
-        assertThatThrownBy {
-            listOf(periode(fraOgMedDato = "2025-01-01"), periode("2026-01-01", "2026-02-01")).tilTidslinje()
-        }.isInstanceOf(IllegalStateException::class.java)
+    fun `forkorter lagret periode med én dag når periodene møtes på samme dag`() {
+        val gjenværende = listOf(periode("2025-01-01", "2025-06-30")).forkortetAv(request("2025-06-30", "2025-12-31"))
+
+        assertThat(gjenværende).hasSize(1)
+        assertThat(gjenværende[0].tom).isEqualTo(LocalDate.of(2025, 6, 29))
+    }
+
+    @Test
+    fun `splitter lagret periode i to når den nye perioden ligger midt inni`() {
+        val lagret = periode("2025-01-01", "2025-12-31")
+
+        val gjenværende = listOf(lagret).forkortetAv(request("2025-06-01", "2025-06-30"))
+
+        assertThat(gjenværende).hasSize(2)
+        assertThat(gjenværende.map { it.verdi }).containsOnly(lagret)
+        assertThat(gjenværende[0].fom).isEqualTo(LocalDate.of(2025, 1, 1))
+        assertThat(gjenværende[0].tom).isEqualTo(LocalDate.of(2025, 5, 31))
+        assertThat(gjenværende[1].fom).isEqualTo(LocalDate.of(2025, 7, 1))
+        assertThat(gjenværende[1].tom).isEqualTo(LocalDate.of(2025, 12, 31))
+    }
+
+    @Test
+    fun `splitter løpende lagret periode og beholder de åpne endene`() {
+        val gjenværende = listOf(periode()).forkortetAv(request("2025-01-01", "2025-12-31"))
+
+        assertThat(gjenværende).hasSize(2)
+        assertThat(gjenværende[0].fom).isNull()
+        assertThat(gjenværende[0].tom).isEqualTo(LocalDate.of(2024, 12, 31))
+        assertThat(gjenværende[1].fom).isEqualTo(LocalDate.of(2026, 1, 1))
+        assertThat(gjenværende[1].tom).isNull()
+    }
+
+    @Test
+    fun `fjerner lagret periode som den nye perioden dekker i sin helhet`() {
+        assertThat(listOf(periode("2025-03-01", "2025-05-31")).forkortetAv(request("2025-01-01", "2025-12-31"))).isEmpty()
+    }
+
+    @Test
+    fun `fjerner alle lagrede perioder når den nye perioden er løpende uten datoer`() {
+        assertThat(listOf(periode("2025-01-01", "2025-06-30"), periode("2026-01-01", "2026-06-30")).forkortetAv(request()))
+            .isEmpty()
+    }
+
+    @Test
+    fun `rører bare de lagrede periodene som faktisk overlapper`() {
+        val urørt = periode("2024-01-01", "2024-12-31")
+        val overlappet = periode("2025-01-01", "2025-12-31")
+
+        val gjenværende = listOf(urørt, overlappet).forkortetAv(request("2025-07-01", "2026-12-31"))
+
+        assertThat(gjenværende).hasSize(2)
+        assertThat(gjenværende[0].verdi).isEqualTo(urørt)
+        assertThat(gjenværende[0].tom).isEqualTo(LocalDate.of(2024, 12, 31))
+        assertThat(gjenværende[1].verdi).isEqualTo(overlappet)
+        assertThat(gjenværende[1].tom).isEqualTo(LocalDate.of(2025, 6, 30))
+    }
+
+    @Test
+    fun `gir ingen tidsrom tilbake når det ikke finnes lagrede perioder`() {
+        assertThat(emptyList<VilkårMedlemskap>().forkortetAv(request("2025-01-01", "2025-01-01"))).isEmpty()
+        assertThat(emptyList<VilkårMedlemskap>().forkortetAv(request())).isEmpty()
     }
 
     @Test
     fun `avviser til og med-dato før fra og med-dato`() {
-        assertThatThrownBy { listOf(periode("2025-06-01", "2025-01-01")).tilTidslinje() }
-            .isInstanceOf(IllegalArgumentException::class.java)
+        assertThatThrownBy { emptyList<VilkårMedlemskap>().forkortetAv(request("2025-06-01", "2025-01-01")) }
+            .isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
     }
 }

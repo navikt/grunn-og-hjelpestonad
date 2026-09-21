@@ -17,6 +17,8 @@ import { TogglesProvider } from "./contexts/TogglesContext";
 import { TemaProvider } from "./contexts/TemaContext";
 import { envContext, saksbehandlerContext } from "./context";
 
+registrerApiInterceptorer();
+
 export async function loader({ context }: Route.LoaderArgs) {
   return {
     saksbehandler: context.get(saksbehandlerContext),
