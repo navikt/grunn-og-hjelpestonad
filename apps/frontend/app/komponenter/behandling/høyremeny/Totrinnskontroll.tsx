@@ -12,7 +12,7 @@ import {
   Textarea,
   VStack,
 } from "@navikt/ds-react";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useBeslutter } from "~/hooks/useBeslutter";
 import { oppdaterEndringshistorikk } from "~/utils/endringshistorikkEvent";
 import { InfoRad } from "./InfoRad";

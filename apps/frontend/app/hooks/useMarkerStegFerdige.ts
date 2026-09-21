@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import type { Steg } from "~/komponenter/navbar/BehandlingFaner";
 
 export function useMarkerStegFerdige(steg: Steg, erFerdig: boolean = true) {

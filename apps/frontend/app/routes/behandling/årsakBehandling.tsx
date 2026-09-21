@@ -12,7 +12,7 @@ import {
   VStack,
 } from "@navikt/ds-react";
 import { useMarkerStegFerdige } from "~/hooks/useMarkerStegFerdige";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useArsakBehandling } from "~/hooks/useÅrsakBehandling";
 import { useErLesevisning } from "~/hooks/useErLesevisning";
 import type { ÅrsakType } from "~/types/årsak";

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { VStack, BodyShort, Button, Alert } from "@navikt/ds-react";
 import type { Route } from "./+types/personoversikt";
-import { usePersonContext } from "~/contexts/PersonContext";
+import { usePersonContext } from "~/fellesContext/PersonContext";
 import { formaterNavn } from "~/utils/utils";
 import { hentEtterlatteSakIdMedPersonident } from "~/api/etterlatteBehandling";
 import { ExternalLinkIcon } from "@navikt/aksel-icons";

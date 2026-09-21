@@ -2,7 +2,7 @@ import React from "react";
 import { Alert, Heading, Loader, VStack } from "@navikt/ds-react";
 import type { Route } from "./+types/infotrygdHistorikk";
 import { useHentInfotrygdHistorikk } from "~/hooks/useHentInfotrygdHistorikk";
-import { usePersonContext } from "~/contexts/PersonContext";
+import { usePersonContext } from "~/fellesContext/PersonContext";
 
 export function meta(_: Route.MetaArgs) {
   return [

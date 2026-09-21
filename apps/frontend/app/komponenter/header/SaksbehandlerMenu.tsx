@@ -2,7 +2,7 @@ import React from "react";
 import { LeaveIcon } from "@navikt/aksel-icons";
 import { BodyShort, Detail, Dropdown, InternalHeader, Spacer, Switch } from "@navikt/ds-react";
 import type { Saksbehandler } from "~/server/types";
-import { useTemaContext } from "~/contexts/TemaContext";
+import { useTemaContext } from "~/fellesContext/TemaContext";
 import styles from "./SaksbehandlerMenu.module.css";
 
 interface SaksbehandlerMenuProps {

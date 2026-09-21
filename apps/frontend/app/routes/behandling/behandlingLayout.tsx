@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Outlet, useNavigate, useParams, useRevalidator } from "react-router";
-import { BehandlingContext, type ÅrsakState } from "~/contexts/BehandlingContext";
+import { BehandlingContext, type ÅrsakState } from "~/fellesContext/BehandlingContext";
 import {
   BehandlingFaner,
   type BehandlingSteg,
@@ -13,7 +13,7 @@ import { apiCall, type ApiResponse } from "~/api/backend";
 import type { ÅrsakBehandlingResponse } from "~/hooks/useÅrsakBehandling";
 import type { VilkårVurderingResponse } from "~/hooks/useVilkårVurdering";
 import type { Behandling } from "~/types/behandling";
-import { useLesevisningsContext } from "~/contexts/LesevisningsContext";
+import { useLesevisningsContext } from "~/fellesContext/LesevisningsContext";
 import { Box, Button } from "@navikt/ds-react";
 import { AnsvarligSaksbehandler } from "~/komponenter/behandling/høyremeny/AnsvarligSaksbehandler";
 import { Totrinnskontroll } from "~/komponenter/behandling/høyremeny/Totrinnskontroll";

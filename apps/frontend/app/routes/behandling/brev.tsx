@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { Box, HGrid, VStack } from "@navikt/ds-react";
 import type { Route } from "./+types/brev";
 import { useBrev } from "~/komponenter/brev/useBrev";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useBrevmottaker } from "~/hooks/useBrevmottaker";
 import { useStegNavigering } from "~/hooks/useStegNavigering";
 import { useBeslutter } from "~/hooks/useBeslutter";

@@ -11,7 +11,7 @@ import {
 } from "@navikt/ds-react";
 import { PersonIcon } from "@navikt/aksel-icons";
 import type { Søkeresultat } from "~/hooks/useSøk";
-import { useTemaContext } from "~/contexts/TemaContext";
+import { useTemaContext } from "~/fellesContext/TemaContext";
 import styles from "./SøkePopover.module.css";
 import { beregnAlder } from "~/utils/utils";
 

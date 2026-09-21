@@ -12,7 +12,7 @@ import { useMarkerStegFerdige } from "~/hooks/useMarkerStegFerdige";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 import { RedigerOgSlettKnapper } from "~/komponenter/behandling/RedigerOgSlettKnapper";
 import { StegNavigering } from "~/komponenter/behandling/StegNavigering";
-import {useBehandlingContext} from "~/contexts/BehandlingContext";
+import {useBehandlingContext} from "~/fellesContext/BehandlingContext";
 import {useVilkårVurdering, type VilkårState} from "~/hooks/useVilkårVurdering";
 import type { VilkårType } from "~/types/vilkår";
 

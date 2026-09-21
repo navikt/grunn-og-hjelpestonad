@@ -4,8 +4,8 @@ import { Alert, Loader, VStack } from "@navikt/ds-react";
 import { Navbar } from "~/komponenter/navbar/Navbar";
 import { Side } from "~/komponenter/layout/Side";
 import Personheader from "~/komponenter/personheader/Personheader";
-import { PersonContext } from "~/contexts/PersonContext";
-import { LesevisningsContext } from "~/contexts/LesevisningsContext";
+import { PersonContext } from "~/fellesContext/PersonContext";
+import { LesevisningsContext } from "~/fellesContext/LesevisningsContext";
 import { useHentPdlNavn } from "~/hooks/useHentPerson";
 import { useFagsak } from "~/hooks/useFagsak";
 

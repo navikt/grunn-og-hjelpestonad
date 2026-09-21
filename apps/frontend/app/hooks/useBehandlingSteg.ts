@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { BehandlingContext } from "~/contexts/BehandlingContext";
+import { BehandlingContext } from "~/fellesContext/BehandlingContext";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 
 export function useBehandlingSteg() {

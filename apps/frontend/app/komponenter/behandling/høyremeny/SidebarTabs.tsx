@@ -2,7 +2,7 @@ import React from "react";
 import { Tabs, BodyShort, Skeleton, VStack } from "@navikt/ds-react";
 import { Endringshistorikk } from "~/komponenter/behandling/høyremeny/Endringshistorikk";
 import { Dokumentliste } from "~/komponenter/dokumentoversikt/Dokumentliste";
-import { usePersonContext } from "~/contexts/PersonContext";
+import { usePersonContext } from "~/fellesContext/PersonContext";
 import { useHentDokumenter } from "~/hooks/useHentDokumenter";
 import styles from "./SidebarTabs.module.css";
 

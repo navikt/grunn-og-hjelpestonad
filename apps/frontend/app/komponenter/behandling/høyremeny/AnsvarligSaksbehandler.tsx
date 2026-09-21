@@ -1,6 +1,6 @@
 import React from "react";
 import { BodyShort, InfoCard, VStack, Heading, Skeleton } from "@navikt/ds-react";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { formaterIsoDatoTid, formatterEnumVerdi } from "~/utils/utils";
 import { InfoRad } from "./InfoRad";
 

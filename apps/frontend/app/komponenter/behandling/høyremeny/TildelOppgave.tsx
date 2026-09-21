@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Alert, BodyShort, Box, Button, VStack } from "@navikt/ds-react";
 import { useRouteLoaderData } from "react-router";
 import type { Saksbehandler } from "~/server/types";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useTildelOppgave } from "~/hooks/useTildelOppgave";
 
 export const TildelOppgave: React.FC = () => {

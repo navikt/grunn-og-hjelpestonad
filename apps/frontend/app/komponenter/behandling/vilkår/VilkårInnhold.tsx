@@ -5,7 +5,7 @@ import Aktivitet from "./vilkår/Aktivitet";
 import Inntekt from "./vilkår/Inntekt";
 import AlderPåBarn from "./vilkår/AlderPåBarn";
 import DokumentasjonTilsynsutgifter from "./vilkår/DokumentasjonTilsynsutgifter";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useVilkårVurdering, type VilkårState } from "~/hooks/useVilkårVurdering";
 import type { VilkårType, Vurdering } from "~/types/vilkår";
 

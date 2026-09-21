@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiCall, type ApiResponse } from "~/api/backend";
-import { usePersonContext } from "~/contexts/PersonContext";
+import { usePersonContext } from "~/fellesContext/PersonContext";
 
 export enum BrevmottakerRolle {
   BRUKER = "BRUKER",

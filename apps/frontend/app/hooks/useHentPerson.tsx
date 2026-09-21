@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiCall, type ApiResponse } from "~/api/backend";
-import type { Navn, Person } from "~/contexts/PersonContext";
+import type { Navn, Person } from "~/fellesContext/PersonContext";
 
 interface PersonState {
   person: Person | null;
