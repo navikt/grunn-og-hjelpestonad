@@ -4,7 +4,7 @@ import type { Route } from "./+types/simulering";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 import { useStegNavigering } from "~/hooks/useStegNavigering";
 import { apiCall, type ApiResponse } from "~/api/backend";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { SimuleringTabell } from "~/komponenter/simulering/SimuleringTabell";
 import { SimuleringOppsummering } from "~/komponenter/simulering/SimuleringOppsummering";
 import { StegNavigering } from "~/komponenter/behandling/StegNavigering";

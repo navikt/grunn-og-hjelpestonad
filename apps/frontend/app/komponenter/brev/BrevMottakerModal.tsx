@@ -5,7 +5,7 @@ import { type Brevmottaker } from "~/hooks/useBrevmottaker";
 import { ManueltSøk } from "~/komponenter/brev/ManueltSøk";
 import { SkalBrukerMottaBrev } from "~/komponenter/brev/SkalBrukerMottaBrev";
 import { Skillelinje } from "~/komponenter/layout/Skillelinje";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 
 interface Props {
   mottakere: Brevmottaker[];

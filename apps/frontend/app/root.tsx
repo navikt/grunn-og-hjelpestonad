@@ -13,8 +13,9 @@ import Faro from "./Faro";
 import Header from "~/komponenter/header/Header";
 import "@navikt/ds-css";
 import "./global.css";
-import { TogglesProvider } from "./contexts/TogglesContext";
-import { TemaProvider } from "./contexts/TemaContext";
+import { registrerApiInterceptorer } from "~/api/klientOppsett";
+import { TogglesProvider } from "~/fellesContext/TogglesContext";
+import { TemaProvider } from "~/fellesContext/TemaContext";
 import { envContext, saksbehandlerContext } from "./context";
 
 registrerApiInterceptorer();

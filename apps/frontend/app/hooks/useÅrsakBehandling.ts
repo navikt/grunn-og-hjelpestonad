@@ -4,7 +4,7 @@ import type {
   ÅrsakBehandlingRequest,
   ÅrsakBehandlingResponse,
 } from "~/api/generated/types.gen";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { apiCall, type ApiResponse } from "~/api/backend";
 import { oppdaterEndringshistorikk } from "~/utils/endringshistorikkEvent";
 

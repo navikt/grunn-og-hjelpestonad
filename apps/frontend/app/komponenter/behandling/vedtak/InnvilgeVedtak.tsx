@@ -18,10 +18,10 @@ import {useHentBeløpsPerioderForVedtak} from "~/hooks/useHentBeløpsPerioderFor
 import {BarnetilsynperiodeValg} from "~/komponenter/behandling/vedtak/BarnetilsynperiodeValg";
 import {BeregningBarnetilsynTabell} from "~/komponenter/behandling/vedtak/BeregningBarnetilsynTabell";
 import {useHentVedtakHistorikk} from "~/hooks/useHentVedtakHistorikk";
-import {useBehandlingContext} from "~/contexts/BehandlingContext";
+import {useBehandlingContext} from "~/fellesContext/BehandlingContext";
 import {format} from "date-fns";
 import {useHentBarn} from "~/hooks/useHentBarn";
-import {usePersonContext} from "~/contexts/PersonContext";
+import {usePersonContext} from "~/fellesContext/PersonContext";
 import {FigureChildIcon} from "@navikt/aksel-icons";
 import {beregnAlder, formaterRelativTid} from "~/utils/utils";
 

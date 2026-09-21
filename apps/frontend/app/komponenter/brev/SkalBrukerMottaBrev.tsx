@@ -1,6 +1,6 @@
 import { Heading, Radio, RadioGroup, VStack } from "@navikt/ds-react";
 import React from "react";
-import { usePersonContext } from "~/contexts/PersonContext";
+import { usePersonContext } from "~/fellesContext/PersonContext";
 import { type Brevmottaker, BrevmottakerRolle, MottakerType } from "~/hooks/useBrevmottaker";
 
 interface Props {

@@ -1,4 +1,4 @@
-import { useLesevisningsContext } from "~/contexts/LesevisningsContext";
+import { useLesevisningsContext } from "~/fellesContext/LesevisningsContext";
 
 export function useErLesevisning() {
   const { erLesevisning } = useLesevisningsContext();

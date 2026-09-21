@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Outlet, useNavigate, useParams, useRevalidator } from "react-router";
-import { BehandlingContext, type ÅrsakState } from "~/contexts/BehandlingContext";
+import { BehandlingContext, type ÅrsakState } from "~/fellesContext/BehandlingContext";
 import {
   BehandlingFaner,
   type BehandlingSteg,
@@ -11,9 +11,8 @@ import { Side } from "~/komponenter/layout/Side";
 import { HøyreMeny } from "~/komponenter/behandling/høyremeny/HøyreMeny";
 import { apiCall, type ApiResponse } from "~/api/backend";
 import type { ÅrsakBehandlingResponse } from "~/hooks/useÅrsakBehandling";
-import type { VilkårVurderingResponse } from "~/hooks/useVilkårVurdering";
 import type { Behandling } from "~/types/behandling";
-import { useLesevisningsContext } from "~/contexts/LesevisningsContext";
+import { useLesevisningsContext } from "~/fellesContext/LesevisningsContext";
 import { Box, Button } from "@navikt/ds-react";
 import { AnsvarligSaksbehandler } from "~/komponenter/behandling/høyremeny/AnsvarligSaksbehandler";
 import { Totrinnskontroll } from "~/komponenter/behandling/høyremeny/Totrinnskontroll";
@@ -76,10 +75,6 @@ export default function BehandlingLayout() {
   const { totrinnskontrollStatus, hentPåNytt: hentTotrinnskontrollStatusPåNytt } =
     useHentTotrinnskontrollStatus(behandlingId);
 
-  const markerStegSomFerdig = useCallback((steg: Steg) => {
-    settFerdigeSteg((prev) => (prev.includes(steg) ? prev : [...prev, steg]));
-  }, []);
-
   const oppdaterÅrsakState = useCallback((data: Partial<ÅrsakState>) => {
     settÅrsakState((prev) => ({ ...prev, ...data }) as ÅrsakState);
   }, []);
@@ -102,10 +97,6 @@ export default function BehandlingLayout() {
           `/arsak/${behandlingId}`
         );
 
-        const vilkårResponse: ApiResponse<VilkårVurderingResponse[]> = await apiCall(
-          `/vilkar/${behandlingId}`
-        );
-
         const initialFerdigeSteg: Steg[] = [];
 
         if (årsakResponse.data) {
@@ -119,15 +110,6 @@ export default function BehandlingLayout() {
           const erÅrsakFerdig = data.kravdato && data.årsak;
           if (erÅrsakFerdig) {
             initialFerdigeSteg.push("Årsak behandling");
-          }
-        }
-
-        if (vilkårResponse.data && vilkårResponse.data.length === 5) {
-          const alleVilkårFerdige = vilkårResponse.data.every(
-            (v) => v.vurdering && v.begrunnelse && v.begrunnelse.trim() !== ""
-          );
-          if (alleVilkårFerdige) {
-            initialFerdigeSteg.push("Vilkår");
           }
         }
 
@@ -233,7 +215,6 @@ export default function BehandlingLayout() {
       value={{
         behandlingId,
         ferdigeSteg,
-        markerStegSomFerdig,
         stegListe: BEHANDLING_STEG_LISTE,
         behandling,
         årsakState,

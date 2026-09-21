@@ -2,7 +2,7 @@ import React from "react";
 import { Button, HStack } from "@navikt/ds-react";
 import type { Brevmal, Tekstbolk } from "~/komponenter/brev/typer";
 import { useErLesevisning } from "~/hooks/useErLesevisning";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 
 interface Props {
   brevMal: Brevmal | null;

@@ -1,0 +1,6 @@
+.diagnoseAccordion
+  :global(.aksel-accordion__item[data-expanded="false"])
+  > :global(.aksel-accordion__content)
+  :global(.aksel-accordion__content-inner) {
+  min-height: 0;
+}

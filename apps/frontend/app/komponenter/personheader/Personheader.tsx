@@ -3,7 +3,7 @@ import styles from "./Personheader.module.css";
 import { PersonIcon } from "@navikt/aksel-icons";
 import { BodyShort, CopyButton, HStack, Link } from "@navikt/ds-react";
 import { Link as RouterLink } from "react-router";
-import { usePersonContext } from "~/contexts/PersonContext";
+import { usePersonContext } from "~/fellesContext/PersonContext";
 import { beregnAlder, formaterNavn } from "~/utils/utils";
 
 export const Personheader = () => {

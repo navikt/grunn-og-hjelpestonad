@@ -12,7 +12,7 @@ import {
 import type { Route } from "./+types/behandlingsoversikt";
 import { useHentBehandlinger } from "~/hooks/useHentBehandlinger";
 import { useParams } from "react-router";
-import { usePersonContext } from "~/contexts/PersonContext";
+import { usePersonContext } from "~/fellesContext/PersonContext";
 import { useOpprettBehandling } from "~/hooks/useOpprettBehandling";
 import { useNavigate } from "react-router";
 import { formaterIsoDatoTid, formatterEnumVerdi } from "~/utils/utils";

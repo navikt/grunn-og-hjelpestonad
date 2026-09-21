@@ -1,6 +1,6 @@
 import React from "react";
 import { BodyShort, Detail, Skeleton, Tag, Tooltip, VStack } from "@navikt/ds-react";
-import { useBehandlingContext } from "~/contexts/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useHentEndringshistorikk } from "~/hooks/useHentEndringshistorikk";
 import { formaterIsoDatoTid, formaterRelativTid } from "~/utils/utils";
 import type { BehandlingEndring } from "~/types/endringshistorikk";
