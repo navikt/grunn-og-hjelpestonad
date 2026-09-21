@@ -6,6 +6,7 @@ import {
   TasklistIcon,
   CheckmarkCircleIcon,
   NotePencilIcon,
+  TrashIcon,
   XMarkOctagonIcon,
 } from "@navikt/aksel-icons";
 import type { EndringType, BehandlingEndring } from "~/types/endringshistorikk";
@@ -47,6 +48,12 @@ export const endringMeta: Record<EndringType, EndringMeta> = {
     tekst: "Vilkår oppdatert",
     ikon: TasklistIcon,
     farge: "info",
+    erMilepæl: false,
+  },
+  VILKÅR_VURDERING_SLETTET: {
+    tekst: "Vilkår slettet",
+    ikon: TrashIcon,
+    farge: "warning",
     erMilepæl: false,
   },
   VEDTAK_LAGRET: {

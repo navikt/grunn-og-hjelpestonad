@@ -11,7 +11,6 @@ import {
   useDatepicker,
   VStack,
 } from "@navikt/ds-react";
-import { useMarkerStegFerdige } from "~/hooks/useMarkerStegFerdige";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useArsakBehandling } from "~/hooks/useÅrsakBehandling";
 import { useErLesevisning } from "~/hooks/useErLesevisning";
@@ -24,7 +23,6 @@ export function meta(_: Route.MetaArgs) {
   return [{ title: "Årsak behandling" }];
 }
 
-const STEG_NAVN = "Årsak behandling";
 const STEG_PATH: StegPath = "arsak-behandling";
 
 const ÅRSAK_ALTERNATIVER = [
@@ -60,8 +58,6 @@ export default function ArsakBehandling() {
     toDate: iDag,
     onDateChange: oppdaterKravdato,
   });
-
-  useMarkerStegFerdige(STEG_NAVN, erLagret);
 
   const erLåst = låst || erLesevisning;
   const kanLagre = kravdato !== undefined && årsak !== "";

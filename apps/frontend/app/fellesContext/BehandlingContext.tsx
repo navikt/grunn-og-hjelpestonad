@@ -11,45 +11,30 @@ export interface ÅrsakState {
   beskrivelse: string;
 }
 
-export const BehandlingContext = React.createContext<{
-  behandlingId: string;
-  ferdigeSteg: Steg[];
-  markerStegSomFerdig: (steg: Steg) => void;
-  stegListe?: BehandlingSteg[];
-  behandling?: Behandling;
-  årsakState?: ÅrsakState;
-  oppdaterÅrsakState: (data: Partial<ÅrsakState>) => void;
-  hentÅrsakData: () => Promise<void>;
-  årsakDataHentet: boolean;
-  hentBehandlingPåNytt: () => void;
-  revaliderBehandling: () => void;
-  ansvarligSaksbehandler: AnsvarligSaksbehandlerResponse | null;
-  lasterAnsvarligSaksbehandler: boolean;
-  hentAnsvarligSaksbehandlerPåNytt: () => void;
-  totrinnskontrollStatus: TotrinnskontrollResponse | null;
-  hentTotrinnskontrollStatusPåNytt: () => void;
-}>({
-  behandlingId: "",
-  ferdigeSteg: [],
-  markerStegSomFerdig: () => {},
-  stegListe: undefined,
-  behandling: undefined,
-  årsakState: undefined,
-  oppdaterÅrsakState: () => {},
-  hentÅrsakData: async () => {},
-  årsakDataHentet: false,
-  hentBehandlingPåNytt: () => {},
-  revaliderBehandling: () => {},
-  ansvarligSaksbehandler: null,
-  lasterAnsvarligSaksbehandler: true,
-  hentAnsvarligSaksbehandlerPåNytt: () => {},
-  totrinnskontrollStatus: null,
-  hentTotrinnskontrollStatusPåNytt: () => {},
-});
+export const BehandlingContext = React.createContext<
+  | {
+      behandlingId: string;
+      ferdigeSteg: Steg[];
+      stegListe?: BehandlingSteg[];
+      behandling?: Behandling;
+      årsakState?: ÅrsakState;
+      oppdaterÅrsakState: (data: Partial<ÅrsakState>) => void;
+      hentÅrsakData: () => Promise<void>;
+      årsakDataHentet: boolean;
+      hentBehandlingPåNytt: () => void;
+      revaliderBehandling: () => void;
+      ansvarligSaksbehandler: AnsvarligSaksbehandlerResponse | null;
+      lasterAnsvarligSaksbehandler: boolean;
+      hentAnsvarligSaksbehandlerPåNytt: () => void;
+      totrinnskontrollStatus: TotrinnskontrollResponse | null;
+      hentTotrinnskontrollStatusPåNytt: () => void;
+    }
+  | undefined
+>(undefined);
 
 export function useBehandlingContext() {
   const context = useContext(BehandlingContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error("useBehandlingContext må brukes innenfor BehandlingProvider");
   }
   return context;

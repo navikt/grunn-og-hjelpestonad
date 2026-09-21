@@ -1,9 +1,8 @@
-import { useContext } from "react";
-import { BehandlingContext } from "~/fellesContext/BehandlingContext";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 
 export function useBehandlingSteg() {
-  const { stegListe, ferdigeSteg } = useContext(BehandlingContext);
+  const { stegListe, ferdigeSteg } = useBehandlingContext();
 
   if (!stegListe) {
     throw new Error("useBehandlingSteg må brukes innenfor BehandlingContext med behandlingSteg");
