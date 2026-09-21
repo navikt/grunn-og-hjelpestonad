@@ -11,5 +11,17 @@ export default defineConfig({
       name: "@hey-api/typescript",
       comments: false,
     },
+    {
+      name: "@hey-api/client-fetch",
+      runtimeConfigPath: "./app/api/klientKonfig",
+    },
+    {
+      name: "@hey-api/sdk",
+      validator: true,
+    },
+    {
+      name: "zod",
+      compatibilityVersion: 4,
+    },
   ],
 });
