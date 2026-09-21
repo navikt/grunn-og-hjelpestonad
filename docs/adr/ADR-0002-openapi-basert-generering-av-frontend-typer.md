@@ -1,7 +1,7 @@
 # ADR-0002: OpenAPI-basert generering av frontend-typer
 
 **Dato:** 2026-09-11
-**Status:** Foreslått
+**Status:** Godkjent
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 
 ## Kontekst
@@ -285,7 +285,6 @@ produktutvikling med en tydelig og gjenbrukbar API-kontrakt.
 
 ## Aksjonspunkter
 
-- [ ] Teamet — godkjenn eller forkast ADR-en etter Architecture Advice Process.
 - [x] Frontend-teamet — migrer resterende API-eide modeller og dokumenter
   bevisste redigeringsmodeller.
 - [x] Frontend-teamet — etabler opt-in npm-basert generering fra lokal backend.

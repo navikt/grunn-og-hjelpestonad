@@ -1,7 +1,7 @@
 # ADR-0003: Vilkårsmodell for grunnstønad
 
 **Dato:** 2026-09-16
-**Status:** Besluttet
+**Status:** Godkjent
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 
 ## Kontekst
@@ -215,7 +215,8 @@ To konsekvenser følger, og begge må håndteres når satssteget bygges:
 1. **Vilkårssteget kan ikke konkludere med innvilgelse alene.** Alle tre vilkår
    kan være oppfylt og saken likevel ende i avslag fordi ekstrautgiftene ligger
    under laveste sats. Dagens frontend antar det motsatte:
-   `alleVilkårHarSvar` i `VilkårInnhold.tsx` styrer `settErVilkårUtfylt`.
+   `alleVilkårErUtfylt` i `vilkårStatus.ts` blokkerer Neste-knappen i
+   `routes/behandling/vilkår.tsx`.
 2. **Hjemmelen må følge med.** § 6-3 tredje ledd sier ordrett «Det er et vilkår
    for rett til grunnstønad at …». Å flytte vurderingen er en prosessbeslutning,
    ikke en rettslig omklassifisering. Vedtaksbrevet må fortsatt hjemle avslag i
@@ -392,8 +393,7 @@ preferanse.
 - **Bakoverkompatibilitet:** Nei. `VilkårType`-verdiene byttes ut, og
   `/api/behandling/{behandlingId}/vilkar` endrer kontrakt med `id` og datofelter. Dette er akseptabelt
   fordi løsningen kun kjører i `dev-gcp` uten eksterne konsumenter.
-- **Utrullingsstrategi:** Big bang i backend. Frontend følger i egen PR.
-  Frontend-bygget vil feile i mellomperioden, se risikotabellen.
+- **Utrullingsstrategi:** Big bang i backend, med frontend i egen, påfølgende PR.
 - **Feature toggle:** Ikke aktuelt. Toggling ville krevd at begge
   vilkårsmodellene fantes samtidig, noe som er dyrere enn selve endringen.
 - **Rollback-trigger:** Migrering som feiler, eller vilkårsmodell som ikke lar
@@ -403,9 +403,10 @@ preferanse.
   saksbehandler kan fullføre vilkårssteget.
 - **Dekommisjonering:** De fem forkede vilkårstypene er fjernet fra backend.
   Frontend-komponentene `Aktivitet.tsx`, `AlderPåBarn.tsx`, `Inntekt.tsx`,
-  `DokumentasjonTilsynsutgifter.tsx` og `Inngangsvilkår.tsx`, samt
-  `useVilkårVurdering.ts` og `app/types/vilkår.ts`, fjernes når
-  frontend-migreringen er ferdig.
+  `DokumentasjonTilsynsutgifter.tsx` og `Inngangsvilkår.tsx` er slettet sammen
+  med `useVilkårVurdering.ts`. `app/types/vilkår.ts` er beholdt, men skrevet om
+  til å reeksportere de genererte typene og holde presentasjonstekster
+  (`vilkårNavn`, `vilkårHjemmel`, `vilkårSpørsmål`).
 
 ## Konsekvenser
 
@@ -422,7 +423,7 @@ preferanse.
 
 ### Negative
 
-- Frontend brekker til migreringen er gjennomført.
+- Frontend brakk i perioden mellom backend- og frontend-PR-en.
 - `Oppholdstype` og `Unntakshjemmel` må fagverifiseres før institusjonsvilkåret
   kan brukes i saksbehandling.
 - Vilkårssteget alene avgjør ikke utfallet; satssteget må levere avslagsløpet
@@ -438,7 +439,7 @@ preferanse.
 | Risiko | Sannsynlighet | Konsekvens | Mitigering |
 |--------|---------------|------------|------------|
 | Diagnose havner i logg, endringshistorikk eller generisk API-respons | Middels | Høy | Egen tabell, egen response-type, eksplisitt forbud i KDoc på `VilkårPeriodeService.registrerEndring` |
-| Frontend-bygget står rødt for lenge | Middels | Middels | Frontend-migrering er registrert som egen oppgave og bør tas umiddelbart etter backend |
+| Frontend-bygget står rødt for lenge | Middels | Middels | Inntruffet og håndtert — frontend-migreringen ble tatt umiddelbart etter backend |
 | Institusjonsvilkåret tas i bruk med ufagverifiserte enum-verdier | Middels | Høy | Dokumentert i KDoc og i «Enum-verdiene for institusjon må fagverifiseres»; aksjonspunkt til fag |
 | Overlappende perioder lagres | Lav | Middels | Tidslinjen forkorter lagrede perioder ved overlapp, dekket av test, og CHECK-constraints i databasen |
 | § 6-3 tredje ledd glemmes i satssteget, så avslag mangler hjemmel | Lav | Høy | Eksplisitt aksjonspunkt og hjemmelsreferanse i brevbygging |
@@ -451,11 +452,10 @@ preferanse.
 | G2 | Uthenting returnerte ett treff uten at databasen garanterte det | 3 | 2 | 1 | 6 | Løst — `findByBehandlingId` returnerer `List<T>` |
 | G3 | `fra_og_med_dato`/`til_og_med_dato` fantes i databasen, men var ubrukt | 2 | 2 | 2 | 8 | Løst — i bruk i entitet, request og response |
 | G4 | Sletting av vilkår fantes kun i klientstate | 2 | 2 | 2 | 8 | Løst — `DELETE /api/behandling/{behandlingId}/vilkar/{vilkår}/{vilkårPeriodeId}` |
-| G5 | Frontend antar én vurdering per vilkårstype i `Record<VilkårType, VilkårState>` | 2 | 2 | 1 | 4 | Åpen — håndteres i frontend-migreringen |
+| G5 | Frontend antar én vurdering per vilkårstype i `Record<VilkårType, VilkårState>` | 2 | 2 | 1 | 4 | Løst — `VilkårContext` henter lister per vilkår via `usePerioder` |
 
 ## Aksjonspunkter
 
-- [ ] Teamet — godkjenn eller forkast ADR-en etter Architecture Advice Process.
 - [ ] Fag — verifiser verdiene i `Oppholdstype` og `Unntakshjemmel` mot § 6-8 og
   rundskriv R06-00, inkludert om `BARN_UNDER_18_I_SPESIALISTHELSETJENESTEN`
   er relevant for vårt ytelsesløp. Blokkerer bruk av institusjonsvilkåret.
@@ -468,7 +468,7 @@ preferanse.
   diagnose som `String`, og `er_yrkesskade` der skadedatoen er `fra_og_med_dato`.
 - [x] Backend — verifiser at diagnose ikke havner i `detaljer` i
   `EndringshistorikkService` eller i logger.
-- [ ] Frontend — migrer vilkårskomponenter og hook til de tre nye endepunktene,
+- [x] Frontend — migrer vilkårskomponenter og hook til de tre nye endepunktene,
   og regenerer `app/api/generated/types.gen.ts`. Egen PR.
 - [ ] Teamet — sørg for at satssteget dekker § 6-3 tredje ledd som
   avslagshjemmel når det bygges, og at det leser
