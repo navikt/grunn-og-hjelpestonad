@@ -56,6 +56,12 @@ export const endringMeta: Record<EndringType, EndringMeta> = {
     farge: "warning",
     erMilepæl: false,
   },
+  VILKÅR_VURDERING_FULLFØRT: {
+    tekst: "Vilkårsvurdering fullført",
+    ikon: CheckmarkCircleIcon,
+    farge: "success",
+    erMilepæl: true,
+  },
   VEDTAK_LAGRET: {
     tekst: "Vedtak lagret",
     ikon: CheckmarkCircleIcon,

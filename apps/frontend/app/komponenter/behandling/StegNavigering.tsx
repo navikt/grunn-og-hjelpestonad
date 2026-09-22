@@ -6,12 +6,14 @@ import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 interface StegNavigeringProps {
   stegPath: StegPath;
   nesteDisabled?: boolean;
+  nesteLaster?: boolean;
   onNeste?: () => void;
 }
 
 export const StegNavigering: React.FC<StegNavigeringProps> = ({
   stegPath,
   nesteDisabled,
+  nesteLaster,
   onNeste,
 }) => {
   const { navigerTilNeste, navigerTilForrige, harNesteSteg, harForrigeSteg } =
@@ -29,7 +31,7 @@ export const StegNavigering: React.FC<StegNavigeringProps> = ({
         </Button>
       )}
       {harNesteSteg && (
-        <Button onClick={handleNeste} disabled={nesteDisabled}>
+        <Button onClick={handleNeste} disabled={nesteDisabled} loading={nesteLaster}>
           Neste
         </Button>
       )}
