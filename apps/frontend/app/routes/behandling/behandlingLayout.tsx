@@ -39,7 +39,6 @@ const BEHANDLING_STEG_LISTE: BehandlingSteg[] = [
   {
     path: "sats-og-trygdetid",
     navn: "Sats og trygdetid",
-    kanStarte: (ferdigeSteg) => ferdigeSteg.includes("Vilkår"),
   },
   {
     path: "simulering",
