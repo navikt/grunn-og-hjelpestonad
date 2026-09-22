@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import type { Route } from "./+types/vedtakOgBeregning";
+import type { Route } from "./+types/satsOgTrygdetid";
 import { Box, Loader, Select, VStack } from "@navikt/ds-react";
 import type { ResultatType } from "~/komponenter/behandling/vedtak/vedtak";
 import { InnvilgeVedtak } from "~/komponenter/behandling/vedtak/InnvilgeVedtak";
@@ -14,12 +14,12 @@ import { StegNavigering } from "~/komponenter/behandling/StegNavigering";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 
 export function meta(_: Route.MetaArgs) {
-  return [{ title: "Vedtak og beregning" }];
+  return [{ title: "Sats og trygdetid" }];
 }
 
-const STEG_PATH: StegPath = "vedtak-og-beregning";
+const STEG_PATH: StegPath = "sats-og-trygdetid";
 
-export default function VedtakOgBeregning() {
+export default function SatsOgTrygdetid() {
   const [vedtaksresultat, settVedtaksResultat] = useState<ResultatType | undefined>(undefined);
   const [låst, settLåst] = useState(false);
   const [erLagret, settErLagret] = useState(false);
