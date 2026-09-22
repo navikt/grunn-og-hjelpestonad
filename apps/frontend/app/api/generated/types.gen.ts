@@ -1135,6 +1135,21 @@ export type HentTotrinnskontrollStatusResponses = {
 
 export type HentTotrinnskontrollStatusResponse = HentTotrinnskontrollStatusResponses[keyof HentTotrinnskontrollStatusResponses];
 
+export type HentPerioderMedRettData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/perioder-med-rett';
+};
+
+export type HentPerioderMedRettResponses = {
+    200: Array<PeriodeMedRettResponse>;
+};
+
+export type HentPerioderMedRettResponse = HentPerioderMedRettResponses[keyof HentPerioderMedRettResponses];
+
 export type SlettMedlemskapPeriodeData = {
     body?: never;
     path: {

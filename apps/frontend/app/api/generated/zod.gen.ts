@@ -998,6 +998,15 @@ export const zHentTotrinnskontrollStatusPath = z.object({
  */
 export const zHentTotrinnskontrollStatusResponse = zTotrinnskontrollStatusResponse;
 
+export const zHentPerioderMedRettPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zHentPerioderMedRettResponse = z.array(zPeriodeMedRettResponse);
+
 export const zSlettMedlemskapPeriodePath = z.object({
     behandlingId: z.uuid(),
     vilkårPeriodeId: z.uuid()
