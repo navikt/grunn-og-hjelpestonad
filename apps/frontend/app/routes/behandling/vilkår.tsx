@@ -1,12 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { ErrorSummary, LocalAlert, VStack } from "@navikt/ds-react";
 import { VilkårProvider, useVilkårContext } from "~/komponenter/behandling/vilkår/VilkårContext";
 import { VilkårInnhold } from "~/komponenter/behandling/vilkår/VilkårInnhold";
+import { useFullførVilkårSteg } from "~/komponenter/behandling/vilkår/felles/useFullførVilkårSteg";
 import type { Route } from "./+types/vilkår";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 import { StegNavigering } from "~/komponenter/behandling/StegNavigering";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useStegNavigering } from "~/hooks/useStegNavigering";
-import { vilkårNavn, vilkårNøkler } from "~/types/vilkår";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "Vilkår" }];
@@ -23,32 +24,21 @@ export default function Vilkår() {
 }
 
 function VilkårSide() {
-  const [harForsøktNeste, settHarForsøktNeste] = useState(false);
-  const [fokusTeller, settFokusTeller] = useState(0);
   const feiloppsummeringRef = useRef<HTMLDivElement>(null);
 
+  const { behandlingId } = useBehandlingContext();
   const { status: vilkårStatus } = useVilkårContext();
-  const manglendeVilkår = vilkårNøkler.filter(
-    (nøkkel) => vilkårStatus.antallPerioder[nøkkel] === 0
-  );
+  const { fullfør, laster, valideringsfeil, feilmelding } = useFullførVilkårSteg(behandlingId);
 
-  // TODO: Øsker å nuke denne og flytte all steglogikk backend.
   const { navigerTilNeste } = useStegNavigering(STEG_PATH);
 
   useEffect(() => {
-    if (fokusTeller > 0) {
+    if (valideringsfeil.length > 0) {
       feiloppsummeringRef.current?.focus();
     }
-  }, [fokusTeller]);
+  }, [valideringsfeil]);
 
-  const håndterNeste = () => {
-    if (!vilkårStatus.alleVilkårErUtfylt) {
-      settHarForsøktNeste(true);
-      settFokusTeller((teller) => teller + 1);
-      return;
-    }
-    navigerTilNeste();
-  };
+  const håndterNeste = () => fullfør(navigerTilNeste);
 
   return (
     <VStack gap={"space-24"}>
@@ -60,20 +50,26 @@ function VilkårSide() {
 
       <VilkårInnhold />
 
-      {harForsøktNeste && manglendeVilkår.length > 0 && (
+      {feilmelding && (
+        <LocalAlert status="error">
+          <LocalAlert.Content>{feilmelding}</LocalAlert.Content>
+        </LocalAlert>
+      )}
+
+      {valideringsfeil.length > 0 && (
         <ErrorSummary
           ref={feiloppsummeringRef}
           heading="Du må vurdere disse vilkårene før du kan gå videre:"
         >
-          {manglendeVilkår.map((nøkkel) => (
-            <ErrorSummary.Item key={nøkkel} href={`#vilkar-${nøkkel}`}>
-              {`${vilkårNavn[nøkkel]}: legg til minst én vurdert periode.`}
+          {valideringsfeil.map((feil) => (
+            <ErrorSummary.Item key={feil.nøkkel} href={`#vilkar-${feil.nøkkel}`}>
+              {feil.melding}
             </ErrorSummary.Item>
           ))}
         </ErrorSummary>
       )}
 
-      <StegNavigering stegPath={STEG_PATH} onNeste={håndterNeste} />
+      <StegNavigering stegPath={STEG_PATH} onNeste={håndterNeste} nesteLaster={laster} />
     </VStack>
   );
 }

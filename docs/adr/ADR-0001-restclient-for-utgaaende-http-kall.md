@@ -1,7 +1,7 @@
 # ADR-0001: RestClient for utgående HTTP-kall
 
 **Dato:** 2026-09-08
-**Status:** Implementert
+**Status:** Godkjent
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 
 ## Kontekst

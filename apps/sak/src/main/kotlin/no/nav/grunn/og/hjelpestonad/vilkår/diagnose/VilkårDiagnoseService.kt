@@ -62,6 +62,10 @@ class VilkårDiagnoseService(
         if (request.diagnose.isBlank()) {
             throw Feil(melding = "Diagnose kan ikke være tom", httpStatus = HttpStatus.BAD_REQUEST)
         }
+        // Skadedatoen avgjør om § 6-9 lemper medlemskapskravet, jf. ADR-0004.
+        if (request.erYrkesskade && request.fraOgMedDato == null) {
+            throw Feil(melding = "En yrkesskade må ha en fra og med-dato", httpStatus = HttpStatus.BAD_REQUEST)
+        }
     }
 
     private fun VilkårDiagnoseRequest.normalisertDiagnose() = diagnose.trim()

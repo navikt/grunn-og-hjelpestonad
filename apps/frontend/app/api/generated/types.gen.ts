@@ -4,6 +4,17 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
+export type Valideringsfeil = {
+    vilkårType: 'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN' | 'DIAGNOSE' | 'IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM';
+    melding: string;
+};
+
+export type VilkårValideringFeilResponse = {
+    melding: string;
+    status: number;
+    feil: Array<Valideringsfeil>;
+};
+
 export type Barnetilsynperiode = {
     id: string;
     datoFra: string;
@@ -312,6 +323,13 @@ export type VilkårInstitusjonResponse = {
     erVilkårOppfylt: boolean;
 };
 
+export type PeriodeMedRettResponse = {
+    id: string;
+    behandlingId: string;
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+};
+
 export type VilkårDiagnoseRequest = {
     id?: string | null;
     diagnose: string;
@@ -427,7 +445,7 @@ export type SimuleringResultatResponse = {
 export type BehandlingEndringResponse = {
     id: string;
     behandlingId: string;
-    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'ANGRET_SEND_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
+    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'ANGRET_SEND_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
     utførtAv: string;
     utførtTid: string;
     detaljer?: string | null;
@@ -819,6 +837,27 @@ export type LagreInstitusjonPeriodeResponses = {
 };
 
 export type LagreInstitusjonPeriodeResponse = LagreInstitusjonPeriodeResponses[keyof LagreInstitusjonPeriodeResponses];
+
+export type FullførStegData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/fullfor';
+};
+
+export type FullførStegErrors = {
+    400: VilkårValideringFeilResponse;
+};
+
+export type FullførStegError = FullførStegErrors[keyof FullførStegErrors];
+
+export type FullførStegResponses = {
+    200: Array<PeriodeMedRettResponse>;
+};
+
+export type FullførStegResponse = FullførStegResponses[keyof FullførStegResponses];
 
 export type HentDiagnosePerioderData = {
     body?: never;
