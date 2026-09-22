@@ -2,6 +2,21 @@
 
 import * as z from 'zod';
 
+export const zValideringsfeil = z.object({
+    vilkårType: z.enum([
+        'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN',
+        'DIAGNOSE',
+        'IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM'
+    ]),
+    melding: z.string()
+});
+
+export const zVilkårValideringFeilResponse = z.object({
+    melding: z.string(),
+    status: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    feil: z.array(zValideringsfeil)
+});
+
 export const zBarnetilsynperiode = z.object({
     id: z.uuid(),
     datoFra: z.string(),

@@ -4,6 +4,17 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
+export type Valideringsfeil = {
+    vilkårType: 'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN' | 'DIAGNOSE' | 'IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM';
+    melding: string;
+};
+
+export type VilkårValideringFeilResponse = {
+    melding: string;
+    status: number;
+    feil: Array<Valideringsfeil>;
+};
+
 export type Barnetilsynperiode = {
     id: string;
     datoFra: string;
@@ -835,6 +846,12 @@ export type FullførStegData = {
     query?: never;
     url: '/api/behandling/{behandlingId}/vilkar/fullfor';
 };
+
+export type FullførStegErrors = {
+    400: VilkårValideringFeilResponse;
+};
+
+export type FullførStegError = FullførStegErrors[keyof FullførStegErrors];
 
 export type FullførStegResponses = {
     200: Array<PeriodeMedRettResponse>;
