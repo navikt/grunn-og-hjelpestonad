@@ -90,6 +90,17 @@ class VilkårDiagnoseServiceTest {
     }
 
     @Test
+    fun `lagrePeriode avviser yrkesskade uten fra og med-dato`() {
+        assertThatThrownBy { service.lagrePeriode(behandlingId, request(erYrkesskade = true, fraOgMedDato = null)) }
+            .isInstanceOf(Feil::class.java)
+            .hasMessageContaining("En yrkesskade må ha en fra og med-dato")
+            .extracting { (it as Feil).httpStatus }
+            .isEqualTo(HttpStatus.BAD_REQUEST)
+
+        verify(exactly = 0) { repository.insert(any()) }
+    }
+
+    @Test
     fun `lagrePeriode tillater at ulike diagnoser løper samtidig`() {
         every { repository.findByBehandlingId(any()) } returns
             listOf(diagnose("Diabetes type 1", LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)))

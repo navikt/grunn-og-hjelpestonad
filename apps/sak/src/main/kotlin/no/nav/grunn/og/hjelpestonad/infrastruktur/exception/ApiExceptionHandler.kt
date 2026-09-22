@@ -1,5 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.infrastruktur.exception
 
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsfeil
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -35,6 +37,20 @@ class ApiExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .body(FeilResponse(melding = e.message ?: "Ugyldig request", status = HttpStatus.BAD_REQUEST.value()))
+    }
+
+    @ExceptionHandler(VilkårValideringFeil::class)
+    fun handleVilkårValideringFeil(e: VilkårValideringFeil): ResponseEntity<VilkårValideringFeilResponse> {
+        logger.warn("Vilkårsvurderingen er ikke komplett: {} feil", e.feil.size)
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(
+                VilkårValideringFeilResponse(
+                    melding = e.message ?: "Vilkårsvurderingen er ikke komplett",
+                    status = HttpStatus.BAD_REQUEST.value(),
+                    feil = e.feil,
+                ),
+            )
     }
 
     @ExceptionHandler(HttpClientErrorException.Forbidden::class)
@@ -80,4 +96,10 @@ data class FeilResponse(
 
 data class ManglerTilgangResponse(
     val melding: String?,
+)
+
+data class VilkårValideringFeilResponse(
+    val melding: String,
+    val status: Int,
+    val feil: List<Valideringsfeil>,
 )

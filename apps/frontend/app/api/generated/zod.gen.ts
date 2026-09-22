@@ -388,6 +388,13 @@ export const zVilkårInstitusjonResponse = z.object({
     erVilkårOppfylt: z.boolean()
 });
 
+export const zPeriodeMedRettResponse = z.object({
+    id: z.uuid(),
+    behandlingId: z.uuid(),
+    fraOgMedDato: z.iso.date().nullish(),
+    tilOgMedDato: z.iso.date().nullish()
+});
+
 export const zVilkårDiagnoseRequest = z.object({
     id: z.uuid().nullish(),
     diagnose: z.string(),
@@ -535,6 +542,7 @@ export const zBehandlingEndringResponse = z.object({
         'VILKÅR_VURDERING_OPPRETTET',
         'VILKÅR_VURDERING_OPPDATERT',
         'VILKÅR_VURDERING_SLETTET',
+        'VILKÅR_VURDERING_FULLFØRT',
         'VEDTAK_LAGRET',
         'ÅRSAK_LAGRET',
         'ÅRSAK_OPPDATERT',
@@ -802,6 +810,15 @@ export const zLagreInstitusjonPeriodePath = z.object({
  * OK
  */
 export const zLagreInstitusjonPeriodeResponse = zVilkårInstitusjonResponse;
+
+export const zFullførStegPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zFullførStegResponse = z.array(zPeriodeMedRettResponse);
 
 export const zHentDiagnosePerioderPath = z.object({
     behandlingId: z.uuid()

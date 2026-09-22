@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
+import no.nav.familie.tidslinje.Periode
 import no.nav.grunn.og.hjelpestonad.felles.sporbar.Sporbar
 import java.time.LocalDate
 import java.util.UUID
@@ -32,6 +33,13 @@ interface Periodisert {
     val fraOgMedDato: LocalDate?
     val tilOgMedDato: LocalDate?
 }
+
+fun <T : Periodisert> T.tilPeriode(): Periode<T> =
+    Periode(
+        fom = this.fraOgMedDato,
+        tom = this.tilOgMedDato,
+        verdi = this,
+    )
 
 interface VilkårPeriode<SELV : VilkårPeriode<SELV>> : Periodisert {
     val id: UUID
