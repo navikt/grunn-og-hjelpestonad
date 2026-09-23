@@ -8,6 +8,5 @@ import org.springframework.boot.runApplication
 open class Application
 
 fun main(args: Array<String>) {
-    System.setProperty("oracle.jdbc.fanEnabled", "false")
     runApplication<Application>(*args)
 }

@@ -17,34 +17,29 @@ spec:
             memory: 256Mi
         limits:
             memory: 512Mi
-    env:
-        -   name: APP_DATASOURCE_URL
-            value: jdbc:oracle:thin:@a01dbfl058.adeo.no:1521/infotrygd_ebq
-        -   name: APP_DATASOURCE_PLATFORM
-            value: org.hibernate.dialect.OracleDialect
-        -   name: APP_DATASOURCE_DRIVER
-            value: oracle.jdbc.driver.OracleDriver
-        -   name: APP_JPA_PLATFORM
-            value: org.hibernate.dialect.OracleDialect
-        -   name: APP_DEFAULT_SCHEMA
-            value: INFOTRYGD_EBQ
-        -   name: APP_AZURE_PROXY_URL
-            value: https://webproxy-nais.nav.no:8088
-    vault:
-        enabled: true
-        paths:
-            -   kvPath: /oracle/data/dev/creds/eb_infotrygd_q1-user
-                mountPath: /var/run/secrets/oracle/creds
+    gcp:
+        sqlInstances:
+            -   name: grunn-og-hjelpestonad-infotrygd
+                type: POSTGRES_18
+                tier: db-g1-small
+                diskAutoresize: true
+                cascadingDelete: false
+                highAvailability: false
+                pointInTimeRecovery: true
+                maintenance:
+                    day: 7
+                    hour: 23
+                databases:
+                    -   name: grunn-og-hjelpestonad-infotrygd
+                        envVarPrefix: DB
 
     # Nettverk
     ingresses:
-        - https://grunn-og-hjelpestonad-infotrygd.dev-fss-pub.nais.io
+        - https://grunn-og-hjelpestonad-infotrygd.intern.dev.nav.no
     accessPolicy:
         inbound:
             rules:
                 -   application: grunn-og-hjelpestonad
-                    cluster: dev-gcp
-                -   application: grunn-og-hjelpestonad-lokal
                     cluster: dev-gcp
         outbound:
             rules:
