@@ -45,6 +45,8 @@ spec:
             rules:
                 -   application: grunn-og-hjelpestonad
                     cluster: dev-gcp
+                -   application: grunn-og-hjelp-exodus
+                    cluster: dev-fss
 
                     # Team logs
                 -   application: logging
