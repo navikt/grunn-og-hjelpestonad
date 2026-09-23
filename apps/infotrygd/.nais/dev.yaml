@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
-    name: grunn-og-hjelpestonad-infotrygd
+    name: grunn-og-hjelp-infotrygd
     namespace: grunn-og-hjelp
 
 spec:
@@ -19,7 +19,7 @@ spec:
             memory: 512Mi
     gcp:
         sqlInstances:
-            -   name: grunn-og-hjelpestonad-infotrygd
+            -   name: grunn-og-hjelp-infotrygd
                 type: POSTGRES_18
                 tier: db-g1-small
                 diskAutoresize: true
@@ -30,12 +30,12 @@ spec:
                     day: 7
                     hour: 23
                 databases:
-                    -   name: grunn-og-hjelpestonad-infotrygd
+                    -   name: grunn-og-hjelp-infotrygd
                         envVarPrefix: DB
 
     # Nettverk
     ingresses:
-        - https://grunn-og-hjelpestonad-infotrygd.intern.dev.nav.no
+        - https://grunn-og-hjelp-infotrygd.intern.dev.nav.no
     accessPolicy:
         inbound:
             rules:
@@ -44,13 +44,17 @@ spec:
         outbound:
             rules:
                 -   application: grunn-og-hjelpestonad
+                    namespace: grunn-og-hjelp
                     cluster: dev-gcp
                 -   application: grunn-og-hjelp-exodus
+                    namespace: grunn-og-hjelp
                     cluster: dev-fss
 
                     # Team logs
                 -   application: logging
                     namespace: nais-system
+        external:
+            -   host: grunn-og-hjelp-exodus.dev-fss-pub.nais.io
 
     # Helse
     liveness:
@@ -88,3 +92,10 @@ spec:
                 extra:
                     - "NAVident"
                     - "azp_name"
+    env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: dev
+        - name: EXODUS_BASE_URL
+          value: https://grunn-og-hjelp-exodus.dev-fss-pub.nais.io
+        - name: EXODUS_SCOPE
+          value: api://dev-fss.grunn-og-hjelp.grunn-og-hjelp-exodus/.default

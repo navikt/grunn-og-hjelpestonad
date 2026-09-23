@@ -19,7 +19,7 @@ import java.util.UUID
 class LogFilter
     @JvmOverloads
     constructor(
-        @Value("\${spring.application.name}") private val applicationName: String = "grunn-og-hjelpestonad-infotrygd",
+        @Value("\${spring.application.name}") private val applicationName: String = "grunn-og-hjelp-infotrygd",
     ) : GenericFilterBean() {
         private val log = LoggerFactory.getLogger(javaClass)
         private val consumerIdHeader = "Nav-Consumer-Id"

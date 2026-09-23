@@ -2,7 +2,7 @@ server.port: 8080
 
 spring:
   application:
-    name: grunn-og-hjelpestonad-infotrygd
+    name: grunn-og-hjelp-infotrygd
   threads:
     virtual:
       enabled: true

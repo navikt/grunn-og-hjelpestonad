@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>no.nav</groupId>
-    <artifactId>grunn-og-hjelpestonad-infotrygd</artifactId>
+    <artifactId>grunn-og-hjelp-infotrygd</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <parent>
