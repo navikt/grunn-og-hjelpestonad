@@ -1,5 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.exodus
 
+import com.fasterxml.jackson.annotation.JsonSetter
+import com.fasterxml.jackson.annotation.Nulls
+
 data class HentUttrekkRequest(
     val tabellnavn: String,
     val iterator: String?,
@@ -9,6 +12,7 @@ data class HentUttrekkRequest(
 data class HentUttrekkResponse(
     val iterator: String,
     val schema: SchemaDto,
+    @JsonSetter(contentNulls = Nulls.SET)
     val innhold: List<List<String?>>,
 )
 
