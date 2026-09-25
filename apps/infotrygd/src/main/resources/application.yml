@@ -31,6 +31,14 @@ nais:
   texas:
     token-endpoint: ${NAIS_TOKEN_ENDPOINT}
 
+exodus:
+  base-url: ${EXODUS_BASE_URL}
+  scope: ${EXODUS_SCOPE}
+  batch-storrelse: 1000
+  scheduler-cron: "0 */5 * * * *"
+  maks-sider-per-kjoring: 500
+  scheduler-enabled: ${EXODUS_SCHEDULER_ENABLED:false}
+
 management:
   endpoint:
     health:

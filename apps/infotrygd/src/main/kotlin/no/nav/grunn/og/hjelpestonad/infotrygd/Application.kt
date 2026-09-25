@@ -1,10 +1,12 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.data.jdbc.autoconfigure.DataJdbcRepositoriesAutoConfiguration
 import org.springframework.boot.runApplication
 
 @SpringBootApplication(exclude = [DataJdbcRepositoriesAutoConfiguration::class])
+@ConfigurationPropertiesScan
 open class Application
 
 fun main(args: Array<String>) {
