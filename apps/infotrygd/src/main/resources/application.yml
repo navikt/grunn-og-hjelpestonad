@@ -51,6 +51,31 @@ management:
         include: health, metrics, prometheus
       base-path: /internal
 
+azure:
+  app:
+    tenant:
+      id: ${AZURE_APP_TENANT_ID}
+    client:
+      id: ${AZURE_APP_CLIENT_ID}
+  authorization-url: https://login.microsoftonline.com/${azure.app.tenant.id}/oauth2/v2.0/authorize
+  token-endpoint-url: https://login.microsoftonline.com/${azure.app.tenant.id}/oauth2/v2.0/token
+  api-scope: api://${azure.app.client.id}/.default
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    disable-swagger-default-url: true
+    persist-authorization: true
+    oauth:
+      use-pkce-with-authorization-code-grant: true
+      client-id: ${azure.app.client.id}
+      scope-separator: ","
+
 no.nav.security.jwt:
   expirythreshold: 60 #threshold in minutes until token expires
   issuer:

@@ -19,8 +19,13 @@ open class SecurityConfig(
         http
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/internal/**", "/actuator/**")
-                    .permitAll()
+                    .requestMatchers(
+                        "/internal/**",
+                        "/actuator/**",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui.html",
+                    ).permitAll()
                     .anyRequest()
                     .authenticated()
             }.oauth2ResourceServer { oauth2 ->

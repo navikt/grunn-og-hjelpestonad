@@ -12,6 +12,13 @@ spring:
                 jwt:
                     issuer-uri: http://localhost # dummy
 
+azure:
+    app:
+        tenant:
+            id: test-tenant
+        client:
+            id: test-client
+
 nais:
     texas:
         token-endpoint: http://localhost:7575/api/v1/token

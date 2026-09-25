@@ -22,6 +22,11 @@ GitHub Packages.
 mvn antrun:run@ktlint --settings .m2/maven-settings.xml
 ```
 
+## Swagger
+
+- https://grunn-og-hjelp-infotrygd.intern.dev.nav.no/swagger-ui/index.html
+- Trykk "Authorize" og logg inn med Azure AD (la `client_secret` stå tom)
+
 ## Datakilde
 
 Appen leser fra Oracle-databasen `infotrygd_ebq`. Credentials hentes fra Vault

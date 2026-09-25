@@ -20,6 +20,7 @@
         <kotlin.version>2.4.0</kotlin.version>
         <kotlin.jvm.target>21</kotlin.jvm.target>
         <ktlint.version>1.8.0</ktlint.version>
+        <springdoc.version>3.1.1</springdoc.version>
     </properties>
 
     <dependencies>
@@ -73,7 +74,20 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+        <dependency>
             <groupId>tools.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+        </dependency>
+        <!-- Springdoc/Swagger Core currently uses Jackson 2 for OpenAPI generation.
+             This lets Springdoc register Kotlin support in its Jackson 2 mapper.
+             Remove when Jackson 3 support is released:
+             https://github.com/swagger-api/swagger-core/issues/4991 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
         </dependency>
 

@@ -57,7 +57,8 @@ docker compose --profile mock down -v   # Slett data
 - Hent token og lim inn i "Authorize"
 
 **Ingress (deployed):**
-- https://grunn-og-hjelpestonad.intern.dev.nav.no/swagger-ui/index.html
+- https://grunn-og-hjelpestonad-backend.intern.dev.nav.no/swagger-ui/index.html
+- Trykk "Authorize" og logg inn med Azure AD (la `client_secret` stå tom)
 
 ## Observability
 

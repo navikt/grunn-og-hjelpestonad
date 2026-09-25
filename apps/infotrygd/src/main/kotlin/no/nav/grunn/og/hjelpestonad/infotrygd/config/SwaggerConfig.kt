@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.config
+package no.nav.grunn.og.hjelpestonad.infotrygd.config
 
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
@@ -10,29 +10,11 @@ import io.swagger.v3.oas.models.security.Scopes
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.servers.Server
-import org.springdoc.core.customizers.OpenApiCustomizer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
-
-/**
- * Server-listen settes uavhengig av profil slik at /v3/api-docs blir likt
- * lokalt og i deployede miljøer. Uten dette får OpenAPI-dokumentet en
- * auto-utledet server-URL lokalt, og genererte frontend-typer blir
- * avhengige av hvilken backend de ble generert fra.
- */
-@Configuration
-open class OpenApiServerConfig {
-    @Bean
-    open fun relativeServerCustomizer(): OpenApiCustomizer =
-        OpenApiCustomizer { openApi ->
-            openApi.servers(listOf(Server().url("/").description("Samme opphav som API-et")))
-        }
-}
 
 @Configuration
-@Profile("!local-mock")
 open class SwaggerConfig(
     @Value("\${azure.authorization-url}")
     val authorizationUrl: String,
@@ -46,10 +28,11 @@ open class SwaggerConfig(
         OpenAPI()
             .components(Components().addSecuritySchemes("oauth2", securitySchemes()))
             .addSecurityItem(SecurityRequirement().addList("oauth2", listOf(apiScope)))
+            .servers(listOf(Server().url("/").description("Samme opphav som API-et")))
             .info(
                 Info()
-                    .title("Grunn- og hjelpestønad Sak")
-                    .description("Swagger for Grunn- og hjelpestønad")
+                    .title("Grunn- og hjelpestønad Infotrygd")
+                    .description("Swagger for Grunn- og hjelpestønad Infotrygd")
                     .version("1.0.0")
                     .contact(
                         Contact()
