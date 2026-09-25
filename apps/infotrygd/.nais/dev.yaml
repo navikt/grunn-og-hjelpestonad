@@ -94,8 +94,10 @@ spec:
                     - "azp_name"
     env:
         - name: SPRING_PROFILES_ACTIVE
-          value: dev
+          value: "dev"
         - name: EXODUS_BASE_URL
-          value: https://grunn-og-hjelp-exodus.intern.dev.nav.no
+          value: "https://grunn-og-hjelp-exodus.intern.dev.nav.no"
         - name: EXODUS_SCOPE
-          value: api://dev-gcp.grunn-og-hjelp.grunn-og-hjelp-exodus/.default
+          value: "api://dev-gcp.grunn-og-hjelp.grunn-og-hjelp-exodus/.default"
+        - name: EXODUS_SCHEDULER_ENABLED
+          value: "true"
