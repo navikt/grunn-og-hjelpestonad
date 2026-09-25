@@ -92,6 +92,9 @@ spec:
                 extra:
                     - "NAVident"
                     - "azp_name"
+            replyURLs:
+                - https://grunn-og-hjelp-infotrygd.intern.dev.nav.no/swagger-ui/oauth2-redirect.html
+            singlePageApplication: true
     env:
         - name: SPRING_PROFILES_ACTIVE
           value: "dev"
