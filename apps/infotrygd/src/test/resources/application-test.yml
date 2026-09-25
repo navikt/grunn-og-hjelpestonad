@@ -1,14 +1,11 @@
 spring:
     datasource:
-        url: jdbc:h2:mem:testdb;MODE=PostgreSQL
-        username: sa
-        password:
-        driver-class-name: org.h2.Driver
-    sql:
-        init:
-            mode: always
-            continue-on-error: true
-            platform: h2
+        driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+        url: jdbc:tc:postgresql:18:///testdb
+        username: test
+        password: test
+        hikari:
+            maximum-pool-size: 3
     security:
         oauth2:
             resourceserver:
