@@ -53,8 +53,6 @@ spec:
                     # Team logs
                 -   application: logging
                     namespace: nais-system
-        external:
-            -   host: grunn-og-hjelp-exodus.dev-fss-pub.nais.io
 
     # Helse
     liveness:
