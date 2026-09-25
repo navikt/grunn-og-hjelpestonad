@@ -48,7 +48,7 @@ spec:
                     cluster: dev-gcp
                 -   application: grunn-og-hjelp-exodus
                     namespace: grunn-og-hjelp
-                    cluster: dev-fss
+                    cluster: dev-gcp
 
                     # Team logs
                 -   application: logging
@@ -96,6 +96,6 @@ spec:
         - name: SPRING_PROFILES_ACTIVE
           value: dev
         - name: EXODUS_BASE_URL
-          value: https://grunn-og-hjelp-exodus.dev-fss-pub.nais.io
+          value: https://grunn-og-hjelp-exodus.intern.dev.nav.no
         - name: EXODUS_SCOPE
-          value: api://dev-fss.grunn-og-hjelp.grunn-og-hjelp-exodus/.default
+          value: api://dev-gcp.grunn-og-hjelp.grunn-og-hjelp-exodus/.default
