@@ -154,6 +154,67 @@ class PdlClientWiremockTest {
             )
         }
     }
+
+    @Test
+    fun `hentFamilieRelasjoner returnerer data ved gyldig respons`() {
+        stubForGraphql(jacksonObjectMapper().writeValueAsString(familieRelasjon))
+        val familieRelasjonerResponse =
+            pdlClient.hentFamilieRelasjoner(
+                PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
+            )
+
+        assertThat(familieRelasjonerResponse).isNotNull
+        assertThat(
+            familieRelasjonerResponse
+                ?.hentPerson
+                ?.forelderBarnRelasjon
+                ?.singleOrNull()
+                ?.relatertPersonsIdent,
+        ).isEqualTo("456")
+        assertThat(
+            familieRelasjonerResponse
+                ?.hentPerson
+                ?.forelderBarnRelasjon
+                ?.singleOrNull()
+                ?.relatertPersonsRolle,
+        ).isEqualTo(Familierolle.BARN)
+        assertThat(
+            familieRelasjonerResponse
+                ?.hentPerson
+                ?.forelderBarnRelasjon
+                ?.singleOrNull()
+                ?.minRolleForPerson,
+        ).isEqualTo(Familierolle.MOR)
+        assertEquals(listOf("pdlScope"), texasClient.requestedOboAudiences)
+    }
+
+    @Test
+    fun `hentFamilieRelasjoner kaster PdlException ved teknisk feil`() {
+        wireMockServer.stubFor(
+            post(urlEqualTo("/graphql"))
+                .willReturn(serverError()),
+        )
+
+        assertThrows<PdlException> {
+            pdlClient.hentFamilieRelasjoner(
+                PdlRequest(query = "query {}", variables = emptyMap()),
+            )
+        }
+    }
+
+    private val familieRelasjon =
+        PdlResponseFamilierelasjoner(
+            data =
+                FamilieRelasjonerResponse(
+                    hentPerson =
+                        FamilieRelasjoner(
+                            forelderBarnRelasjon =
+                                listOf(
+                                    ForelderBarnRelasjon(relatertPersonsIdent = "456", relatertPersonsRolle = Familierolle.BARN, minRolleForPerson = Familierolle.MOR),
+                                ),
+                        ),
+                ),
+        )
 }
 
 private fun PdlResponseHentPersonData.mapToJsonString() = jacksonObjectMapper().writeValueAsString(this)
