@@ -10,7 +10,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 import kotlin.test.Test
 
 class PdlServiceTest {
