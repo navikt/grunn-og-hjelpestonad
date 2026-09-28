@@ -12,7 +12,7 @@ class StønadRepository(
     fun finnVedtakstreff(
         personidenter: Set<String>,
         dagensDato: LocalDate = LocalDate.now(),
-    ): List<Vedtakstreff> =
+    ): List<VedtakstreffResponse> =
         jdbcTemplate.query(
             """
             SELECT l.personnr,
@@ -32,7 +32,7 @@ class StønadRepository(
                 .addValue("kodeRutiner", Stønadstype.entries.map { it.kodeRutine })
                 .addValue("dagensDato", dagensDato),
         ) { rs, _ ->
-            Vedtakstreff(
+            VedtakstreffResponse(
                 personident = rs.getString("personnr"),
                 stønadstype = Stønadstype.fraKodeRutine(rs.getString("kode_rutine")),
                 harLøpendeVedtak = rs.getBoolean("har_lopende_vedtak"),

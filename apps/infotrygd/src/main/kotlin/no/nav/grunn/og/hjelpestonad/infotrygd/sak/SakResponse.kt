@@ -1,23 +1,13 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.sak
 
-import no.nav.grunn.og.hjelpestonad.infotrygd.util.PersonidentValidator
 import java.time.LocalDate
 
-data class PersonidenterRequest(
-    val personidenter: Set<String>,
-) {
-    fun valider() {
-        require(personidenter.isNotEmpty()) { "Må oppgi minst én personident" }
-        personidenter.forEach(PersonidentValidator::validerPersonident)
-    }
-}
-
-data class InfotrygdSakResponse(
-    val saker: List<InfotrygdSak>,
+data class InfotrygdSakerResponse(
+    val saker: List<InfotrygdSakResponse>,
 )
 
 /** Kodene er lagret slik de står i Infotrygd, uten utfylling med mellomrom. */
-data class InfotrygdSak(
+data class InfotrygdSakResponse(
     val personident: String,
     val id: Long,
     val saksnr: String,
@@ -39,7 +29,7 @@ data class InfotrygdSak(
     val region: String,
 )
 
-data class Saktreff(
+data class SaktreffResponse(
     val personident: String,
     val kapittelnr: String,
     val valg: String,

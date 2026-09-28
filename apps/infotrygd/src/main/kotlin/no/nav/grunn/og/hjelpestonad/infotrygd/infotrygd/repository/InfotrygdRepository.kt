@@ -1,6 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd.repository
 
-import no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd.dto.StønadType
+import no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd.StønadType
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate

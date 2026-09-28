@@ -1,9 +1,5 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd
 
-import no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd.dto.BarnInfo
-import no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd.dto.PeriodeResponse
-import no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd.dto.StønadType
-import no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd.dto.VedtakPeriodeResponse
 import no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd.repository.InfotrygdRepository
 import no.nav.grunn.og.hjelpestonad.infotrygd.infrastruktur.exception.ApiFeil
 import org.slf4j.LoggerFactory
@@ -58,7 +54,7 @@ class InfotrygdService(
                     stønadId = vedtak.stønadId,
                     barn =
                         barnForVedtak.map { barn ->
-                            BarnInfo(
+                            BarnResponse(
                                 personLøpenummer = barn.personLøpenummer,
                                 fom = barn.fom,
                                 tom = barn.tom,
@@ -80,7 +76,7 @@ class InfotrygdService(
                     stønadId = vedtak.stønadId,
                     barn =
                         barnForVedtak.map { barn ->
-                            BarnInfo(
+                            BarnResponse(
                                 personLøpenummer = barn.personLøpenummer,
                                 fom = barn.fom,
                                 tom = barn.tom,
