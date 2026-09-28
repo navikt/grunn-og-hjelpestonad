@@ -97,7 +97,7 @@ spec:
         - name: SPRING_PROFILES_ACTIVE
           value: "dev"
         - name: EXODUS_BASE_URL
-          value: "https://grunn-og-hjelp-exodus.intern.dev.nav.no"
+          value: "http://grunn-og-hjelp-exodus"
         - name: EXODUS_SCOPE
           value: "api://dev-gcp.grunn-og-hjelp.grunn-og-hjelp-exodus/.default"
         - name: EXODUS_SCHEDULER_ENABLED
