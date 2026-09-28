@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd.dto
+package no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd
 
 import java.time.LocalDate
 
@@ -9,11 +9,7 @@ enum class StønadType(
     SKOLEPENGER("GU"),
 }
 
-data class VedtakPeriodeRequest(
-    val personident: String,
-)
-
-data class BarnInfo(
+data class BarnResponse(
     val personLøpenummer: Long,
     val fom: LocalDate,
     val tom: LocalDate?,
@@ -25,7 +21,7 @@ data class PeriodeResponse(
     val tom: LocalDate?,
     val vedtakId: Long,
     val stønadId: Long,
-    val barn: List<BarnInfo> = emptyList(),
+    val barn: List<BarnResponse> = emptyList(),
 )
 
 data class VedtakPeriodeResponse(

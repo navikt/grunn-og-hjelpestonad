@@ -1,7 +1,5 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd
 
-import no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd.dto.VedtakPeriodeRequest
-import no.nav.grunn.og.hjelpestonad.infotrygd.infotrygd.dto.VedtakPeriodeResponse
 import no.nav.grunn.og.hjelpestonad.infotrygd.util.PersonidentValidator
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity

@@ -63,8 +63,8 @@ class StønadRepositoryTest {
 
         assertEquals(
             listOf(
-                Vedtakstreff("01017012345", Stønadstype.GRUNNSTØNAD, harLøpendeVedtak = true),
-                Vedtakstreff("01017012345", Stønadstype.HJELPESTØNAD, harLøpendeVedtak = false),
+                VedtakstreffResponse("01017012345", Stønadstype.GRUNNSTØNAD, harLøpendeVedtak = true),
+                VedtakstreffResponse("01017012345", Stønadstype.HJELPESTØNAD, harLøpendeVedtak = false),
             ),
             treff,
         )
@@ -77,7 +77,7 @@ class StønadRepositoryTest {
 
         val treff = stønadRepository.finnVedtakstreff(setOf("01017012345"), dagensDato)
 
-        assertEquals(listOf(Vedtakstreff("01017012345", Stønadstype.GRUNNSTØNAD, harLøpendeVedtak = false)), treff)
+        assertEquals(listOf(VedtakstreffResponse("01017012345", Stønadstype.GRUNNSTØNAD, harLøpendeVedtak = false)), treff)
     }
 
     @Test

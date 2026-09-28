@@ -15,8 +15,8 @@ class SakController(
     @PostMapping("/finn")
     fun finnSaker(
         @RequestBody request: PersonidenterRequest,
-    ): InfotrygdSakResponse {
+    ): InfotrygdSakerResponse {
         request.valider()
-        return InfotrygdSakResponse(sakRepository.finnSaker(request.personidenter))
+        return InfotrygdSakerResponse(sakRepository.finnSaker(request.personidenter))
     }
 }

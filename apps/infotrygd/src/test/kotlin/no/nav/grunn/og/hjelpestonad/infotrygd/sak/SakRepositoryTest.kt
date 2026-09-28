@@ -62,7 +62,7 @@ class SakRepositoryTest {
     @Test
     fun `finnesSaker gir ett treff per kapittel og valg`() {
         assertEquals(
-            listOf(Saktreff("03047012345", "GH", "GS"), Saktreff("06058012345", "GH", "HS")),
+            listOf(SaktreffResponse("03047012345", "GH", "GS"), SaktreffResponse("06058012345", "GH", "HS")),
             sakRepository.finnesSaker(setOf("03047012345", "06058012345")),
         )
     }

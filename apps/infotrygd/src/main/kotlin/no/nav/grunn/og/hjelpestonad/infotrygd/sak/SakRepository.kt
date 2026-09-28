@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository
 class SakRepository(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
 ) {
-    fun finnesSaker(personidenter: Set<String>): List<Saktreff> =
+    fun finnesSaker(personidenter: Set<String>): List<SaktreffResponse> =
         jdbcTemplate.query(
             """
             SELECT s.f_nr, s.s10_kapittelnr, s.s10_valg
@@ -26,14 +26,14 @@ class SakRepository(
             """.trimIndent(),
             MapSqlParameterSource("fnr", personidenter.map(String::reverserFnr)),
         ) { rs, _ ->
-            Saktreff(
+            SaktreffResponse(
                 personident = rs.getString("f_nr").reverserFnr(),
                 kapittelnr = rs.getString("s10_kapittelnr"),
                 valg = rs.getString("s10_valg"),
             )
         }
 
-    fun finnSaker(personidenter: Set<String>): List<InfotrygdSak> =
+    fun finnSaker(personidenter: Set<String>): List<InfotrygdSakResponse> =
         jdbcTemplate.query(
             """
             SELECT s.id_sak, s.s10_saksnr, s.s05_saksblokk, s.s10_reg_dato, s.s10_mottattdato, s.s10_kapittelnr,
@@ -46,7 +46,7 @@ class SakRepository(
             """.trimIndent(),
             MapSqlParameterSource("fnr", personidenter.map(String::reverserFnr)),
         ) { rs, _ ->
-            InfotrygdSak(
+            InfotrygdSakResponse(
                 personident = rs.getString("f_nr").reverserFnr(),
                 id = rs.getLong("id_sak"),
                 saksnr = rs.getString("s10_saksnr"),
