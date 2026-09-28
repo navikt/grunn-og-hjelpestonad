@@ -31,7 +31,7 @@ class SakRepositoryTest {
     @BeforeEach
     fun lagreSaker() {
         testdata.tømAlle()
-        // F_NR er lagret reversert (ÅÅMMDDPPPPP) i SA-tabellene.
+        // F_NR er lagret reversert (ÅÅMMDDPPPPP) i sa_sak_10.
         testdata.lagre(
             ExodusTabell.SA_SAK_10,
             "id_sak" to "1",
