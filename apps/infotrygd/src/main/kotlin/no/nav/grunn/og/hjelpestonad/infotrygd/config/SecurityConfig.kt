@@ -1,16 +1,15 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.config
 
 import no.nav.grunn.og.hjelpestonad.infotrygd.security.AzureJwtAuthenticationConverter
+import no.nav.grunn.og.hjelpestonad.infotrygd.security.Rolle
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
 open class SecurityConfig(
     private val jwtAuthenticationConverter: AzureJwtAuthenticationConverter,
 ) {
@@ -27,7 +26,7 @@ open class SecurityConfig(
                         "/swagger-ui.html",
                     ).permitAll()
                     .anyRequest()
-                    .authenticated()
+                    .hasAnyRole(*Rolle.entries.map { it.name }.toTypedArray())
             }.oauth2ResourceServer { oauth2 ->
                 oauth2.jwt { jwt ->
                     jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)
