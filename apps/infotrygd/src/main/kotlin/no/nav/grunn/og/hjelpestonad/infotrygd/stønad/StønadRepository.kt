@@ -9,10 +9,6 @@ import java.time.LocalDate
 class StønadRepository(
     private val jdbcTemplate: NamedParameterJdbcTemplate,
 ) {
-    /**
-     * Et vedtak er løpende hvis sluttdatoen er etter [dagensDato] eller mangler. Som i
-     * familie-ef-infotrygd-replika gjelder opphørsdatoen på stønaden foran sluttdatoen på vedtaket.
-     */
     fun finnVedtakstreff(
         personidenter: Set<String>,
         dagensDato: LocalDate = LocalDate.now(),
