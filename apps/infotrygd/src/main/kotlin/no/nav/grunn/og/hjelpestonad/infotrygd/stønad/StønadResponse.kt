@@ -12,3 +12,7 @@ data class VedtakstreffResponse(
     val stønadstype: Stønadstype,
     val harLøpendeVedtak: Boolean,
 )
+
+data class PersonerForMigreringResponse(
+    val personidenter: Set<String>,
+)
