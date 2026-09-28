@@ -41,8 +41,17 @@ class StønadRepositoryTest {
         kodeRutine: String,
         tom: String?,
         opphør: String? = null,
+        endringskode: String = "F",
+        oppdragId: String? = "1",
     ) {
-        testdata.lagre(ExodusTabell.T_STONAD, "stonad_id" to stønadId, "person_lopenr" to personLøpenr, "kode_rutine" to kodeRutine, "dato_opphor" to opphør)
+        testdata.lagre(
+            ExodusTabell.T_STONAD,
+            "stonad_id" to stønadId,
+            "person_lopenr" to personLøpenr,
+            "kode_rutine" to kodeRutine,
+            "dato_opphor" to opphør,
+            "oppdrag_id" to oppdragId,
+        )
         testdata.lagre(
             ExodusTabell.T_VEDTAK,
             "vedtak_id" to vedtakId,
@@ -51,6 +60,7 @@ class StønadRepositoryTest {
             "kode_rutine" to kodeRutine,
             "dato_innv_tom" to tom,
         )
+        testdata.lagre(ExodusTabell.T_ENDRING, "vedtak_id" to vedtakId, "kode" to endringskode)
     }
 
     @Test
@@ -88,5 +98,51 @@ class StønadRepositoryTest {
         lagreVedtak("2", stønadId = "20", vedtakId = "200", kodeRutine = "GS", tom = null)
 
         assertEquals(emptyList(), stønadRepository.finnVedtakstreff(setOf("01017012345"), dagensDato))
+    }
+
+    private fun lagrePerson(
+        personLøpenr: String,
+        personnr: String,
+    ) = testdata.lagre(ExodusTabell.T_LOPENR_FNR, "person_lopenr" to personLøpenr, "personnr" to personnr)
+
+    @Test
+    fun `migreringspersoner er de der siste vedtak på stønaden løper forbi starten av neste måned`() {
+        lagrePerson("1", "01017012345")
+        lagrePerson("2", "02027012345")
+        lagrePerson("3", "03037012345")
+        lagrePerson("4", "04047012345")
+        lagrePerson("5", "05057012345")
+        lagreVedtak("1", stønadId = "10", vedtakId = "100", kodeRutine = "GS", tom = null)
+        lagreVedtak("2", stønadId = "20", vedtakId = "200", kodeRutine = "HS", tom = "2026-12-31")
+        lagreVedtak("3", stønadId = "30", vedtakId = "300", kodeRutine = "GS", tom = "2026-02-01")
+        lagreVedtak("4", stønadId = "40", vedtakId = "400", kodeRutine = "GS", tom = null)
+        lagreVedtak("4", stønadId = "40", vedtakId = "401", kodeRutine = "GS", tom = "2026-01-31")
+        lagreVedtak("5", stønadId = "50", vedtakId = "500", kodeRutine = "GS", tom = null, opphør = "2026-01-31")
+
+        assertEquals(setOf("01017012345", "02027012345"), stønadRepository.finnPersonerForMigrering(antall = 10, dagensDato))
+    }
+
+    @Test
+    fun `migreringspersoner utelater annullerte og uavklarte vedtak, stønader uten oppdrag og andre stønadstyper`() {
+        lagrePerson("1", "01017012345")
+        lagrePerson("2", "02027012345")
+        lagrePerson("3", "03037012345")
+        lagrePerson("4", "04047012345")
+        lagreVedtak("1", stønadId = "10", vedtakId = "100", kodeRutine = "GS", tom = null, endringskode = "AN")
+        lagreVedtak("2", stønadId = "20", vedtakId = "200", kodeRutine = "GS", tom = null, endringskode = "UA")
+        lagreVedtak("3", stønadId = "30", vedtakId = "300", kodeRutine = "GS", tom = null, oppdragId = null)
+        lagreVedtak("4", stønadId = "40", vedtakId = "400", kodeRutine = "EO", tom = null)
+
+        assertEquals(emptySet(), stønadRepository.finnPersonerForMigrering(antall = 10, dagensDato))
+    }
+
+    @Test
+    fun `migreringspersoner begrenses til oppgitt antall`() {
+        lagrePerson("1", "01017012345")
+        lagrePerson("2", "02027012345")
+        lagreVedtak("1", stønadId = "10", vedtakId = "100", kodeRutine = "GS", tom = null)
+        lagreVedtak("2", stønadId = "20", vedtakId = "200", kodeRutine = "GS", tom = null)
+
+        assertEquals(setOf("01017012345"), stønadRepository.finnPersonerForMigrering(antall = 1, dagensDato))
     }
 }
