@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.infotrygd.exodus
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.util.concurrent.atomic.AtomicBoolean
 
 @Component
 open class ExodusScheduler(
@@ -12,10 +13,27 @@ open class ExodusScheduler(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
+    /**
+     * Med virtuelle tråder bruker Spring SimpleAsyncTaskScheduler, som starter cron-jobber på nytt selv om
+     * forrige kjøring fortsatt pågår. Uten denne sperren jobber flere kjøringer på samme tabell samtidig.
+     */
+    private val kjører = AtomicBoolean(false)
+
     @Scheduled(cron = "\${exodus.scheduler-cron}")
     open fun replikerAlleTabeller() {
         if (!properties.schedulerEnabled || !lederVelger.erLeder()) return
+        if (!kjører.compareAndSet(false, true)) {
+            logger.info("Forrige replikering fra Exodus pågår fortsatt. Hopper over denne kjøringen.")
+            return
+        }
+        try {
+            replikerTabellene()
+        } finally {
+            kjører.set(false)
+        }
+    }
 
+    private fun replikerTabellene() {
         logger.info("Starter replikering av ${ExodusTabell.entries.size} tabeller fra Exodus")
         for (tabell in ExodusTabell.entries) {
             if (replikerTabell(tabell) == SideResultat.NY_BASELINE) {
