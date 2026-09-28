@@ -1,9 +1,10 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.exodus
 
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
+import no.nav.grunn.og.hjelpestonad.infotrygd.util.queryAs
+import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import kotlin.jvm.optionals.getOrNull
 
 enum class JobStatus {
     OK,
@@ -21,22 +22,15 @@ data class ExodusStatus(
 
 @Repository
 open class ExodusStatusRepository(
-    private val jdbcTemplate: NamedParameterJdbcTemplate,
+    private val jdbcClient: JdbcClient,
 ) {
     open fun finn(tabellnavn: String): ExodusStatus? =
-        jdbcTemplate
-            .query(
-                "SELECT * FROM exodus_status WHERE tabell = :tabell",
-                MapSqlParameterSource("tabell", tabellnavn),
-            ) { rs, _ ->
-                ExodusStatus(
-                    tabell = rs.getString("tabell"),
-                    iterator = rs.getString("iterator"),
-                    jobStatus = JobStatus.valueOf(rs.getString("job_status")),
-                    antallRaderHentet = rs.getLong("antall_rader_hentet"),
-                    sistOppdatert = rs.getTimestamp("sist_oppdatert").toLocalDateTime(),
-                )
-            }.firstOrNull()
+        jdbcClient
+            .sql("SELECT * FROM exodus_status WHERE tabell = :tabell")
+            .param("tabell", tabellnavn)
+            .queryAs<ExodusStatus>()
+            .optional()
+            .getOrNull()
 
     open fun oppdaterIterator(
         tabellnavn: String,
@@ -44,36 +38,39 @@ open class ExodusStatusRepository(
         antallNyeRader: Int,
         flereSider: Boolean,
     ) {
-        jdbcTemplate.update(
-            """
-            INSERT INTO exodus_status (tabell, iterator, job_status, antall_rader_hentet, sist_oppdatert)
-            VALUES (:tabell, :iterator, :jobStatus, :antallNyeRader, current_timestamp)
-            ON CONFLICT (tabell) DO UPDATE SET
-                iterator = EXCLUDED.iterator,
-                job_status = EXCLUDED.job_status,
-                antall_rader_hentet = exodus_status.antall_rader_hentet + EXCLUDED.antall_rader_hentet,
-                sist_oppdatert = EXCLUDED.sist_oppdatert
-            """.trimIndent(),
-            MapSqlParameterSource()
-                .addValue("tabell", tabellnavn)
-                .addValue("iterator", iterator)
-                .addValue("jobStatus", if (flereSider) JobStatus.PAGINERER.name else JobStatus.OK.name)
-                .addValue("antallNyeRader", antallNyeRader),
-        )
+        jdbcClient
+            .sql(
+                """
+                INSERT INTO exodus_status (tabell, iterator, job_status, antall_rader_hentet, sist_oppdatert)
+                VALUES (:tabell, :iterator, :jobStatus, :antallNyeRader, current_timestamp)
+                ON CONFLICT (tabell) DO UPDATE SET
+                    iterator = EXCLUDED.iterator,
+                    job_status = EXCLUDED.job_status,
+                    antall_rader_hentet = exodus_status.antall_rader_hentet + EXCLUDED.antall_rader_hentet,
+                    sist_oppdatert = EXCLUDED.sist_oppdatert
+                """.trimIndent(),
+            ).param("tabell", tabellnavn)
+            .param("iterator", iterator)
+            .param("jobStatus", if (flereSider) JobStatus.PAGINERER.name else JobStatus.OK.name)
+            .param("antallNyeRader", antallNyeRader)
+            .update()
     }
 
     open fun settNyBaseline(tabellnavn: List<String>) {
-        jdbcTemplate.batchUpdate(
-            """
-            INSERT INTO exodus_status (tabell, iterator, job_status, antall_rader_hentet, sist_oppdatert)
-            VALUES (:tabell, NULL, 'NY_BASELINE', 0, current_timestamp)
-            ON CONFLICT (tabell) DO UPDATE SET
-                iterator = NULL,
-                job_status = 'NY_BASELINE',
-                antall_rader_hentet = 0,
-                sist_oppdatert = current_timestamp
-            """.trimIndent(),
-            tabellnavn.map { MapSqlParameterSource("tabell", it) }.toTypedArray(),
-        )
+        tabellnavn.forEach { tabell ->
+            jdbcClient
+                .sql(
+                    """
+                    INSERT INTO exodus_status (tabell, iterator, job_status, antall_rader_hentet, sist_oppdatert)
+                    VALUES (:tabell, NULL, 'NY_BASELINE', 0, current_timestamp)
+                    ON CONFLICT (tabell) DO UPDATE SET
+                        iterator = NULL,
+                        job_status = 'NY_BASELINE',
+                        antall_rader_hentet = 0,
+                        sist_oppdatert = current_timestamp
+                    """.trimIndent(),
+                ).param("tabell", tabell)
+                .update()
+        }
     }
 }
