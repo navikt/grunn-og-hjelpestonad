@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSetter
 import com.fasterxml.jackson.annotation.Nulls
 
 data class HentUttrekkRequest(
-    val tabellnavn: String,
+    val tabell: ExodusTabell,
     val iterator: String?,
     val antallRader: Long,
 )

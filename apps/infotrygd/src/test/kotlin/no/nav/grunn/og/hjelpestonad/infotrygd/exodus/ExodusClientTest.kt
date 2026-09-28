@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.test.json.JsonCompareMode
 import org.springframework.test.web.client.MockRestServiceServer
 import org.springframework.test.web.client.match.MockRestRequestMatchers.content
 import org.springframework.test.web.client.match.MockRestRequestMatchers.header
@@ -34,8 +35,9 @@ class ExodusClientTest {
             .expect(requestTo("http://exodus/api/hentUttrekk"))
             .andExpect(method(HttpMethod.POST))
             .andExpect(header("Authorization", "Bearer token-for-api://exodus/.default"))
-            .andExpect(content().json("""{"tabellnavn":"t_vedtak","iterator":"forrige","antallRader":2}"""))
-            .andRespond(
+            .andExpect(
+                content().json("""{"tabell":"T_VEDTAK","iterator":"forrige","antallRader":2}""", JsonCompareMode.STRICT),
+            ).andRespond(
                 withSuccess(
                     """
                     {

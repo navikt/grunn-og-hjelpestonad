@@ -24,7 +24,7 @@ open class ExodusClient(
                 .post()
                 .uri("/api/hentUttrekk")
                 .headers { it.setBearerAuth(texasClient.hentMaskinToken(properties.scope)) }
-                .body(HentUttrekkRequest(tabell.tabellnavn, iterator, antallRader.toLong()))
+                .body(HentUttrekkRequest(tabell, iterator, antallRader.toLong()))
                 .retrieve()
                 .body<HentUttrekkResponse>()
                 ?: error("Tomt svar fra Exodus for tabell ${tabell.tabellnavn}")
