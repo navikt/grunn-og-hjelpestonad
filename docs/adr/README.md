@@ -20,3 +20,4 @@ utover å oppdatere status og lenke til den nye ADR-en.
 | [ADR-0002](ADR-0002-openapi-basert-generering-av-frontend-typer.md) | OpenAPI-basert generering av frontend-typer | Godkjent |
 | [ADR-0003](ADR-0003-vilkaarsmodell-for-grunnstoenad.md) | Vilkårsmodell for grunnstønad | Godkjent |
 | [ADR-0004](ADR-0004-vilkaarssteg-utleder-perioder-med-rett.md) | Vilkårssteget fullføres i backend og utleder perioder med rett | Godkjent |
+| [ADR-0005](ADR-0005-perioder-fra-infotrygd.md) | Perioder fra Infotrygd | Godkjent |
