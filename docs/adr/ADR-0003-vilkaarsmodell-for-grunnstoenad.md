@@ -1,7 +1,7 @@
 # ADR-0003: Vilkårsmodell for grunnstønad
 
 **Dato:** 2026-09-16
-**Status:** Godkjent
+**Status:** Godkjent, delvis erstattet av [ADR-0006](ADR-0006-fem-vilkaar-med-inngangsvilkaar-som-foerste-steg.md)
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 
 ## Kontekst

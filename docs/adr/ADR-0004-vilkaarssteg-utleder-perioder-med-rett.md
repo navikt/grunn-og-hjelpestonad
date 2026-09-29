@@ -1,7 +1,7 @@
 # ADR-0004: Vilkårssteget fullføres i backend og utleder perioder med rett
 
 **Dato:** 2026-09-22
-**Status:** Godkjent
+**Status:** Godkjent, delvis erstattet av [ADR-0006](ADR-0006-fem-vilkaar-med-inngangsvilkaar-som-foerste-steg.md)
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 **Bygger på:** [ADR-0003](ADR-0003-vilkaarsmodell-for-grunnstoenad.md)
 
