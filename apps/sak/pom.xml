@@ -47,6 +47,7 @@
         <mockk.version>1.14.11</mockk.version>
         <prosessering.version>2.20260817115650_f13f507</prosessering.version>
         <familie-felles.version>4.20260818093920_16ad74a</familie-felles.version>
+        <openapi-generator.version>7.25.0</openapi-generator.version>
 
     </properties>
     <dependencies>
@@ -219,6 +220,35 @@
         <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi-generator.version}</version>
+                <executions>
+                    <execution>
+                        <id>infotrygd</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/../infotrygd/openapi.json</inputSpec>
+                            <generatorName>kotlin</generatorName>
+                            <output>${project.build.directory}/generated-sources/infotrygd</output>
+                            <modelPackage>no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt</modelPackage>
+                            <generateApis>false</generateApis>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateModelTests>false</generateModelTests>
+                            <generateSupportingFiles>false</generateSupportingFiles>
+                            <configOptions>
+                                <sourceFolder>src/main/kotlin</sourceFolder>
+                                <serializationLibrary>jackson</serializationLibrary>
+                                <dateLibrary>java8-localdatetime</dateLibrary>
+                                <enumPropertyNaming>original</enumPropertyNaming>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

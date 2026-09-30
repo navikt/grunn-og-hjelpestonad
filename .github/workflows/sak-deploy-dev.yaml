@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "apps/sak/**"
+      - "apps/infotrygd/openapi.json"
       - ".github/workflows/sak-deploy-dev.yaml"
 
 permissions:

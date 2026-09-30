@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.infotrygd
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
@@ -10,11 +11,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.config.testRestClientBuilder
+import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.PeriodeResponse
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
@@ -23,6 +26,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.web.client.ResourceAccessException
 import java.time.Duration
+import java.time.LocalDate
 
 class InfotrygdClientTest {
     companion object {
@@ -69,6 +73,7 @@ class InfotrygdClientTest {
         fun `returnerer perioder og sender OBO-token ved vellykket kall`() {
             wireMockServer.stubFor(
                 post(urlEqualTo("/api/infotrygd/perioder"))
+                    .withRequestBody(equalToJson("""{"personidenter": ["12345678901"], "stønadstyper": []}"""))
                     .withHeader("Authorization", equalTo("Bearer gyldig-token"))
                     .willReturn(
                         aResponse()
@@ -76,9 +81,32 @@ class InfotrygdClientTest {
                             .withBody(
                                 """
                                 {
-                                    "personident": "12345678901",
-                                    "barnetilsyn": [],
-                                    "skolepenger": []
+                                    "grunnstønad": [
+                                        {
+                                            "personident": "12345678901",
+                                            "stønadstype": "GRUNNSTØNAD",
+                                            "sakstype": "S",
+                                            "kode": "F",
+                                            "brukerId": "Z123456",
+                                            "stønadId": 1,
+                                            "vedtakId": 2,
+                                            "vedtakstidspunkt": "2020-01-01T12:00:00",
+                                            "vedtakKodeResultat": "I",
+                                            "startDato": "2020-01-01",
+                                            "innvilgetFom": "2020-01-01",
+                                            "innvilgetTom": null,
+                                            "opphørsdato": null,
+                                            "oppdragId": null,
+                                            "typeDelytelse": "E",
+                                            "typeSats": "M",
+                                            "typeUtbetaling": "M",
+                                            "stønadFom": "2020-01-01",
+                                            "stønadTom": null,
+                                            "beløp": 1234.50,
+                                            "trygdetidOgSats": []
+                                        }
+                                    ],
+                                    "hjelpestønad": []
                                 }
                                 """.trimIndent(),
                             ),
@@ -87,7 +115,11 @@ class InfotrygdClientTest {
 
             val resultat = client.hentPerioderForPerson("12345678901")
 
-            assertEquals("12345678901", resultat.personident)
+            assertEquals(1, resultat.grunnstønad.size)
+            assertEquals(PeriodeResponse.Stønadstype.GRUNNSTØNAD, resultat.grunnstønad.single().stønadstype)
+            assertEquals(LocalDate.of(2020, 1, 1), resultat.grunnstønad.single().stønadFom)
+            assertNull(resultat.grunnstønad.single().stønadTom)
+            assertEquals(0, resultat.hjelpestønad.size)
             verify(exactly = 1) { texasClient.hentOboToken(AUDIENCE) }
         }
 
@@ -148,9 +180,8 @@ class InfotrygdClientTest {
                             .withBody(
                                 """
                                 {
-                                    "personident": "12345678901",
-                                    "barnetilsyn": [],
-                                    "skolepenger": []
+                                    "grunnstønad": [],
+                                    "hjelpestønad": []
                                 }
                                 """.trimIndent(),
                             ),

@@ -3,8 +3,7 @@ package no.nav.grunn.og.hjelpestonad.infotrygd
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.grunn.og.hjelpestonad.infotrygd.dto.PersonPerioderResponse
-import no.nav.grunn.og.hjelpestonad.infotrygd.dto.PersonidentRequest
+import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.PerioderResponse
 import no.nav.grunn.og.hjelpestonad.util.PersonidentValidator
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -26,7 +25,7 @@ class InfotrygdController(
     private val logger = LoggerFactory.getLogger(InfotrygdController::class.java)
 
     @PostMapping("/perioder")
-    @PreAuthorize("hasRole('SAKSBEHANDLER') and hasRole('BESLUTTER') and hasRole('LES')")
+    @PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('BESLUTTER') or hasRole('LESETILGANG')")
     @Operation(
         summary = "Hent vedtaksperioder for person fra Infotrygd",
         description = "Henter alle vedtaksperioder for en gitt person basert på personident.",
@@ -34,7 +33,7 @@ class InfotrygdController(
     )
     fun hentPerioderForPerson(
         @RequestBody request: PersonidentRequest,
-    ): ResponseEntity<PersonPerioderResponse> {
+    ): ResponseEntity<PerioderResponse> {
         logger.info("Henter perioder for person fra grunn-og-hjelpestonad-infotrygd")
 
         return try {
@@ -45,7 +44,7 @@ class InfotrygdController(
                     personident = request.personident,
                 )
 
-            logger.info("Hentet perioder fra Infotrygd: ${response.barnetilsyn.size} barnetilsyn, ${response.skolepenger.size} skolepenger")
+            logger.info("Hentet perioder fra Infotrygd: ${response.grunnstønad.size} grunnstønad, ${response.hjelpestønad.size} hjelpestønad")
             ResponseEntity.ok(response)
         } catch (exception: Exception) {
             logger.error("Feil ved henting av perioder fra grunn-og-hjelpestonad-infotrygd: ${exception.message}", exception)

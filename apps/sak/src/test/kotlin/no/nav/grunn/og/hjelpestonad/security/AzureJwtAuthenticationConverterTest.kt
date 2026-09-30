@@ -55,7 +55,7 @@ class AzureJwtAuthenticationConverterTest {
         val authorities = authToken.authorities.map { it.authority }
 
         assertEquals(1, authorities.size)
-        assertTrue(authorities.contains("ROLE_LES"))
+        assertTrue(authorities.contains("ROLE_LESETILGANG"))
     }
 
     @Test
@@ -88,7 +88,7 @@ class AzureJwtAuthenticationConverterTest {
         assertEquals(3, authorities.size)
         assertTrue(authorities.contains("ROLE_SAKSBEHANDLER"))
         assertTrue(authorities.contains("ROLE_BESLUTTER"))
-        assertTrue(authorities.contains("ROLE_LES"))
+        assertTrue(authorities.contains("ROLE_LESETILGANG"))
     }
 
     @Test

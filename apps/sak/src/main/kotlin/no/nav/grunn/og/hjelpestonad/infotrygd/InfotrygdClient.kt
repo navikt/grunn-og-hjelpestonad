@@ -1,7 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd
 
-import no.nav.grunn.og.hjelpestonad.infotrygd.dto.PersonPerioderResponse
-import no.nav.grunn.og.hjelpestonad.infotrygd.dto.PersonidentRequest
+import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.PeriodeRequest
+import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.PerioderResponse
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import org.slf4j.LoggerFactory
@@ -23,7 +23,7 @@ class InfotrygdClient(
     private val logger = LoggerFactory.getLogger(InfotrygdClient::class.java)
     private val restClient = restClientBuilder.clone().baseUrl(infotrygdUrl).build()
 
-    fun hentPerioderForPerson(personident: String): PersonPerioderResponse {
+    fun hentPerioderForPerson(personident: String): PerioderResponse {
         val oboToken =
             texasClient.hentOboToken(
                 targetAudience = grunnOgHjelpestonadInfotrygdAudience,
@@ -34,14 +34,14 @@ class InfotrygdClient(
                 .post()
                 .uri("$API_BASE_URL/perioder")
                 .headers { it.setBearerAuth(oboToken) }
-                .body(PersonidentRequest(personident = personident))
+                .body(PeriodeRequest(personidenter = setOf(personident), stønadstyper = emptySet()))
                 .retrieve()
-                .body(PersonPerioderResponse::class.java)
+                .body(PerioderResponse::class.java)
                 ?.also { response ->
                     logger.info(
-                        "Hentet perioder for person: {} barnetilsyn, {} skolepenger",
-                        response.barnetilsyn.size,
-                        response.skolepenger.size,
+                        "Hentet perioder for person: {} grunnstønad, {} hjelpestønad",
+                        response.grunnstønad.size,
+                        response.hjelpestønad.size,
                     )
                 } ?: throw Feil("Person ikke funnet i Infotrygd", HttpStatus.NOT_FOUND)
         } catch (e: HttpClientErrorException.NotFound) {
