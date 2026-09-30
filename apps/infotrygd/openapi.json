@@ -1,0 +1,531 @@
+{
+  "openapi" : "3.1.0",
+  "info" : {
+    "title" : "Grunn- og hjelpestønad Infotrygd",
+    "description" : "Swagger for Grunn- og hjelpestønad Infotrygd",
+    "contact" : {
+      "name" : "Team grunn- og hjelpestønad",
+      "url" : "https://github.com/navikt/grunn-og-hjelpestonad"
+    },
+    "version" : "1.0.0"
+  },
+  "servers" : [ {
+    "url" : "/",
+    "description" : "Samme opphav som API-et"
+  } ],
+  "security" : [ {
+    "oauth2" : [ "api://test-client/.default" ]
+  } ],
+  "paths" : {
+    "/api/infotrygd/stonad/eksisterer" : {
+      "post" : {
+        "tags" : [ "st-ønad-controller" ],
+        "summary" : "Sjekker om personidentene har vedtak eller saker i Infotrygd",
+        "operationId" : "eksisterer",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PersonidenterRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InfotrygdFinnesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/infotrygd/saker/finn" : {
+      "post" : {
+        "tags" : [ "sak-controller" ],
+        "summary" : "Henter saker fra Infotrygd (SA_SAK_10) for oppgitte personidenter",
+        "operationId" : "finnSaker",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PersonidenterRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InfotrygdSakerResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/infotrygd/perioder" : {
+      "post" : {
+        "tags" : [ "periode-controller" ],
+        "summary" : "Henter perioder (delytelser) for grunnstønad og hjelpestønad fra Infotrygd",
+        "operationId" : "hentPerioder",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PeriodeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PerioderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/infotrygd/tabeller/kolonner" : {
+      "get" : {
+        "tags" : [ "tabell-controller" ],
+        "summary" : "Henter kolonnene i hver tabell som replikeres fra Exodus",
+        "operationId" : "hentKolonnerPerTabell",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TabellKolonnerResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/infotrygd/tabeller/antall-rader" : {
+      "get" : {
+        "tags" : [ "tabell-controller" ],
+        "summary" : "Henter antall rader i hver tabell som replikeres fra Exodus",
+        "operationId" : "hentAntallRaderPerTabell",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TabellAntallRaderResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/infotrygd/stonad/migreringspersoner" : {
+      "get" : {
+        "tags" : [ "st-ønad-controller" ],
+        "summary" : "Henter personer med løpende grunn- eller hjelpestønad fra neste måned, som kan migreres",
+        "operationId" : "hentPersonerForMigrering",
+        "parameters" : [ {
+          "name" : "antall",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PersonerForMigreringResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "PersonidenterRequest" : {
+        "type" : "object",
+        "properties" : {
+          "personidenter" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "personidenter" ]
+      },
+      "InfotrygdFinnesResponse" : {
+        "type" : "object",
+        "properties" : {
+          "vedtak" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/VedtakstreffResponse"
+            }
+          },
+          "saker" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SaktreffResponse"
+            }
+          }
+        },
+        "required" : [ "saker", "vedtak" ]
+      },
+      "SaktreffResponse" : {
+        "type" : "object",
+        "properties" : {
+          "personident" : {
+            "type" : "string"
+          },
+          "kapittelnr" : {
+            "type" : "string"
+          },
+          "valg" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "kapittelnr", "personident", "valg" ]
+      },
+      "VedtakstreffResponse" : {
+        "type" : "object",
+        "properties" : {
+          "personident" : {
+            "type" : "string"
+          },
+          "stønadstype" : {
+            "type" : "string",
+            "enum" : [ "GRUNNSTØNAD", "HJELPESTØNAD" ]
+          },
+          "harLøpendeVedtak" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "harLøpendeVedtak", "personident", "stønadstype" ]
+      },
+      "InfotrygdSakResponse" : {
+        "type" : "object",
+        "properties" : {
+          "personident" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "saksnr" : {
+            "type" : "string"
+          },
+          "saksblokk" : {
+            "type" : "string"
+          },
+          "registrertDato" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "mottattDato" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "kapittelnr" : {
+            "type" : "string"
+          },
+          "valg" : {
+            "type" : "string"
+          },
+          "undervalg" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "nivå" : {
+            "type" : "string"
+          },
+          "resultat" : {
+            "type" : "string"
+          },
+          "vedtaksdato" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "iverksattdato" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "getårsakskode" : {
+            "type" : "string"
+          },
+          "behandlendeEnhet" : {
+            "type" : "string"
+          },
+          "registrertAvEnhet" : {
+            "type" : "string"
+          },
+          "tkNr" : {
+            "type" : "string"
+          },
+          "region" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "behandlendeEnhet", "getårsakskode", "id", "kapittelnr", "nivå", "personident", "region", "registrertAvEnhet", "resultat", "saksblokk", "saksnr", "tkNr", "type", "undervalg", "valg" ]
+      },
+      "InfotrygdSakerResponse" : {
+        "type" : "object",
+        "properties" : {
+          "saker" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/InfotrygdSakResponse"
+            }
+          }
+        },
+        "required" : [ "saker" ]
+      },
+      "PeriodeRequest" : {
+        "type" : "object",
+        "properties" : {
+          "personidenter" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "uniqueItems" : true
+          },
+          "stønadstyper" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "GRUNNSTØNAD", "HJELPESTØNAD" ]
+            },
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "personidenter", "stønadstyper" ]
+      },
+      "PeriodeResponse" : {
+        "type" : "object",
+        "properties" : {
+          "personident" : {
+            "type" : "string"
+          },
+          "stønadstype" : {
+            "type" : "string",
+            "enum" : [ "GRUNNSTØNAD", "HJELPESTØNAD" ]
+          },
+          "sakstype" : {
+            "type" : "string"
+          },
+          "kode" : {
+            "type" : "string"
+          },
+          "brukerId" : {
+            "type" : "string"
+          },
+          "stønadId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "vedtakId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "vedtakstidspunkt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "vedtakKodeResultat" : {
+            "type" : "string"
+          },
+          "startDato" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "innvilgetFom" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "innvilgetTom" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "opphørsdato" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "oppdragId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "typeDelytelse" : {
+            "type" : "string"
+          },
+          "typeSats" : {
+            "type" : "string"
+          },
+          "typeUtbetaling" : {
+            "type" : "string"
+          },
+          "stønadFom" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "stønadTom" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "beløp" : {
+            "type" : "number"
+          },
+          "trygdetidOgSats" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TrygdetidOgSatsResponse"
+            }
+          }
+        },
+        "required" : [ "beløp", "brukerId", "innvilgetFom", "kode", "personident", "sakstype", "startDato", "stønadFom", "stønadId", "stønadstype", "trygdetidOgSats", "typeDelytelse", "typeSats", "typeUtbetaling", "vedtakId", "vedtakKodeResultat", "vedtakstidspunkt" ]
+      },
+      "PerioderResponse" : {
+        "type" : "object",
+        "properties" : {
+          "grunnstønad" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PeriodeResponse"
+            }
+          },
+          "hjelpestønad" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PeriodeResponse"
+            }
+          }
+        },
+        "required" : [ "grunnstønad", "hjelpestønad" ]
+      },
+      "TrygdetidOgSatsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "tidspunktRegistrert" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "trygdetid" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "satsGs" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "satsHs" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "brukerId" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "brukerId", "tidspunktRegistrert", "trygdetid" ]
+      },
+      "TabellKolonnerResponse" : {
+        "type" : "object",
+        "properties" : {
+          "tabell" : {
+            "type" : "string"
+          },
+          "kolonner" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "kolonner", "tabell" ]
+      },
+      "TabellAntallRaderResponse" : {
+        "type" : "object",
+        "properties" : {
+          "tabell" : {
+            "type" : "string"
+          },
+          "antallRader" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "antallRader", "tabell" ]
+      },
+      "PersonerForMigreringResponse" : {
+        "type" : "object",
+        "properties" : {
+          "personidenter" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "personidenter" ]
+      }
+    },
+    "securitySchemes" : {
+      "oauth2" : {
+        "type" : "oauth2",
+        "name" : "oauth2",
+        "in" : "header",
+        "scheme" : "oauth2",
+        "flows" : {
+          "authorizationCode" : {
+            "authorizationUrl" : "https://login.microsoftonline.com/test-tenant/oauth2/v2.0/authorize",
+            "tokenUrl" : "https://login.microsoftonline.com/test-tenant/oauth2/v2.0/token",
+            "scopes" : {
+              "api://test-client/.default" : "read,write"
+            }
+          }
+        }
+      }
+    }
+  }
+}

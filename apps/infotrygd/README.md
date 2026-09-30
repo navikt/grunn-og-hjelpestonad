@@ -76,6 +76,15 @@ og skjemaet står i
 | `POST /api/infotrygd/saker/finn` | Saker fra `sa_sak_10` |
 | `GET /api/infotrygd/tabeller/*` | Kolonner og antall rader i replikatabellene |
 
+### Kontrakt mot sak
+
+[`openapi.json`](openapi.json) er kontrakten mellom infotrygd og sak. Sak
+genererer klientmodellene sine fra filen (pakken
+`no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt`) med
+`openapi-generator-maven-plugin`. `OpenApiKontraktTest` skriver filen fra
+`/v3/api-docs` og feiler når den var utdatert. Endrer du API-et, kjør testene og
+commit den oppdaterte filen.
+
 ### Perioder
 
 `/perioder` har samme lagdeling (`PeriodeController`, `PeriodeService` og
