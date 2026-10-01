@@ -55,7 +55,7 @@ lege, spesialist eller medisinsk ekspert.
 
 | Vilkår | Behandlingsgrunnlag | Kilde |
 |---|---|---|
-| Medlemskap | Personopplysninger, medlemskapsperioder | PDL, MEDL |
+| Medlemskap | Personopplysninger, unntaksperioder for medlemskap | PDL, MEDL |
 | Diagnose | Legeerklæring, uttalelse fra medisinsk ekspert | Søknad, ettersending, innhenting |
 | Institusjon | Institusjonsopphold | INST2 |
 | Nødvendige ekstrautgifter | Regninger og kvitteringer, legeerklæring | Søknad, ettersending, innhenting |
@@ -75,7 +75,8 @@ lege, spesialist eller medisinsk ekspert.
   perioder der både medlemskap og diagnose er oppfylt. Er det ingen slike
   perioder, blir det avslag uten flere vurderinger.
 - **Medlemskap** vurderes etter reglene for medlemskap i folketrygden. Er
-  diagnosen en yrkesskade, lempes medlemskapskravet etter § 6-9.
+  diagnosen en yrkesskade, lempes medlemskapskravet etter § 6-9. Se
+  [hvordan systemet foreslår medlemskapsperioder etter nasjonale regler](nasjonalt-medlemskap.md).
 - **Diagnose** vurderes ut fra legeerklæringen.
 - **Institusjon:** Søker som bor på institusjon, får ikke grunnstønad i
   perioden. Unntaket er når søker har ekstrautgifter ut over det institusjonen
