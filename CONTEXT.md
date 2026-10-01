@@ -16,8 +16,18 @@ Erklæring fra lege eller spesialist om søkers diagnose. Kommer med søknaden, 
 Dokumenter som mangler i søknaden, og som saksbehandler ber søker om å sende inn underveis i behandlingen.
 
 **Innhenting**:
-At saksbehandler henter opplysninger direkte fra lege, spesialist eller medisinsk ekspert underveis i behandlingen.
+At Nav henter opplysninger fra andre enn søker, enten fra registre eller fra lege, spesialist eller medisinsk ekspert.
 _Avoid_: Ettersending (for opplysninger som ikke kommer fra søker)
+
+**Unntaksperiode for medlemskap**:
+En periode i medlemskapsregisteret der søker er medlem eller ikke medlem av folketrygden på et annet grunnlag enn bosted i Norge. At søker ikke har noen unntaksperioder for medlemskap, betyr ikke at søker ikke er medlem.
+
+**Medlemskapsperiode**:
+En periode der saksbehandler har vurdert om søker er medlem av folketrygden, etter nasjonale regler eller EØS-reglene. Medlemskapsperiodene er vurderingen av vilkåret medlemskap og dekker hele tidslinjen.
+
+**Forslag til medlemskapsperioder**:
+En tidslinje som systemet utleder fra behandlingsgrunnlaget for medlemskap. Hver periode har enten en foreslått vurdering, eller en grunn til at saksbehandler må vurdere den manuelt. Det blir til medlemskapsperioder først når saksbehandler godtar det.
+_Avoid_: Automatisk vurdering, maskinell vurdering, aksjonspunkt
 
 ## Vilkår
 
