@@ -1,13 +1,12 @@
 package no.nav.grunn.og.hjelpestonad.oppgave
 
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingRepository
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
 import no.nav.grunn.og.hjelpestonad.oppgave.dto.AnsvarligSaksbehandlerResponse
 import no.nav.grunn.og.hjelpestonad.oppgave.dto.SaksbehandlerRolle
 import no.nav.grunn.og.hjelpestonad.saksbehandler.EntraProxyClient
 import org.slf4j.LoggerFactory
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -16,7 +15,7 @@ class AnsvarligSaksbehandlerService(
     private val oppgaveService: OppgaveService,
     private val oppgaveClient: OppgaveClient,
     private val entraProxyClient: EntraProxyClient,
-    private val behandlingRepository: BehandlingRepository,
+    private val behandlingService: BehandlingService,
 ) {
     private val logger = LoggerFactory.getLogger(AnsvarligSaksbehandlerService::class.java)
 
@@ -64,7 +63,7 @@ class AnsvarligSaksbehandlerService(
             gosysOppgave.tilordnetRessurs
         } else {
             logger.info("Ingen oppgave funnet for behandling=$behandlingId, bruker opprettetAv fra behandling")
-            val behandling = behandlingRepository.findByIdOrNull(behandlingId) ?: throw IllegalStateException("Finner ikke behandling med id=$behandlingId")
+            val behandling = behandlingService.hentBehandling(behandlingId) ?: throw IllegalStateException("Finner ikke behandling med id=$behandlingId")
 
             behandling.sporbar.opprettetAv
         }

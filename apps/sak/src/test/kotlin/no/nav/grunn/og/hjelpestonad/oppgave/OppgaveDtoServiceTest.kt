@@ -7,6 +7,7 @@ import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingRepository
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakPersonRepository
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakRepository
@@ -33,7 +34,7 @@ class OppgaveDtoServiceTest {
             fagsakPersonRepository = fagsakPersonRepository,
             oppgaveClient = oppgaveClient,
             oppgaveRepository = oppgaveRepository,
-            behandlingRepository = behandlingRepository,
+            behandlingService = BehandlingService(behandlingRepository),
         )
 
     @Test

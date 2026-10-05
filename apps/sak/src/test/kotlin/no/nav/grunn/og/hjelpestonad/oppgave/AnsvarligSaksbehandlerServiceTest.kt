@@ -9,6 +9,7 @@ import io.mockk.unmockkObject
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingRepository
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.felles.sporbar.Sporbar
@@ -34,7 +35,7 @@ class AnsvarligSaksbehandlerServiceTest {
             oppgaveService = oppgaveService,
             oppgaveClient = oppgaveClient,
             entraProxyClient = entraProxyClient,
-            behandlingRepository = behandlingRepository,
+            behandlingService = BehandlingService(behandlingRepository),
         )
 
     @BeforeEach

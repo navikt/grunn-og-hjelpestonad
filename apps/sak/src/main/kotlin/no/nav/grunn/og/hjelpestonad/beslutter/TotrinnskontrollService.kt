@@ -1,6 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.beslutter
 
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingRepository
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.TotrinnskontrollDto
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.TotrinnskontrollStatus
@@ -8,18 +8,17 @@ import no.nav.grunn.og.hjelpestonad.beslutter.dto.TotrinnskontrollStatusResponse
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.BehandlingEndringRepository
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
 class TotrinnskontrollService(
     private val behandlingEndringRepository: BehandlingEndringRepository,
-    private val behandlingRepository: BehandlingRepository,
+    private val behandlingService: BehandlingService,
 ) {
     fun hentTotrinnskontrollStatus(behandlingId: UUID): TotrinnskontrollStatusResponse {
         val behandling =
-            behandlingRepository.findByIdOrNull(behandlingId)
+            behandlingService.hentBehandling(behandlingId)
                 ?: throw IllegalStateException("Finner ikke behandling med id=$behandlingId")
 
         return when (behandling.status) {
