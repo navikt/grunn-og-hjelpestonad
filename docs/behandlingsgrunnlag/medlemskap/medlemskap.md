@@ -176,7 +176,7 @@ Forslaget er ikke å lagre endringsloggen (`metadata.endringer`).
 | Tabell | Kolonner i tillegg til metadata |
 |---|---|
 | `behandlingsgrunnlag_pdl_folkeregisterpersonstatus` | `status`, `forenklet_status` |
-| `behandlingsgrunnlag_pdl_bostedsadresse` | `gyldig_fra_og_med`, `gyldig_til_og_med`, `angitt_flyttedato`, adressetype og land. Se åpne spørsmål. |
+| `behandlingsgrunnlag_pdl_bostedsadresse` | `adressetype` (`VEGADRESSE`, `MATRIKKELADRESSE`, `UTENLANDSK_ADRESSE` eller `UKJENT_BOSTED`), `kommunenummer`, `bostedskommune`, `landkode`, `gyldig_fra_og_med`, `gyldig_til_og_med`, `angitt_flyttedato`. Ikke resten av adressen. |
 | `behandlingsgrunnlag_pdl_statsborgerskap` | `land`, `gyldig_fra_og_med`, `gyldig_til_og_med`, `bekreftelsesdato` |
 | `behandlingsgrunnlag_pdl_opphold` | `type`, `opphold_fra`, `opphold_til` |
 | `behandlingsgrunnlag_pdl_innflytting_til_norge` | `fraflyttingsland`, `fraflyttingssted_i_utlandet` |
@@ -227,20 +227,47 @@ kombinasjonen fungerer i dev:
 
 ## PDL
 
-Forslaget er å hente disse, alle med historikk, slik at de kan periodiseres:
+Spørringen vi bruker, er
+[`hent_behandlingsgrunnlag.graphql`](../../../apps/sak/src/main/resources/pdl/hent_behandlingsgrunnlag.graphql).
+Den kjøres når behandlingen opprettes, og når saksbehandler henter på nytt.
 
-| Opplysning | Brukes til |
-|---|---|
-| `folkeregisterpersonstatus` | Om søker er bosatt. Død avslutter tidslinjen. |
-| `bostedsadresse` (også utenlandsk adresse) | Hvor søker bor. I et forslag gir utenlandsk adresse manuell vurdering. |
-| `statsborgerskap` | Norden, EØS eller tredjeland |
-| `opphold` (oppholdstillatelse fra UDI) | Lovlig opphold for tredjelandsborgere |
-| `innflyttingTilNorge` | Vises for saksbehandler |
-| `utflyttingFraNorge` | Vises for saksbehandler |
+### Hva vi henter, og hvorfor
 
-PDL-skjemaet i `apps/sak/src/main/resources/pdl/pdl-api-schema.graphql` har
-alle feltene, men spørringene våre henter dem ikke ennå. `oppholdsadresse`,
-`deltBosted` og `kontaktadresse` finnes også, men de er ikke med i forslaget.
+Medlem i folketrygden er i utgangspunktet den som er bosatt i Norge (ftrl.
+§ 2-1). Vi henter derfor det Folkeregisteret sier om bosted, og det som
+avgjør hvilke regler som gjelder for den som bor her:
+
+| Opplysning | Felt vi henter | Hvorfor |
+|---|---|---|
+| `folkeregisterpersonstatus` | `status`, `forenkletStatus` | Om søker er bosatt, utflyttet eller død. Død avslutter tidslinjen. |
+| `bostedsadresse` | Adressetype, `kommunenummer`, `bostedskommune`, `landkode`, `gyldigFraOgMed`, `gyldigTilOgMed`, `angittFlyttedato` | Om søker bor i Norge, i utlandet eller har ukjent bosted, og når. Utenlandsk adresse gir manuell vurdering. |
+| `statsborgerskap` | `land`, `gyldigFraOgMed`, `gyldigTilOgMed`, `bekreftelsesdato` | Om søker er nordisk statsborger, EØS-borger eller tredjelandsborger. Det avgjør hvilke regler som gjelder. |
+| `opphold` | `type`, `oppholdFra`, `oppholdTil` | Oppholdstillatelse fra UDI. Tredjelandsborgere må ha lovlig opphold. |
+| `innflyttingTilNorge` | `fraflyttingsland`, `fraflyttingsstedIUtlandet` | Viser saksbehandler når og hvorfra søker flyttet til Norge. |
+| `utflyttingFraNorge` | `tilflyttingsland`, `tilflyttingsstedIUtlandet`, `utflyttingsdato` | Viser saksbehandler når og hvor søker flyttet fra Norge. |
+
+For alle opplysningene henter vi også `metadata.historisk` og
+`metadata.master`, og `gyldighetstidspunkt` og `opphoerstidspunkt` fra
+`folkeregistermetadata`. For noen opplysninger står perioden bare der.
+
+Vi henter med historikk (`historikk: true`). Medlemskapsperiodene dekker hele
+tidslinjen, så vi trenger å vite hvor søker bodde og hvilket statsborgerskap
+søker hadde tidligere, ikke bare i dag. `innflyttingTilNorge` og
+`utflyttingFraNorge` har ikke valget og gir alltid alle.
+
+### Hva vi ikke henter
+
+ADR-0007 sier at vi bare lagrer det vilkårene trenger. Derfor henter vi ikke:
+
+- Resten av bostedsadressen, som gate, husnummer og postnummer. Vilkåret
+  trenger bare å vite om adressen er norsk, utenlandsk eller ukjent, og
+  kommunen eller landet.
+- Endringsloggen (`metadata.endringer`).
+- `oppholdsadresse`, `deltBosted` og `kontaktadresse`. De sier ikke hvor
+  søker er bosatt etter folkeregisterloven.
+
+PDL-skjemaet i `apps/sak/src/main/resources/pdl/pdl-api-schema.graphql` viser
+alle feltene vi kan hente.
 
 ## Slik gjør K9
 
@@ -354,14 +381,9 @@ vurderer saksbehandler alle periodene selv. Se [Ambisjonsnivå](#ambisjonsnivå)
   feltet `medlem`.
 - Skal vi lagre `studieinformasjon` fra MEDL? K9 lagrer studieland og tar
   perioder fra Lånekassen ut av vurderingen.
-- Hvor mye av bostedsadressen skal vi lagre? Forslaget trenger bare om
-  adressen er norsk, utenlandsk eller ukjent, og landet. Saksbehandler vil
-  trolig se hele adressen, men ADR-0007 sier at vi bare lagrer det vilkårene
-  trenger.
+- Hvor mye av bostedsadressen skal vi lagre? Vi lagrer foreløpig bare om
+  adressen er norsk, utenlandsk eller ukjent, kommunen og landet. Det er det
+  forslaget trenger. Vil saksbehandler se hele adressen, må vi lagre mer.
 - `sporingsinformasjon` har `opprettetAv` og `sistEndretAv`. Trenger vi dem,
   eller holder det med tidspunktene?
-- Skal radene med behandlingsgrunnlag peke på hentingen (`henting_id`) i
-  stedet for på behandlingen (`behandling_id`)? Da sier databasen at dataene
-  hører til en henting, og en ny henting kan erstatte de gamle radene ved å
-  slette hentingen.
 - Spør søknaden om utenlandsopphold?

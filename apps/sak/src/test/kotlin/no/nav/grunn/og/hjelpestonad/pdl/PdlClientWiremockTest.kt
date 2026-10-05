@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class PdlClientWiremockTest {
     companion object {
@@ -199,6 +200,89 @@ class PdlClientWiremockTest {
             pdlClient.hentFamilieRelasjoner(
                 PdlRequest(query = "query {}", variables = emptyMap()),
             )
+        }
+    }
+
+    @Test
+    fun `hentBehandlingsgrunnlag leser personopplysningene fra PDL`() {
+        stubForGraphql(
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "folkeregisterpersonstatus": [
+                    {
+                      "status": "bosatt",
+                      "forenkletStatus": "bosattEtterFolkeregisterloven",
+                      "metadata": { "historisk": false, "master": "FREG", "endringer": [] },
+                      "folkeregistermetadata": { "gyldighetstidspunkt": "2020-01-01T12:30:00", "opphoerstidspunkt": null }
+                    }
+                  ],
+                  "bostedsadresse": [
+                    {
+                      "gyldigFraOgMed": "2020-01-01T00:00",
+                      "gyldigTilOgMed": null,
+                      "angittFlyttedato": "2020-01-01",
+                      "vegadresse": null,
+                      "matrikkeladresse": null,
+                      "utenlandskAdresse": { "landkode": "SWE" },
+                      "ukjentBosted": null,
+                      "metadata": { "historisk": true, "master": "FREG" },
+                      "folkeregistermetadata": null
+                    }
+                  ],
+                  "statsborgerskap": [
+                    {
+                      "land": "NOR",
+                      "gyldigFraOgMed": "1990-01-15",
+                      "gyldigTilOgMed": null,
+                      "bekreftelsesdato": null,
+                      "metadata": { "historisk": false, "master": "FREG" },
+                      "folkeregistermetadata": null
+                    }
+                  ],
+                  "opphold": [
+                    {
+                      "type": "PERMANENT",
+                      "oppholdFra": "2019-01-01",
+                      "oppholdTil": null,
+                      "metadata": { "historisk": false, "master": "FREG" },
+                      "folkeregistermetadata": { "gyldighetstidspunkt": null, "opphoerstidspunkt": null }
+                    }
+                  ],
+                  "innflyttingTilNorge": [],
+                  "utflyttingFraNorge": []
+                }
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val person = pdlClient.hentBehandlingsgrunnlag(PdlRequest(query = "query {}", variables = mapOf("ident" to "123")))
+
+        assertThat(person).isNotNull
+        val personstatus = person!!.folkeregisterpersonstatus.single()
+        assertThat(personstatus.status).isEqualTo("bosatt")
+        assertThat(personstatus.folkeregistermetadata?.gyldighetstidspunkt).isEqualTo(LocalDateTime.of(2020, 1, 1, 12, 30))
+        val bostedsadresse = person.bostedsadresse.single()
+        assertThat(bostedsadresse.utenlandskAdresse?.landkode).isEqualTo("SWE")
+        assertThat(bostedsadresse.gyldigFraOgMed).isEqualTo(LocalDateTime.of(2020, 1, 1, 0, 0))
+        assertThat(bostedsadresse.metadata.historisk).isTrue
+        assertThat(person.statsborgerskap.single().land).isEqualTo("NOR")
+        assertThat(person.opphold.single().type).isEqualTo("PERMANENT")
+        assertThat(person.innflyttingTilNorge).isEmpty()
+        assertEquals(listOf("pdlScope"), texasClient.requestedOboAudiences)
+    }
+
+    @Test
+    fun `hentBehandlingsgrunnlag kaster PdlException ved teknisk feil`() {
+        wireMockServer.stubFor(
+            post(urlEqualTo("/graphql"))
+                .willReturn(serverError()),
+        )
+
+        assertThrows<PdlException> {
+            pdlClient.hentBehandlingsgrunnlag(PdlRequest(query = "query {}", variables = emptyMap()))
         }
     }
 

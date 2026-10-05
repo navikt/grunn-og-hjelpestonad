@@ -5,6 +5,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.LagBehandleSakOppgaveTask
+import no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl.PdlBehandlingsgrunnlagService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
@@ -18,6 +19,7 @@ class OpprettBehandlingService(
     private val behandlingService: BehandlingService,
     private val lagBehandleSakOppgaveTask: LagBehandleSakOppgaveTask,
     private val endringshistorikkService: EndringshistorikkService,
+    private val pdlBehandlingsgrunnlagService: PdlBehandlingsgrunnlagService,
 ) {
     @Transactional
     fun opprettBehandling(
@@ -46,6 +48,8 @@ class OpprettBehandlingService(
             behandlingId = behandling.id,
             endringType = EndringType.BEHANDLING_OPPRETTET,
         )
+
+        pdlBehandlingsgrunnlagService.innhentOgLagre(behandling)
 
         return behandling
     }

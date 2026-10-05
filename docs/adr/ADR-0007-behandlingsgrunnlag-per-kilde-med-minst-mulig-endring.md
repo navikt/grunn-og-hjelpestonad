@@ -7,15 +7,7 @@
 ## Kontekst
 
 Vilkårene vurderes ut fra behandlingsgrunnlag som hentes fra registre, for
-eksempel PDL og MEDL. Medlemskap er det første vilkåret som trenger
-behandlingsgrunnlag fra mer enn én kilde. Medlemskapsperiodene utledes fra
-personopplysningene i PDL og unntaksperiodene for medlemskap i MEDL.
-
-K9 (`AvklaringFaktaMedlemskap` i k9-sak) samler alt grunnlaget for medlemskap i
-ett `MedlemskapAggregat`. MEDL-kodene oversettes til K9 sine egne typer, og
-perioder filtreres på gyldighet før de brukes. Da er det vanskelig å se hva
-kilden faktisk sa, og det samme registeret kan ikke gjenbrukes av andre vilkår
-uten å gå via medlemskapsaggregatet.
+eksempel PDL.
 
 Behandlingsgrunnlaget må kunne etterprøves: Saksbehandler og beslutter skal se
 hva som ble hentet, når det ble hentet, og om kilden svarte uten treff.
@@ -42,8 +34,10 @@ hva som ble hentet, når det ble hentet, og om kilden svarte uten treff.
    treff» fra «ikke hentet», og radene med behandlingsgrunnlag trenger ikke
    eget hentetidspunkt.
 6. **Automatisk henting, og ny henting ved behov.** Behandlingsgrunnlaget
-   hentes når behandlingen opprettes. Svarer ikke kilden, opprettes
-   behandlingen likevel, og frontend viser at grunnlaget ikke er hentet.
+   hentes i samme transaksjon som behandlingen opprettes. Svarer ikke kilden,
+   feiler opprettelsen, og saksbehandler må prøve på nytt. Da har alle nye
+   behandlinger grunnlag fra kildene, og resten av løsningen trenger ikke
+   håndtere behandlinger uten grunnlag.
    Saksbehandler kan hente på nytt så lenge behandlingen kan redigeres. En ny
    henting erstatter det som er lagret fra samme kilde for denne behandlingen.
    Behandlingsgrunnlaget i andre behandlinger endres aldri.
@@ -70,6 +64,14 @@ hva som ble hentet, når det ble hentet, og om kilden svarte uten treff.
   kilde kan brukes av flere vilkår.
 - **Ulemper:** Flere tabeller, og nye felt fra kilden krever migrering.
 
+### Alternativ D: Opprett behandlingen selv om kilden ikke svarer
+
+- **Fordeler:** Saksbehandler kan opprette behandlinger selv om en kilde er
+  nede.
+- **Ulemper:** Alle deler av løsningen må håndtere behandlinger uten grunnlag.
+  Feiler lagringen av grunnlaget, ruller transaksjonen uansett tilbake
+  opprettelsen. Da beskytter dette bare mot feil fra kilden.
+
 ## Nav-spesifikke vurderinger
 
 ### Sikkerhet og personvern
@@ -93,12 +95,15 @@ sjekkes mot tilgangsmaskinen før grunnlaget hentes eller vises.
 
 ### Risiko
 
+Er en kilde nede, kan ingen behandlinger opprettes før den svarer igjen.
+
 Automatisk henting når behandlingen opprettes forutsetter at vi har et token å
 hente med. I dag opprettes behandlinger bare av saksbehandler. Opprettes de
-senere av et system, trenger vi maskin-til-maskin-tilgang til kildene.
+senere av et system, trenger vi maskin-til-maskin-tilgang til kildene, ellers
+feiler opprettelsen.
 
 ## Aksjonspunkter
 
 - [ ] Godkjenn eller forkast ADR-en i teamet.
 - [ ] Lag behandlingsgrunnlaget fra MEDL.
-- [ ] Lag behandlingsgrunnlaget fra PDL.
+- [x] Lag behandlingsgrunnlaget fra PDL.

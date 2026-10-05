@@ -111,6 +111,34 @@ class PdlClient(
         }
     }
 
+    fun hentBehandlingsgrunnlag(request: PdlRequest): PersonBehandlingsgrunnlag? {
+        logger.info("Utfører PDL-operasjon: hentBehandlingsgrunnlag")
+        try {
+            val pdlResponse =
+                pdlRestClient
+                    .post()
+                    .uri("/graphql")
+                    .headers { it.addAll(lagPdlOnBehalfOfHeaders()) }
+                    .body(request)
+                    .retrieve()
+                    .body(PdlResponseBehandlingsgrunnlag::class.java)
+
+            håndterPdlErrors(pdlResponse?.errors, "hentBehandlingsgrunnlag")
+            return pdlResponse?.data?.hentPerson
+        } catch (e: Exception) {
+            when (e) {
+                is PdlException, is ManglerTilgang -> {
+                    throw e
+                }
+
+                else -> {
+                    logger.error("Feil ved kall til PDL", e)
+                    throw PdlException("Teknisk feil ved henting av behandlingsgrunnlag fra PDL", e)
+                }
+            }
+        }
+    }
+
     private fun lagPdlOnBehalfOfHeaders(): HttpHeaders =
         pdlHeaders().apply {
             setBearerAuth(texasClient.hentOboToken(pdlScope))
