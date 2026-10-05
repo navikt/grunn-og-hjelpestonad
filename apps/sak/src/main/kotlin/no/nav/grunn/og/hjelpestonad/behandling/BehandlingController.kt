@@ -1,7 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.behandling
 
+import no.nav.grunn.og.hjelpestonad.behandling.henleggBehandling.HenleggBehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.oppretteBehandling.OpprettBehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
-import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
@@ -35,19 +36,15 @@ data class OpprettBehandlingResponse(
 @RequestMapping(path = ["/api/behandling"])
 class BehandlingController(
     private val behandlingService: BehandlingService,
+    private val opprettBehandlingService: OpprettBehandlingService,
+    private val henleggBehandlingService: HenleggBehandlingService,
     private val endringshistorikkService: EndringshistorikkService,
 ) {
     @PostMapping("/opprett")
     fun opprettBehandling(
         @RequestBody opprettRequest: OpprettRequest,
     ): ResponseEntity<OpprettBehandlingResponse> {
-        val fagsakId = opprettRequest.fagsakId
-
-        if (behandlingService.finnesÅpenBehandling(opprettRequest.fagsakId)) {
-            throw Feil("Finnes åpen behandling")
-        }
-
-        val behandling = behandlingService.opprettBehandling(fagsakId)
+        val behandling = opprettBehandlingService.opprettBehandling(opprettRequest.fagsakId)
 
         return ResponseEntity.ok(OpprettBehandlingResponse(behandlingId = behandling.id))
     }
@@ -56,7 +53,7 @@ class BehandlingController(
     fun henleggBehandling(
         @RequestBody henleggRequest: HenleggRequest,
     ): ResponseEntity<Void> {
-        behandlingService.henleggBehandling(behandlingId = henleggRequest.behandlingId)
+        henleggBehandlingService.henleggBehandling(behandlingId = henleggRequest.behandlingId)
         return ResponseEntity.noContent().build()
     }
 

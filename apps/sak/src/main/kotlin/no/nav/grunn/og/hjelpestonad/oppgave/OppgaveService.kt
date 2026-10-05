@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import jakarta.validation.constraints.Pattern
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingRepository
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakPersonRepository
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakRepository
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.Fagsak
@@ -25,7 +25,7 @@ class OppgaveService(
     private val fagsakPersonRepository: FagsakPersonRepository,
     private val oppgaveClient: OppgaveClient,
     private val oppgaveRepository: OppgaveRepository,
-    private val behandlingRepository: BehandlingRepository,
+    private val behandlingService: BehandlingService,
 ) {
     private val logger = LoggerFactory.getLogger(OppgaveService::class.java)
 
@@ -200,7 +200,7 @@ class OppgaveService(
 
     private fun hentFagsakForBehandling(behandlingId: UUID): Fagsak {
         val behandling =
-            behandlingRepository.findByIdOrNull(behandlingId)
+            behandlingService.hentBehandling(behandlingId)
                 ?: throw IllegalStateException("Finner ikke behandling med id=$behandlingId")
 
         return fagsakRepository.findByIdOrNull(behandling.fagsakId)

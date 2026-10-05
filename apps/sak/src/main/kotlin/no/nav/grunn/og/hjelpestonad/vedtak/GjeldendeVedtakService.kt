@@ -1,8 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.vedtak
 
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingRepository
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.YearMonth
@@ -10,7 +9,7 @@ import java.util.UUID
 
 @Service
 class GjeldendeVedtakService(
-    private val behandlingRepository: BehandlingRepository,
+    private val behandlingService: BehandlingService,
     private val vedtakRepository: VedtakRepository,
 ) {
     fun hentGjeldendeVedtakFraDato(
@@ -18,11 +17,11 @@ class GjeldendeVedtakService(
         fra: YearMonth,
     ): HistoriskVedtakResponse {
         val behandling =
-            behandlingRepository.findByIdOrNull(behandlingId)
+            behandlingService.hentBehandling(behandlingId)
                 ?: throw Feil("Fant ikke behandling med id=$behandlingId")
 
         val alleFerdigstilteBehandlinger =
-            behandlingRepository
+            behandlingService
                 .finnAlleIverksatteBehandlinger(behandling.fagsakId)
                 .sortedBy { it.sporbar.endret.endretTid }
 
