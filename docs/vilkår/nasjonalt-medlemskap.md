@@ -7,10 +7,10 @@ lenger ned. Begrepene er definert i [CONTEXT.md](../../CONTEXT.md), og
 behandlingsgrunnlaget er beskrevet i
 [behandlingsgrunnlag/medlemskap](../behandlingsgrunnlag/medlemskap/medlemskap.md).
 
-Dette er en plan for hvordan forslaget kan lages, ikke en beslutning om at vi
-skal lage det. Første runde kan bli at systemet bare henter og viser
-behandlingsgrunnlaget, og at saksbehandler vurderer alt. Da kommer forslaget
-senere, og kanskje først etter at vi henter fra Aa-registeret og A-ordningen.
+Dette dokumentet er et forslag til hvordan systemet kan foreslå
+medlemskapsperioder, ikke en beslutning om at vi skal lage det. Første runde
+kan bli at systemet bare henter og viser behandlingsgrunnlaget, og at
+saksbehandler vurderer alt. Da kommer forslag til medlemskapsperioder senere, og kanskje først etter at vi henter fra Aa-registeret og A-ordningen.
 Se [Ambisjonsnivå](../behandlingsgrunnlag/medlemskap/medlemskap.md#ambisjonsnivå).
 Ingenting av dette er i produksjon. Delene om MEDL og rekkefølgen må vi jobbe
 mer med.
@@ -58,8 +58,8 @@ sealed interface ForslagTilMedlemskapsperiode {
   domenet. En periode kan ha flere grunner samtidig.
 - Like perioder ved siden av hverandre slås sammen.
 
-Planen er at forslaget ikke lagres, men beregnes når saksbehandler ser på
-vilkåret. Saksbehandler godtar eller endrer det, og først da lagres
+Forslaget er at forslag til medlemskapsperioder ikke lagres, men beregnes når
+saksbehandler ser på vilkåret. Saksbehandler godtar eller endrer det, og først da lagres
 `VilkårMedlemskap`. Hentes grunnlaget på nytt etter at medlemskap er vurdert,
 beholdes vurderingen. Avviker et nytt forslag fra det som er lagret, viser vi
 at grunnlaget er endret.
@@ -82,7 +82,7 @@ personstatusen får grunnen «mangler opplysninger».
 
 ## Tolkning av MEDL
 
-Planen tar utgangspunkt i hvordan K9 tolker unntaksperiodene. Det er beskrevet i
+Forslaget tar utgangspunkt i hvordan K9 tolker unntaksperiodene. Det er beskrevet i
 [Hvordan K9 tolker dekningskodene](#hvordan-k9-tolker-dekningskodene). For hver
 periode på tidslinjen:
 
@@ -100,8 +100,15 @@ periode på tidslinjen:
 Gjelder flere unntaksperioder samtidig, sjekkes «ikke medlem» før «pliktig
 eller frivillig medlem», som i K9.
 
-Planen avviker fra K9 på ett punkt: ukjente dekningskoder blir manuell
+Forslaget avviker fra K9 på ett punkt: ukjente dekningskoder blir manuell
 vurdering. K9 tar dem ikke med, og da forsvinner de uten varsel.
+
+**Spørsmål til fag: passer K9 sine grupper for § 2-9?** K9 regner
+`FTL_2-9_1_ledd_a` og `_c` som medlem og `FTL_2-9_1_ledd_b` som ikke medlem.
+§ 2-9 første ledd lister opp hvilke kapitler hver bokstav dekker, og kap. 6
+står ikke under samme bokstaver som kap. 9 og kap. 14. Grupperingen kan komme
+fra foreldrepenger (regeltreet heter `FP_VK_2`). Fag må vurdere
+hvilke av § 2-9-kodene som gir medlemskap for grunnstønad.
 
 ### Mulig forenkling
 
@@ -113,7 +120,7 @@ K9 sine grupper er laget for K9 sine ytelser. En enklere regel, nærmere EF:
   som dekker kap. 6. Ellers manuell vurdering, fordi frivillig medlemskap
   etter § 2-9 kan dekke bare deler av folketrygden.
 
-Listen over koder som dekker kap. 6, må fagpersonene lage. Inntil den finnes,
+Listen over koder som dekker kap. 6, må fag lage. Inntil den finnes,
 gir alle perioder med `medlem = true` manuell vurdering.
 
 ## Tolkning av PDL
@@ -145,7 +152,7 @@ Forslaget i dette dokumentet er å alltid bruke regionen med høyest rang.
 **Til diskusjon.** K9 sin regel er at MEDL vinner: en gyldig unntaksperiode
 som ikke medlem gir NEI selv om søker er bosatt, og en gyldig periode som
 pliktig eller frivillig medlem gir JA selv om søker er utvandret. PDL brukes
-bare der MEDL ikke avgjør. Planen følger K9 inntil vi har diskutert det.
+bare der MEDL ikke avgjør. Forslaget følger K9 inntil vi har diskutert det.
 
 Spørsmål å diskutere:
 
@@ -191,7 +198,7 @@ i [behandlingsgrunnlag/medlemskap](../behandlingsgrunnlag/medlemskap/medlemskap.
   saksbehandler.
 - Alt annet vurderer saksbehandler med faste svaralternativer.
 
-Planen tar med seg at systemet bare foreslår det som er klart, og at resten
+Forslaget tar med seg at systemet bare foreslår det som er klart, og at resten
 vurderes av saksbehandler. Den tar ikke med at vilkåret vurderes for hele
 behandlingen.
 
@@ -340,7 +347,7 @@ grunnlaget og forslaget beregnes på nytt.
   mulige forenklingen.
 - Hvorfor behandler K9 statsborgere i USA og Papua Ny-Guinea særskilt når de
   er unntatt i MEDL? Koden forklarer det ikke («Sært, men USA og Papua
-  Ny-Guinea særbehandles»). Til fagpersonene har beskrevet regelen, blir de
+  Ny-Guinea særbehandles»). Til fag har beskrevet regelen, blir de
   vurdert manuelt.
 - Hvem regnes som nordiske statsborgere? Gjelder det Færøyene, Grønland og
   Åland også?

@@ -7,7 +7,7 @@ Hvordan behandlingsgrunnlaget blir til et forslag til medlemskapsperioder, står
 i [nasjonalt-medlemskap.md](../../vilkår/nasjonalt-medlemskap.md). Begrepene er
 definert i [CONTEXT.md](../../../CONTEXT.md).
 
-Dette er en plan, ikke en beslutning. Ingenting av det er i produksjon, og
+Dette er et forslag, ikke en beslutning. Ingenting av det er i produksjon, og
 både kildene og ambisjonsnivået kan endre seg. Se
 [Ambisjonsnivå](#ambisjonsnivå).
 
@@ -69,12 +69,12 @@ Hvilke kilder vi trenger, avhenger av nivået:
 - **Utenlandsopphold fra søknaden.** K9 og EF bruker det søker oppgir om
   opphold i utlandet. Vi vet ikke om søknaden om grunnstønad spør om dette.
 
-## Kildene i K9, EF og planen vår
+## Kildene i K9, EF og forslaget vårt
 
-| Kilde | K9 | EF | Plan for oss |
+| Kilde | K9 | EF | Forslag for oss |
 |---|---|---|---|
 | MEDL | Henter `GYLD` og `UAVK`, oversetter dekningskoden | Henter alt, bruker bare `GYLD` | Hente alt, lagre uendret |
-| PDL | Personstatus, statsborgerskap, adresser | Personstatus, statsborgerskap, adresser, opphold, inn- og utflytting | Som EF |
+| PDL | Personstatus, statsborgerskap, adresser | Personstatus, statsborgerskap, adresser, opphold, inn- og utflytting | Som K9 |
 | Søknaden | Oppgitt utenlandsopphold | Bosatt og opphold i Norge, utenlandsopphold | Uavklart |
 | Aa-registeret og A-ordningen | Arbeidsforhold og pensjonsgivende inntekt | Ikke for medlemskap | Kanskje før forslag |
 | Lagres som | Egne tabeller per aggregat, oversatt og periodisert | Ett JSON-dokument per behandling | Én tabell per opplysningstype, uendret |
@@ -154,8 +154,8 @@ unntaksperioder, svarte MEDL uten treff.
 | `lovvalg`, `lovvalgsland` | `lovvalg`, `lovvalgsland` | Kodeverk `LovvalgMedl`, `Landkoder` |
 | `sporingsinformasjon_*` | Hele `sporingsinformasjon`, flatet ut | `versjon`, `registrert`, `besluttet`, `kilde`, `kildedokument`, `opprettet`, `opprettet_av`, `sist_endret`, `sist_endret_av` |
 
-Planen er å lagre alle statuser, også avviste perioder, og la et eventuelt
-forslag velge hva som teller. Om vi skal lagre `studieinformasjon` (fra
+Forslaget er å lagre alle statuser, også avviste perioder, og la et eventuelt
+forslag til medlemskapsperioder velge hva som teller. Om vi skal lagre `studieinformasjon` (fra
 Lånekassen), er ikke avklart. Se åpne spørsmål.
 
 ### Personopplysninger fra PDL
@@ -171,7 +171,7 @@ står i metadata:
 | `gyldighetstidspunkt` | `folkeregistermetadata.gyldighetstidspunkt` |
 | `opphoerstidspunkt` | `folkeregistermetadata.opphoerstidspunkt` |
 
-Planen er ikke å lagre endringsloggen (`metadata.endringer`).
+Forslaget er ikke å lagre endringsloggen (`metadata.endringer`).
 
 | Tabell | Kolonner i tillegg til metadata |
 |---|---|
@@ -199,7 +199,7 @@ Dolly.
 - `status` sier om registreringen gjelder (for eksempel gyldig, avvist eller
   uavklart). Den sier ikke om søker er medlem.
 - `dekning`, `grunnlag`, `lovvalg` og `lovvalgsland` er koder fra kodeverk
-  (`DekningMedl`, `GrunnlagMedl`, `LovvalgMedl`, `Landkoder`). Planen er å
+  (`DekningMedl`, `GrunnlagMedl`, `LovvalgMedl`, `Landkoder`). Forslaget er å
   lagre kodene som de er.
 - `unntakId` er id-en MEDL bruker for perioden, og den er den samme fra oppslag
   til oppslag.
@@ -227,7 +227,7 @@ kombinasjonen fungerer i dev:
 
 ## PDL
 
-Planen er å hente disse, alle med historikk, slik at de kan periodiseres:
+Forslaget er å hente disse, alle med historikk, slik at de kan periodiseres:
 
 | Opplysning | Brukes til |
 |---|---|
@@ -240,7 +240,7 @@ Planen er å hente disse, alle med historikk, slik at de kan periodiseres:
 
 PDL-skjemaet i `apps/sak/src/main/resources/pdl/pdl-api-schema.graphql` har
 alle feltene, men spørringene våre henter dem ikke ennå. `oppholdsadresse`,
-`deltBosted` og `kontaktadresse` finnes også, men de er ikke med i planen.
+`deltBosted` og `kontaktadresse` finnes også, men de er ikke med i forslaget.
 
 ## Slik gjør K9
 
@@ -275,14 +275,14 @@ aggregatene til en ny henting gir en ny versjon.
 (`MEDLEMSKAP_VURDERING_PERIODE` og `MEDLEMSKAP_VURDERING_LOPENDE`) og et
 vilkårsresultat per periode for medlemskapsvilkåret.
 
-Slik skiller planen vår seg fra K9:
+Slik skiller forslaget vårt seg fra K9:
 
-- K9 oversetter MEDL-kodene før lagring. Planen er å lagre opplysningene
+- K9 oversetter MEDL-kodene før lagring. Forslaget er å lagre opplysningene
   uendret og tolke dem når de brukes.
-- K9 henter bare noen statuser fra MEDL. Planen er å hente alle.
-- K9 samler kildene for medlemskap i `GR_MEDLEMSKAP`. Planen er ett
+- K9 henter bare noen statuser fra MEDL. Forslaget er å hente alle.
+- K9 samler kildene for medlemskap i `GR_MEDLEMSKAP`. Forslaget er ett
   behandlingsgrunnlag per kilde.
-- K9 lagrer avklaringer per vurderingsdato. Planen er å lagre
+- K9 lagrer avklaringer per vurderingsdato. Forslaget er å lagre
   medlemskapsperioder.
 
 ## Slik gjør EF
@@ -321,14 +321,14 @@ faste spørsmål (`MedlemskapMapper` og `MedlemskapDto` viser grunnlaget).
 - Alt annet vurderer saksbehandler med faste svaralternativer, for eksempel
   «arbeid for norsk arbeidsgiver» eller «utenlandsopphold under seks uker».
 
-Slik skiller planen vår seg fra EF:
+Slik skiller forslaget vårt seg fra EF:
 
-- EF lagrer alle kildene samlet som JSON. Planen er ett behandlingsgrunnlag
+- EF lagrer alle kildene samlet som JSON. Forslaget er ett behandlingsgrunnlag
   per kilde, i kolonner.
-- EF viser bare de gyldige unntaksperiodene. Planen er å lagre alle.
-- EF vurderer for hele behandlingen. Planen er å lagre medlemskapsperioder.
+- EF viser bare de gyldige unntaksperiodene. Forslaget er å lagre alle.
+- EF vurderer for hele behandlingen. Forslaget er å lagre medlemskapsperioder.
 
-Hvis vi lager forslag, ligner planen på EF: systemet foreslår bare det som er
+Hvis vi lager forslag til medlemskapsperioder, ligner det på EF: systemet foreslår bare det som er
 klart, og resten vurderes av saksbehandler.
 
 ## Medlemskapsperioder
@@ -339,8 +339,8 @@ etter nasjonale regler eller EØS-reglene.
 
 Systemet kan etter hvert lage et forslag til medlemskapsperioder fra
 behandlingsgrunnlaget. Perioder systemet ikke kan avgjøre, får ingen
-vurdering, men en grunn til at saksbehandler må vurdere dem. Planen er at
-forslaget ikke lagres. Det er beskrevet i
+vurdering, men en grunn til at saksbehandler må vurdere dem. Forslaget er at
+forslag til medlemskapsperioder ikke lagres. Det er beskrevet i
 [nasjonalt-medlemskap.md](../../vilkår/nasjonalt-medlemskap.md). Før det finnes,
 vurderer saksbehandler alle periodene selv. Se [Ambisjonsnivå](#ambisjonsnivå).
 
@@ -350,7 +350,8 @@ vurderer saksbehandler alle periodene selv. Se [Ambisjonsnivå](#ambisjonsnivå)
   forslag? Se [Ambisjonsnivå](#ambisjonsnivå).
 - Må vi hente fra Aa-registeret og A-ordningen før vi lager forslag?
 - Hvilke dekningskoder i MEDL dekker kap. 6? K9 sin gruppering er laget for
-  K9 sine ytelser og kan ikke brukes direkte. EF bruker bare feltet `medlem`.
+  K9 sine ytelser, og det er uklart om den passer for oss. EF bruker bare
+  feltet `medlem`.
 - Skal vi lagre `studieinformasjon` fra MEDL? K9 lagrer studieland og tar
   perioder fra Lånekassen ut av vurderingen.
 - Hvor mye av bostedsadressen skal vi lagre? Forslaget trenger bare om
