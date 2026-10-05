@@ -6,8 +6,10 @@ import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
 import no.nav.grunn.og.hjelpestonad.fagsak.dto.FagsakResponse
 import no.nav.grunn.og.hjelpestonad.fagsak.dto.tilResponse
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 open class FagsakService(
@@ -22,6 +24,11 @@ open class FagsakService(
         val fagsak = hentEllerOpprett(fagsakPerson = fagsakPerson, stønadstype = request.stønadstype)
 
         return fagsak.tilResponse(personident)
+    }
+
+    fun hentAktivIdent(fagsakId: UUID): String {
+        val fagsak = fagsakRepository.findByIdOrNull(fagsakId) ?: error("Fant ikke fagsak med id=$fagsakId")
+        return fagsakPersonService.hentAktivIdent(fagsak.fagsakPersonId)
     }
 
     private fun hentFagsakPersonMedIdent(request: FagsakRequest): Pair<FagsakPerson, String> =

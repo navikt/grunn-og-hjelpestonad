@@ -6,6 +6,7 @@ import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.behandling.oppretteBehandling.OpprettBehandlingService
+import no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl.PdlBehandlingsgrunnlagService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
@@ -18,11 +19,13 @@ import kotlin.test.assertEquals
 
 class OpprettBehandlingServiceTest {
     private val behandlingRepository = mockk<BehandlingRepository>(relaxed = true)
+    private val pdlBehandlingsgrunnlagService = mockk<PdlBehandlingsgrunnlagService>(relaxed = true)
     private val opprettBehandlingService =
         OpprettBehandlingService(
             behandlingService = BehandlingService(behandlingRepository),
             lagBehandleSakOppgaveTask = mockk<LagBehandleSakOppgaveTask>(relaxed = true),
             endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true),
+            pdlBehandlingsgrunnlagService = pdlBehandlingsgrunnlagService,
         )
 
     @BeforeEach
@@ -48,6 +51,15 @@ class OpprettBehandlingServiceTest {
         assertEquals(fagsakId, behandling.fagsakId)
         assertEquals(BehandlingStatus.OPPRETTET, behandling.status)
         assertEquals(BehandlingResultat.IKKE_SATT, behandling.resultat)
+    }
+
+    @Test
+    fun `opprettBehandling innhenter behandlingsgrunnlag fra PDL`() {
+        every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
+
+        val behandling = opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
+
+        verify { pdlBehandlingsgrunnlagService.innhentOgLagre(behandling) }
     }
 
     @Test

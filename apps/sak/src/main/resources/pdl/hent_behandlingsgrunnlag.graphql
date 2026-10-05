@@ -1,0 +1,49 @@
+query ($ident: ID!) {
+    hentPerson(ident: $ident) {
+        folkeregisterpersonstatus(historikk: true) {
+            status
+            forenkletStatus
+            metadata { historisk master }
+            folkeregistermetadata { gyldighetstidspunkt opphoerstidspunkt }
+        }
+        bostedsadresse(historikk: true) {
+            gyldigFraOgMed
+            gyldigTilOgMed
+            angittFlyttedato
+            vegadresse { kommunenummer }
+            matrikkeladresse { kommunenummer }
+            utenlandskAdresse { landkode }
+            ukjentBosted { bostedskommune }
+            metadata { historisk master }
+            folkeregistermetadata { gyldighetstidspunkt opphoerstidspunkt }
+        }
+        statsborgerskap(historikk: true) {
+            land
+            gyldigFraOgMed
+            gyldigTilOgMed
+            bekreftelsesdato
+            metadata { historisk master }
+            folkeregistermetadata { gyldighetstidspunkt opphoerstidspunkt }
+        }
+        opphold(historikk: true) {
+            type
+            oppholdFra
+            oppholdTil
+            metadata { historisk master }
+            folkeregistermetadata { gyldighetstidspunkt opphoerstidspunkt }
+        }
+        innflyttingTilNorge {
+            fraflyttingsland
+            fraflyttingsstedIUtlandet
+            metadata { historisk master }
+            folkeregistermetadata { gyldighetstidspunkt opphoerstidspunkt }
+        }
+        utflyttingFraNorge {
+            tilflyttingsland
+            tilflyttingsstedIUtlandet
+            utflyttingsdato
+            metadata { historisk master }
+            folkeregistermetadata { gyldighetstidspunkt opphoerstidspunkt }
+        }
+    }
+}

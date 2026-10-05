@@ -30,6 +30,66 @@
               "relatertPersonsRolle": "BARN",
               "minRolleForPerson": "MOR"
             }
+          ],
+          "folkeregisterpersonstatus": [
+            {
+              "status": "bosatt",
+              "forenkletStatus": "bosattEtterFolkeregisterloven",
+              "metadata": { "historisk": false, "master": "FREG" },
+              "folkeregistermetadata": { "gyldighetstidspunkt": "1990-01-15T00:00:00", "opphoerstidspunkt": null }
+            }
+          ],
+          "bostedsadresse": [
+            {
+              "gyldigFraOgMed": "2015-06-01T00:00:00",
+              "gyldigTilOgMed": null,
+              "angittFlyttedato": "2015-06-01",
+              "vegadresse": { "kommunenummer": "0301" },
+              "matrikkeladresse": null,
+              "utenlandskAdresse": null,
+              "ukjentBosted": null,
+              "metadata": { "historisk": false, "master": "FREG" },
+              "folkeregistermetadata": { "gyldighetstidspunkt": "2015-06-01T00:00:00", "opphoerstidspunkt": null }
+            },
+            {
+              "gyldigFraOgMed": "2010-01-01T00:00:00",
+              "gyldigTilOgMed": "2015-05-31T00:00:00",
+              "angittFlyttedato": "2010-01-01",
+              "vegadresse": null,
+              "matrikkeladresse": null,
+              "utenlandskAdresse": { "landkode": "SWE" },
+              "ukjentBosted": null,
+              "metadata": { "historisk": true, "master": "FREG" },
+              "folkeregistermetadata": { "gyldighetstidspunkt": "2010-01-01T00:00:00", "opphoerstidspunkt": "2015-06-01T00:00:00" }
+            }
+          ],
+          "statsborgerskap": [
+            {
+              "land": "NOR",
+              "gyldigFraOgMed": "1990-01-15",
+              "gyldigTilOgMed": null,
+              "bekreftelsesdato": null,
+              "metadata": { "historisk": false, "master": "FREG" },
+              "folkeregistermetadata": { "gyldighetstidspunkt": "1990-01-15T00:00:00", "opphoerstidspunkt": null }
+            }
+          ],
+          "opphold": [],
+          "innflyttingTilNorge": [
+            {
+              "fraflyttingsland": "SWE",
+              "fraflyttingsstedIUtlandet": "Göteborg",
+              "metadata": { "historisk": false, "master": "FREG" },
+              "folkeregistermetadata": { "gyldighetstidspunkt": "2015-06-01T00:00:00", "opphoerstidspunkt": null }
+            }
+          ],
+          "utflyttingFraNorge": [
+            {
+              "tilflyttingsland": "SWE",
+              "tilflyttingsstedIUtlandet": "Göteborg",
+              "utflyttingsdato": "2010-01-01",
+              "metadata": { "historisk": false, "master": "FREG" },
+              "folkeregistermetadata": { "gyldighetstidspunkt": "2010-01-01T00:00:00", "opphoerstidspunkt": null }
+            }
           ]
         }
       }
