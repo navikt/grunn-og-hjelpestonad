@@ -64,7 +64,7 @@ class PdlBehandlingsgrunnlagServiceTest(
         val behandling = opprettBehandling()
         every { pdlService.hentBehandlingsgrunnlag(ident) } returns person
 
-        service.innhentOgLagre(behandling)
+        service.innhentBehandlingsgrunnlagFraPdl(behandling)
 
         val grunnlag = service.hent(behandling.id)!!
         assertThat(grunnlag.folkeregisterpersonstatus.single().status).isEqualTo("bosatt")
@@ -87,13 +87,13 @@ class PdlBehandlingsgrunnlagServiceTest(
         val behandling = opprettBehandling()
         val annenBehandling = opprettBehandling()
         every { pdlService.hentBehandlingsgrunnlag(ident) } returns person
-        service.innhentOgLagre(behandling)
-        service.innhentOgLagre(annenBehandling)
+        service.innhentBehandlingsgrunnlagFraPdl(behandling)
+        service.innhentBehandlingsgrunnlagFraPdl(annenBehandling)
         val førsteHenting = service.hent(behandling.id)!!.hentetTidspunkt
 
         every { pdlService.hentBehandlingsgrunnlag(ident) } returns
             PersonBehandlingsgrunnlag(statsborgerskap = listOf(statsborgerskap("DNK")))
-        val nyttGrunnlag = service.innhentPåNytt(behandling.id)
+        val nyttGrunnlag = service.innhentBehandlingsgrunnlagFraPdl(behandling.id)
 
         assertThat(nyttGrunnlag.hentetTidspunkt).isAfterOrEqualTo(førsteHenting)
         assertThat(nyttGrunnlag.statsborgerskap.map { it.land }).containsExactly("DNK")
@@ -109,7 +109,7 @@ class PdlBehandlingsgrunnlagServiceTest(
         assertThat(service.hent(behandling.id)).isNull()
 
         every { pdlService.hentBehandlingsgrunnlag(ident) } returns PersonBehandlingsgrunnlag()
-        service.innhentOgLagre(behandling)
+        service.innhentBehandlingsgrunnlagFraPdl(behandling)
 
         val grunnlag = service.hent(behandling.id)!!
         assertThat(grunnlag.folkeregisterpersonstatus).isEmpty()
@@ -121,7 +121,7 @@ class PdlBehandlingsgrunnlagServiceTest(
         val behandling = opprettBehandling()
         every { pdlService.hentBehandlingsgrunnlag(ident) } throws PdlException("PDL er nede")
 
-        assertThatThrownBy { service.innhentOgLagre(behandling) }.isInstanceOf(PdlException::class.java)
+        assertThatThrownBy { service.innhentBehandlingsgrunnlagFraPdl(behandling) }.isInstanceOf(PdlException::class.java)
 
         assertThat(service.hent(behandling.id)).isNull()
     }
@@ -132,7 +132,7 @@ class PdlBehandlingsgrunnlagServiceTest(
 
         val behandling =
             transactionTemplate.execute {
-                opprettBehandling().also { service.innhentOgLagre(it) }
+                opprettBehandling().also { service.innhentBehandlingsgrunnlagFraPdl(it) }
             }!!
 
         assertThat(behandlingRepository.existsById(behandling.id)).isTrue
@@ -147,7 +147,7 @@ class PdlBehandlingsgrunnlagServiceTest(
         assertThatThrownBy {
             transactionTemplate.executeWithoutResult {
                 behandlingRepository.insert(behandling)
-                service.innhentOgLagre(behandling)
+                service.innhentBehandlingsgrunnlagFraPdl(behandling)
             }
         }.isInstanceOf(PdlException::class.java)
 
@@ -158,11 +158,11 @@ class PdlBehandlingsgrunnlagServiceTest(
     fun `feil fra PDL ved ny innhenting beholder det som er lagret`() {
         val behandling = opprettBehandling()
         every { pdlService.hentBehandlingsgrunnlag(ident) } returns person
-        service.innhentOgLagre(behandling)
+        service.innhentBehandlingsgrunnlagFraPdl(behandling)
 
         every { pdlService.hentBehandlingsgrunnlag(ident) } throws PdlException("PDL er nede")
 
-        assertThatThrownBy { service.innhentPåNytt(behandling.id) }.isInstanceOf(PdlException::class.java)
+        assertThatThrownBy { service.innhentBehandlingsgrunnlagFraPdl(behandling.id) }.isInstanceOf(PdlException::class.java)
         assertThat(service.hent(behandling.id)!!.statsborgerskap).hasSize(2)
     }
 
@@ -170,7 +170,7 @@ class PdlBehandlingsgrunnlagServiceTest(
     fun `kan ikke innhente på nytt når behandlingen ikke kan redigeres`() {
         val behandlingId = opprettBehandling(BehandlingStatus.FATTER_VEDTAK).id
 
-        assertThatThrownBy { service.innhentPåNytt(behandlingId) }.isInstanceOf(Feil::class.java)
+        assertThatThrownBy { service.innhentBehandlingsgrunnlagFraPdl(behandlingId) }.isInstanceOf(Feil::class.java)
     }
 
     private val person =

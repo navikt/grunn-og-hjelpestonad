@@ -15,15 +15,13 @@ import java.util.UUID
 class PdlBehandlingsgrunnlagController(
     private val pdlBehandlingsgrunnlagService: PdlBehandlingsgrunnlagService,
 ) {
-    // henter fra db
-    @GetMapping
-    fun hentBehandlingsgrunnlag(
+    @GetMapping("/medlemskap")
+    fun hentMedlemskapBehandlingsgrunnlag(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<PdlBehandlingsgrunnlagResponse> = ResponseEntity.ok(pdlBehandlingsgrunnlagService.hent(behandlingId)?.tilResponse() ?: PdlBehandlingsgrunnlagResponse.IKKE_HENTET)
+    ): ResponseEntity<MedlemskapBehandlingsgrunnlagResponse> = ResponseEntity.ok(pdlBehandlingsgrunnlagService.hent(behandlingId).tilMedlemskapBehandlingsgrunnlagResponse())
 
-    // innhenter fra PDL
     @PostMapping
-    fun innhentBehandlingsgrunnlag(
+    fun innhentBehandlingsgrunnlagFraPdl(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<PdlBehandlingsgrunnlagResponse> = ResponseEntity.ok(pdlBehandlingsgrunnlagService.innhentPåNytt(behandlingId).tilResponse())
+    ): ResponseEntity<MedlemskapBehandlingsgrunnlagResponse> = ResponseEntity.ok(pdlBehandlingsgrunnlagService.innhentBehandlingsgrunnlagFraPdl(behandlingId).tilMedlemskapBehandlingsgrunnlagResponse())
 }

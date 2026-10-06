@@ -137,26 +137,41 @@ export type PersonidentRequest = {
     personident: string;
 };
 
-export type BarnInfo = {
-    personLøpenummer: number;
-    fom: string;
-    tom?: string | null;
-};
-
 export type PeriodeResponse = {
-    stønadType: 'BARNETILSYN' | 'SKOLEPENGER';
-    fom: string;
-    tom?: string | null;
-    vedtakId: number;
+    personident: string;
+    stønadstype: 'GRUNNSTØNAD' | 'HJELPESTØNAD';
+    sakstype: string;
+    kode: string;
+    brukerId: string;
     stønadId: number;
-    barn: Array<BarnInfo>;
+    vedtakId: number;
+    vedtakstidspunkt: string;
+    vedtakKodeResultat: string;
+    startDato: string;
+    innvilgetFom: string;
+    typeDelytelse: string;
+    typeSats: string;
+    typeUtbetaling: string;
+    stønadFom: string;
+    beløp: number;
+    trygdetidOgSats: Array<TrygdetidOgSatsResponse>;
+    innvilgetTom?: string | null;
+    opphørsdato?: string | null;
+    oppdragId?: number | null;
+    stønadTom?: string | null;
 };
 
-export type PersonPerioderResponse = {
-    personident: string;
-    barnetilsyn: Array<PeriodeResponse>;
-    skolepenger: Array<PeriodeResponse>;
-    harPerioder: boolean;
+export type PerioderResponse = {
+    grunnstønad: Array<PeriodeResponse>;
+    hjelpestønad: Array<PeriodeResponse>;
+};
+
+export type TrygdetidOgSatsResponse = {
+    tidspunktRegistrert: string;
+    trygdetid: number;
+    brukerId: string;
+    satsGs?: number | null;
+    satsHs?: number | null;
 };
 
 export type SøkRequest = {
@@ -350,6 +365,19 @@ export type VilkårDiagnoseResponse = {
     fraOgMedDato?: string | null;
     tilOgMedDato?: string | null;
     erVilkårOppfylt: boolean;
+};
+
+export type MedlemskapBehandlingsgrunnlagResponse = {
+    hentetTidspunkt?: string | null;
+    bosted: Array<OpplysningResponse>;
+    statsborgerskap: Array<OpplysningResponse>;
+    oppholdstillatelse: Array<OpplysningResponse>;
+};
+
+export type OpplysningResponse = {
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+    beskrivelse: string;
 };
 
 export type OpprettRequest = {
@@ -556,7 +584,7 @@ export type HentPerioderForPersonData = {
 };
 
 export type HentPerioderForPersonResponses = {
-    200: PersonPerioderResponse;
+    200: PerioderResponse;
 };
 
 export type HentPerioderForPersonResponse = HentPerioderForPersonResponses[keyof HentPerioderForPersonResponses];
@@ -889,6 +917,21 @@ export type LagreDiagnosePeriodeResponses = {
 
 export type LagreDiagnosePeriodeResponse = LagreDiagnosePeriodeResponses[keyof LagreDiagnosePeriodeResponses];
 
+export type InnhentBehandlingsgrunnlagFraPdlData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/behandlingsgrunnlag/pdl';
+};
+
+export type InnhentBehandlingsgrunnlagFraPdlResponses = {
+    200: MedlemskapBehandlingsgrunnlagResponse;
+};
+
+export type InnhentBehandlingsgrunnlagFraPdlResponse = InnhentBehandlingsgrunnlagFraPdlResponses[keyof InnhentBehandlingsgrunnlagFraPdlResponses];
+
 export type OpprettBehandlingData = {
     body: OpprettRequest;
     path?: never;
@@ -1149,6 +1192,21 @@ export type HentPerioderMedRettResponses = {
 };
 
 export type HentPerioderMedRettResponse = HentPerioderMedRettResponses[keyof HentPerioderMedRettResponses];
+
+export type HentMedlemskapBehandlingsgrunnlagData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/behandlingsgrunnlag/pdl/medlemskap';
+};
+
+export type HentMedlemskapBehandlingsgrunnlagResponses = {
+    200: MedlemskapBehandlingsgrunnlagResponse;
+};
+
+export type HentMedlemskapBehandlingsgrunnlagResponse = HentMedlemskapBehandlingsgrunnlagResponses[keyof HentMedlemskapBehandlingsgrunnlagResponses];
 
 export type SlettMedlemskapPeriodeData = {
     body?: never;
