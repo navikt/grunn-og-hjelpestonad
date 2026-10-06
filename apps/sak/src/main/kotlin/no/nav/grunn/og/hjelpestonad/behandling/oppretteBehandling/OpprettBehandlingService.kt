@@ -49,7 +49,7 @@ class OpprettBehandlingService(
             endringType = EndringType.BEHANDLING_OPPRETTET,
         )
 
-        pdlBehandlingsgrunnlagService.innhentOgLagre(behandling)
+        pdlBehandlingsgrunnlagService.innhentBehandlingsgrunnlagFraPdl(behandling)
 
         return behandling
     }

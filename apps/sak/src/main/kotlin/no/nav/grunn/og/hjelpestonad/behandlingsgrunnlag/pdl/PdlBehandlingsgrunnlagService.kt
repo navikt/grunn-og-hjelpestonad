@@ -16,16 +16,16 @@ class PdlBehandlingsgrunnlagService(
     private val fagsakService: FagsakService,
     private val pdlBehandlingsgrunnlagDbService: PdlBehandlingsgrunnlagDbService,
 ) {
-    fun innhentPåNytt(behandlingId: UUID): PdlBehandlingsgrunnlag {
+    fun innhentBehandlingsgrunnlagFraPdl(behandlingId: UUID): PdlBehandlingsgrunnlag {
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         val behandling = behandlingService.hentBehandling(behandlingId) ?: error("Fant ikke behandling med id=$behandlingId")
-        return innhentOgLagre(behandling)
+        return innhentBehandlingsgrunnlagFraPdl(behandling)
     }
 
     fun hent(behandlingId: UUID): PdlBehandlingsgrunnlag? = pdlBehandlingsgrunnlagDbService.hent(behandlingId)
 
-    fun innhentOgLagre(behandling: Behandling): PdlBehandlingsgrunnlag {
+    fun innhentBehandlingsgrunnlagFraPdl(behandling: Behandling): PdlBehandlingsgrunnlag {
         val person = pdlService.hentBehandlingsgrunnlag(fagsakService.hentAktivIdent(behandling.fagsakId))
         return pdlBehandlingsgrunnlagDbService.erstatt(behandling.id, person)
     }

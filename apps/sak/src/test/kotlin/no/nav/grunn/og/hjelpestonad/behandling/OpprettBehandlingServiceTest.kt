@@ -59,7 +59,7 @@ class OpprettBehandlingServiceTest {
 
         val behandling = opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
 
-        verify { pdlBehandlingsgrunnlagService.innhentOgLagre(behandling) }
+        verify { pdlBehandlingsgrunnlagService.innhentBehandlingsgrunnlagFraPdl(behandling) }
     }
 
     @Test
