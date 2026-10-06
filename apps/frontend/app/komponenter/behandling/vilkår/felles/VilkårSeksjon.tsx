@@ -1,23 +1,12 @@
 import React from "react";
-import {
-  Accordion,
-  BodyShort,
-  Button,
-  HStack,
-  LocalAlert,
-  Skeleton,
-  Tag,
-  VStack,
-} from "@navikt/ds-react";
-import { PlusIcon } from "@navikt/aksel-icons";
-import { useErLesevisning } from "~/hooks/useErLesevisning";
+import { Accordion, BodyShort, HGrid, HStack, Tag, VStack } from "@navikt/ds-react";
 import { vilkårHjemmel, vilkårNavn, type VilkårNøkkel } from "~/types/vilkår";
 import type { FellesVilkårPeriodeFelter } from "./useVilkårSkjema";
 import { feilmeldingFra } from "./feilmeldingFra";
-import { VilkårPeriodeKort, VilkårPeriodeRedigering, type Detalj } from "./VilkårPeriodeKort";
-import { VilkårGruppeItem } from "./VilkårGruppeItem";
+import type { Detalj } from "./VilkårPeriodeKort";
 import type { PerioderResult } from "./usePerioder";
 import type { VilkårSletting } from "./useSlettVilkårPeriode";
+import { VilkårVurderinger } from "./VilkårVurderinger";
 
 export type { Detalj };
 
@@ -59,6 +48,7 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
   sletting,
   leggTil,
   gruppering,
+  grunnlag,
   children,
 }: {
   nøkkel: VilkårNøkkel;
@@ -69,9 +59,9 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
   sletting: VilkårSletting<T>;
   leggTil: VilkårLeggTil;
   gruppering?: VilkårGruppering<T>;
+  grunnlag?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const erLesevisning = useErLesevisning();
   const { data: periodeliste, laster } = perioder;
   const hentefeil = perioder.error ? feilmeldingFra(perioder.error, hentefeilTekst) : undefined;
   const antall = periodeliste?.length ?? 0;
@@ -102,52 +92,18 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
       : { tekst: "Ikke oppfylt", farge: "danger" as const };
   })();
 
-  const renderPeriode = (periode: T) => {
-    if (!erLesevisning && skjema.erÅpent && skjema.redigererId === periode.id) {
-      return (
-        <VilkårPeriodeRedigering
-          key={periode.id}
-          fraOgMedDato={periode.fraOgMedDato}
-          tilOgMedDato={periode.tilOgMedDato}
-        >
-          {children}
-        </VilkårPeriodeRedigering>
-      );
-    }
-
-    return (
-      <VilkårPeriodeKort
-        key={periode.id}
-        fraOgMedDato={periode.fraOgMedDato}
-        tilOgMedDato={periode.tilOgMedDato}
-        erVilkårOppfylt={periode.erVilkårOppfylt}
-        detaljer={detaljerFor(periode)}
-        onEndre={erLesevisning ? undefined : () => skjema.åpneRedigeringAvPeriode(periode)}
-        onSlett={erLesevisning ? undefined : () => sletting.slett(periode)}
-        sletter={sletting.sletterId === periode.id}
-      />
-    );
-  };
-
-  const visNyttSkjemaIGruppe = (gruppe: VilkårPeriodeGruppe<T>) =>
-    !erLesevisning &&
-    skjema.erÅpent &&
-    skjema.redigererId === null &&
-    gruppering?.åpenGruppe === gruppe.nøkkel;
-
-  const renderGruppe = (gruppe: VilkårPeriodeGruppe<T>) => (
-    <VilkårGruppeItem
-      key={gruppe.nøkkel}
-      tittel={gruppe.tittel}
-      erOppfylt={gruppe.perioder.some((periode) => periode.erVilkårOppfylt)}
-      defaultOpen={gruppering?.grupper.length === 1}
-      onLeggTil={
-        erLesevisning || skjema.erÅpent ? undefined : () => gruppering?.åpneNyPeriode(gruppe)
-      }
+  const vurderinger = (
+    <VilkårVurderinger
+      perioder={perioder}
+      hentefeil={hentefeil}
+      detaljerFor={detaljerFor}
+      skjema={skjema}
+      sletting={sletting}
+      leggTil={leggTil}
+      gruppering={gruppering}
     >
-      {gruppe.perioder.map(renderPeriode)}
-      {visNyttSkjemaIGruppe(gruppe) && children}
-    </VilkårGruppeItem>
+      {children}
+    </VilkårVurderinger>
   );
 
   return (
@@ -167,51 +123,13 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
             {vilkårHjemmel[nøkkel]}
           </BodyShort>
 
-          {hentefeil && (
-            <LocalAlert status="error">
-              <LocalAlert.Content>{hentefeil}</LocalAlert.Content>
-            </LocalAlert>
-          )}
-
-          <div aria-live="polite" aria-atomic="true">
-            {sletting.feil && (
-              <LocalAlert status="error">
-                <LocalAlert.Content>{sletting.feil}</LocalAlert.Content>
-              </LocalAlert>
-            )}
-          </div>
-
-          {laster && <Skeleton variant="rectangle" height={120} />}
-
-          {!laster && !hentefeil && antall === 0 && (
-            <BodyShort>Ingen perioder er vurdert for dette vilkåret ennå.</BodyShort>
-          )}
-
-          {gruppering && antall > 0 ? (
-            <Accordion className={gruppering.className}>
-              {gruppering.grupper.map(renderGruppe)}
-            </Accordion>
+          {grunnlag ? (
+            <HGrid columns={{ xs: 1, xl: 2 }} gap="space-32" align="start">
+              {grunnlag}
+              {vurderinger}
+            </HGrid>
           ) : (
-            periodeliste?.map(renderPeriode)
-          )}
-
-          {!erLesevisning &&
-            skjema.erÅpent &&
-            skjema.redigererId === null &&
-            (!gruppering || gruppering.åpenGruppe === undefined) &&
-            children}
-
-          {!erLesevisning && !skjema.erÅpent && (
-            <div>
-              <Button
-                type="button"
-                variant="secondary"
-                icon={<PlusIcon aria-hidden />}
-                onClick={leggTil.åpne}
-              >
-                {leggTil.tekst ?? "Legg til periode"}
-              </Button>
-            </div>
+            vurderinger
           )}
         </VStack>
       </Accordion.Content>
