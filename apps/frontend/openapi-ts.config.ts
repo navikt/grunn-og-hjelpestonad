@@ -22,6 +22,8 @@ export default defineConfig({
     {
       name: "zod",
       compatibilityVersion: 4,
+      // Backend serialiserer LocalDateTime uten tidssone, f.eks. "2026-10-06T14:45:13.03".
+      dates: { local: true },
     },
   ],
 });
