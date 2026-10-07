@@ -1,3 +1,4 @@
+import React from "react";
 import { BodyShort, Detail, HStack, Table } from "@navikt/ds-react";
 import type {
   MedlemskapBehandlingsgrunnlagResponse,
