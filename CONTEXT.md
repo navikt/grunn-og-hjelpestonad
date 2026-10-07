@@ -22,6 +22,10 @@ _Avoid_: Ettersending (for opplysninger som ikke kommer fra søker)
 **Unntaksperiode for medlemskap**:
 En periode i medlemskapsregisteret der søker er medlem eller ikke medlem av folketrygden på et annet grunnlag enn bosted i Norge. At søker ikke har noen unntaksperioder for medlemskap, betyr ikke at søker ikke er medlem.
 
+**Trygdedekning**:
+Hvilke kapitler i folketrygdloven en unntaksperiode for medlemskap gir rett til ytelser etter. Bare trygdedekning som omfatter kapittel 6, gir medlemskap for grunnstønad.
+_Avoid_: Dekningsgrad
+
 **Medlemskapsperiode**:
 En periode der saksbehandler har vurdert om søker er medlem av folketrygden, etter nasjonale regler eller EØS-reglene. Medlemskapsperiodene er vurderingen av vilkåret medlemskap og dekker hele tidslinjen.
 

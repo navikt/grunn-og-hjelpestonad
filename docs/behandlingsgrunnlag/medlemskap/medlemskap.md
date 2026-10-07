@@ -1,92 +1,101 @@
 # Behandlingsgrunnlag for medlemskap
 
-Hvilke kilder K9 og EF bruker for medlemskap, hva de henter, hva de lager av
-det, og hvordan vi kan hente og lagre det samme etter
-[ADR-0007](../../adr/ADR-0007-behandlingsgrunnlag-per-kilde-med-minst-mulig-endring.md).
+Hvilke kilder vi bruker for medlemskapsvilkåret, hvordan vi henter og lagrer
+dem etter
+[ADR-0007](../../adr/ADR-0007-behandlingsgrunnlag-per-kilde-med-minst-mulig-endring.md),
+og hvordan K9, EF og LovMe gjør det.
 Hvordan behandlingsgrunnlaget blir til et forslag til medlemskapsperioder, står
 i [nasjonalt-medlemskap.md](../../vilkår/nasjonalt-medlemskap.md). Begrepene er
 definert i [CONTEXT.md](../../../CONTEXT.md).
 
-Dette er et forslag, ikke en beslutning. Ingenting av det er i produksjon, og
-både kildene og ambisjonsnivået kan endre seg. Se
-[Ambisjonsnivå](#ambisjonsnivå).
+Grunnlaget er beskrevet for fag og saksbehandlere i
+[confluence/medlemskapsvilkaret.md](../../../confluence/medlemskapsvilkaret.md).
+Ingenting av det er i produksjon. Vi bygger i steg, se [Steg](#steg).
 
 ## Fra behandlingsgrunnlag til medlemskapsperioder
 
 Medlem i folketrygden er i utgangspunktet den som er bosatt i Norge (ftrl.
 § 2-1). Bosted står i Folkeregisteret, som vi leser fra PDL. Unntakene fra
-hovedregelen står i MEDL som unntaksperioder for medlemskap.
+hovedregelen står i MEDL som unntaksperioder for medlemskap. Den som ikke er
+bosatt, kan være medlem som arbeidstaker i Norge (§ 2-2), og det kan vi se i
+Aa-registeret og A-ordningen.
 
 Medlemskapsperiodene er ikke behandlingsgrunnlag. De er vurderingen av
 vilkåret medlemskap. Saksbehandler fastsetter dem ut fra
-behandlingsgrunnlaget. Etter hvert kan systemet lage et forslag til
+behandlingsgrunnlaget. Fra steg 2 lager systemet et forslag til
 medlemskapsperioder som saksbehandler godtar eller endrer:
 
 ```mermaid
 flowchart LR
     pdl["Personopplysninger<br/>(PDL)"]
     medl["Unntaksperioder for medlemskap<br/>(MEDL)"]
-    andre["Kanskje: Aa-registeret,<br/>A-ordningen, søknad"]
-    forslag(["Forslag til<br/>medlemskapsperioder<br/>(senere)"])
+    arbeid["Arbeidsforhold og inntekt<br/>(Aa-registeret, A-ordningen)"]
+    saker["Åpne saker om medlemskap<br/>(Gosys, Joark)"]
+    søknad["Opplysninger fra søker<br/>(søknaden)"]
+    forslag(["Forslag til<br/>medlemskapsperioder<br/>(fra steg 2)"])
     saksbehandler["Saksbehandler<br/>vurderer"]
     perioder(["Medlemskapsperioder"])
 
     pdl --> saksbehandler
     medl --> saksbehandler
-    andre -.-> saksbehandler
+    arbeid --> saksbehandler
+    saker --> saksbehandler
+    søknad --> saksbehandler
     pdl -.-> forslag
     medl -.-> forslag
-    andre -.-> forslag
+    arbeid -. "fra steg 4" .-> forslag
     forslag -.-> saksbehandler
     saksbehandler --> perioder
 ```
 
-| Kilde | Behandlingsgrunnlag |
-|---|---|
-| PDL | Personstatus, bostedsadresse, statsborgerskap, opphold, inn- og utflytting |
-| MEDL | Unntaksperioder for medlemskap |
-| Aa-registeret og A-ordningen (kanskje) | Arbeidsforhold og pensjonsgivende inntekt |
-| Søknaden (kanskje) | Utenlandsopphold |
-
-## Ambisjonsnivå
-
-Vi har ikke bestemt hvor mye første runde skal gjøre. To nivåer er aktuelle:
-
-1. **Hente og vise.** Systemet henter behandlingsgrunnlaget og viser det, og
-   saksbehandler vurderer alle medlemskapsperiodene selv. Det er det laveste
-   ambisjonsnivået, og vi kan starte med det.
-2. **Foreslå.** Systemet lager i tillegg et forslag til medlemskapsperioder,
-   som beskrevet i [nasjonalt-medlemskap.md](../../vilkår/nasjonalt-medlemskap.md).
-
-Hvilke kilder vi trenger, avhenger av nivået:
-
-- PDL og MEDL trengs på begge nivåer.
-- **Aa-registeret og A-ordningen** må vi kanskje hente før vi lager forslag.
-  Arbeid i Norge kan gi medlemskap for en som ikke er bosatt (ftrl. § 2-2), og
-  K9 bruker det også for å vurdere oppholdsrett for EØS-borgere. Uten dem blir
-  alle som ikke er bosatt, vurdert manuelt, og da gir forslaget kanskje for
-  lite til å være verdt det. Det må vi se nærmere på.
-- **Utenlandsopphold fra søknaden.** K9 og EF bruker det søker oppgir om
-  opphold i utlandet. Vi vet ikke om søknaden om grunnstønad spør om dette.
-
-## Kildene i K9, EF og forslaget vårt
-
-| Kilde | K9 | EF | Forslag for oss |
+| Kilde | Behandlingsgrunnlag | Tidsrom | Brukes i forslaget fra |
 |---|---|---|---|
-| MEDL | Henter `GYLD` og `UAVK`, oversetter dekningskoden | Henter alt, bruker bare `GYLD` | Hente alt, lagre uendret |
-| PDL | Personstatus, statsborgerskap, adresser | Personstatus, statsborgerskap, adresser, opphold, inn- og utflytting | Som K9 |
-| Søknaden | Oppgitt utenlandsopphold | Bosatt og opphold i Norge, utenlandsopphold | Uavklart |
-| Aa-registeret og A-ordningen | Arbeidsforhold og pensjonsgivende inntekt | Ikke for medlemskap | Kanskje før forslag |
-| Lagres som | Egne tabeller per aggregat, oversatt og periodisert | Ett JSON-dokument per behandling | Én tabell per opplysningstype, uendret |
+| PDL | Personstatus, bostedsadresse, statsborgerskap, opphold, inn- og utflytting, land for utenlandsk oppholdsadresse | Hele historikken | Steg 2 |
+| PDL (felles for behandlingen) | Dødsfall | Hele historikken | Steg 2 |
+| MEDL | Unntaksperioder for medlemskap, alle statuser | Alle perioder | Steg 2 |
+| Aa-registeret | Arbeidsforhold | Fra tre måneder før kravet | Steg 4 |
+| A-ordningen | Inntekt per måned og arbeidsgiver | Fra tre måneder før kravet | Steg 4 |
+| Gosys og Joark | Åpne oppgaver og journalposter med tema `MED`, `UFM` eller `TRY` | Det som er åpent nå | Senere |
+| Søknaden | Opplysninger fra søker | – | Brukes ikke. Saksbehandler leser dem. |
+
+Grunnstønad kan gis fra tidligst tre måneder før kravet (§ 22-13 tredje
+ledd). Fra PDL og MEDL henter vi likevel alt, slik ADR-0007 legger opp til,
+fordi saksbehandler ofte trenger å se hva som skjedde før.
+
+## Steg
+
+| Steg | Systemet | Kilder som må være hentet |
+|---|---|---|
+| 1 (MVP) | Henter og viser behandlingsgrunnlaget. Saksbehandler vurderer alt. | PDL, MEDL |
+| 2 | Foreslår JA i klare tilfeller | PDL, MEDL |
+| 3 | Foreslår NEI ut fra MEDL | PDL, MEDL |
+| 4 | Foreslår JA etter § 2-2 | Aa-registeret, A-ordningen |
+| 5 | Foreslår JA for lovlig opphold ut fra `opphold` | PDL |
+| Senere | Regler for åpne saker, Lånekassen og EØS | Gosys, Joark, Lånekassen |
+
+Reglene står i [nasjonalt-medlemskap.md](../../vilkår/nasjonalt-medlemskap.md).
+
+## Kildene i K9, EF, LovMe og hos oss
+
+| Kilde | K9 | EF | LovMe | Hos oss |
+|---|---|---|---|---|
+| MEDL | Henter `GYLD` og `UAVK`, oversetter dekningskoden | Henter alt, bruker bare `GYLD` | Bruker `GYLD` med lovvalg `ENDL` | Henter alt, lagrer uendret |
+| PDL | Personstatus, statsborgerskap, adresser | Personstatus, statsborgerskap, adresser, opphold, inn- og utflytting | Statsborgerskap, bosted, dødsfall | Som EF, pluss land for utenlandsk oppholdsadresse og dødsfall |
+| Søknaden | Oppgitt utenlandsopphold | Bosatt og opphold i Norge, utenlandsopphold | Brukersvar om arbeid i utlandet | Leses av saksbehandler |
+| Aa-registeret og A-ordningen | Arbeidsforhold og pensjonsgivende inntekt | Ikke for medlemskap | Arbeidsforhold og inntekt | Arbeidsforhold og inntekt for § 2-2 |
+| Gosys og Joark | – | – | Åpne oppgaver og journalposter om medlemskap | Som LovMe |
+| UDI | – | – | Oppholdstillatelse og arbeidsadgang | Kanskje senere |
+| Lagres som | Egne tabeller per aggregat, oversatt og periodisert | Ett JSON-dokument per behandling | – | Én tabell per opplysningstype, uendret |
 
 ## Henting
 
 Prinsippene står i ADR-0007, som er foreslått, men ikke godkjent. For
-medlemskap vil det bety:
+medlemskap betyr det:
 
-- Behandlingsgrunnlaget hentes automatisk når behandlingen opprettes. Svarer
-  ikke kilden, opprettes behandlingen likevel, og frontend viser «ikke
-  hentet».
+- Behandlingsgrunnlaget hentes automatisk i samme transaksjon som
+  behandlingen opprettes. Svarer ikke kilden, for eksempel PDL, feiler
+  REST-kallet som oppretter behandlingen, og saksbehandler må prøve på nytt.
+  Da har alle nye behandlinger grunnlag fra kildene.
 - Saksbehandler kan hente på nytt så lenge behandlingen kan redigeres. En ny
   henting erstatter det som er lagret fra samme kilde for denne behandlingen.
   Behandlingsgrunnlaget i andre behandlinger endres ikke.
@@ -106,6 +115,9 @@ Et forslag til tabeller etter ADR-0007. Tabellnavnene har prefikset
 Tekstkolonner er `text`. Alle tabellene har `behandling_id`, og en ny henting
 sletter radene fra samme kilde for behandlingen og setter inn nye.
 
+Tabellene for PDL er laget (`V37__behandlingsgrunnlag_pdl.sql`), bortsett fra
+oppholdsadresse og dødsfall. Resten er forslag.
+
 ```mermaid
 flowchart LR
     behandling["behandling"]
@@ -122,11 +134,20 @@ flowchart LR
         opphold["behandlingsgrunnlag_pdl_opphold"]
         innflytting["behandlingsgrunnlag_pdl_innflytting_til_norge"]
         utflytting["behandlingsgrunnlag_pdl_utflytting_fra_norge"]
+        oppholdsadresse["behandlingsgrunnlag_pdl_oppholdsadresse<br/>(ikke laget)"]
+        doedsfall["behandlingsgrunnlag_pdl_doedsfall<br/>(ikke laget)"]
+    end
+
+    subgraph senere["Steg 4 og senere (ikke designet)"]
+        aareg["Aa-registeret"]
+        aordningen["A-ordningen"]
+        gosysjoark["Gosys og Joark"]
     end
 
     behandling --> henting
     henting -- "kilde = MEDL" --> medl
     henting -- "kilde = PDL" --> pdl
+    henting -.-> senere
 ```
 
 ### Hentingen
@@ -154,9 +175,10 @@ unntaksperioder, svarte MEDL uten treff.
 | `lovvalg`, `lovvalgsland` | `lovvalg`, `lovvalgsland` | Kodeverk `LovvalgMedl`, `Landkoder` |
 | `sporingsinformasjon_*` | Hele `sporingsinformasjon`, flatet ut | `versjon`, `registrert`, `besluttet`, `kilde`, `kildedokument`, `opprettet`, `opprettet_av`, `sist_endret`, `sist_endret_av` |
 
-Forslaget er å lagre alle statuser, også avviste perioder, og la et eventuelt
-forslag til medlemskapsperioder velge hva som teller. Om vi skal lagre `studieinformasjon` (fra
-Lånekassen), er ikke avklart. Se åpne spørsmål.
+Vi lagrer alle statuser, også avviste perioder, og forslaget til
+medlemskapsperioder velger hva som teller. `studieinformasjon` (fra
+Lånekassen) lagrer vi ikke nå. Perioder med `sporingsinformasjon_kilde`
+Lånekassen vurderes manuelt, og Lånekassen kan bli en egen kilde senere.
 
 ### Personopplysninger fra PDL
 
@@ -171,7 +193,7 @@ står i metadata:
 | `gyldighetstidspunkt` | `folkeregistermetadata.gyldighetstidspunkt` |
 | `opphoerstidspunkt` | `folkeregistermetadata.opphoerstidspunkt` |
 
-Forslaget er ikke å lagre endringsloggen (`metadata.endringer`).
+Vi lagrer ikke endringsloggen (`metadata.endringer`).
 
 | Tabell | Kolonner i tillegg til metadata |
 |---|---|
@@ -181,6 +203,18 @@ Forslaget er ikke å lagre endringsloggen (`metadata.endringer`).
 | `behandlingsgrunnlag_pdl_opphold` | `type`, `opphold_fra`, `opphold_til` |
 | `behandlingsgrunnlag_pdl_innflytting_til_norge` | `fraflyttingsland`, `fraflyttingssted_i_utlandet` |
 | `behandlingsgrunnlag_pdl_utflytting_fra_norge` | `tilflyttingsland`, `tilflyttingssted_i_utlandet`, `utflyttingsdato` |
+| `behandlingsgrunnlag_pdl_oppholdsadresse` (ikke laget) | `landkode`, `gyldig_fra_og_med`, `gyldig_til_og_med`. Bare utenlandske oppholdsadresser. |
+| `behandlingsgrunnlag_pdl_doedsfall` (ikke laget) | `doedsdato`. Felles for hele behandlingen, ikke bare medlemskap. |
+
+### Aa-registeret, A-ordningen, Gosys og Joark
+
+Tabellene er ikke designet. De skal følge ADR-0007 og ha med:
+
+| Kilde | Opplysninger |
+|---|---|
+| Aa-registeret | Arbeidsforhold med arbeidsgiver, type (ordinært, maritimt, frilanser), ansettelsesperiode og utenlandsopphold, fra tre måneder før kravet |
+| A-ordningen | Pensjonsgivende inntekt per måned og arbeidsgiver, fra tre måneder før kravet |
+| Gosys og Joark | Åpne oppgaver og journalposter med tema `MED`, `UFM` eller `TRY` |
 
 ## MEDL
 
@@ -199,8 +233,14 @@ Dolly.
 - `status` sier om registreringen gjelder (for eksempel gyldig, avvist eller
   uavklart). Den sier ikke om søker er medlem.
 - `dekning`, `grunnlag`, `lovvalg` og `lovvalgsland` er koder fra kodeverk
-  (`DekningMedl`, `GrunnlagMedl`, `LovvalgMedl`, `Landkoder`). Forslaget er å
-  lagre kodene som de er.
+  (`DekningMedl`, `GrunnlagMedl`, `LovvalgMedl`, `Landkoder`). Vi lagrer
+  kodene som de er.
+- `dekning` er trygdedekningen: hvilke kapitler i folketrygdloven perioden
+  gir rett til ytelser etter. Bare noen koder dekker kap. 6. Se
+  [Trygdedekning for kap. 6](../../vilkår/nasjonalt-medlemskap.md#trygdedekning-for-kap-6).
+- `lovvalg` sier om lovvalget er endelig (`ENDL`), foreløpig (`FORL`) eller
+  under avklaring (`UAVK`). Bare perioder med status `GYLD` og lovvalg `ENDL`
+  avgjør vilkåret, slik LovMe gjør. Avviste perioder (`AVST`) vises bare.
 - `unntakId` er id-en MEDL bruker for perioden, og den er den samme fra oppslag
   til oppslag.
 
@@ -242,9 +282,13 @@ avgjør hvilke regler som gjelder for den som bor her:
 | `folkeregisterpersonstatus` | `status`, `forenkletStatus` | Om søker er bosatt, utflyttet eller død. Død avslutter tidslinjen. |
 | `bostedsadresse` | Adressetype, `kommunenummer`, `bostedskommune`, `landkode`, `gyldigFraOgMed`, `gyldigTilOgMed`, `angittFlyttedato` | Om søker bor i Norge, i utlandet eller har ukjent bosted, og når. Utenlandsk adresse gir manuell vurdering. |
 | `statsborgerskap` | `land`, `gyldigFraOgMed`, `gyldigTilOgMed`, `bekreftelsesdato` | Om søker er nordisk statsborger, EØS-borger eller tredjelandsborger. Det avgjør hvilke regler som gjelder. |
-| `opphold` | `type`, `oppholdFra`, `oppholdTil` | Oppholdstillatelse fra UDI. Tredjelandsborgere må ha lovlig opphold. |
+| `opphold` | `type`, `oppholdFra`, `oppholdTil` | Oppholdstillatelse fra UDI. Grunnlag for å vurdere lovlig opphold (§ 2-1 tredje ledd), automatisk fra steg 5. |
 | `innflyttingTilNorge` | `fraflyttingsland`, `fraflyttingsstedIUtlandet` | Viser saksbehandler når og hvorfra søker flyttet til Norge. |
 | `utflyttingFraNorge` | `tilflyttingsland`, `tilflyttingsstedIUtlandet`, `utflyttingsdato` | Viser saksbehandler når og hvor søker flyttet fra Norge. |
+| `oppholdsadresse` | `utenlandskAdresse.landkode`, `gyldigFraOgMed`, `gyldigTilOgMed`. Bare utenlandske adresser. | Kan vise at søker har vært borte i mer enn 12 måneder selv om hen er registrert som bosatt. Vises bare, brukes ikke i reglene. |
+| `doedsfall` | `doedsdato` | Avslutter tidslinjen. Felles grunnlag for hele behandlingen. |
+
+Spørringen henter ennå ikke `oppholdsadresse` og `doedsfall`.
 
 For alle opplysningene henter vi også `metadata.historisk` og
 `metadata.master`, og `gyldighetstidspunkt` og `opphoerstidspunkt` fra
@@ -259,12 +303,17 @@ søker hadde tidligere, ikke bare i dag. `innflyttingTilNorge` og
 
 ADR-0007 sier at vi bare lagrer det vilkårene trenger. Derfor henter vi ikke:
 
-- Resten av bostedsadressen, som gate, husnummer og postnummer. Vilkåret
-  trenger bare å vite om adressen er norsk, utenlandsk eller ukjent, og
-  kommunen eller landet.
-- Endringsloggen (`metadata.endringer`).
-- `oppholdsadresse`, `deltBosted` og `kontaktadresse`. De sier ikke hvor
-  søker er bosatt etter folkeregisterloven.
+| Opplysning | Hvorfor ikke |
+|---|---|
+| Resten av bostedsadressen, som gate, husnummer og postnummer | Vilkåret trenger bare å vite om adressen er norsk, utenlandsk eller ukjent, og kommunen eller landet |
+| Resten av oppholdsadressen, og norske oppholdsadresser | Bare landet for utenlandske adresser er interessant |
+| `kontaktadresse` | Det er en postadresse og sier lite om hvor søker bor |
+| `deltBosted` | Gjelder barn |
+| `folkeregisteridentifikator` | Personstatus viser allerede om søker har fødselsnummer eller D-nummer |
+| `foedested` | Vi har ikke krav om forutgående medlemskap |
+| `sivilstand` og `forelderBarnRelasjon` | Medlemskap som følger av familien (§§ 2-5, 2-7 og 2-8), står i MEDL |
+| `utenlandskIdentifikasjonsnummer` | Svakt signal. Vurderes på nytt når EØS kommer. |
+| Endringsloggen (`metadata.endringer`) | Vi trenger bare perioden |
 
 PDL-skjemaet i `apps/sak/src/main/resources/pdl/pdl-api-schema.graphql` viser
 alle feltene vi kan hente.
@@ -302,14 +351,14 @@ aggregatene til en ny henting gir en ny versjon.
 (`MEDLEMSKAP_VURDERING_PERIODE` og `MEDLEMSKAP_VURDERING_LOPENDE`) og et
 vilkårsresultat per periode for medlemskapsvilkåret.
 
-Slik skiller forslaget vårt seg fra K9:
+Slik skiller vi oss fra K9:
 
-- K9 oversetter MEDL-kodene før lagring. Forslaget er å lagre opplysningene
-  uendret og tolke dem når de brukes.
-- K9 henter bare noen statuser fra MEDL. Forslaget er å hente alle.
-- K9 samler kildene for medlemskap i `GR_MEDLEMSKAP`. Forslaget er ett
+- K9 oversetter MEDL-kodene før lagring. Vi lagrer opplysningene
+  uendret og tolker dem når de brukes.
+- K9 henter bare noen statuser fra MEDL. Vi henter alle.
+- K9 samler kildene for medlemskap i `GR_MEDLEMSKAP`. Vi har ett
   behandlingsgrunnlag per kilde.
-- K9 lagrer avklaringer per vurderingsdato. Forslaget er å lagre
+- K9 lagrer avklaringer per vurderingsdato. Vi lagrer
   medlemskapsperioder.
 
 ## Slik gjør EF
@@ -348,42 +397,66 @@ faste spørsmål (`MedlemskapMapper` og `MedlemskapDto` viser grunnlaget).
 - Alt annet vurderer saksbehandler med faste svaralternativer, for eksempel
   «arbeid for norsk arbeidsgiver» eller «utenlandsopphold under seks uker».
 
-Slik skiller forslaget vårt seg fra EF:
+Slik skiller vi oss fra EF:
 
-- EF lagrer alle kildene samlet som JSON. Forslaget er ett behandlingsgrunnlag
+- EF lagrer alle kildene samlet som JSON. Vi har ett behandlingsgrunnlag
   per kilde, i kolonner.
-- EF viser bare de gyldige unntaksperiodene. Forslaget er å lagre alle.
-- EF vurderer for hele behandlingen. Forslaget er å lagre medlemskapsperioder.
+- EF viser bare de gyldige unntaksperiodene. Vi lagrer og viser alle.
+- EF vurderer for hele behandlingen. Vi lagrer medlemskapsperioder.
 
-Hvis vi lager forslag til medlemskapsperioder, ligner det på EF: systemet foreslår bare det som er
+Forslaget til medlemskapsperioder ligner på EF: systemet foreslår bare det som er
 klart, og resten vurderes av saksbehandler.
+
+## Slik gjør LovMe
+
+LovMe (`navikt/medlemskap-oppslag`) vurderer medlemskap for sykepenger. Vi
+bruker LovMe som utgangspunkt for hvordan vi leser MEDL og Gosys/Joark, men
+sykepenger har andre krav og unntak enn grunnstønad.
+
+**Henter:** MEDL, PDL, Aa-registeret, A-ordningen (inntekt), UDI
+(oppholdstillatelse og arbeidsadgang), åpne oppgaver i Gosys og journalposter
+i Joark med tema `MED`, `UFM` eller `TRY`, og brukersvar fra søknaden.
+
+**Vurderer:**
+
+- Bare MEDL-perioder med status `GYLD` og lovvalg `ENDL` teller. Andre
+  statuser og lovvalg gir uavklart.
+- Perioder med og uten medlemskap i samme kontrollperiode gir uavklart.
+- Trygdedekningen tolkes per ytelse (`Dekning` i `Medlemskap.kt`).
+- Første NEI vinner. Ellers vinner JA fra MEDL over reglene for bosted og
+  arbeid.
+- Reglene for arbeid krever 12 måneders kontrollperiode med uendret
+  arbeidsforhold. Det er et krav for sykepenger, ikke for oss.
+
+Slik skiller vi oss fra LovMe:
+
+- Vi lagrer behandlingsgrunnlaget uendret per kilde. LovMe er en
+  regeltjeneste.
+- Vi bruker egen tabell over trygdedekning for kap. 6.
+- Vi har ikke krav om forutgående medlemskap eller arbeid i en kontrollperiode.
 
 ## Medlemskapsperioder
 
 Medlemskapsperiodene er vurderingen av vilkåret medlemskap (`VilkårMedlemskap`
-i koden), og de dekker hele tidslinjen. Hver periode sier om søker er medlem
-etter nasjonale regler eller EØS-reglene.
+i koden), og de dekker hele tidslinjen fra tidligste mulige virkningstidspunkt.
+Hver periode sier om søker er medlem etter nasjonale regler eller EØS-reglene.
+Foreløpig har vi bare nasjonale regler.
 
-Systemet kan etter hvert lage et forslag til medlemskapsperioder fra
+Fra steg 2 lager systemet et forslag til medlemskapsperioder fra
 behandlingsgrunnlaget. Perioder systemet ikke kan avgjøre, får ingen
-vurdering, men en grunn til at saksbehandler må vurdere dem. Forslaget er at
-forslag til medlemskapsperioder ikke lagres. Det er beskrevet i
-[nasjonalt-medlemskap.md](../../vilkår/nasjonalt-medlemskap.md). Før det finnes,
-vurderer saksbehandler alle periodene selv. Se [Ambisjonsnivå](#ambisjonsnivå).
+vurdering, men en grunn til at saksbehandler må vurdere dem. Forslaget lagres
+ikke. Det er beskrevet i
+[nasjonalt-medlemskap.md](../../vilkår/nasjonalt-medlemskap.md). I steg 1
+vurderer saksbehandler alle periodene selv. Se [Steg](#steg).
 
 ## Åpne spørsmål
 
-- Skal første runde bare hente og vise behandlingsgrunnlaget, eller også lage
-  forslag? Se [Ambisjonsnivå](#ambisjonsnivå).
-- Må vi hente fra Aa-registeret og A-ordningen før vi lager forslag?
-- Hvilke dekningskoder i MEDL dekker kap. 6? K9 sin gruppering er laget for
-  K9 sine ytelser, og det er uklart om den passer for oss. EF bruker bare
-  feltet `medlem`.
-- Skal vi lagre `studieinformasjon` fra MEDL? K9 lagrer studieland og tar
-  perioder fra Lånekassen ut av vurderingen.
-- Hvor mye av bostedsadressen skal vi lagre? Vi lagrer foreløpig bare om
-  adressen er norsk, utenlandsk eller ukjent, kommunen og landet. Det er det
-  forslaget trenger. Vil saksbehandler se hele adressen, må vi lagre mer.
+- Hvordan skal tabellene for Aa-registeret, A-ordningen, Gosys og Joark se ut?
+- Skal vi hente fra Lånekassen, og lagre `studieinformasjon` fra MEDL, når vi
+  lager regler for studenter i utlandet?
+- Skal vi hente arbeidsadgang direkte fra UDI for tredjelandsborgere?
+- Vil saksbehandler se hele bostedsadressen? Da må vi lagre mer enn type,
+  kommune og land.
 - `sporingsinformasjon` har `opprettetAv` og `sistEndretAv`. Trenger vi dem,
   eller holder det med tidspunktene?
 - Spør søknaden om utenlandsopphold?
