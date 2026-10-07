@@ -1,11 +1,13 @@
 package no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl
 
 import no.nav.grunn.og.hjelpestonad.pdl.Bostedsadresse
+import no.nav.grunn.og.hjelpestonad.pdl.Doedsfall
 import no.nav.grunn.og.hjelpestonad.pdl.Folkeregistermetadata
 import no.nav.grunn.og.hjelpestonad.pdl.Folkeregisterpersonstatus
 import no.nav.grunn.og.hjelpestonad.pdl.InnflyttingTilNorge
 import no.nav.grunn.og.hjelpestonad.pdl.Metadata
 import no.nav.grunn.og.hjelpestonad.pdl.Opphold
+import no.nav.grunn.og.hjelpestonad.pdl.Oppholdsadresse
 import no.nav.grunn.og.hjelpestonad.pdl.Statsborgerskap
 import no.nav.grunn.og.hjelpestonad.pdl.UtflyttingFraNorge
 import org.springframework.data.annotation.Id
@@ -23,6 +25,8 @@ data class PdlBehandlingsgrunnlag(
     val opphold: List<PdlOpphold>,
     val innflyttingTilNorge: List<PdlInnflyttingTilNorge>,
     val utflyttingFraNorge: List<PdlUtflyttingFraNorge>,
+    val oppholdsadresse: List<PdlOppholdsadresse>,
+    val doedsfall: List<PdlDoedsfall>,
 )
 
 data class PdlMetadata(
@@ -114,6 +118,29 @@ data class PdlUtflyttingFraNorge(
     val metadata: PdlMetadata,
 )
 
+/** Bare utenlandske oppholdsadresser, og bare landet. */
+@Table("behandlingsgrunnlag_pdl_oppholdsadresse")
+data class PdlOppholdsadresse(
+    @Id
+    val id: UUID = UUID.randomUUID(),
+    val behandlingId: UUID,
+    val landkode: String,
+    val gyldigFraOgMed: LocalDateTime? = null,
+    val gyldigTilOgMed: LocalDateTime? = null,
+    @Embedded(onEmpty = Embedded.OnEmpty.USE_EMPTY)
+    val metadata: PdlMetadata,
+)
+
+@Table("behandlingsgrunnlag_pdl_doedsfall")
+data class PdlDoedsfall(
+    @Id
+    val id: UUID = UUID.randomUUID(),
+    val behandlingId: UUID,
+    val doedsdato: LocalDate? = null,
+    @Embedded(onEmpty = Embedded.OnEmpty.USE_EMPTY)
+    val metadata: PdlMetadata,
+)
+
 fun Folkeregisterpersonstatus.tilPdlFolkeregisterpersonstatus(behandlingId: UUID) =
     PdlFolkeregisterpersonstatus(
         behandlingId = behandlingId,
@@ -175,6 +202,24 @@ fun UtflyttingFraNorge.tilPdlUtflyttingFraNorge(behandlingId: UUID) =
         tilflyttingsland = tilflyttingsland,
         tilflyttingsstedIUtlandet = tilflyttingsstedIUtlandet,
         utflyttingsdato = utflyttingsdato,
+        metadata = tilPdlMetadata(metadata, folkeregistermetadata),
+    )
+
+fun Oppholdsadresse.tilPdlOppholdsadresse(behandlingId: UUID): PdlOppholdsadresse? =
+    utenlandskAdresse?.let {
+        PdlOppholdsadresse(
+            behandlingId = behandlingId,
+            landkode = it.landkode,
+            gyldigFraOgMed = gyldigFraOgMed,
+            gyldigTilOgMed = gyldigTilOgMed,
+            metadata = tilPdlMetadata(metadata, folkeregistermetadata),
+        )
+    }
+
+fun Doedsfall.tilPdlDoedsfall(behandlingId: UUID) =
+    PdlDoedsfall(
+        behandlingId = behandlingId,
+        doedsdato = doedsdato,
         metadata = tilPdlMetadata(metadata, folkeregistermetadata),
     )
 

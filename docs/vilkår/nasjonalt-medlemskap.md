@@ -2,31 +2,52 @@
 
 Hvordan systemet lager et forslag til medlemskapsperioder fra
 behandlingsgrunnlaget for medlemskap, for personer som ikke vurderes etter
-EØS-reglene. Forslaget bygger på hvordan K9 og EF gjør det, og de er beskrevet
-lenger ned. Begrepene er definert i [CONTEXT.md](../../CONTEXT.md), og
+EØS-reglene. Forslaget bygger på hvordan K9, EF og LovMe gjør det, og de er
+beskrevet lenger ned. Begrepene er definert i [CONTEXT.md](../../CONTEXT.md), og
 behandlingsgrunnlaget er beskrevet i
 [behandlingsgrunnlag/medlemskap](../behandlingsgrunnlag/medlemskap/medlemskap.md).
 
-Dette dokumentet er et forslag til hvordan systemet kan foreslå
-medlemskapsperioder, ikke en beslutning om at vi skal lage det. Første runde
-kan bli at systemet bare henter og viser behandlingsgrunnlaget, og at
-saksbehandler vurderer alt. Da kommer forslag til medlemskapsperioder senere, og kanskje først etter at vi henter fra Aa-registeret og A-ordningen.
-Se [Ambisjonsnivå](../behandlingsgrunnlag/medlemskap/medlemskap.md#ambisjonsnivå).
-Ingenting av dette er i produksjon. Delene om MEDL og rekkefølgen må vi jobbe
-mer med.
+Reglene og grunnlaget er beskrevet for fag og saksbehandlere i
+[confluence/medlemskapsvilkaret.md](../../confluence/medlemskapsvilkaret.md).
+Dette dokumentet beskriver det samme for teamet, med mer om K9 og om hvordan
+det kan bygges. Ingenting av dette er i produksjon.
+
+Kapittel 6 krever bare medlemskap (§§ 6-3 og 6-4), uten krav om forutgående
+medlemskap eller opphold slik kapittel 9 og 15 har. Spørsmålet er derfor om
+søker var medlem med trygdedekning for kapittel 6 i perioden. Yrkesskade
+(§ 6-9) avgjøres i et annet vilkår, og da ser vi bort fra medlemskapsvilkåret.
+
+## Steg
+
+Vi går fra helt manuell vurdering til gradvis mer automatisering. Reglene
+under er merket med steget de hører til.
+
+| Steg | Systemet |
+|---|---|
+| 1 (MVP) | Henter og viser behandlingsgrunnlaget. Saksbehandler vurderer alle periodene. |
+| 2 | Foreslår JA i klare tilfeller: bosatt nordisk statsborger uten noe i MEDL, eller gyldig trygdedekning for kap. 6 i MEDL |
+| 3 | Foreslår NEI ut fra gyldige unntaksperioder i MEDL |
+| 4 | Foreslår JA etter § 2-2 ut fra Aa-registeret og A-ordningen |
+| 5 | Foreslår JA for tredjelandsborgere med lovlig opphold ut fra opphold i PDL |
+| Senere | EØS, regler for åpne saker i Gosys og Joark, Lånekassen, § 2-13 første ledd, § 2-16, § 2-17 og unntak etter avtale med USA, Canada eller Papua Ny-Guinea |
+
+Fra steg 2 til steg 5 gjelder funksjonen under.
 
 ## Funksjonen
 
-Funksjonen tar inn behandlingsgrunnlaget fra MEDL og PDL og gir et forslag til
-medlemskapsperioder for hele tidslinjen. Hvis vi henter fra Aa-registeret og
-A-ordningen før forslaget lages, blir de også input. Funksjonen er ren: den
-henter ikke noe, den lagrer ikke noe, og den vet ikke hvilken behandling den
-gjelder. Den som kaller den, kutter tidslinjen til perioden som er aktuell.
+Funksjonen tar inn behandlingsgrunnlaget og gir et forslag til
+medlemskapsperioder for hele tidslinjen. Arbeidsforhold og inntekt blir input
+fra steg 4. Funksjonen er ren: den henter ikke noe, den lagrer ikke noe, og
+den vet ikke hvilken behandling den gjelder. Den som kaller den, kutter
+tidslinjen til perioden som er aktuell, fra tidligste mulige
+virkningstidspunkt (tre måneder før kravet, § 22-13 tredje ledd).
 
 ```kotlin
 fun foreslåMedlemskapsperioder(
     unntaksperioder: List<MedlUnntaksperiode>,
     personopplysninger: PdlPersonopplysninger,
+    arbeidsforhold: List<AaregArbeidsforhold>, // fra steg 4
+    inntekter: List<AOrdningenInntekt>, // fra steg 4
 ): List<ForslagTilMedlemskapsperiode>
 
 sealed interface ForslagTilMedlemskapsperiode {
@@ -76,68 +97,106 @@ hver periode i stedet for hver dato.
 | Personstatus | PDL | Fra `gyldighetstidspunkt` til neste status begynner |
 | Bostedsadresse | PDL | `gyldigFraOgMed`–`gyldigTilOgMed` |
 | Statsborgerskap | PDL | `gyldigFraOgMed`–`gyldigTilOgMed`. Flere kan gjelde samtidig. |
+| Opphold | PDL | `oppholdFra`–`oppholdTil`. Brukes fra steg 5. |
+| Arbeidsforhold | Aa-registeret | Ansettelsesperioden, pluss en måned (§ 2-14 andre ledd). Brukes fra steg 4. |
+| Inntekt | A-ordningen | Måneden inntekten gjelder. Brukes fra steg 4. |
 
-Personstatus «død» avslutter tidslinjen. Perioder før den første
+Dødsfall i PDL avslutter tidslinjen. Perioder før den første
 personstatusen får grunnen «mangler opplysninger».
+
+## Rekkefølge
+
+For hver periode går funksjonen gjennom reglene i denne rekkefølgen og stopper
+ved første regel som avgjør:
+
+1. [MEDL](#tolkning-av-medl)
+2. [Bosted og statsborgerskap fra PDL](#tolkning-av-pdl)
+3. [Arbeid i Norge etter § 2-2](#arbeid-i-norge-etter--2-2)
+
+En gyldig unntaksperiode i MEDL går foran PDL, både for JA og for NEI. MEDL
+registrerer nettopp unntakene fra medlemskap etter bosted, så uenighet mellom
+MEDL og PDL er forventet. Det følger både K9 og LovMe.
+
+LovMe er utgangspunktet, men LovMe er laget for sykepenger og andre ytelser
+til arbeidstakere, og har andre unntak enn oss. LovMe krever at
+unntaksperioden dekker en kontrollperiode på 12 måneder, og at
+arbeidsforholdet er uendret. Det trenger ikke vi, fordi vi vurderer hver
+periode for seg og ikke har krav om arbeid. Vi tar med at perioder med både
+medlemskap og ikke medlemskap i MEDL samtidig vurderes manuelt.
 
 ## Tolkning av MEDL
 
-Forslaget tar utgangspunkt i hvordan K9 tolker unntaksperiodene. Det er beskrevet i
-[Hvordan K9 tolker dekningskodene](#hvordan-k9-tolker-dekningskodene). For hver
-periode på tidslinjen:
-
-| Unntaksperioder i perioden | Forslag |
+| Unntaksperiode | Resultat |
 |---|---|
-| Status `GYLD`, dekning i gruppen «ikke medlem» | NEI |
-| Status `GYLD`, dekning `Unntatt`, ikke statsborger i USA eller Papua Ny-Guinea | NEI |
-| Status `GYLD`, dekning `Unntatt`, statsborger i USA eller Papua Ny-Guinea | Må vurderes manuelt |
-| Status `GYLD`, dekning i gruppen «pliktig eller frivillig medlem» | JA |
-| Status `UAVK`, dekning i gruppen «uavklart», kilde Lånekassen, lovvalg under avklaring eller åpen periode | Må vurderes manuelt |
-| Dekning i gruppen «ukjent» eller en kode vi ikke kjenner | Må vurderes manuelt |
-| Andre statuser (for eksempel avvist) | Tas ikke med |
+| Status `GYLD` og lovvalg `ENDL` | Avgjør perioden, se tabellen under |
+| Status `UAVK`, eller lovvalg `FORL` eller `UAVK` | Må vurderes manuelt |
+| Status `AVST` | Tas ikke med, men vises for saksbehandler |
 | Ingen unntaksperioder | PDL avgjør |
 
-Gjelder flere unntaksperioder samtidig, sjekkes «ikke medlem» før «pliktig
-eller frivillig medlem», som i K9.
+Regelen for status og lovvalg er den samme som i LovMe
+(`brukerensMedlemskapsperioderIMedlForPeriode` i `Medlemskap.kt` i
+`navikt/medlemskap-oppslag`).
 
-Forslaget avviker fra K9 på ett punkt: ukjente dekningskoder blir manuell
-vurdering. K9 tar dem ikke med, og da forsvinner de uten varsel.
+| Gyldige unntaksperioder i perioden | Forslag | Steg |
+|---|---|---|
+| Trygdedekning for kap. 6 | JA | 2 |
+| Trygdedekning som ikke omfatter kap. 6, også `Unntatt` | NEI | 3 |
+| Både med og uten trygdedekning for kap. 6 samtidig | Må vurderes manuelt | 2 |
+| Kilde Lånekassen | Må vurderes manuelt | 2 |
+| Ingen dekningskode, ukjent kode eller kode som må vurderes manuelt | Må vurderes manuelt | 2 |
+| Ikke medlem og lovvalgsland USA, Canada eller Papua Ny-Guinea | Må vurderes manuelt | 3 |
 
-**Spørsmål til fag: passer K9 sine grupper for § 2-9?** K9 regner
-`FTL_2-9_1_ledd_a` og `_c` som medlem og `FTL_2-9_1_ledd_b` som ikke medlem.
-§ 2-9 første ledd lister opp hvilke kapitler hver bokstav dekker, og kap. 6
-står ikke under samme bokstaver som kap. 9 og kap. 14. Grupperingen kan komme
-fra foreldrepenger (regeltreet heter `FP_VK_2`). Fag må vurdere
-hvilke av § 2-9-kodene som gir medlemskap for grunnstønad.
+Vi ser på lovvalgslandet, ikke på statsborgerskapet som K9 gjør. Det er
+avtalen som avgjør. LovMe gjør det samme for USA og Canada
+(`harUSAellerCANunntakiKontrollperiode`). Hvorfor avtalene behandles særskilt,
+må fag svare på.
 
-### Mulig forenkling
+### Trygdedekning for kap. 6
 
-K9 sine grupper er laget for K9 sine ytelser. En enklere regel, nærmere EF:
+Tabellen er laget ut fra ordlyden i §§ 2-6 til 2-9 og skal kontrolleres av
+fag. Den erstatter K9 sin gruppering, som vi ikke kan bruke: K9 regner
+§ 2-9 bokstav a som medlem og bokstav b som ikke medlem, men for kap. 6 er
+det omvendt.
 
-- Bare status `GYLD` teller. `UAVK` gir manuell vurdering.
-- `medlem = false` gir NEI.
-- `medlem = true` gir JA bare når dekningskoden står på en liste over koder
-  som dekker kap. 6. Ellers manuell vurdering, fordi frivillig medlemskap
-  etter § 2-9 kan dekke bare deler av folketrygden.
+| Dekningskode | Kap. 6 | Hvorfor |
+|---|---|---|
+| `Full` | Ja | Full trygdedekning |
+| `FTL_2-7_3_ledd_a`, `FTL_2-7a_2_ledd_a` | Ja | Full trygdedekning ved frivillig medlemskap i Norge |
+| `FTL_2-9_1_ledd_b`, `FTL_2-9_b` | Ja | § 2-9 bokstav b omfatter kap. 6 |
+| `FTL_2-9_1_ledd_c`, `FTL_2-9_c`, `FTL_2-9_2_ld_jfr_1c`, `FTL_2-9_2_ld_3_ld_jfr_1c`, `FTL_2-9_3_ld_jfr_1c` | Ja | Bokstav c omfatter bokstav b |
+| `FTL_2-9_3_ld_jfr_1b` | Ja | Bokstav b med særfordeler ved yrkesskade |
+| `FTL_2-6` | Nei | Bare yrkesskade og dødsfall |
+| `FTL_2-7_3_ledd_b`, `FTL_2-7a_2_ledd_b` | Nei | Bare kap. 5, 8, 9 og 14 |
+| `Helsetjenester_sykepenger_sykdom_i_familie_svangerskap_fødsel_adopsjon` | Nei | Bare kap. 5, 8, 9 og 14 |
+| `FTL_2-9_1_ledd_a`, `FTL_2-9_a`, `FTL_2-9_2_ld_jfr_1a` | Nei | Bokstav a omfatter ikke kap. 6 |
+| `Unntatt` | Nei | Unntatt fra medlemskap |
+| `IHT_Avtale`, `IHT_Avtale_Forord`, `Opphor`, `PENDEL`, `IKKEPENDEL`, `FTL_2-9_2_ledd`, `FTL_2-7_bok_a`, `FTL_2-7_bok_b`, `IT_DUMMY`, `IT_DUMMY_EOS` | Manuell | Avtale, forordning eller uklar kode |
+| Alle andre koder | Manuell | Ukjent kode |
 
-Listen over koder som dekker kap. 6, må fag lage. Inntil den finnes,
-gir alle perioder med `medlem = true` manuell vurdering.
+LovMe har en egen liste for enslig mor eller far (`dekningForEnsligForsorger`
+i `Medlemskap.kt`). Den tar med `FTL_2-9_2_ld_jfr_1a`, som bygger på
+bokstav a, og mangler `FTL_2-9_b`, `FTL_2-9_c` og `FTL_2-9_3_ld_jfr_1b/1c`.
 
 ## Tolkning av PDL
 
-Gjelder perioder der MEDL ikke avgjør. Følger K9-regeltreet:
+Gjelder perioder der MEDL ikke avgjør.
 
-1. **Bosatt?** Personstatus må være bosatt, og bostedsadressen kan ikke være
-   utenlandsk. Ellers manuell vurdering: saksbehandler vurderer om søker er
-   bosatt, eller medlem etter § 2-2. Det gjelder også D-nummer, som K9 regner
-   som bosatt i regeltreet, men lager aksjonspunkt for.
-2. **Statsborgerskap.** Har søker flere statsborgerskap samtidig, gjelder
-   regionen med høyest rang: Norden over EØS, EØS over tredjeland.
-   - Nordisk statsborger → JA.
-   - EØS-borger → manuell vurdering av oppholdsrett (EØS, eget dokument
-     senere).
-   - Tredjelandsborger → manuell vurdering av lovlig opphold. `opphold` fra
-     PDL vises for saksbehandler. Senere kan den kanskje gi forslag om JA.
+| Situasjon i perioden | Forslag | Steg |
+|---|---|---|
+| Ingen personstatus | Må vurderes manuelt | 2 |
+| Personstatus er ikke bosatt (for eksempel utflyttet eller D-nummer), eller bostedsadressen er utenlandsk eller ukjent | [§ 2-2](#arbeid-i-norge-etter--2-2), ellers må vurderes manuelt | 2 |
+| Bosatt, nordisk statsborger | JA | 2 |
+| Bosatt, EØS-borger | Må vurderes manuelt (EØS) | 2 |
+| Bosatt, tredjelandsborger | Må vurderes manuelt (lovlig opphold). Fra steg 5 kan `opphold` gi JA. | 2 og 5 |
+| Bosatt, statsløs eller ukjent statsborgerskap | Må vurderes manuelt | 2 |
+
+Har søker flere statsborgerskap samtidig, gjelder regionen med høyest rang:
+Norden over EØS, EØS over tredjeland.
+
+PDL gir aldri NEI. Søker kan være medlem selv om hen ikke er bosatt, for
+eksempel etter § 2-2, ved fravær under 12 måneder (§ 2-1 fjerde ledd) eller
+med et medlemskap som mangler i MEDL. Bosatt i Folkeregisteret er ikke det
+samme som bosatt etter § 2-1 (seks mot 12 måneder). Det godtar vi i steg 2.
 
 K9 er ikke konsekvent her. Vurderingsdatoene bruker regionen med høyest rang,
 men regeltreet (`VurderLøpendeMedlemskap`) og aksjonspunktene
@@ -145,45 +204,51 @@ men regeltreet (`VurderLøpendeMedlemskap`) og aksjonspunktene
 listen fra PDL. Listen er ikke sortert på region. En søker med statsborgerskap
 i både USA og Sverige kan derfor få aksjonspunkt for lovlig opphold hvis USA
 står først, selv om det svenske statsborgerskapet skulle gitt oppfylt vilkår.
-Forslaget i dette dokumentet er å alltid bruke regionen med høyest rang.
+Vi bruker alltid regionen med høyest rang.
 
-## Rekkefølge mellom MEDL og PDL
+## Arbeid i Norge etter § 2-2
 
-**Til diskusjon.** K9 sin regel er at MEDL vinner: en gyldig unntaksperiode
-som ikke medlem gir NEI selv om søker er bosatt, og en gyldig periode som
-pliktig eller frivillig medlem gir JA selv om søker er utvandret. PDL brukes
-bare der MEDL ikke avgjør. Forslaget følger K9 inntil vi har diskutert det.
+Fra steg 4, for perioder der søker ikke er bosatt og MEDL ikke avgjør.
 
-Spørsmål å diskutere:
+JA når alt dette gjelder i perioden:
 
-- Er det riktig at MEDL alltid vinner, også når MEDL og PDL er uenige om
-  søker bor i Norge?
-- Skal uenighet mellom kildene heller gi manuell vurdering?
+- Et aktivt arbeidsforhold i Aa-registeret uten registrert utenlandsopphold.
+- Inntekt i A-ordningen fra samme arbeidsgiver.
+- Lovlig adgang til arbeid (§ 2-2 andre ledd): nordisk statsborger eller
+  EØS-borger.
+
+Medlemskapet varer en måned etter at arbeidsforholdet er slutt (§ 2-14 andre
+ledd). Tredjelandsborgere, maritime arbeidsforhold, frilansere og selvstendig
+næringsdrivende må vurderes manuelt. Regelen gir aldri NEI, fordi kildene ikke
+kan vise at søker ikke er arbeidstaker.
 
 ## Grunner til manuell vurdering
 
 | Grunn | Når | Tilsvarer i K9 |
 |---|---|---|
 | `MANGLER_OPPLYSNINGER` | Ingen personstatus i perioden | – |
-| `MEDL_MÅ_AVKLARES` | Status `UAVK`, uavklart dekning, Lånekassen, lovvalg under avklaring eller åpen periode | Avklar gyldig medlemskapsperiode |
-| `MEDL_UKJENT_DEKNING` | Dekning i gruppen «ukjent» eller ny kode | – (K9 tar dem ikke med) |
-| `UNNTATT_STATSBORGER_USA_ELLER_PAPUA_NY_GUINEA` | Unntatt i MEDL og statsborger i USA eller Papua Ny-Guinea | Avklar lovlig opphold |
-| `VURDER_BOSATT` | Personstatus er ikke bosatt, eller utenlandsk bostedsadresse | Avklar om søker er bosatt |
-| `EØS_OPPHOLDSRETT` | Bosatt, og høyeste region er EØS | EØS-grenen i regeltreet |
-| `VURDER_LOVLIG_OPPHOLD` | Bosatt tredjelandsborger | Avklar lovlig opphold |
+| `MEDL_MÅ_AVKLARES` | Status `UAVK`, lovvalg `FORL` eller `UAVK`, Lånekassen, både med og uten trygdedekning samtidig, eller ukjent dekning | Avklar gyldig medlemskapsperiode |
+| `UNNTATT_ETTER_TRYGDEAVTALE` | Ikke medlem i MEDL og lovvalgsland USA, Canada eller Papua Ny-Guinea | Avklar lovlig opphold |
+| `VURDER_BOSATT` | Ikke bosatt, eller utenlandsk eller ukjent bostedsadresse, og § 2-2 avgjør ikke | Avklar om søker er bosatt |
+| `VURDER_LOVLIG_OPPHOLD` | Bosatt tredjelandsborger, statsløs eller ukjent statsborgerskap | Avklar lovlig opphold |
+| `EØS` | Bosatt, og høyeste region er EØS | EØS-grenen i regeltreet |
+| `VURDER_ARBEID` | Arbeidstaker som er tredjelandsborger, har maritimt arbeidsforhold, er frilanser eller selvstendig næringsdrivende | – |
 
-## Kilder og regler som ikke er med
+## Regler og kilder som ikke er med
 
-Dette må vi se nærmere på. Arbeid og inntekt kan bli med før vi lager
-forslaget.
+Disse gir alltid manuell vurdering i MVP-en. I neste runde lager vi så enkle
+regler som mulig, og senere eventuelt mer avanserte.
 
-- **Arbeid i Norge (ftrl. § 2-2).** Kan gi medlemskap for en som ikke er
-  bosatt. K9 bruker arbeidsforhold og pensjonsgivende inntekt fra
-  Aa-registeret og A-ordningen. Uten dem får slike perioder `VURDER_BOSATT`.
-- **EØS.** Oppholdsrett for EØS-borgere krever også arbeid og inntekt, og får
-  et eget dokument. Til da får EØS-borgere `EØS_OPPHOLDSRETT`.
-- **Utenlandsopphold fra søknaden.** K9 og EF bruker det. Vi vet ikke om
-  søknaden om grunnstønad spør om det.
+- **§ 2-13 første ledd.** Bosatt etter 1992 med utenlandsk pensjon: kap. 6
+  dekkes bare i perioder med pensjonsgivende inntekt eller pensjon fra
+  folketrygden.
+- **§ 2-16 og § 2-17.** Asylsøkere, og varetekt, soning og lignende.
+- **Åpne saker i Gosys og Joark** med tema `MED`, `UFM` eller `TRY`. LovMe
+  gir «uavklart» når de finnes. Grunnlaget hentes, men regelen kommer senere.
+- **EØS.** Eget dokument senere. Til da får EØS-borgere `EØS`.
+- **Lånekassen** som egen kilde for studenter i utlandet (§ 2-5 bokstav h).
+- **Opplysninger fra søker.** Saksbehandler leser dem. Reglene bruker dem
+  ikke før søknaden er strukturert.
 
 ## Slik gjør EF
 
@@ -200,7 +265,31 @@ i [behandlingsgrunnlag/medlemskap](../behandlingsgrunnlag/medlemskap/medlemskap.
 
 Forslaget tar med seg at systemet bare foreslår det som er klart, og at resten
 vurderes av saksbehandler. Den tar ikke med at vilkåret vurderes for hele
-behandlingen.
+behandlingen. Kap. 6 har heller ikke krav om forutgående medlemskap eller
+opphold, så EF sine regler kan ikke brukes direkte.
+
+## Slik gjør LovMe
+
+LovMe (`navikt/medlemskap-oppslag`) vurderer medlemskap automatisk for
+sykepenger, dagpenger og enslig mor eller far, og svarer JA, NEI eller
+uavklart for en kontrollperiode på 12 måneder.
+
+- **MEDL** (`ReglerForMedl`): Bare perioder med status `GYLD` og lovvalg
+  `ENDL` teller. Perioder både med og uten medlemskap gir uavklart. En periode
+  med medlemskap må dekke hele kontrollperioden, arbeidsforholdet må være
+  uendret, og dekningen må stå på listen for ytelsen. Unntak etter avtale med
+  USA eller Canada gir uavklart.
+- **Gosys og Joark**: Åpne oppgaver og journalposter med tema `MED`, `UFM`
+  eller `TRY` gir uavklart.
+- **Resultatet** (`Hovedregler.utledResultat`): NEI fra en regel vinner. Ellers
+  vinner JA fra MEDL over uavklart fra de andre reglene.
+- **Statsborgerskap**: Egne regelsett for norske statsborgere, EØS-borgere og
+  andre, med UDI for lovlig opphold og arbeidsadgang.
+
+Vi bruker samme regel for status og lovvalg, samme signal fra Gosys og Joark,
+og samme forsiktighet når MEDL har perioder både med og uten medlemskap. Vi
+har ikke kontrollperiode eller krav om arbeid, og vi har en egen liste over
+trygdedekning for kap. 6.
 
 ## Slik gjør K9
 
@@ -257,6 +346,9 @@ typene i grupper (`MedlemskapsperiodeKoder` og `MedlemskapDekningType`):
 | Unntatt | `Unntatt` | Ikke oppfylt, med mindre søker er statsborger i USA eller Papua Ny-Guinea |
 | Uavklart | `IHT_Avtale`, `IHT_Avtale_Forord`, `Opphor` | Saksbehandler må avklare |
 | Ukjent | `FTL_2-9_2_ledd`, `IKKEPENDEL`, `PENDEL`, `IT_DUMMY`, `IT_DUMMY_EOS` | Blir ikke tatt med |
+
+Vi bruker ikke denne grupperingen. Se [Trygdedekning for kap.
+6](#trygdedekning-for-kap-6).
 
 En unntaksperiode for medlemskap tas bare med når den har både fra- og til-dato og dekker
 vurderingsdatoen. Unntaksperioder for medlemskap fra Lånekassen og med lovvalg «under
@@ -343,17 +435,26 @@ grunnlaget og forslaget beregnes på nytt.
 
 ## Åpne spørsmål
 
-- Hvilke dekningskoder i MEDL dekker kap. 6? Det avgjør om vi kan bruke den
-  mulige forenklingen.
-- Hvorfor behandler K9 statsborgere i USA og Papua Ny-Guinea særskilt når de
-  er unntatt i MEDL? Koden forklarer det ikke («Sært, men USA og Papua
-  Ny-Guinea særbehandles»). Til fag har beskrevet regelen, blir de
-  vurdert manuelt.
+For fag:
+
+- Stemmer [tabellen over trygdedekning for kap. 6](#trygdedekning-for-kap-6)?
+  Gjelder særlig `IHT_Avtale`, `Opphor`, `PENDEL`, `IKKEPENDEL` og de eldre
+  kodene.
+- Hvorfor skal unntak etter avtale med USA, Canada eller Papua Ny-Guinea
+  vurderes manuelt, og gjelder det flere avtaler? K9 og LovMe forklarer det
+  ikke («Sært, men USA og Papua Ny-Guinea særbehandles» i K9).
+- Hvordan skal § 2-13 første ledd, § 2-16 og § 2-17 vurderes?
 - Hvem regnes som nordiske statsborgere? Gjelder det Færøyene, Grønland og
   Åland også?
 - Hva gjelder for statsløse og personer med ukjent statsborgerskap?
+- Hvilke typer `opphold` i PDL kan gi forslag om lovlig opphold (steg 5)?
 - Skal en åpen unntaksperiode i MEDL gi manuell vurdering, som i K9? Med
   tidslinjer kan en åpen periode tolkes som løpende.
+- Hva gjør vi når feltet `medlem` i MEDL ikke stemmer med trygdedekningen?
+
+For teamet:
+
+- Regler for åpne saker i Gosys og Joark.
+- Lånekassen som kilde.
+- EØS-reglene.
 - Hva gjør vi når PDL har overlappende bostedsadresser eller personstatuser?
-- Skal MEDL vinne over PDL? Se [Rekkefølge mellom MEDL og
-  PDL](#rekkefølge-mellom-medl-og-pdl).

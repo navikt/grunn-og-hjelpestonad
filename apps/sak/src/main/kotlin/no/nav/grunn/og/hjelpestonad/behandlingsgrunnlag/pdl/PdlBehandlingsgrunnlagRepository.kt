@@ -72,3 +72,25 @@ interface PdlUtflyttingFraNorgeRepository :
     @Query("DELETE FROM behandlingsgrunnlag_pdl_utflytting_fra_norge WHERE behandling_id = :behandlingId")
     fun slettForBehandling(behandlingId: UUID)
 }
+
+@Repository
+interface PdlOppholdsadresseRepository :
+    RepositoryInterface<PdlOppholdsadresse, UUID>,
+    InsertUpdateRepository<PdlOppholdsadresse> {
+    fun findByBehandlingId(behandlingId: UUID): List<PdlOppholdsadresse>
+
+    @Modifying
+    @Query("DELETE FROM behandlingsgrunnlag_pdl_oppholdsadresse WHERE behandling_id = :behandlingId")
+    fun slettForBehandling(behandlingId: UUID)
+}
+
+@Repository
+interface PdlDoedsfallRepository :
+    RepositoryInterface<PdlDoedsfall, UUID>,
+    InsertUpdateRepository<PdlDoedsfall> {
+    fun findByBehandlingId(behandlingId: UUID): List<PdlDoedsfall>
+
+    @Modifying
+    @Query("DELETE FROM behandlingsgrunnlag_pdl_doedsfall WHERE behandling_id = :behandlingId")
+    fun slettForBehandling(behandlingId: UUID)
+}

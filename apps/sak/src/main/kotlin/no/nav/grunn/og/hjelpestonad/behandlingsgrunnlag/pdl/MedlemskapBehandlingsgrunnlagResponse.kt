@@ -61,10 +61,27 @@ fun PdlBehandlingsgrunnlag?.tilMedlemskapBehandlingsgrunnlagResponse(): Medlemsk
                 beskrivelse = "Utflyttet til ${stedTekst(it.tilflyttingsland, it.tilflyttingsstedIUtlandet)}",
             )
         }
+    val oppholdsadresser =
+        oppholdsadresse.map {
+            OpplysningResponse(
+                fraOgMedDato = it.gyldigFraOgMed?.toLocalDate() ?: it.metadata.gyldighetstidspunkt?.toLocalDate(),
+                tilOgMedDato = it.gyldigTilOgMed?.toLocalDate(),
+                beskrivelse = "Oppholdsadresse i ${landnavn(it.landkode)}",
+            )
+        }
+    val dødsfall =
+        doedsfall.map {
+            val dato = it.doedsdato ?: it.metadata.gyldighetstidspunkt?.toLocalDate()
+            OpplysningResponse(
+                fraOgMedDato = dato,
+                tilOgMedDato = dato,
+                beskrivelse = "Død",
+            )
+        }
 
     return MedlemskapBehandlingsgrunnlagResponse(
         hentetTidspunkt = hentetTidspunkt,
-        bosted = (adresser + personstatuser + innflyttinger + utflyttinger).nyesteFørst(),
+        bosted = (adresser + oppholdsadresser + personstatuser + innflyttinger + utflyttinger + dødsfall).nyesteFørst(),
         statsborgerskap =
             statsborgerskap
                 .map {

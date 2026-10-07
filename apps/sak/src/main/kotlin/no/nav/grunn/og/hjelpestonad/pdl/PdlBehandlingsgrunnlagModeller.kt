@@ -19,6 +19,8 @@ data class PersonBehandlingsgrunnlag(
     val opphold: List<Opphold> = emptyList(),
     val innflyttingTilNorge: List<InnflyttingTilNorge> = emptyList(),
     val utflyttingFraNorge: List<UtflyttingFraNorge> = emptyList(),
+    val oppholdsadresse: List<Oppholdsadresse> = emptyList(),
+    val doedsfall: List<Doedsfall> = emptyList(),
 )
 
 data class Metadata(
@@ -94,6 +96,20 @@ data class UtflyttingFraNorge(
     val tilflyttingsland: String? = null,
     val tilflyttingsstedIUtlandet: String? = null,
     val utflyttingsdato: LocalDate? = null,
+    val metadata: Metadata,
+    val folkeregistermetadata: Folkeregistermetadata? = null,
+)
+
+data class Oppholdsadresse(
+    val gyldigFraOgMed: LocalDateTime? = null,
+    val gyldigTilOgMed: LocalDateTime? = null,
+    val utenlandskAdresse: UtenlandskAdresse? = null,
+    val metadata: Metadata,
+    val folkeregistermetadata: Folkeregistermetadata? = null,
+)
+
+data class Doedsfall(
+    val doedsdato: LocalDate? = null,
     val metadata: Metadata,
     val folkeregistermetadata: Folkeregistermetadata? = null,
 )

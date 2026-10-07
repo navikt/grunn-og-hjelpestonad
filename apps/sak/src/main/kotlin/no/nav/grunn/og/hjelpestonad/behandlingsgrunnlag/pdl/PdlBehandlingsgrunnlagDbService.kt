@@ -17,6 +17,8 @@ class PdlBehandlingsgrunnlagDbService(
     private val oppholdRepository: PdlOppholdRepository,
     private val innflyttingTilNorgeRepository: PdlInnflyttingTilNorgeRepository,
     private val utflyttingFraNorgeRepository: PdlUtflyttingFraNorgeRepository,
+    private val oppholdsadresseRepository: PdlOppholdsadresseRepository,
+    private val doedsfallRepository: PdlDoedsfallRepository,
 ) {
     fun hent(behandlingId: UUID): PdlBehandlingsgrunnlag? {
         val henting = hentingRepository.findByBehandlingIdAndKilde(behandlingId, Behandlingsgrunnlagskilde.PDL) ?: return null
@@ -28,6 +30,8 @@ class PdlBehandlingsgrunnlagDbService(
             opphold = oppholdRepository.findByBehandlingId(behandlingId),
             innflyttingTilNorge = innflyttingTilNorgeRepository.findByBehandlingId(behandlingId),
             utflyttingFraNorge = utflyttingFraNorgeRepository.findByBehandlingId(behandlingId),
+            oppholdsadresse = oppholdsadresseRepository.findByBehandlingId(behandlingId),
+            doedsfall = doedsfallRepository.findByBehandlingId(behandlingId),
         )
     }
 
@@ -46,6 +50,8 @@ class PdlBehandlingsgrunnlagDbService(
             opphold = oppholdRepository.insertAll(person.opphold.map { it.tilPdlOpphold(behandlingId) }),
             innflyttingTilNorge = innflyttingTilNorgeRepository.insertAll(person.innflyttingTilNorge.map { it.tilPdlInnflyttingTilNorge(behandlingId) }),
             utflyttingFraNorge = utflyttingFraNorgeRepository.insertAll(person.utflyttingFraNorge.map { it.tilPdlUtflyttingFraNorge(behandlingId) }),
+            oppholdsadresse = oppholdsadresseRepository.insertAll(person.oppholdsadresse.mapNotNull { it.tilPdlOppholdsadresse(behandlingId) }),
+            doedsfall = doedsfallRepository.insertAll(person.doedsfall.map { it.tilPdlDoedsfall(behandlingId) }),
         )
     }
 
@@ -57,5 +63,7 @@ class PdlBehandlingsgrunnlagDbService(
         oppholdRepository.slettForBehandling(behandlingId)
         innflyttingTilNorgeRepository.slettForBehandling(behandlingId)
         utflyttingFraNorgeRepository.slettForBehandling(behandlingId)
+        oppholdsadresseRepository.slettForBehandling(behandlingId)
+        doedsfallRepository.slettForBehandling(behandlingId)
     }
 }

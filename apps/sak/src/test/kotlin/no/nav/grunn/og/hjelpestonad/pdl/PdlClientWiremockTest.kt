@@ -251,7 +251,23 @@ class PdlClientWiremockTest {
                     }
                   ],
                   "innflyttingTilNorge": [],
-                  "utflyttingFraNorge": []
+                  "utflyttingFraNorge": [],
+                  "oppholdsadresse": [
+                    {
+                      "gyldigFraOgMed": "2022-03-01T00:00",
+                      "gyldigTilOgMed": null,
+                      "utenlandskAdresse": { "landkode": "ESP" },
+                      "metadata": { "historisk": false, "master": "FREG" },
+                      "folkeregistermetadata": null
+                    }
+                  ],
+                  "doedsfall": [
+                    {
+                      "doedsdato": "2026-09-01",
+                      "metadata": { "historisk": false, "master": "FREG" },
+                      "folkeregistermetadata": null
+                    }
+                  ]
                 }
               }
             }
@@ -271,6 +287,13 @@ class PdlClientWiremockTest {
         assertThat(person.statsborgerskap.single().land).isEqualTo("NOR")
         assertThat(person.opphold.single().type).isEqualTo("PERMANENT")
         assertThat(person.innflyttingTilNorge).isEmpty()
+        assertThat(
+            person.oppholdsadresse
+                .single()
+                .utenlandskAdresse
+                ?.landkode,
+        ).isEqualTo("ESP")
+        assertThat(person.doedsfall.single().doedsdato).isEqualTo(LocalDate.of(2026, 9, 1))
         assertEquals(listOf("pdlScope"), texasClient.requestedOboAudiences)
     }
 
