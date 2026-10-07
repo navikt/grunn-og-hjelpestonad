@@ -90,7 +90,9 @@
               "metadata": { "historisk": false, "master": "FREG" },
               "folkeregistermetadata": { "gyldighetstidspunkt": "2010-01-01T00:00:00", "opphoerstidspunkt": null }
             }
-          ]
+          ],
+          "oppholdsadresse": [],
+          "doedsfall": []
         }
       }
     }

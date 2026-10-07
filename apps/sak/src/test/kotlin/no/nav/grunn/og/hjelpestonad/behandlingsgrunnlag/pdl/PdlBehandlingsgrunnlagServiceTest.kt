@@ -18,11 +18,13 @@ import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.pdl.Bostedsadresse
+import no.nav.grunn.og.hjelpestonad.pdl.Doedsfall
 import no.nav.grunn.og.hjelpestonad.pdl.Folkeregistermetadata
 import no.nav.grunn.og.hjelpestonad.pdl.Folkeregisterpersonstatus
 import no.nav.grunn.og.hjelpestonad.pdl.InnflyttingTilNorge
 import no.nav.grunn.og.hjelpestonad.pdl.Metadata
 import no.nav.grunn.og.hjelpestonad.pdl.Opphold
+import no.nav.grunn.og.hjelpestonad.pdl.Oppholdsadresse
 import no.nav.grunn.og.hjelpestonad.pdl.PdlException
 import no.nav.grunn.og.hjelpestonad.pdl.PdlService
 import no.nav.grunn.og.hjelpestonad.pdl.PersonBehandlingsgrunnlag
@@ -80,6 +82,9 @@ class PdlBehandlingsgrunnlagServiceTest(
         assertThat(grunnlag.opphold.single().type).isEqualTo("MIDLERTIDIG")
         assertThat(grunnlag.innflyttingTilNorge.single().fraflyttingsstedIUtlandet).isEqualTo("Göteborg")
         assertThat(grunnlag.utflyttingFraNorge.single().utflyttingsdato).isEqualTo(LocalDate.of(2015, 1, 1))
+        assertThat(grunnlag.oppholdsadresse.map { it.landkode to it.gyldigFraOgMed })
+            .containsExactly("ESP" to LocalDateTime.of(2022, 3, 1, 0, 0))
+        assertThat(grunnlag.doedsfall.single().doedsdato).isEqualTo(LocalDate.of(2026, 9, 1))
     }
 
     @Test
@@ -99,6 +104,8 @@ class PdlBehandlingsgrunnlagServiceTest(
         assertThat(nyttGrunnlag.statsborgerskap.map { it.land }).containsExactly("DNK")
         assertThat(nyttGrunnlag.folkeregisterpersonstatus).isEmpty()
         assertThat(nyttGrunnlag.bostedsadresse).isEmpty()
+        assertThat(nyttGrunnlag.oppholdsadresse).isEmpty()
+        assertThat(nyttGrunnlag.doedsfall).isEmpty()
         assertThat(service.hent(behandling.id)).isEqualTo(nyttGrunnlag)
         assertThat(service.hent(annenBehandling.id)!!.statsborgerskap.map { it.land }).containsExactlyInAnyOrder("NOR", "SWE")
     }
@@ -210,6 +217,19 @@ class PdlBehandlingsgrunnlagServiceTest(
                         utflyttingsdato = LocalDate.of(2015, 1, 1),
                         metadata = Metadata(historisk = false, master = "FREG"),
                     ),
+                ),
+            oppholdsadresse =
+                listOf(
+                    Oppholdsadresse(
+                        gyldigFraOgMed = LocalDateTime.of(2022, 3, 1, 0, 0),
+                        utenlandskAdresse = UtenlandskAdresse("ESP"),
+                        metadata = Metadata(historisk = false, master = "FREG"),
+                    ),
+                    Oppholdsadresse(metadata = Metadata(historisk = true, master = "PDL")),
+                ),
+            doedsfall =
+                listOf(
+                    Doedsfall(doedsdato = LocalDate.of(2026, 9, 1), metadata = Metadata(historisk = false, master = "FREG")),
                 ),
         )
 

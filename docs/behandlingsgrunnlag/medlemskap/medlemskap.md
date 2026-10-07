@@ -115,8 +115,9 @@ Et forslag til tabeller etter ADR-0007. Tabellnavnene har prefikset
 Tekstkolonner er `text`. Alle tabellene har `behandling_id`, og en ny henting
 sletter radene fra samme kilde for behandlingen og setter inn nye.
 
-Tabellene for PDL er laget (`V37__behandlingsgrunnlag_pdl.sql`), bortsett fra
-oppholdsadresse og dødsfall. Resten er forslag.
+Tabellene for PDL er laget (`V37__behandlingsgrunnlag_pdl.sql` og
+`V38__behandlingsgrunnlag_pdl_oppholdsadresse_og_doedsfall.sql`). Resten er
+forslag.
 
 ```mermaid
 flowchart LR
@@ -134,8 +135,8 @@ flowchart LR
         opphold["behandlingsgrunnlag_pdl_opphold"]
         innflytting["behandlingsgrunnlag_pdl_innflytting_til_norge"]
         utflytting["behandlingsgrunnlag_pdl_utflytting_fra_norge"]
-        oppholdsadresse["behandlingsgrunnlag_pdl_oppholdsadresse<br/>(ikke laget)"]
-        doedsfall["behandlingsgrunnlag_pdl_doedsfall<br/>(ikke laget)"]
+        oppholdsadresse["behandlingsgrunnlag_pdl_oppholdsadresse"]
+        doedsfall["behandlingsgrunnlag_pdl_doedsfall"]
     end
 
     subgraph senere["Steg 4 og senere (ikke designet)"]
@@ -203,8 +204,8 @@ Vi lagrer ikke endringsloggen (`metadata.endringer`).
 | `behandlingsgrunnlag_pdl_opphold` | `type`, `opphold_fra`, `opphold_til` |
 | `behandlingsgrunnlag_pdl_innflytting_til_norge` | `fraflyttingsland`, `fraflyttingssted_i_utlandet` |
 | `behandlingsgrunnlag_pdl_utflytting_fra_norge` | `tilflyttingsland`, `tilflyttingssted_i_utlandet`, `utflyttingsdato` |
-| `behandlingsgrunnlag_pdl_oppholdsadresse` (ikke laget) | `landkode`, `gyldig_fra_og_med`, `gyldig_til_og_med`. Bare utenlandske oppholdsadresser. |
-| `behandlingsgrunnlag_pdl_doedsfall` (ikke laget) | `doedsdato`. Felles for hele behandlingen, ikke bare medlemskap. |
+| `behandlingsgrunnlag_pdl_oppholdsadresse` | `landkode`, `gyldig_fra_og_med`, `gyldig_til_og_med`. Bare utenlandske oppholdsadresser. |
+| `behandlingsgrunnlag_pdl_doedsfall` | `doedsdato`. Felles for hele behandlingen, ikke bare medlemskap. |
 
 ### Aa-registeret, A-ordningen, Gosys og Joark
 
@@ -288,7 +289,7 @@ avgjør hvilke regler som gjelder for den som bor her:
 | `oppholdsadresse` | `utenlandskAdresse.landkode`, `gyldigFraOgMed`, `gyldigTilOgMed`. Bare utenlandske adresser. | Kan vise at søker har vært borte i mer enn 12 måneder selv om hen er registrert som bosatt. Vises bare, brukes ikke i reglene. |
 | `doedsfall` | `doedsdato` | Avslutter tidslinjen. Felles grunnlag for hele behandlingen. |
 
-Spørringen henter ennå ikke `oppholdsadresse` og `doedsfall`.
+Oppholdsadresse og dødsfall vises under bosted i svaret til frontend.
 
 For alle opplysningene henter vi også `metadata.historisk` og
 `metadata.master`, og `gyldighetstidspunkt` og `opphoerstidspunkt` fra

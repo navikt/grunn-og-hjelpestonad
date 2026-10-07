@@ -126,6 +126,34 @@ class MedlemskapBehandlingsgrunnlagResponseTest {
             .containsExactly(OpplysningResponse(LocalDate.of(2019, 9, 1), LocalDate.of(2021, 3, 9), "Permanent oppholdstillatelse"))
     }
 
+    @Test
+    fun `viser utenlandsk oppholdsadresse og dødsfall under bosted`() {
+        val grunnlag =
+            grunnlag(
+                oppholdsadresse =
+                    listOf(
+                        PdlOppholdsadresse(
+                            behandlingId = behandlingId,
+                            landkode = "ESP",
+                            gyldigFraOgMed = LocalDateTime.of(2022, 3, 1, 0, 0),
+                            gyldigTilOgMed = LocalDateTime.of(2023, 6, 30, 0, 0),
+                            metadata = metadata(),
+                        ),
+                    ),
+                doedsfall =
+                    listOf(
+                        PdlDoedsfall(behandlingId = behandlingId, doedsdato = LocalDate.of(2026, 9, 1), metadata = metadata()),
+                    ),
+            )
+
+        val bosted = grunnlag.tilMedlemskapBehandlingsgrunnlagResponse().bosted
+
+        assertThat(bosted).containsExactly(
+            OpplysningResponse(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 1), "Død"),
+            OpplysningResponse(LocalDate.of(2022, 3, 1), LocalDate.of(2023, 6, 30), "Oppholdsadresse i Spania"),
+        )
+    }
+
     private fun grunnlag(
         folkeregisterpersonstatus: List<PdlFolkeregisterpersonstatus> = emptyList(),
         bostedsadresse: List<PdlBostedsadresse> = emptyList(),
@@ -133,6 +161,8 @@ class MedlemskapBehandlingsgrunnlagResponseTest {
         opphold: List<PdlOpphold> = emptyList(),
         innflyttingTilNorge: List<PdlInnflyttingTilNorge> = emptyList(),
         utflyttingFraNorge: List<PdlUtflyttingFraNorge> = emptyList(),
+        oppholdsadresse: List<PdlOppholdsadresse> = emptyList(),
+        doedsfall: List<PdlDoedsfall> = emptyList(),
     ) = PdlBehandlingsgrunnlag(
         hentetTidspunkt = LocalDateTime.of(2026, 10, 1, 9, 12),
         folkeregisterpersonstatus = folkeregisterpersonstatus,
@@ -141,5 +171,7 @@ class MedlemskapBehandlingsgrunnlagResponseTest {
         opphold = opphold,
         innflyttingTilNorge = innflyttingTilNorge,
         utflyttingFraNorge = utflyttingFraNorge,
+        oppholdsadresse = oppholdsadresse,
+        doedsfall = doedsfall,
     )
 }
