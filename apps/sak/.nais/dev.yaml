@@ -65,9 +65,6 @@ spec:
                     namespace: grunn-og-hjelp
                 -   application: grunn-og-hjelp-infotrygd-feed
                     namespace: grunn-og-hjelp
-                    permissions:
-                        roles:
-                            - write_feed
                     # Team Logs
                 -   application: logging
                     namespace: nais-system
