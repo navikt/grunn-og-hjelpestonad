@@ -62,7 +62,7 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandling.id, YearMonth.of(2025, 1))
 
-            assertThat(result.barnetilsynperioder).isEmpty()
+            assertThat(result.grunnstønadPerioder).isEmpty()
         }
 
         @Test
@@ -83,10 +83,10 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandling.id, YearMonth.of(2025, 1))
 
-            assertThat(result.barnetilsynperioder).hasSize(1)
-            assertThat(result.barnetilsynperioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
-            assertThat(result.barnetilsynperioder[0].datoTil).isEqualTo(YearMonth.of(2025, 6))
-            assertThat(result.barnetilsynperioder[0].utgifter).isEqualTo(BigDecimal(1000))
+            assertThat(result.grunnstønadPerioder).hasSize(1)
+            assertThat(result.grunnstønadPerioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
+            assertThat(result.grunnstønadPerioder[0].datoTil).isEqualTo(YearMonth.of(2025, 6))
+            assertThat(result.grunnstønadPerioder[0].utgifter).isEqualTo(BigDecimal(1000))
         }
 
         @Test
@@ -107,9 +107,9 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandling.id, YearMonth.of(2025, 4))
 
-            assertThat(result.barnetilsynperioder).hasSize(1)
-            assertThat(result.barnetilsynperioder[0].datoFra).isEqualTo(YearMonth.of(2025, 4))
-            assertThat(result.barnetilsynperioder[0].datoTil).isEqualTo(YearMonth.of(2025, 6))
+            assertThat(result.grunnstønadPerioder).hasSize(1)
+            assertThat(result.grunnstønadPerioder[0].datoFra).isEqualTo(YearMonth.of(2025, 4))
+            assertThat(result.grunnstønadPerioder[0].datoTil).isEqualTo(YearMonth.of(2025, 6))
         }
 
         @Test
@@ -152,21 +152,21 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandling2.id, YearMonth.of(2025, 1))
 
-            assertThat(result.barnetilsynperioder).hasSize(3)
+            assertThat(result.grunnstønadPerioder).hasSize(3)
 
-            assertThat(result.barnetilsynperioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
-            assertThat(result.barnetilsynperioder[0].datoTil).isEqualTo(YearMonth.of(2025, 2))
-            assertThat(result.barnetilsynperioder[0].utgifter).isEqualTo(BigDecimal(1000))
-            assertThat(result.barnetilsynperioder[0].barn).containsExactly(barnId1)
+            assertThat(result.grunnstønadPerioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
+            assertThat(result.grunnstønadPerioder[0].datoTil).isEqualTo(YearMonth.of(2025, 2))
+            assertThat(result.grunnstønadPerioder[0].utgifter).isEqualTo(BigDecimal(1000))
+            assertThat(result.grunnstønadPerioder[0].barn).containsExactly(barnId1)
 
-            assertThat(result.barnetilsynperioder[1].datoFra).isEqualTo(YearMonth.of(2025, 3))
-            assertThat(result.barnetilsynperioder[1].datoTil).isEqualTo(YearMonth.of(2025, 4))
-            assertThat(result.barnetilsynperioder[1].utgifter).isEqualTo(BigDecimal(2000))
-            assertThat(result.barnetilsynperioder[1].barn).containsExactlyInAnyOrder(barnId1, barnId2)
+            assertThat(result.grunnstønadPerioder[1].datoFra).isEqualTo(YearMonth.of(2025, 3))
+            assertThat(result.grunnstønadPerioder[1].datoTil).isEqualTo(YearMonth.of(2025, 4))
+            assertThat(result.grunnstønadPerioder[1].utgifter).isEqualTo(BigDecimal(2000))
+            assertThat(result.grunnstønadPerioder[1].barn).containsExactlyInAnyOrder(barnId1, barnId2)
 
-            assertThat(result.barnetilsynperioder[2].datoFra).isEqualTo(YearMonth.of(2025, 5))
-            assertThat(result.barnetilsynperioder[2].datoTil).isEqualTo(YearMonth.of(2025, 6))
-            assertThat(result.barnetilsynperioder[2].utgifter).isEqualTo(BigDecimal(1000))
+            assertThat(result.grunnstønadPerioder[2].datoFra).isEqualTo(YearMonth.of(2025, 5))
+            assertThat(result.grunnstønadPerioder[2].datoTil).isEqualTo(YearMonth.of(2025, 6))
+            assertThat(result.grunnstønadPerioder[2].utgifter).isEqualTo(BigDecimal(1000))
         }
 
         @Test
@@ -203,17 +203,17 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandling2.id, YearMonth.of(2025, 1))
 
-            assertThat(result.barnetilsynperioder).hasSize(2)
+            assertThat(result.grunnstønadPerioder).hasSize(2)
 
-            assertThat(result.barnetilsynperioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
-            assertThat(result.barnetilsynperioder[0].datoTil).isEqualTo(YearMonth.of(2025, 6))
-            assertThat(result.barnetilsynperioder[0].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
+            assertThat(result.grunnstønadPerioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
+            assertThat(result.grunnstønadPerioder[0].datoTil).isEqualTo(YearMonth.of(2025, 6))
+            assertThat(result.grunnstønadPerioder[0].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
 
-            assertThat(result.barnetilsynperioder[1].datoFra).isEqualTo(YearMonth.of(2025, 7))
-            assertThat(result.barnetilsynperioder[1].datoTil).isEqualTo(YearMonth.of(2025, 12))
-            assertThat(result.barnetilsynperioder[1].periodetype).isEqualTo(PeriodetypeBarnetilsyn.INGEN_STØNAD)
-            assertThat(result.barnetilsynperioder[1].utgifter).isEqualTo(BigDecimal.ZERO)
-            assertThat(result.barnetilsynperioder[1].barn).isEmpty()
+            assertThat(result.grunnstønadPerioder[1].datoFra).isEqualTo(YearMonth.of(2025, 7))
+            assertThat(result.grunnstønadPerioder[1].datoTil).isEqualTo(YearMonth.of(2025, 12))
+            assertThat(result.grunnstønadPerioder[1].periodetype).isEqualTo(PeriodetypeBarnetilsyn.INGEN_STØNAD)
+            assertThat(result.grunnstønadPerioder[1].utgifter).isEqualTo(BigDecimal.ZERO)
+            assertThat(result.grunnstønadPerioder[1].barn).isEmpty()
         }
 
         @Test
@@ -268,22 +268,22 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandling3.id, YearMonth.of(2025, 1))
 
-            assertThat(result.barnetilsynperioder).hasSize(3)
+            assertThat(result.grunnstønadPerioder).hasSize(3)
 
-            assertThat(result.barnetilsynperioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
-            assertThat(result.barnetilsynperioder[0].datoTil).isEqualTo(YearMonth.of(2025, 3))
-            assertThat(result.barnetilsynperioder[0].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
-            assertThat(result.barnetilsynperioder[0].utgifter).isEqualTo(BigDecimal(1000))
+            assertThat(result.grunnstønadPerioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
+            assertThat(result.grunnstønadPerioder[0].datoTil).isEqualTo(YearMonth.of(2025, 3))
+            assertThat(result.grunnstønadPerioder[0].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
+            assertThat(result.grunnstønadPerioder[0].utgifter).isEqualTo(BigDecimal(1000))
 
-            assertThat(result.barnetilsynperioder[1].datoFra).isEqualTo(YearMonth.of(2025, 4))
-            assertThat(result.barnetilsynperioder[1].datoTil).isEqualTo(YearMonth.of(2025, 9))
-            assertThat(result.barnetilsynperioder[1].periodetype).isEqualTo(PeriodetypeBarnetilsyn.INGEN_STØNAD)
-            assertThat(result.barnetilsynperioder[1].utgifter).isEqualTo(BigDecimal.ZERO)
+            assertThat(result.grunnstønadPerioder[1].datoFra).isEqualTo(YearMonth.of(2025, 4))
+            assertThat(result.grunnstønadPerioder[1].datoTil).isEqualTo(YearMonth.of(2025, 9))
+            assertThat(result.grunnstønadPerioder[1].periodetype).isEqualTo(PeriodetypeBarnetilsyn.INGEN_STØNAD)
+            assertThat(result.grunnstønadPerioder[1].utgifter).isEqualTo(BigDecimal.ZERO)
 
-            assertThat(result.barnetilsynperioder[2].datoFra).isEqualTo(YearMonth.of(2025, 10))
-            assertThat(result.barnetilsynperioder[2].datoTil).isEqualTo(YearMonth.of(2025, 12))
-            assertThat(result.barnetilsynperioder[2].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
-            assertThat(result.barnetilsynperioder[2].utgifter).isEqualTo(BigDecimal(2000))
+            assertThat(result.grunnstønadPerioder[2].datoFra).isEqualTo(YearMonth.of(2025, 10))
+            assertThat(result.grunnstønadPerioder[2].datoTil).isEqualTo(YearMonth.of(2025, 12))
+            assertThat(result.grunnstønadPerioder[2].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
+            assertThat(result.grunnstønadPerioder[2].utgifter).isEqualTo(BigDecimal(2000))
         }
 
         @Test
@@ -327,8 +327,8 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(ferdigstiltBehandling.id, YearMonth.of(2025, 1))
 
-            assertThat(result.barnetilsynperioder).hasSize(1)
-            assertThat(result.barnetilsynperioder[0].utgifter).isEqualTo(BigDecimal(1000))
+            assertThat(result.grunnstønadPerioder).hasSize(1)
+            assertThat(result.grunnstønadPerioder[0].utgifter).isEqualTo(BigDecimal(1000))
         }
 
         @Test
@@ -364,8 +364,8 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandling1.id, YearMonth.of(2025, 1))
 
-            assertThat(result.barnetilsynperioder).hasSize(1)
-            assertThat(result.barnetilsynperioder[0].utgifter).isEqualTo(BigDecimal(1000))
+            assertThat(result.grunnstønadPerioder).hasSize(1)
+            assertThat(result.grunnstønadPerioder[0].utgifter).isEqualTo(BigDecimal(1000))
         }
 
         @Test
@@ -408,10 +408,10 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandling2.id, YearMonth.of(2025, 1))
 
-            assertThat(result.barnetilsynperioder).hasSize(1)
-            assertThat(result.barnetilsynperioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
-            assertThat(result.barnetilsynperioder[0].datoTil).isEqualTo(YearMonth.of(2025, 6))
-            assertThat(result.barnetilsynperioder[0].barn).containsExactlyInAnyOrder(barnId1, barnId2)
+            assertThat(result.grunnstønadPerioder).hasSize(1)
+            assertThat(result.grunnstønadPerioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
+            assertThat(result.grunnstønadPerioder[0].datoTil).isEqualTo(YearMonth.of(2025, 6))
+            assertThat(result.grunnstønadPerioder[0].barn).containsExactlyInAnyOrder(barnId1, barnId2)
         }
 
         @Test
@@ -454,9 +454,9 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandling2.id, YearMonth.of(2025, 1))
 
-            assertThat(result.barnetilsynperioder).hasSize(1)
-            assertThat(result.barnetilsynperioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
-            assertThat(result.barnetilsynperioder[0].datoTil).isEqualTo(YearMonth.of(2025, 6))
+            assertThat(result.grunnstønadPerioder).hasSize(1)
+            assertThat(result.grunnstønadPerioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
+            assertThat(result.grunnstønadPerioder[0].datoTil).isEqualTo(YearMonth.of(2025, 6))
         }
 
         @Test
@@ -499,23 +499,23 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandling2.id, YearMonth.of(2025, 1))
 
-            assertThat(result.barnetilsynperioder).hasSize(3)
+            assertThat(result.grunnstønadPerioder).hasSize(3)
 
-            assertThat(result.barnetilsynperioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
-            assertThat(result.barnetilsynperioder[0].datoTil).isEqualTo(YearMonth.of(2025, 3))
-            assertThat(result.barnetilsynperioder[0].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
-            assertThat(result.barnetilsynperioder[0].utgifter).isEqualTo(BigDecimal(1000))
+            assertThat(result.grunnstønadPerioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
+            assertThat(result.grunnstønadPerioder[0].datoTil).isEqualTo(YearMonth.of(2025, 3))
+            assertThat(result.grunnstønadPerioder[0].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
+            assertThat(result.grunnstønadPerioder[0].utgifter).isEqualTo(BigDecimal(1000))
 
-            assertThat(result.barnetilsynperioder[1].datoFra).isEqualTo(YearMonth.of(2025, 4))
-            assertThat(result.barnetilsynperioder[1].datoTil).isEqualTo(YearMonth.of(2025, 5))
-            assertThat(result.barnetilsynperioder[1].periodetype).isEqualTo(PeriodetypeBarnetilsyn.INGEN_STØNAD)
-            assertThat(result.barnetilsynperioder[1].utgifter).isEqualTo(BigDecimal.ZERO)
-            assertThat(result.barnetilsynperioder[1].barn).isEmpty()
+            assertThat(result.grunnstønadPerioder[1].datoFra).isEqualTo(YearMonth.of(2025, 4))
+            assertThat(result.grunnstønadPerioder[1].datoTil).isEqualTo(YearMonth.of(2025, 5))
+            assertThat(result.grunnstønadPerioder[1].periodetype).isEqualTo(PeriodetypeBarnetilsyn.INGEN_STØNAD)
+            assertThat(result.grunnstønadPerioder[1].utgifter).isEqualTo(BigDecimal.ZERO)
+            assertThat(result.grunnstønadPerioder[1].barn).isEmpty()
 
-            assertThat(result.barnetilsynperioder[2].datoFra).isEqualTo(YearMonth.of(2025, 6))
-            assertThat(result.barnetilsynperioder[2].datoTil).isEqualTo(YearMonth.of(2025, 8))
-            assertThat(result.barnetilsynperioder[2].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
-            assertThat(result.barnetilsynperioder[2].utgifter).isEqualTo(BigDecimal(2000))
+            assertThat(result.grunnstønadPerioder[2].datoFra).isEqualTo(YearMonth.of(2025, 6))
+            assertThat(result.grunnstønadPerioder[2].datoTil).isEqualTo(YearMonth.of(2025, 8))
+            assertThat(result.grunnstønadPerioder[2].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
+            assertThat(result.grunnstønadPerioder[2].utgifter).isEqualTo(BigDecimal(2000))
         }
 
         @Test
@@ -576,22 +576,22 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
 
             val result = gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandling3.id, YearMonth.of(2025, 1))
 
-            assertThat(result.barnetilsynperioder).hasSize(3)
+            assertThat(result.grunnstønadPerioder).hasSize(3)
 
-            assertThat(result.barnetilsynperioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
-            assertThat(result.barnetilsynperioder[0].datoTil).isEqualTo(YearMonth.of(2025, 2))
-            assertThat(result.barnetilsynperioder[0].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
-            assertThat(result.barnetilsynperioder[0].utgifter).isEqualTo(BigDecimal(1000))
+            assertThat(result.grunnstønadPerioder[0].datoFra).isEqualTo(YearMonth.of(2025, 1))
+            assertThat(result.grunnstønadPerioder[0].datoTil).isEqualTo(YearMonth.of(2025, 2))
+            assertThat(result.grunnstønadPerioder[0].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
+            assertThat(result.grunnstønadPerioder[0].utgifter).isEqualTo(BigDecimal(1000))
 
-            assertThat(result.barnetilsynperioder[1].datoFra).isEqualTo(YearMonth.of(2025, 3))
-            assertThat(result.barnetilsynperioder[1].datoTil).isEqualTo(YearMonth.of(2025, 6))
-            assertThat(result.barnetilsynperioder[1].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
-            assertThat(result.barnetilsynperioder[1].utgifter).isEqualTo(BigDecimal(2000))
+            assertThat(result.grunnstønadPerioder[1].datoFra).isEqualTo(YearMonth.of(2025, 3))
+            assertThat(result.grunnstønadPerioder[1].datoTil).isEqualTo(YearMonth.of(2025, 6))
+            assertThat(result.grunnstønadPerioder[1].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
+            assertThat(result.grunnstønadPerioder[1].utgifter).isEqualTo(BigDecimal(2000))
 
-            assertThat(result.barnetilsynperioder[2].datoFra).isEqualTo(YearMonth.of(2025, 7))
-            assertThat(result.barnetilsynperioder[2].datoTil).isEqualTo(YearMonth.of(2025, 8))
-            assertThat(result.barnetilsynperioder[2].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
-            assertThat(result.barnetilsynperioder[2].utgifter).isEqualTo(BigDecimal(3000))
+            assertThat(result.grunnstønadPerioder[2].datoFra).isEqualTo(YearMonth.of(2025, 7))
+            assertThat(result.grunnstønadPerioder[2].datoTil).isEqualTo(YearMonth.of(2025, 8))
+            assertThat(result.grunnstønadPerioder[2].periodetype).isEqualTo(PeriodetypeBarnetilsyn.ORDINÆR)
+            assertThat(result.grunnstønadPerioder[2].utgifter).isEqualTo(BigDecimal(3000))
         }
     }
 
@@ -626,14 +626,14 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
     private fun opprettVedtak(
         behandling: Behandling,
         resultatType: ResultatType,
-        perioder: List<Barnetilsynperiode>,
+        perioder: List<GrunnstønadPeriode>,
         opphørFom: YearMonth? = null,
     ) {
         vedtakRepository.insert(
             Vedtak(
                 behandlingId = behandling.id,
                 resultatType = resultatType,
-                barnetilsynperioder = perioder,
+                grunnstønadPerioder = perioder,
                 saksbehandlerIdent = "testbruker",
                 opphørFom = opphørFom,
                 opprettetAv = "testbruker",
@@ -649,7 +649,7 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
         barn: List<UUID>,
         periodetype: PeriodetypeBarnetilsyn = PeriodetypeBarnetilsyn.ORDINÆR,
         aktivitetstype: AktivitetstypeBarnetilsyn = AktivitetstypeBarnetilsyn.I_ARBEID,
-    ) = Barnetilsynperiode(
+    ) = GrunnstønadPeriode(
         datoFra = fra,
         datoTil = til,
         utgifter = utgifter,

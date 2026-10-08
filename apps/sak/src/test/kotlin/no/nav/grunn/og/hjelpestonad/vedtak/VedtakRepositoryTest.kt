@@ -10,7 +10,7 @@ import no.nav.grunn.og.hjelpestonad.fagsak.domain.FagsakPerson
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.Personident
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
 import no.nav.grunn.og.hjelpestonad.vedtak.AktivitetstypeBarnetilsyn
-import no.nav.grunn.og.hjelpestonad.vedtak.Barnetilsynperiode
+import no.nav.grunn.og.hjelpestonad.vedtak.GrunnstønadPeriode
 import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
@@ -49,9 +49,9 @@ internal class VedtakRepositoryTest : SpringContextTest() {
             Vedtak(
                 behandlingId = behandling.id,
                 resultatType = ResultatType.INNVILGET,
-                barnetilsynperioder =
+                grunnstønadPerioder =
                     listOf(
-                        Barnetilsynperiode(
+                        GrunnstønadPeriode(
                             datoFra = YearMonth.now(),
                             datoTil = YearMonth.now(),
                             utgifter = BigDecimal(1000),
@@ -69,7 +69,7 @@ internal class VedtakRepositoryTest : SpringContextTest() {
 
         assertThat(vedtakRepository.findByBehandlingId(behandling.id))
             .usingRecursiveComparison()
-            .ignoringFields("id", "opprettetTid", "barnetilsynperioder.id")
+            .ignoringFields("id", "opprettetTid", "grunnstønadPerioder.id")
             .isEqualTo(vedtak)
     }
 }

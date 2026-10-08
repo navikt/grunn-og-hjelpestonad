@@ -15,7 +15,7 @@ export type VilkårValideringFeilResponse = {
     feil: Array<Valideringsfeil>;
 };
 
-export type Barnetilsynperiode = {
+export type GrunnstønadPeriode = {
     id: string;
     datoFra: string;
     datoTil: string;
@@ -28,7 +28,7 @@ export type Barnetilsynperiode = {
 export type VedtakRequest = {
     resultatType: 'INNVILGET' | 'AVSLÅTT' | 'HENLAGT' | 'OPPHØR';
     begrunnelse?: string | null;
-    barnetilsynperioder: Array<Barnetilsynperiode>;
+    grunnstønadPerioder: Array<GrunnstønadPeriode>;
     saksbehandlerIdent?: string | null;
     opphørFom?: string | null;
     beslutterIdent?: string | null;
@@ -439,14 +439,14 @@ export type ÅrsakBehandlingResponse = {
 };
 
 export type HistoriskVedtakResponse = {
-    barnetilsynperioder: Array<Barnetilsynperiode>;
+    grunnstønadPerioder: Array<GrunnstønadPeriode>;
     fraErFørTidligsteVedtak: boolean;
 };
 
 export type VedtakResponse = {
     resultatType: 'INNVILGET' | 'AVSLÅTT' | 'HENLAGT' | 'OPPHØR';
     begrunnelse?: string | null;
-    barnetilsynperioder: Array<Barnetilsynperiode>;
+    grunnstønadPerioder: Array<GrunnstønadPeriode>;
     saksbehandlerIdent?: string | null;
     opphørFom?: string | null;
     beslutterIdent?: string | null;

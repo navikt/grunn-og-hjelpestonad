@@ -16,6 +16,8 @@ import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
 import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTask
 import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTask
+import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
+import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
 import no.nav.grunn.og.hjelpestonad.vedtak.tilBehandlingResultat
 import org.springframework.stereotype.Service
@@ -145,6 +147,10 @@ class BeslutterService(
             objectMapper = objectMapper,
             taskService = taskService,
         )
+
+        if (vedtak?.resultatType == ResultatType.INNVILGET) {
+            taskService.save(SendVedtakTilInfotrygdFeedTask.opprettTask(behandlingId))
+        }
     }
 
     private fun validerUnderkjennelse(dto: BeslutteVedtakRequest): Pair<ÅrsakUnderkjent, String> {

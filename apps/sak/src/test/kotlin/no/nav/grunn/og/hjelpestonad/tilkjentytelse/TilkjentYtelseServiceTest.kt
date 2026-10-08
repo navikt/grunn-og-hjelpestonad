@@ -12,7 +12,7 @@ import no.nav.grunn.og.hjelpestonad.fagsak.domain.FagsakPerson
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.Personident
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
 import no.nav.grunn.og.hjelpestonad.vedtak.AktivitetstypeBarnetilsyn
-import no.nav.grunn.og.hjelpestonad.vedtak.Barnetilsynperiode
+import no.nav.grunn.og.hjelpestonad.vedtak.GrunnstønadPeriode
 import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
@@ -113,7 +113,7 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
             Vedtak(
                 behandlingId = behandlingId,
                 resultatType = ResultatType.OPPHØR,
-                barnetilsynperioder = emptyList(),
+                grunnstønadPerioder = emptyList(),
                 saksbehandlerIdent = "VL",
                 opphørFom = YearMonth.of(2025, 3),
             )
@@ -137,7 +137,7 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
                             datoTil = YearMonth.of(2025, 2),
                             utgifter = BigDecimal(5000),
                         ),
-                        Barnetilsynperiode(
+                        GrunnstønadPeriode(
                             datoFra = YearMonth.of(2025, 3),
                             datoTil = YearMonth.of(2025, 4),
                             utgifter = BigDecimal.ZERO,
@@ -173,11 +173,11 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
 
     private fun lagInnvilgetVedtak(
         behandlingId: UUID,
-        perioder: List<Barnetilsynperiode>,
+        perioder: List<GrunnstønadPeriode>,
     ) = Vedtak(
         behandlingId = behandlingId,
         resultatType = ResultatType.INNVILGET,
-        barnetilsynperioder = perioder,
+        grunnstønadPerioder = perioder,
         saksbehandlerIdent = "VL",
     )
 
@@ -185,7 +185,7 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
         datoFra: YearMonth,
         datoTil: YearMonth,
         utgifter: BigDecimal,
-    ) = Barnetilsynperiode(
+    ) = GrunnstønadPeriode(
         datoFra = datoFra,
         datoTil = datoTil,
         utgifter = utgifter,

@@ -54,7 +54,7 @@ class VedtakService(
         vedtakRequest: VedtakRequest,
     ) {
         if (vedtakRequest.resultatType == ResultatType.INNVILGET) {
-            val barnetilsynperioder = vedtakRequest.barnetilsynperioder
+            val barnetilsynperioder = vedtakRequest.grunnstønadPerioder
 
             val månedsPerioder = barnetilsynperioder.map { periode -> Månedsperiode(periode.datoFra, periode.datoTil) }
             validerGyldigePerioder(månedsPerioder)
@@ -69,12 +69,12 @@ class VedtakService(
             if (vedtakRequest.opphørFom == null) {
                 throw Feil("Kan ikke opphøre uten å velge opphørsdato")
             }
-            if (vedtakRequest.barnetilsynperioder.isNotEmpty()) {
+            if (vedtakRequest.grunnstønadPerioder.isNotEmpty()) {
                 throw Feil("Kan ikke være barnetilsynsperioder på et opphørsvedtak")
             }
         }
         if (vedtakRequest.resultatType == ResultatType.AVSLÅTT) {
-            if (vedtakRequest.barnetilsynperioder.isNotEmpty()) {
+            if (vedtakRequest.grunnstønadPerioder.isNotEmpty()) {
                 throw Feil("Kan ikke være barnetilsynsperioder på et opphørsvedtak")
             }
         }
@@ -119,7 +119,7 @@ class VedtakService(
     }
 
     private fun validerAntallBarnAktivitetstypeOgUtgifter(
-        barnetilsynperioder: List<Barnetilsynperiode>,
+        barnetilsynperioder: List<GrunnstønadPeriode>,
     ) {
         if (barnetilsynperioder.any { it.periodetype == PeriodetypeBarnetilsyn.INGEN_STØNAD && it.barn.isNotEmpty() }) {
             throw Feil("Kan ikke ta med barn på en periode som er av type ingen stønad")
@@ -142,7 +142,7 @@ class VedtakService(
     }
 
     private fun validerOpphørIkkeFørsteEllerSistePeriode(
-        barnetilsynperioder: List<Barnetilsynperiode>,
+        barnetilsynperioder: List<GrunnstønadPeriode>,
     ) {
         if (barnetilsynperioder.first().periodetype == PeriodetypeBarnetilsyn.INGEN_STØNAD) {
             throw Feil("Første periode kan ikke være periodetype ingen stønad")

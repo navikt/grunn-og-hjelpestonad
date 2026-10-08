@@ -17,7 +17,7 @@ export const zVilkårValideringFeilResponse = z.object({
     feil: z.array(zValideringsfeil)
 });
 
-export const zBarnetilsynperiode = z.object({
+export const zGrunnstønadPeriode = z.object({
     id: z.uuid(),
     datoFra: z.string(),
     datoTil: z.string(),
@@ -39,7 +39,7 @@ export const zVedtakRequest = z.object({
         'OPPHØR'
     ]),
     begrunnelse: z.string().nullish(),
-    barnetilsynperioder: z.array(zBarnetilsynperiode),
+    grunnstønadPerioder: z.array(zGrunnstønadPeriode),
     saksbehandlerIdent: z.string().nullish(),
     opphørFom: z.string().nullish(),
     beslutterIdent: z.string().nullish()
@@ -539,7 +539,7 @@ export const zÅrsakBehandlingResponse = z.object({
 });
 
 export const zHistoriskVedtakResponse = z.object({
-    barnetilsynperioder: z.array(zBarnetilsynperiode),
+    grunnstønadPerioder: z.array(zGrunnstønadPeriode),
     fraErFørTidligsteVedtak: z.boolean()
 });
 
@@ -551,7 +551,7 @@ export const zVedtakResponse = z.object({
         'OPPHØR'
     ]),
     begrunnelse: z.string().nullish(),
-    barnetilsynperioder: z.array(zBarnetilsynperiode),
+    grunnstønadPerioder: z.array(zGrunnstønadPeriode),
     saksbehandlerIdent: z.string().nullish(),
     opphørFom: z.string().nullish(),
     beslutterIdent: z.string().nullish()

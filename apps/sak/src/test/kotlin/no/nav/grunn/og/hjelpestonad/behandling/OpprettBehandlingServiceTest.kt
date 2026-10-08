@@ -5,11 +5,13 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import io.mockk.verify
+import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.oppretteBehandling.OpprettBehandlingService
 import no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl.PdlBehandlingsgrunnlagService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
+import no.nav.grunn.og.hjelpestonad.task.SendStartBehandlingTilInfotrygdFeedTask
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -20,12 +22,14 @@ import kotlin.test.assertEquals
 class OpprettBehandlingServiceTest {
     private val behandlingRepository = mockk<BehandlingRepository>(relaxed = true)
     private val pdlBehandlingsgrunnlagService = mockk<PdlBehandlingsgrunnlagService>(relaxed = true)
+    private val taskService = mockk<TaskService>(relaxed = true)
     private val opprettBehandlingService =
         OpprettBehandlingService(
             behandlingService = BehandlingService(behandlingRepository),
             lagBehandleSakOppgaveTask = mockk<LagBehandleSakOppgaveTask>(relaxed = true),
             endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true),
             pdlBehandlingsgrunnlagService = pdlBehandlingsgrunnlagService,
+            taskService = taskService,
         )
 
     @BeforeEach
@@ -60,6 +64,42 @@ class OpprettBehandlingServiceTest {
         val behandling = opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
 
         verify { pdlBehandlingsgrunnlagService.innhentBehandlingsgrunnlagFraPdl(behandling) }
+    }
+
+    @Test
+    fun `opprettBehandling sender startbehandling til Infotrygd for første behandling`() {
+        // Arrange
+        every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
+
+        // Act
+        val behandling = opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
+
+        // Assert
+        verify {
+            taskService.save(
+                match {
+                    it.type == SendStartBehandlingTilInfotrygdFeedTask.TYPE &&
+                        it.payload == behandling.id.toString()
+                },
+            )
+        }
+    }
+
+    @Test
+    fun `opprettBehandling ikke sender startbehandling for senere behandlinger`() {
+        // Arrange
+        every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
+        val forrigeBehandling = mockk<Behandling>()
+        every { forrigeBehandling.id } returns UUID.randomUUID()
+        every { behandlingRepository.finnSisteIverksatteBehandling(any()) } returns forrigeBehandling
+
+        // Act
+        opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
+
+        // Assert
+        verify(exactly = 0) {
+            taskService.save(match { it.type == SendStartBehandlingTilInfotrygdFeedTask.TYPE })
+        }
     }
 
     @Test

@@ -2,6 +2,7 @@ package no.nav.grunn.og.hjelpestonad.beslutter
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.LagBehandleSakOppgaveTask
@@ -11,9 +12,16 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
+import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
+import no.nav.grunn.og.hjelpestonad.vedtak.AktivitetstypeBarnetilsyn
+import no.nav.grunn.og.hjelpestonad.vedtak.GrunnstønadPeriode
+import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
+import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
+import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import tools.jackson.databind.ObjectMapper
+import java.time.YearMonth
 import java.util.UUID
 import kotlin.test.Test
 
@@ -78,5 +86,42 @@ class BeslutterServiceTest {
         assertThatThrownBy { beslutterService.besluttVedtak(behandlingId, beslutteVedtakRequest) }
             .isInstanceOf(ManglerTilgang::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
+    }
+
+    @Test
+    fun `godkjent innvilget vedtak sender vedtak til Infotrygd-feed`() {
+        // Arrange
+        val behandlingId = UUID.randomUUID()
+        every { vedtakService.hentVedtak(behandlingId) } returns
+            Vedtak(
+                behandlingId = behandlingId,
+                resultatType = ResultatType.INNVILGET,
+                grunnstønadPerioder =
+                    listOf(
+                        GrunnstønadPeriode(
+                            datoFra = YearMonth.of(2026, 1),
+                            datoTil = YearMonth.of(2026, 12),
+                            utgifter = java.math.BigDecimal("1000"),
+                            barn = emptyList(),
+                            periodetype = PeriodetypeBarnetilsyn.ORDINÆR,
+                            aktivitetstype = AktivitetstypeBarnetilsyn.I_ARBEID,
+                        ),
+                    ),
+                saksbehandlerIdent = "Z123456",
+                opprettetAv = "Z123456",
+            )
+
+        // Act
+        beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
+
+        // Assert
+        verify {
+            taskService.save(
+                match {
+                    it.type == SendVedtakTilInfotrygdFeedTask.TYPE &&
+                        it.payload == behandlingId.toString()
+                },
+            )
+        }
     }
 }

@@ -52,7 +52,7 @@ class TilkjentYtelseService(
         vedtak: Vedtak,
     ): Set<AndelTilkjentYtelse> {
         val beregninger =
-            vedtak.barnetilsynperioder.map { periode ->
+            vedtak.grunnstønadPerioder.map { periode ->
                 BarnetilsynBeregning(
                     datoFra = periode.datoFra,
                     datoTil = periode.datoTil,
