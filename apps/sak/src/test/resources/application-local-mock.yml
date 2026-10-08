@@ -56,6 +56,9 @@ integrasjoner:
     infotrygd:
         url: http://localhost:8090
         scope: mock-scope
+    infotrygd-feed:
+        url: http://localhost:8090
+        scope: mock-scope
     entra-proxy:
         url: http://localhost:8090
         scope: mock-scope

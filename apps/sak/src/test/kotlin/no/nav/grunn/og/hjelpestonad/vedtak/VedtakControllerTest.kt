@@ -37,7 +37,7 @@ class VedtakControllerTest {
         val json = """{
   "resultatType": "INNVILGET",
   "begrunnelse": "Mock begrunnelse",
-  "barnetilsynperioder": [
+  "grunnstønadPerioder": [
     {
       "behandlingId": "86460749-53d4-481b-8909-7286efc7eaad",
       "datoFra": "2024-01",

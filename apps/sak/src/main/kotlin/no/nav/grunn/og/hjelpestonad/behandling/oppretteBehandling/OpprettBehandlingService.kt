@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.behandling.oppretteBehandling
 
+import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
@@ -10,6 +11,7 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
+import no.nav.grunn.og.hjelpestonad.task.SendStartBehandlingTilInfotrygdFeedTask
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -20,6 +22,7 @@ class OpprettBehandlingService(
     private val lagBehandleSakOppgaveTask: LagBehandleSakOppgaveTask,
     private val endringshistorikkService: EndringshistorikkService,
     private val pdlBehandlingsgrunnlagService: PdlBehandlingsgrunnlagService,
+    private val taskService: TaskService,
 ) {
     @Transactional
     fun opprettBehandling(
@@ -41,6 +44,10 @@ class OpprettBehandlingService(
                     forrigeBehandlingId = forrigeBehandlingId,
                 ),
             )
+
+        if (forrigeBehandlingId == null) {
+            taskService.save(SendStartBehandlingTilInfotrygdFeedTask.opprettTask(behandling.id))
+        }
 
         lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(behandling = behandling, saksbehandler = SikkerhetContext.hentSaksbehandler())
 

@@ -27,7 +27,7 @@ class VedtakServiceTest {
             VedtakRequest(
                 resultatType = ResultatType.INNVILGET,
                 begrunnelse = "Test",
-                barnetilsynperioder = emptyList(),
+                grunnstønadPerioder = emptyList(),
             )
 
         every { behandlingService.validerBehandlingErRedigerbar(behandlingId) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
@@ -44,7 +44,7 @@ class VedtakServiceTest {
             VedtakRequest(
                 resultatType = ResultatType.INNVILGET,
                 begrunnelse = "Test",
-                barnetilsynperioder = emptyList(),
+                grunnstønadPerioder = emptyList(),
             )
 
         every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws

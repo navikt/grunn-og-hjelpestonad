@@ -97,6 +97,9 @@ integrasjoner:
     infotrygd:
         url: http://grunn-og-hjelp-infotrygd
         scope: api://dev-gcp.grunn-og-hjelp.grunn-og-hjelp-infotrygd/.default
+    infotrygd-feed:
+        url: http://grunn-og-hjelp-infotrygd-feed
+        scope: api://${nais.miljo}-gcp.grunn-og-hjelp.grunn-og-hjelp-infotrygd-feed/.default
     entra-proxy:
         url: http://entra-proxy.sikkerhetstjenesten
         scope: api://dev-gcp.sikkerhetstjenesten.entra-proxy/.default

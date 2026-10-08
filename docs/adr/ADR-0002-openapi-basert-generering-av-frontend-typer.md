@@ -53,7 +53,7 @@ Følgende modeller er API-eide og skal importeres fra
 | `VedtakDto` | Lagret vedtak fra API-et |
 | `HistoriskVedtakResponse` | Grunnlag for revurdering |
 | `BarnetilsynBeregningRequest` og `BeløpsperioderDto` | Beregning av vedtaksperioder |
-| `Barnetilsynperiode` | API-representasjon av en lagret periode |
+| `GrunnstønadPeriode` | API-representasjon av en lagret periode |
 | `HentBarnResponse` | Barn knyttet til en behandling |
 
 Hooks som snakker med API-et bruker de genererte typene med backend-navnene
@@ -64,7 +64,7 @@ Vedtaksredigeringen har derfor to bevisste frontend-modeller i
 `app/komponenter/behandling/vedtak/vedtak.ts`, begge avledet fra de genererte
 typene med `Omit`:
 
-- `Barnetilsynperiode` gjør persistens-ID valgfri og tillater tomme
+- `GrunnstønadPeriode` gjør persistens-ID valgfri og tillater tomme
   `periodetype`-/`aktivitetstype`-felter mens saksbehandleren fyller ut skjemaet.
 - `Vedtak` er det samme vedtaket med redigerbare perioder.
 
@@ -73,7 +73,7 @@ Fordi de er avledet fra kontrakten, er en lagret `VedtakDto` direkte
 tilordnbar til `Vedtak` uten konvertering.
 
 Backend bruker i dag samme Kotlin-modell for lesing og lagring av vedtak, og
-`Barnetilsynperiode.id` er derfor påkrevd også i lagre-requesten selv om
+`GrunnstønadPeriode.id` er derfor påkrevd også i lagre-requesten selv om
 frontend ikke har noen ID før lagring. Requesten er dermed ikke typesjekket mot
 kontrakten. Se aksjonspunktene.
 
@@ -281,7 +281,7 @@ produktutvikling med en tydelig og gjenbrukbar API-kontrakt.
 | G1 | Dupliserte frontend- og backend-typer | 2 | 3 | 2 | 12 | Migrer API-eide modeller til genererte typer |
 | G2 | Manglende stale-output-sjekk i CI | 2 | 2 | 2 | 8 | Etabler deterministisk spec-artifact og CI-validering |
 | G3 | Ekstern DTO med Unicode-getter | 1 | 2 | 2 | 4 | Følg opp i `prosessering` dersom task-endepunktene senere skal inn i OpenAPI-kontrakten |
-| G4 | Lagre-vedtak deler DTO med hent-vedtak, så `Barnetilsynperiode.id` er påkrevd i requesten | 2 | 2 | 2 | 8 | Eget request-DTO i backend uten påkrevd persistens-ID, så frontend kan typesjekke requesten mot kontrakten |
+| G4 | Lagre-vedtak deler DTO med hent-vedtak, så `GrunnstønadPeriode.id` er påkrevd i requesten | 2 | 2 | 2 | 8 | Eget request-DTO i backend uten påkrevd persistens-ID, så frontend kan typesjekke requesten mot kontrakten |
 
 ## Aksjonspunkter
 

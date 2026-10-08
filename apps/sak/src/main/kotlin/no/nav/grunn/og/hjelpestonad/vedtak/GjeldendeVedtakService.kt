@@ -30,12 +30,12 @@ class GjeldendeVedtakService(
                 .mapNotNull { vedtakRepository.findByBehandlingId(it.id) }
 
         val fraErFørTidligsteVedtak =
-            vedtakListe.flatMap { it.barnetilsynperioder }.all { it.datoFra > fra }
+            vedtakListe.flatMap { it.grunnstønadPerioder }.all { it.datoFra > fra }
 
         val sammenslåttPerioder = sammenslåBarnetilsynsperioder(vedtakListe, fra)
 
         return HistoriskVedtakResponse(
-            barnetilsynperioder = sammenslåttPerioder,
+            grunnstønadPerioder = sammenslåttPerioder,
             fraErFørTidligsteVedtak = fraErFørTidligsteVedtak,
         )
     }
@@ -43,7 +43,7 @@ class GjeldendeVedtakService(
     private fun sammenslåBarnetilsynsperioder(
         vedtakListe: List<Vedtak>,
         fra: YearMonth,
-    ): List<Barnetilsynperiode> {
+    ): List<GrunnstønadPeriode> {
         val månedTilPeriode = mutableMapOf<YearMonth, MånedPeriodeData>()
 
         for (vedtak in vedtakListe) {
@@ -52,7 +52,7 @@ class GjeldendeVedtakService(
                     månedTilPeriode[month] = MånedPeriodeData.ingenStønad()
                 }
             } else if (vedtak.resultatType == ResultatType.INNVILGET) {
-                for (periode in vedtak.barnetilsynperioder) {
+                for (periode in vedtak.grunnstønadPerioder) {
                     var gjeldendeDato = periode.datoFra
                     while (gjeldendeDato <= periode.datoTil) {
                         månedTilPeriode[gjeldendeDato] =
@@ -75,11 +75,11 @@ class GjeldendeVedtakService(
 
     private fun konverterTilBarnetilsynsperioder(
         månedTilPeriode: Map<YearMonth, MånedPeriodeData>,
-    ): List<Barnetilsynperiode> {
+    ): List<GrunnstønadPeriode> {
         if (månedTilPeriode.isEmpty()) return emptyList()
 
         val sorterteMåneder = månedTilPeriode.keys.sorted()
-        val resultat = mutableListOf<Barnetilsynperiode>()
+        val resultat = mutableListOf<GrunnstønadPeriode>()
 
         var periodeStart = sorterteMåneder.first()
         var dataStart = månedTilPeriode.getValue(periodeStart)
@@ -118,7 +118,7 @@ class GjeldendeVedtakService(
     private fun lagIngenStønadPeriodeHvisTomPeriode(
         forrigeMåned: YearMonth,
         gjeldendeMåned: YearMonth,
-    ): List<Barnetilsynperiode> {
+    ): List<GrunnstønadPeriode> {
         val ingenPeriodeStart = forrigeMåned.plusMonths(1)
         val ingenPeriodeSlutt = gjeldendeMåned.minusMonths(1)
         return if (ingenPeriodeStart <= ingenPeriodeSlutt) {
@@ -154,7 +154,7 @@ private data class MånedPeriodeData(
     fun tilBarnetilsynPeriode(
         datoFra: YearMonth,
         datoTil: YearMonth,
-    ) = Barnetilsynperiode(
+    ) = GrunnstønadPeriode(
         datoFra = datoFra,
         datoTil = datoTil,
         utgifter = utgifter,

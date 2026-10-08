@@ -58,6 +58,9 @@ nais:
 
 # Ekstern tjeneste konfigurasjon (Mock-verdier for tester)
 integrasjoner:
+    infotrygd-feed:
+        url: http://localhost:8087
+        scope: test-scope
     pdl:
         url: http://localhost:8080/pdl
         scope: test-scope
