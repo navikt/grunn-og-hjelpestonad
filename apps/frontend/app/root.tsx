@@ -13,19 +13,28 @@ import Faro from "./Faro";
 import Header from "~/komponenter/header/Header";
 import "@navikt/ds-css";
 import "./global.css";
+import { Loader, VStack } from "@navikt/ds-react";
 import { registrerApiInterceptorer } from "~/api/klientOppsett";
 import { TogglesProvider } from "~/fellesContext/TogglesContext";
 import { TemaProvider } from "~/fellesContext/TemaContext";
-import { envContext, saksbehandlerContext } from "./context";
+import type { Oppsett } from "~/server/types";
 
 registrerApiInterceptorer();
 
-export async function loader({ context }: Route.LoaderArgs) {
-  return {
-    saksbehandler: context.get(saksbehandlerContext),
-    env: context.get(envContext),
-    telemetryCollectorUrl: process.env.NAIS_FRONTEND_TELEMETRY_COLLECTOR_URL,
-  };
+export async function clientLoader(): Promise<Oppsett> {
+  const respons = await fetch("/oppsett");
+  if (!respons.ok) {
+    throw new Response("Kunne ikke hente oppsett", { status: respons.status });
+  }
+  return respons.json();
+}
+
+export function HydrateFallback() {
+  return (
+    <VStack align="center" padding="space-32">
+      <Loader size="xlarge" title="Laster..." />
+    </VStack>
+  );
 }
 
 export const links: Route.LinksFunction = () => [

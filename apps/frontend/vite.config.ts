@@ -6,18 +6,6 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  ssr: {
-    noExternal: ["@react-router/express", "@react-router/node", "react-router"],
-  },
-  environments: {
-    ssr: {
-      build: {
-        rollupOptions: {
-          input: "./server/app.ts",
-        },
-      },
-    },
-  },
   plugins: [
     reactRouter(),
     babel({

@@ -6,7 +6,7 @@
   },
   "scripts": {
     "build": "react-router build",
-    "build:server": "tsc -p tsconfig.server.json",
+    "build:server": "vite build --config vite.server.config.ts",
     "dev": "tsx --env-file=.env ./app/server/server.ts",
     "dev:vite": "react-router dev",
     "generate:api": "openapi-ts",

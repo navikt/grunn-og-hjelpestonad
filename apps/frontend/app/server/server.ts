@@ -1,15 +1,18 @@
-import express, { type NextFunction, type Request, type RequestHandler, type Response, } from "express";
+import path from "node:path";
+import express, { type NextFunction, type Request, type Response } from "express";
 import type { ViteDevServer } from "vite";
 import { registerLocalAuthRoutes, setupLocalAuth } from "./local-auth.js";
 import { MILJØ } from "./env.js";
-import { hentSaksbehandlerFraHeaders } from "./utils/token.js";
+import { hentSaksbehandler } from "./utils/token.js";
 import { lagApiProxy } from "./api-proxy.js";
-import { lagViteDevServer } from "./vite-dev.js";
+import { lagReactRouterDevHandler, lagViteDevServer } from "./vite-dev.js";
 import { exposeMetrics, recordHttpMetrics } from "./metrics.js";
 import { setServerTimingHeader } from "./server-timing.js";
 import { structuredLog } from "./structured-log.js";
+import type { Oppsett } from "./types.js";
 
 const PORT_NUMMER = process.env.PORT;
+const KLIENT_MAPPE = path.resolve("build/client");
 const GRUNN_OG_HJELP_BEHANDLING_URL_DEV = "http://grunn-og-hjelpestonad";
 const GRUNN_OG_HJELP_BEHANDLING_AUDIENCE_DEV =
   "api://dev-gcp.grunn-og-hjelp.grunn-og-hjelpestonad/.default";
@@ -80,63 +83,36 @@ if (erLokaltMiljø) {
   });
 }
 
+app.get("/oppsett", (req: Request, res: Response) => {
+  const oppsett: Oppsett = {
+    saksbehandler: hentSaksbehandler(req, erLokaltMiljø) ?? null,
+    env: MILJØ.env,
+    telemetryCollectorUrl: process.env.NAIS_FRONTEND_TELEMETRY_COLLECTOR_URL,
+  };
+  res.setHeader("Cache-Control", "no-store");
+  res.json(oppsett);
+});
+
 if (viteDevServer) {
   app.use(viteDevServer.middlewares);
+  app.use(await lagReactRouterDevHandler(viteDevServer));
 } else {
   app.use(
     "/assets",
-    express.static("build/client/assets", {
+    express.static(path.join(KLIENT_MAPPE, "assets"), {
       immutable: true,
       maxAge: "1y",
+      fallthrough: false,
     })
   );
+  app.use(express.static(KLIENT_MAPPE, { maxAge: "1h", index: false }));
+
+  // index.html peker på filer med hash i navnet, så den må ikke caches på tvers av deployer.
+  app.get("/{*sti}", (_req: Request, res: Response) => {
+    res.setHeader("Cache-Control", "no-cache");
+    res.sendFile(path.join(KLIENT_MAPPE, "index.html"));
+  });
 }
-
-app.use(express.static("build/client", { maxAge: "1h" }));
-
-type ReactRouterServerModule = {
-  app: RequestHandler;
-};
-
-const getReactRouterApp = async (): Promise<RequestHandler> => {
-  if (viteDevServer) {
-    const serverModule = (await viteDevServer.ssrLoadModule(
-      "./server/app.ts"
-    )) as ReactRouterServerModule;
-    return serverModule.app;
-  }
-
-  // Vite generates this module during the frontend build.
-  // @ts-expect-error The generated server module is unavailable during TypeScript compilation.
-  const serverModule = (await import("../build/server/index.js")) as ReactRouterServerModule;
-  return serverModule.app;
-};
-
-const forhåndslastetReactRouterApp = viteDevServer
-    ? undefined
-    : await getReactRouterApp();
-
-const handleReactRouterRequest = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  res.locals.saksbehandler = erLokaltMiljø
-      ? (req.session?.localAuthUser || undefined)
-      : hentSaksbehandlerFraHeaders(req);
-
-  try {
-    const reactRouterApp = forhåndslastetReactRouterApp ?? (await getReactRouterApp());
-    await reactRouterApp(req, res, next);
-  } catch (error) {
-    if (viteDevServer && error instanceof Error) {
-      viteDevServer.ssrFixStacktrace(error);
-    }
-    next(error);
-  }
-};
-
-app.use(handleReactRouterRequest);
 
 app.listen(PORT_NUMMER, () => {
   if (!PORT_NUMMER) {
