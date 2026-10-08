@@ -28,6 +28,20 @@ export function hentSaksbehandlerFraHeaders(req: Request): Saksbehandler | undef
   return parseToken(token);
 }
 
+export function hentSaksbehandler(req: Request, erLokalt: boolean): Saksbehandler | undefined {
+  if (!erLokalt) {
+    return hentSaksbehandlerFraHeaders(req);
+  }
+
+  const bruker = req.session.localAuthUser;
+  if (!bruker) {
+    return;
+  }
+
+  // Sesjonen inneholder også accessToken, som ikke skal sendes til nettleseren.
+  return { navn: bruker.navn, epost: bruker.epost, navIdent: bruker.navIdent };
+}
+
 export function hentAccessToken(req: Request, erLokalt: boolean): string | undefined {
   if (erLokalt) {
     return req.session.localAuthUser?.accessToken;
