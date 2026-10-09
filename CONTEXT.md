@@ -1,13 +1,13 @@
 # Grunnstønad
 
 Saksbehandling av grunnstønad etter folketrygdloven kapittel 6: fra
-behandlingsgrunnlag, via vilkår, til tilkjent ytelse. Alt periodiseres.
+faktagrunnlag, via vilkår, til tilkjent ytelse. Alt periodiseres.
 
-## Behandlingsgrunnlag
+## Faktagrunnlag
 
-**Behandlingsgrunnlag**:
+**Faktagrunnlag**:
 Opplysninger fra søker, registre eller fagpersoner som saksbehandler vurderer vilkårene ut fra. Kan komme før eller underveis i behandlingen.
-_Avoid_: Grunnlagsdata, grunnlag (alene), saksopplysninger
+_Avoid_: Behandlingsgrunnlag, grunnlagsdata, grunnlag (alene), saksopplysninger
 
 **Legeerklæring**:
 Erklæring fra lege eller spesialist om søkers diagnose. Kommer med søknaden, ved innhenting eller ved ettersending.
@@ -30,7 +30,7 @@ _Avoid_: Dekningsgrad
 En periode der saksbehandler har vurdert om søker er medlem av folketrygden, etter nasjonale regler eller EØS-reglene. Medlemskapsperiodene er vurderingen av vilkåret medlemskap og dekker hele tidslinjen.
 
 **Forslag til medlemskapsperioder**:
-En tidslinje som systemet utleder fra behandlingsgrunnlaget for medlemskap. Hver periode har enten en foreslått vurdering, eller en grunn til at saksbehandler må vurdere den manuelt. Det blir til medlemskapsperioder først når saksbehandler godtar det.
+En tidslinje som systemet utleder fra faktagrunnlaget for medlemskap. Hver periode har enten en foreslått vurdering, eller en grunn til at saksbehandler må vurdere den manuelt. Det blir til medlemskapsperioder først når saksbehandler godtar det.
 _Avoid_: Automatisk vurdering, maskinell vurdering, aksjonspunkt
 
 ## Vilkår

@@ -49,7 +49,7 @@ medlemskapskravet.
 
 ### Alt periodiseres
 
-Behandlingsgrunnlaget, hvert vilkår og tilkjent ytelse periodiseres. Tilkjent
+Faktagrunnlaget, hvert vilkår og tilkjent ytelse periodiseres. Tilkjent
 ytelse er tidslinjen av sats × trygdetidsbrøk i periodene der søker har rett.
 
 ### Institusjon slår av retten, med ekstrautgifter som unntak

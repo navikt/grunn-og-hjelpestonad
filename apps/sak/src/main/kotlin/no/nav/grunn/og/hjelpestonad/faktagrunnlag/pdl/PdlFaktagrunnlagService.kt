@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl
+package no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl
 
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
@@ -9,24 +9,24 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
-class PdlBehandlingsgrunnlagService(
+class PdlFaktagrunnlagService(
     private val pdlService: PdlService,
     private val behandlingService: BehandlingService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val fagsakService: FagsakService,
-    private val pdlBehandlingsgrunnlagDbService: PdlBehandlingsgrunnlagDbService,
+    private val pdlFaktagrunnlagDbService: PdlFaktagrunnlagDbService,
 ) {
-    fun innhentBehandlingsgrunnlagFraPdl(behandlingId: UUID): PdlBehandlingsgrunnlag {
+    fun innhentFaktagrunnlagFraPdl(behandlingId: UUID): PdlFaktagrunnlag {
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         val behandling = behandlingService.hentBehandling(behandlingId) ?: error("Fant ikke behandling med id=$behandlingId")
-        return innhentBehandlingsgrunnlagFraPdl(behandling)
+        return innhentFaktagrunnlagFraPdl(behandling)
     }
 
-    fun hent(behandlingId: UUID): PdlBehandlingsgrunnlag? = pdlBehandlingsgrunnlagDbService.hent(behandlingId)
+    fun hent(behandlingId: UUID): PdlFaktagrunnlag? = pdlFaktagrunnlagDbService.hent(behandlingId)
 
-    fun innhentBehandlingsgrunnlagFraPdl(behandling: Behandling): PdlBehandlingsgrunnlag {
-        val person = pdlService.hentBehandlingsgrunnlag(fagsakService.hentAktivIdent(behandling.fagsakId))
-        return pdlBehandlingsgrunnlagDbService.erstatt(behandling.id, person)
+    fun innhentFaktagrunnlagFraPdl(behandling: Behandling): PdlFaktagrunnlag {
+        val person = pdlService.hentFaktagrunnlag(fagsakService.hentAktivIdent(behandling.fagsakId))
+        return pdlFaktagrunnlagDbService.erstatt(behandling.id, person)
     }
 }

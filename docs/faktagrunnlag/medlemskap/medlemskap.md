@@ -1,10 +1,10 @@
-# Behandlingsgrunnlag for medlemskap
+# Faktagrunnlag for medlemskap
 
 Hvilke kilder vi bruker for medlemskapsvilkåret, hvordan vi henter og lagrer
 dem etter
-[ADR-0007](../../adr/ADR-0007-behandlingsgrunnlag-per-kilde-med-minst-mulig-endring.md),
+[ADR-0007](../../adr/ADR-0007-faktagrunnlag-per-kilde-med-minst-mulig-endring.md),
 og hvordan K9, EF og LovMe gjør det.
-Hvordan behandlingsgrunnlaget blir til et forslag til medlemskapsperioder, står
+Hvordan faktagrunnlaget blir til et forslag til medlemskapsperioder, står
 i [nasjonalt-medlemskap.md](../../vilkår/nasjonalt-medlemskap.md). Begrepene er
 definert i [CONTEXT.md](../../../CONTEXT.md).
 
@@ -12,7 +12,7 @@ Grunnlaget er beskrevet for fag og saksbehandlere i
 [confluence/medlemskapsvilkaret.md](../../../confluence/medlemskapsvilkaret.md).
 Ingenting av det er i produksjon. Vi bygger i steg, se [Steg](#steg).
 
-## Fra behandlingsgrunnlag til medlemskapsperioder
+## Fra faktagrunnlag til medlemskapsperioder
 
 Medlem i folketrygden er i utgangspunktet den som er bosatt i Norge (ftrl.
 § 2-1). Bosted står i Folkeregisteret, som vi leser fra PDL. Unntakene fra
@@ -20,9 +20,9 @@ hovedregelen står i MEDL som unntaksperioder for medlemskap. Den som ikke er
 bosatt, kan være medlem som arbeidstaker i Norge (§ 2-2), og det kan vi se i
 Aa-registeret og A-ordningen.
 
-Medlemskapsperiodene er ikke behandlingsgrunnlag. De er vurderingen av
+Medlemskapsperiodene er ikke faktagrunnlag. De er vurderingen av
 vilkåret medlemskap. Saksbehandler fastsetter dem ut fra
-behandlingsgrunnlaget. Fra steg 2 lager systemet et forslag til
+faktagrunnlaget. Fra steg 2 lager systemet et forslag til
 medlemskapsperioder som saksbehandler godtar eller endrer:
 
 ```mermaid
@@ -48,7 +48,7 @@ flowchart LR
     saksbehandler --> perioder
 ```
 
-| Kilde | Behandlingsgrunnlag | Tidsrom | Brukes i forslaget fra |
+| Kilde | Faktagrunnlag | Tidsrom | Brukes i forslaget fra |
 |---|---|---|---|
 | PDL | Personstatus, bostedsadresse, statsborgerskap, opphold, inn- og utflytting, land for utenlandsk oppholdsadresse | Hele historikken | Steg 2 |
 | PDL (felles for behandlingen) | Dødsfall | Hele historikken | Steg 2 |
@@ -66,7 +66,7 @@ fordi saksbehandler ofte trenger å se hva som skjedde før.
 
 | Steg | Systemet | Kilder som må være hentet |
 |---|---|---|
-| 1 (MVP) | Henter og viser behandlingsgrunnlaget. Saksbehandler vurderer alt. | PDL, MEDL |
+| 1 (MVP) | Henter og viser faktagrunnlaget. Saksbehandler vurderer alt. | PDL, MEDL |
 | 2 | Foreslår JA i klare tilfeller | PDL, MEDL |
 | 3 | Foreslår NEI ut fra MEDL | PDL, MEDL |
 | 4 | Foreslår JA etter § 2-2 | Aa-registeret, A-ordningen |
@@ -92,13 +92,13 @@ Reglene står i [nasjonalt-medlemskap.md](../../vilkår/nasjonalt-medlemskap.md)
 Prinsippene står i ADR-0007, som er foreslått, men ikke godkjent. For
 medlemskap betyr det:
 
-- Behandlingsgrunnlaget hentes automatisk i samme transaksjon som
+- Faktagrunnlaget hentes automatisk i samme transaksjon som
   behandlingen opprettes. Svarer ikke kilden, for eksempel PDL, feiler
   REST-kallet som oppretter behandlingen, og saksbehandler må prøve på nytt.
   Da har alle nye behandlinger grunnlag fra kildene.
 - Saksbehandler kan hente på nytt så lenge behandlingen kan redigeres. En ny
   henting erstatter det som er lagret fra samme kilde for denne behandlingen.
-  Behandlingsgrunnlaget i andre behandlinger endres ikke.
+  Faktagrunnlaget i andre behandlinger endres ikke.
 - Er grunnlaget hentet på nytt etter at medlemskap er vurdert, viser vi
   saksbehandler at grunnlaget er endret. Vurderingen beholdes.
 - Én felles tabell har én rad per behandling og kilde, med tidspunktet for
@@ -111,32 +111,33 @@ medlemskap betyr det:
 ## Lagring hos oss
 
 Et forslag til tabeller etter ADR-0007. Tabellnavnene har prefikset
-`behandlingsgrunnlag_`. Feltnavnene er fra kilden, i snake_case.
+`faktagrunnlag_`. Feltnavnene er fra kilden, i snake_case.
 Tekstkolonner er `text`. Alle tabellene har `behandling_id`, og en ny henting
 sletter radene fra samme kilde for behandlingen og setter inn nye.
 
 Tabellene for PDL er laget (`V37__behandlingsgrunnlag_pdl.sql` og
-`V38__behandlingsgrunnlag_pdl_oppholdsadresse_og_doedsfall.sql`). Resten er
-forslag.
+`V38__behandlingsgrunnlag_pdl_oppholdsadresse_og_doedsfall.sql`) og fikk
+prefikset `faktagrunnlag_` i
+`V41__renamere_behandlingsgrunnlag_til_faktagrunnlag.sql`. Resten er forslag.
 
 ```mermaid
 flowchart LR
     behandling["behandling"]
-    henting["behandlingsgrunnlag_henting<br/>(én per kilde)"]
+    henting["faktagrunnlag_henting<br/>(én per kilde)"]
 
     subgraph medl["MEDL"]
-        unntaksperiode["behandlingsgrunnlag_medl_unntaksperiode"]
+        unntaksperiode["faktagrunnlag_medl_unntaksperiode"]
     end
 
     subgraph pdl["PDL"]
-        personstatus["behandlingsgrunnlag_pdl_folkeregisterpersonstatus"]
-        bostedsadresse["behandlingsgrunnlag_pdl_bostedsadresse"]
-        statsborgerskap["behandlingsgrunnlag_pdl_statsborgerskap"]
-        opphold["behandlingsgrunnlag_pdl_opphold"]
-        innflytting["behandlingsgrunnlag_pdl_innflytting_til_norge"]
-        utflytting["behandlingsgrunnlag_pdl_utflytting_fra_norge"]
-        oppholdsadresse["behandlingsgrunnlag_pdl_oppholdsadresse"]
-        doedsfall["behandlingsgrunnlag_pdl_doedsfall"]
+        personstatus["faktagrunnlag_pdl_folkeregisterpersonstatus"]
+        bostedsadresse["faktagrunnlag_pdl_bostedsadresse"]
+        statsborgerskap["faktagrunnlag_pdl_statsborgerskap"]
+        opphold["faktagrunnlag_pdl_opphold"]
+        innflytting["faktagrunnlag_pdl_innflytting_til_norge"]
+        utflytting["faktagrunnlag_pdl_utflytting_fra_norge"]
+        oppholdsadresse["faktagrunnlag_pdl_oppholdsadresse"]
+        doedsfall["faktagrunnlag_pdl_doedsfall"]
     end
 
     subgraph senere["Steg 4 og senere (ikke designet)"]
@@ -153,14 +154,14 @@ flowchart LR
 
 ### Hentingen
 
-`behandlingsgrunnlag_henting` har én rad per behandling og kilde:
+`faktagrunnlag_henting` har én rad per behandling og kilde:
 `behandling_id`, `kilde` (`MEDL` eller `PDL`) og `hentet_tidspunkt`, med
 unik-krav på `(behandling_id, kilde)`. Finnes raden, men ingen
 unntaksperioder, svarte MEDL uten treff.
 
 ### Unntaksperioder fra MEDL
 
-`behandlingsgrunnlag_medl_unntaksperiode` har én rad per unntaksperiode slik MEDL leverer den
+`faktagrunnlag_medl_unntaksperiode` har én rad per unntaksperiode slik MEDL leverer den
 (`MedlemskapsunntakForGet` i `navikt/medlemskap-medl`), med unik-krav på
 `(behandling_id, unntak_id)`:
 
@@ -198,14 +199,14 @@ Vi lagrer ikke endringsloggen (`metadata.endringer`).
 
 | Tabell | Kolonner i tillegg til metadata |
 |---|---|
-| `behandlingsgrunnlag_pdl_folkeregisterpersonstatus` | `status`, `forenklet_status` |
-| `behandlingsgrunnlag_pdl_bostedsadresse` | `adressetype` (`VEGADRESSE`, `MATRIKKELADRESSE`, `UTENLANDSK_ADRESSE` eller `UKJENT_BOSTED`), `kommunenummer`, `bostedskommune`, `landkode`, `gyldig_fra_og_med`, `gyldig_til_og_med`, `angitt_flyttedato`. Ikke resten av adressen. |
-| `behandlingsgrunnlag_pdl_statsborgerskap` | `land`, `gyldig_fra_og_med`, `gyldig_til_og_med`, `bekreftelsesdato` |
-| `behandlingsgrunnlag_pdl_opphold` | `type`, `opphold_fra`, `opphold_til` |
-| `behandlingsgrunnlag_pdl_innflytting_til_norge` | `fraflyttingsland`, `fraflyttingssted_i_utlandet` |
-| `behandlingsgrunnlag_pdl_utflytting_fra_norge` | `tilflyttingsland`, `tilflyttingssted_i_utlandet`, `utflyttingsdato` |
-| `behandlingsgrunnlag_pdl_oppholdsadresse` | `landkode`, `gyldig_fra_og_med`, `gyldig_til_og_med`. Bare utenlandske oppholdsadresser. |
-| `behandlingsgrunnlag_pdl_doedsfall` | `doedsdato`. Felles for hele behandlingen, ikke bare medlemskap. |
+| `faktagrunnlag_pdl_folkeregisterpersonstatus` | `status`, `forenklet_status` |
+| `faktagrunnlag_pdl_bostedsadresse` | `adressetype` (`VEGADRESSE`, `MATRIKKELADRESSE`, `UTENLANDSK_ADRESSE` eller `UKJENT_BOSTED`), `kommunenummer`, `bostedskommune`, `landkode`, `gyldig_fra_og_med`, `gyldig_til_og_med`, `angitt_flyttedato`. Ikke resten av adressen. |
+| `faktagrunnlag_pdl_statsborgerskap` | `land`, `gyldig_fra_og_med`, `gyldig_til_og_med`, `bekreftelsesdato` |
+| `faktagrunnlag_pdl_opphold` | `type`, `opphold_fra`, `opphold_til` |
+| `faktagrunnlag_pdl_innflytting_til_norge` | `fraflyttingsland`, `fraflyttingssted_i_utlandet` |
+| `faktagrunnlag_pdl_utflytting_fra_norge` | `tilflyttingsland`, `tilflyttingssted_i_utlandet`, `utflyttingsdato` |
+| `faktagrunnlag_pdl_oppholdsadresse` | `landkode`, `gyldig_fra_og_med`, `gyldig_til_og_med`. Bare utenlandske oppholdsadresser. |
+| `faktagrunnlag_pdl_doedsfall` | `doedsdato`. Felles for hele behandlingen, ikke bare medlemskap. |
 
 ### Aa-registeret, A-ordningen, Gosys og Joark
 
@@ -269,7 +270,7 @@ kombinasjonen fungerer i dev:
 ## PDL
 
 Spørringen vi bruker, er
-[`hent_behandlingsgrunnlag.graphql`](../../../apps/sak/src/main/resources/pdl/hent_behandlingsgrunnlag.graphql).
+[`hent_faktagrunnlag.graphql`](../../../apps/sak/src/main/resources/pdl/hent_faktagrunnlag.graphql).
 Den kjøres når behandlingen opprettes, og når saksbehandler henter på nytt.
 
 ### Hva vi henter, og hvorfor
@@ -336,7 +337,7 @@ vurderingen.
 | Arbeidsforhold og pensjonsgivende inntekt | Aa-registeret og A-ordningen | Arbeid i Norge for ikke-bosatte (§ 2-2) og oppholdsrett for EØS-borgere |
 
 **Lagrer:** Hvert register er et eget aggregat i egne tabeller, og
-`GR_MEDLEMSKAP` (`MedlemskapBehandlingsgrunnlagEntitet`) peker på versjonene som
+`GR_MEDLEMSKAP` (`MedlemskapFaktagrunnlagEntitet`) peker på versjonene som
 gjelder for behandlingen:
 
 | Tabell | Innhold |
@@ -358,7 +359,7 @@ Slik skiller vi oss fra K9:
   uendret og tolker dem når de brukes.
 - K9 henter bare noen statuser fra MEDL. Vi henter alle.
 - K9 samler kildene for medlemskap i `GR_MEDLEMSKAP`. Vi har ett
-  behandlingsgrunnlag per kilde.
+  faktagrunnlag per kilde.
 - K9 lagrer avklaringer per vurderingsdato. Vi lagrer
   medlemskapsperioder.
 
@@ -378,7 +379,7 @@ er opphold i Norge som ligner mest på vårt vilkår.
 | Unntaksperioder for medlemskap | MEDL, via familie-integrasjoner | Alle perioder, gruppert som gyldige, avviste og uavklarte (`Medlemskapsinfo` i familie-kontrakter). Hver periode har fra, til, status, statusårsak, `gjelderMedlemskapIFolketrygden`, grunnlag og dekning. |
 | Opplysninger om medlemskap | Søknaden | Bosatt i Norge de siste årene, oppholder seg i Norge, oppholdsland og utenlandsopphold med land, periode og årsak |
 
-**Lagrer:** Hele behandlingsgrunnlaget lagres som ett JSON-dokument per
+**Lagrer:** Hele faktagrunnlaget lagres som ett JSON-dokument per
 behandling (`Grunnlagsdata` med `GrunnlagsdataDomene`, der MEDL ligger i
 `medlUnntak`). Nye data fra registrene lagres ved siden av (`oppdaterteData`),
 slik at saksbehandler kan se hva som er endret før hen tar dem i bruk. Filen
@@ -400,7 +401,7 @@ faste spørsmål (`MedlemskapMapper` og `MedlemskapDto` viser grunnlaget).
 
 Slik skiller vi oss fra EF:
 
-- EF lagrer alle kildene samlet som JSON. Vi har ett behandlingsgrunnlag
+- EF lagrer alle kildene samlet som JSON. Vi har ett faktagrunnlag
   per kilde, i kolonner.
 - EF viser bare de gyldige unntaksperiodene. Vi lagrer og viser alle.
 - EF vurderer for hele behandlingen. Vi lagrer medlemskapsperioder.
@@ -431,7 +432,7 @@ i Joark med tema `MED`, `UFM` eller `TRY`, og brukersvar fra søknaden.
 
 Slik skiller vi oss fra LovMe:
 
-- Vi lagrer behandlingsgrunnlaget uendret per kilde. LovMe er en
+- Vi lagrer faktagrunnlaget uendret per kilde. LovMe er en
   regeltjeneste.
 - Vi bruker egen tabell over trygdedekning for kap. 6.
 - Vi har ikke krav om forutgående medlemskap eller arbeid i en kontrollperiode.
@@ -444,7 +445,7 @@ Hver periode sier om søker er medlem etter nasjonale regler eller EØS-reglene.
 Foreløpig har vi bare nasjonale regler.
 
 Fra steg 2 lager systemet et forslag til medlemskapsperioder fra
-behandlingsgrunnlaget. Perioder systemet ikke kan avgjøre, får ingen
+faktagrunnlaget. Perioder systemet ikke kan avgjøre, får ingen
 vurdering, men en grunn til at saksbehandler må vurdere dem. Forslaget lagres
 ikke. Det er beskrevet i
 [nasjonalt-medlemskap.md](../../vilkår/nasjonalt-medlemskap.md). I steg 1

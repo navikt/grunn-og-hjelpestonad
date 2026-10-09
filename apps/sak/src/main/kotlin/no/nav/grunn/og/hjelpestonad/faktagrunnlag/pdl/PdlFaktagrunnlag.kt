@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl
+package no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl
 
 import no.nav.grunn.og.hjelpestonad.pdl.Bostedsadresse
 import no.nav.grunn.og.hjelpestonad.pdl.Doedsfall
@@ -17,7 +17,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-data class PdlBehandlingsgrunnlag(
+data class PdlFaktagrunnlag(
     val hentetTidspunkt: LocalDateTime,
     val folkeregisterpersonstatus: List<PdlFolkeregisterpersonstatus>,
     val bostedsadresse: List<PdlBostedsadresse>,
@@ -36,7 +36,7 @@ data class PdlMetadata(
     val opphoerstidspunkt: LocalDateTime? = null,
 )
 
-@Table("behandlingsgrunnlag_pdl_folkeregisterpersonstatus")
+@Table("faktagrunnlag_pdl_folkeregisterpersonstatus")
 data class PdlFolkeregisterpersonstatus(
     @Id
     val id: UUID = UUID.randomUUID(),
@@ -54,7 +54,7 @@ enum class PdlAdressetype {
     UKJENT_BOSTED,
 }
 
-@Table("behandlingsgrunnlag_pdl_bostedsadresse")
+@Table("faktagrunnlag_pdl_bostedsadresse")
 data class PdlBostedsadresse(
     @Id
     val id: UUID = UUID.randomUUID(),
@@ -70,7 +70,7 @@ data class PdlBostedsadresse(
     val metadata: PdlMetadata,
 )
 
-@Table("behandlingsgrunnlag_pdl_statsborgerskap")
+@Table("faktagrunnlag_pdl_statsborgerskap")
 data class PdlStatsborgerskap(
     @Id
     val id: UUID = UUID.randomUUID(),
@@ -83,7 +83,7 @@ data class PdlStatsborgerskap(
     val metadata: PdlMetadata,
 )
 
-@Table("behandlingsgrunnlag_pdl_opphold")
+@Table("faktagrunnlag_pdl_opphold")
 data class PdlOpphold(
     @Id
     val id: UUID = UUID.randomUUID(),
@@ -95,7 +95,7 @@ data class PdlOpphold(
     val metadata: PdlMetadata,
 )
 
-@Table("behandlingsgrunnlag_pdl_innflytting_til_norge")
+@Table("faktagrunnlag_pdl_innflytting_til_norge")
 data class PdlInnflyttingTilNorge(
     @Id
     val id: UUID = UUID.randomUUID(),
@@ -106,7 +106,7 @@ data class PdlInnflyttingTilNorge(
     val metadata: PdlMetadata,
 )
 
-@Table("behandlingsgrunnlag_pdl_utflytting_fra_norge")
+@Table("faktagrunnlag_pdl_utflytting_fra_norge")
 data class PdlUtflyttingFraNorge(
     @Id
     val id: UUID = UUID.randomUUID(),
@@ -119,7 +119,7 @@ data class PdlUtflyttingFraNorge(
 )
 
 /** Bare utenlandske oppholdsadresser, og bare landet. */
-@Table("behandlingsgrunnlag_pdl_oppholdsadresse")
+@Table("faktagrunnlag_pdl_oppholdsadresse")
 data class PdlOppholdsadresse(
     @Id
     val id: UUID = UUID.randomUUID(),
@@ -131,7 +131,7 @@ data class PdlOppholdsadresse(
     val metadata: PdlMetadata,
 )
 
-@Table("behandlingsgrunnlag_pdl_doedsfall")
+@Table("faktagrunnlag_pdl_doedsfall")
 data class PdlDoedsfall(
     @Id
     val id: UUID = UUID.randomUUID(),

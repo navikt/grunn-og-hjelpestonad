@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl
+package no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class MedlemskapBehandlingsgrunnlagResponseTest {
+class MedlemskapFaktagrunnlagResponseTest {
     private val behandlingId = UUID.randomUUID()
 
     private fun metadata(
@@ -16,7 +16,7 @@ class MedlemskapBehandlingsgrunnlagResponseTest {
 
     @Test
     fun `gir tomme lister og hentetTidspunkt null når grunnlaget ikke er hentet`() {
-        val response = null.tilMedlemskapBehandlingsgrunnlagResponse()
+        val response = null.tilMedlemskapFaktagrunnlagResponse()
 
         assertThat(response.hentetTidspunkt).isNull()
         assertThat(response.bosted).isEmpty()
@@ -75,7 +75,7 @@ class MedlemskapBehandlingsgrunnlagResponseTest {
                     ),
             )
 
-        val bosted = grunnlag.tilMedlemskapBehandlingsgrunnlagResponse().bosted
+        val bosted = grunnlag.tilMedlemskapFaktagrunnlagResponse().bosted
 
         assertThat(bosted.map { it.fraOgMedDato }).isSortedAccordingTo(compareByDescending { it })
         assertThat(bosted.map { it.beskrivelse }).containsExactlyInAnyOrder(
@@ -118,7 +118,7 @@ class MedlemskapBehandlingsgrunnlagResponseTest {
                     ),
             )
 
-        val response = grunnlag.tilMedlemskapBehandlingsgrunnlagResponse()
+        val response = grunnlag.tilMedlemskapFaktagrunnlagResponse()
 
         assertThat(response.statsborgerskap.first()).isEqualTo(OpplysningResponse(LocalDate.of(2021, 3, 10), null, "Norge"))
         assertThat(response.statsborgerskap.map { it.beskrivelse }).containsExactly("Norge", "Polen", "Statsløs")
@@ -146,7 +146,7 @@ class MedlemskapBehandlingsgrunnlagResponseTest {
                     ),
             )
 
-        val bosted = grunnlag.tilMedlemskapBehandlingsgrunnlagResponse().bosted
+        val bosted = grunnlag.tilMedlemskapFaktagrunnlagResponse().bosted
 
         assertThat(bosted).containsExactly(
             OpplysningResponse(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 1), "Død"),
@@ -163,7 +163,7 @@ class MedlemskapBehandlingsgrunnlagResponseTest {
         utflyttingFraNorge: List<PdlUtflyttingFraNorge> = emptyList(),
         oppholdsadresse: List<PdlOppholdsadresse> = emptyList(),
         doedsfall: List<PdlDoedsfall> = emptyList(),
-    ) = PdlBehandlingsgrunnlag(
+    ) = PdlFaktagrunnlag(
         hentetTidspunkt = LocalDateTime.of(2026, 10, 1, 9, 12),
         folkeregisterpersonstatus = folkeregisterpersonstatus,
         bostedsadresse = bostedsadresse,

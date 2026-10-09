@@ -376,7 +376,7 @@ export type VilkårDiagnoseResponse = {
     erVilkårOppfylt: boolean;
 };
 
-export type MedlemskapBehandlingsgrunnlagResponse = {
+export type MedlemskapFaktagrunnlagResponse = {
     hentetTidspunkt?: string | null;
     bosted: Array<OpplysningResponse>;
     statsborgerskap: Array<OpplysningResponse>;
@@ -939,20 +939,20 @@ export type LagreDiagnosePeriodeResponses = {
 
 export type LagreDiagnosePeriodeResponse = LagreDiagnosePeriodeResponses[keyof LagreDiagnosePeriodeResponses];
 
-export type InnhentBehandlingsgrunnlagFraPdlData = {
+export type InnhentFaktagrunnlagFraPdlData = {
     body?: never;
     path: {
         behandlingId: string;
     };
     query?: never;
-    url: '/api/behandling/{behandlingId}/behandlingsgrunnlag/pdl';
+    url: '/api/behandling/{behandlingId}/faktagrunnlag/pdl';
 };
 
-export type InnhentBehandlingsgrunnlagFraPdlResponses = {
-    200: MedlemskapBehandlingsgrunnlagResponse;
+export type InnhentFaktagrunnlagFraPdlResponses = {
+    200: MedlemskapFaktagrunnlagResponse;
 };
 
-export type InnhentBehandlingsgrunnlagFraPdlResponse = InnhentBehandlingsgrunnlagFraPdlResponses[keyof InnhentBehandlingsgrunnlagFraPdlResponses];
+export type InnhentFaktagrunnlagFraPdlResponse = InnhentFaktagrunnlagFraPdlResponses[keyof InnhentFaktagrunnlagFraPdlResponses];
 
 export type OpprettBehandlingData = {
     body: OpprettRequest;
@@ -1215,20 +1215,20 @@ export type HentPerioderMedRettResponses = {
 
 export type HentPerioderMedRettResponse = HentPerioderMedRettResponses[keyof HentPerioderMedRettResponses];
 
-export type HentMedlemskapBehandlingsgrunnlagData = {
+export type HentMedlemskapFaktagrunnlagData = {
     body?: never;
     path: {
         behandlingId: string;
     };
     query?: never;
-    url: '/api/behandling/{behandlingId}/behandlingsgrunnlag/pdl/medlemskap';
+    url: '/api/behandling/{behandlingId}/faktagrunnlag/pdl/medlemskap';
 };
 
-export type HentMedlemskapBehandlingsgrunnlagResponses = {
-    200: MedlemskapBehandlingsgrunnlagResponse;
+export type HentMedlemskapFaktagrunnlagResponses = {
+    200: MedlemskapFaktagrunnlagResponse;
 };
 
-export type HentMedlemskapBehandlingsgrunnlagResponse = HentMedlemskapBehandlingsgrunnlagResponses[keyof HentMedlemskapBehandlingsgrunnlagResponses];
+export type HentMedlemskapFaktagrunnlagResponse = HentMedlemskapFaktagrunnlagResponses[keyof HentMedlemskapFaktagrunnlagResponses];
 
 export type SlettMedlemskapPeriodeData = {
     body?: never;

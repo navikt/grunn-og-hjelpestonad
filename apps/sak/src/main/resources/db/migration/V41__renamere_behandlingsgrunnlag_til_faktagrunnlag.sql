@@ -1,0 +1,91 @@
+-- Behandlingsgrunnlag heter nå faktagrunnlag, se CONTEXT.md.
+-- Navnene til venstre er slik Postgres lagret dem. To indeks- og fremmednøkkelnavn
+-- ble kuttet ved 63 tegn i V37, og står derfor kuttet her.
+-- Å gi en PRIMARY KEY- eller UNIQUE-constraint nytt navn gir også indeksen bak den nytt navn.
+
+-- Tabeller
+ALTER TABLE behandlingsgrunnlag_henting RENAME TO faktagrunnlag_henting;
+ALTER TABLE behandlingsgrunnlag_pdl_folkeregisterpersonstatus RENAME TO faktagrunnlag_pdl_folkeregisterpersonstatus;
+ALTER TABLE behandlingsgrunnlag_pdl_bostedsadresse RENAME TO faktagrunnlag_pdl_bostedsadresse;
+ALTER TABLE behandlingsgrunnlag_pdl_statsborgerskap RENAME TO faktagrunnlag_pdl_statsborgerskap;
+ALTER TABLE behandlingsgrunnlag_pdl_opphold RENAME TO faktagrunnlag_pdl_opphold;
+ALTER TABLE behandlingsgrunnlag_pdl_innflytting_til_norge RENAME TO faktagrunnlag_pdl_innflytting_til_norge;
+ALTER TABLE behandlingsgrunnlag_pdl_utflytting_fra_norge RENAME TO faktagrunnlag_pdl_utflytting_fra_norge;
+ALTER TABLE behandlingsgrunnlag_pdl_oppholdsadresse RENAME TO faktagrunnlag_pdl_oppholdsadresse;
+ALTER TABLE behandlingsgrunnlag_pdl_doedsfall RENAME TO faktagrunnlag_pdl_doedsfall;
+
+-- faktagrunnlag_henting
+ALTER TABLE faktagrunnlag_henting
+    RENAME CONSTRAINT behandlingsgrunnlag_henting_pkey TO faktagrunnlag_henting_pkey;
+ALTER TABLE faktagrunnlag_henting
+    RENAME CONSTRAINT behandlingsgrunnlag_henting_behandling_id_fkey TO faktagrunnlag_henting_behandling_id_fkey;
+ALTER TABLE faktagrunnlag_henting
+    RENAME CONSTRAINT behandlingsgrunnlag_henting_kilde TO faktagrunnlag_henting_kilde;
+ALTER TABLE faktagrunnlag_henting
+    RENAME CONSTRAINT behandlingsgrunnlag_henting_unik_kilde TO faktagrunnlag_henting_unik_kilde;
+
+-- faktagrunnlag_pdl_folkeregisterpersonstatus
+ALTER TABLE faktagrunnlag_pdl_folkeregisterpersonstatus
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_folkeregisterpersonstatus_pkey TO faktagrunnlag_pdl_folkeregisterpersonstatus_pkey;
+ALTER TABLE faktagrunnlag_pdl_folkeregisterpersonstatus
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_folkeregisterpersons_behandling_id_fkey TO faktagrunnlag_pdl_folkeregisterpersonstatus_behandling_id_fkey;
+ALTER INDEX idx_behandlingsgrunnlag_pdl_folkeregisterpersonstatus_behandlin
+    RENAME TO idx_faktagrunnlag_pdl_folkeregisterpersonstatus_behandling_id;
+
+-- faktagrunnlag_pdl_bostedsadresse
+ALTER TABLE faktagrunnlag_pdl_bostedsadresse
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_bostedsadresse_pkey TO faktagrunnlag_pdl_bostedsadresse_pkey;
+ALTER TABLE faktagrunnlag_pdl_bostedsadresse
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_bostedsadresse_behandling_id_fkey TO faktagrunnlag_pdl_bostedsadresse_behandling_id_fkey;
+ALTER TABLE faktagrunnlag_pdl_bostedsadresse
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_bostedsadresse_adressetype TO faktagrunnlag_pdl_bostedsadresse_adressetype;
+ALTER INDEX idx_behandlingsgrunnlag_pdl_bostedsadresse_behandling_id
+    RENAME TO idx_faktagrunnlag_pdl_bostedsadresse_behandling_id;
+
+-- faktagrunnlag_pdl_statsborgerskap
+ALTER TABLE faktagrunnlag_pdl_statsborgerskap
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_statsborgerskap_pkey TO faktagrunnlag_pdl_statsborgerskap_pkey;
+ALTER TABLE faktagrunnlag_pdl_statsborgerskap
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_statsborgerskap_behandling_id_fkey TO faktagrunnlag_pdl_statsborgerskap_behandling_id_fkey;
+ALTER INDEX idx_behandlingsgrunnlag_pdl_statsborgerskap_behandling_id
+    RENAME TO idx_faktagrunnlag_pdl_statsborgerskap_behandling_id;
+
+-- faktagrunnlag_pdl_opphold
+ALTER TABLE faktagrunnlag_pdl_opphold
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_opphold_pkey TO faktagrunnlag_pdl_opphold_pkey;
+ALTER TABLE faktagrunnlag_pdl_opphold
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_opphold_behandling_id_fkey TO faktagrunnlag_pdl_opphold_behandling_id_fkey;
+ALTER INDEX idx_behandlingsgrunnlag_pdl_opphold_behandling_id
+    RENAME TO idx_faktagrunnlag_pdl_opphold_behandling_id;
+
+-- faktagrunnlag_pdl_innflytting_til_norge
+ALTER TABLE faktagrunnlag_pdl_innflytting_til_norge
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_innflytting_til_norge_pkey TO faktagrunnlag_pdl_innflytting_til_norge_pkey;
+ALTER TABLE faktagrunnlag_pdl_innflytting_til_norge
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_innflytting_til_norg_behandling_id_fkey TO faktagrunnlag_pdl_innflytting_til_norge_behandling_id_fkey;
+ALTER INDEX idx_behandlingsgrunnlag_pdl_innflytting_til_norge_behandling_id
+    RENAME TO idx_faktagrunnlag_pdl_innflytting_til_norge_behandling_id;
+
+-- faktagrunnlag_pdl_utflytting_fra_norge
+ALTER TABLE faktagrunnlag_pdl_utflytting_fra_norge
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_utflytting_fra_norge_pkey TO faktagrunnlag_pdl_utflytting_fra_norge_pkey;
+ALTER TABLE faktagrunnlag_pdl_utflytting_fra_norge
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_utflytting_fra_norge_behandling_id_fkey TO faktagrunnlag_pdl_utflytting_fra_norge_behandling_id_fkey;
+ALTER INDEX idx_behandlingsgrunnlag_pdl_utflytting_fra_norge_behandling_id
+    RENAME TO idx_faktagrunnlag_pdl_utflytting_fra_norge_behandling_id;
+
+-- faktagrunnlag_pdl_oppholdsadresse
+ALTER TABLE faktagrunnlag_pdl_oppholdsadresse
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_oppholdsadresse_pkey TO faktagrunnlag_pdl_oppholdsadresse_pkey;
+ALTER TABLE faktagrunnlag_pdl_oppholdsadresse
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_oppholdsadresse_behandling_id_fkey TO faktagrunnlag_pdl_oppholdsadresse_behandling_id_fkey;
+ALTER INDEX idx_behandlingsgrunnlag_pdl_oppholdsadresse_behandling_id
+    RENAME TO idx_faktagrunnlag_pdl_oppholdsadresse_behandling_id;
+
+-- faktagrunnlag_pdl_doedsfall
+ALTER TABLE faktagrunnlag_pdl_doedsfall
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_doedsfall_pkey TO faktagrunnlag_pdl_doedsfall_pkey;
+ALTER TABLE faktagrunnlag_pdl_doedsfall
+    RENAME CONSTRAINT behandlingsgrunnlag_pdl_doedsfall_behandling_id_fkey TO faktagrunnlag_pdl_doedsfall_behandling_id_fkey;
+ALTER INDEX idx_behandlingsgrunnlag_pdl_doedsfall_behandling_id
+    RENAME TO idx_faktagrunnlag_pdl_doedsfall_behandling_id;

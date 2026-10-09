@@ -6,9 +6,9 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.LagBehandleSakOppgaveTask
-import no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl.PdlBehandlingsgrunnlagService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
+import no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl.PdlFaktagrunnlagService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.task.SendStartBehandlingTilInfotrygdFeedTask
@@ -21,7 +21,7 @@ class OpprettBehandlingService(
     private val behandlingService: BehandlingService,
     private val lagBehandleSakOppgaveTask: LagBehandleSakOppgaveTask,
     private val endringshistorikkService: EndringshistorikkService,
-    private val pdlBehandlingsgrunnlagService: PdlBehandlingsgrunnlagService,
+    private val pdlFaktagrunnlagService: PdlFaktagrunnlagService,
     private val taskService: TaskService,
 ) {
     @Transactional
@@ -56,7 +56,7 @@ class OpprettBehandlingService(
             endringType = EndringType.BEHANDLING_OPPRETTET,
         )
 
-        pdlBehandlingsgrunnlagService.innhentBehandlingsgrunnlagFraPdl(behandling)
+        pdlFaktagrunnlagService.innhentFaktagrunnlagFraPdl(behandling)
 
         return behandling
     }

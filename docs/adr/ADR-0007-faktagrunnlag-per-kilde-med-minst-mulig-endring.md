@@ -1,4 +1,4 @@
-# ADR-0007: Behandlingsgrunnlag per kilde, med minst mulig endring
+# ADR-0007: Faktagrunnlag per kilde, med minst mulig endring
 
 **Dato:** 2026-10-01
 **Status:** Foreslått
@@ -6,15 +6,15 @@
 
 ## Kontekst
 
-Vilkårene vurderes ut fra behandlingsgrunnlag som hentes fra registre, for
+Vilkårene vurderes ut fra faktagrunnlag som hentes fra registre, for
 eksempel PDL.
 
-Behandlingsgrunnlaget må kunne etterprøves: Saksbehandler og beslutter skal se
+Faktagrunnlaget må kunne etterprøves: Saksbehandler og beslutter skal se
 hva som ble hentet, når det ble hentet, og om kilden svarte uten treff.
 
 ## Beslutning
 
-1. **Ett behandlingsgrunnlag per kilde.** Hver kilde lagres for seg. Vi lager
+1. **Ett faktagrunnlag per kilde.** Hver kilde lagres for seg. Vi lager
    ikke et samlet grunnlag per vilkår. Samme kilde kan brukes av flere vilkår.
 2. **Minst mulig endring før lagring.** Opplysningene lagres slik kilden
    leverte dem. Vi oversetter ikke koder, slår ikke sammen perioder og
@@ -23,24 +23,24 @@ hva som ble hentet, når det ble hentet, og om kilden svarte uten treff.
 3. **Kolonner, ikke JSONB.** Hver opplysningstype får sin egen tabell, med én
    kolonne per felt og feltnavnene fra kilden.
 4. **Navn etter kilden.** Pakker og klasser navngis etter kilden
-   (`behandlingsgrunnlag/medl`, `behandlingsgrunnlag/pdl`), ikke etter
-   vilkåret. Alle tabeller for behandlingsgrunnlag har prefikset
-   `behandlingsgrunnlag_`, etterfulgt av kilden og opplysningstypen, for
-   eksempel `behandlingsgrunnlag_medl_unntaksperiode` og
-   `behandlingsgrunnlag_pdl_statsborgerskap`.
+   (`faktagrunnlag/medl`, `faktagrunnlag/pdl`), ikke etter
+   vilkåret. Alle tabeller for faktagrunnlag har prefikset
+   `faktagrunnlag_`, etterfulgt av kilden og opplysningstypen, for
+   eksempel `faktagrunnlag_medl_unntaksperiode` og
+   `faktagrunnlag_pdl_statsborgerskap`.
 5. **Hentingen lagres for seg.** Én felles tabell,
-   `behandlingsgrunnlag_henting`, har én rad per behandling og
+   `faktagrunnlag_henting`, har én rad per behandling og
    kilde, med tidspunktet for hentingen. Da kan vi skille «hentet, ingen
-   treff» fra «ikke hentet», og radene med behandlingsgrunnlag trenger ikke
+   treff» fra «ikke hentet», og radene med faktagrunnlag trenger ikke
    eget hentetidspunkt.
-6. **Automatisk henting, og ny henting ved behov.** Behandlingsgrunnlaget
+6. **Automatisk henting, og ny henting ved behov.** Faktagrunnlaget
    hentes i samme transaksjon som behandlingen opprettes. Svarer ikke kilden,
    feiler opprettelsen, og saksbehandler må prøve på nytt. Da har alle nye
    behandlinger grunnlag fra kildene, og resten av løsningen trenger ikke
    håndtere behandlinger uten grunnlag.
    Saksbehandler kan hente på nytt så lenge behandlingen kan redigeres. En ny
    henting erstatter det som er lagret fra samme kilde for denne behandlingen.
-   Behandlingsgrunnlaget i andre behandlinger endres aldri.
+   Faktagrunnlaget i andre behandlinger endres aldri.
 
 ## Alternativer vurdert
 
@@ -76,7 +76,7 @@ hva som ble hentet, når det ble hentet, og om kilden svarte uten treff.
 
 ### Sikkerhet og personvern
 
-Behandlingsgrunnlaget inneholder personopplysninger. Vi lagrer bare
+Faktagrunnlaget inneholder personopplysninger. Vi lagrer bare
 opplysningstypene vilkårene trenger, ikke alt kilden kan levere. Tilgangen
 sjekkes mot tilgangsmaskinen før grunnlaget hentes eller vises.
 
@@ -105,5 +105,5 @@ feiler opprettelsen.
 ## Aksjonspunkter
 
 - [ ] Godkjenn eller forkast ADR-en i teamet.
-- [ ] Lag behandlingsgrunnlaget fra MEDL.
-- [x] Lag behandlingsgrunnlaget fra PDL.
+- [ ] Lag faktagrunnlaget fra MEDL.
+- [x] Lag faktagrunnlaget fra PDL.

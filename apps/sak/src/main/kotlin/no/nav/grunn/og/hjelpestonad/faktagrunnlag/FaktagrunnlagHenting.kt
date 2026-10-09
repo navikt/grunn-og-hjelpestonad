@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag
+package no.nav.grunn.og.hjelpestonad.faktagrunnlag
 
 import no.nav.grunn.og.hjelpestonad.felles.InsertUpdateRepository
 import no.nav.grunn.og.hjelpestonad.felles.RepositoryInterface
@@ -11,33 +11,33 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-enum class Behandlingsgrunnlagskilde {
+enum class Faktagrunnlagskilde {
     PDL,
     MEDL,
 }
 
-@Table("behandlingsgrunnlag_henting")
-data class BehandlingsgrunnlagHenting(
+@Table("faktagrunnlag_henting")
+data class FaktagrunnlagHenting(
     @Id
     val id: UUID = UUID.randomUUID(),
     val behandlingId: UUID,
-    val kilde: Behandlingsgrunnlagskilde,
+    val kilde: Faktagrunnlagskilde,
     val hentetTidspunkt: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
 )
 
 @Repository
-interface BehandlingsgrunnlagHentingRepository :
-    RepositoryInterface<BehandlingsgrunnlagHenting, UUID>,
-    InsertUpdateRepository<BehandlingsgrunnlagHenting> {
+interface FaktagrunnlagHentingRepository :
+    RepositoryInterface<FaktagrunnlagHenting, UUID>,
+    InsertUpdateRepository<FaktagrunnlagHenting> {
     fun findByBehandlingIdAndKilde(
         behandlingId: UUID,
-        kilde: Behandlingsgrunnlagskilde,
-    ): BehandlingsgrunnlagHenting?
+        kilde: Faktagrunnlagskilde,
+    ): FaktagrunnlagHenting?
 
     @Modifying
-    @Query("DELETE FROM behandlingsgrunnlag_henting WHERE behandling_id = :behandlingId AND kilde = :kilde")
+    @Query("DELETE FROM faktagrunnlag_henting WHERE behandling_id = :behandlingId AND kilde = :kilde")
     fun slett(
         behandlingId: UUID,
-        kilde: Behandlingsgrunnlagskilde,
+        kilde: Faktagrunnlagskilde,
     )
 }

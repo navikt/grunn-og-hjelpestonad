@@ -22,5 +22,5 @@ utover å oppdatere status og lenke til den nye ADR-en.
 | [ADR-0004](ADR-0004-vilkaarssteg-utleder-perioder-med-rett.md) | Vilkårssteget fullføres i backend og utleder perioder med rett | Delvis erstattet av ADR-0006 |
 | [ADR-0005](ADR-0005-perioder-fra-infotrygd.md) | Perioder fra Infotrygd | Godkjent |
 | [ADR-0006](ADR-0006-fem-vilkaar-med-inngangsvilkaar-som-foerste-steg.md) | Fem vilkår, med inngangsvilkår som første steg | Foreslått |
-| [ADR-0007](ADR-0007-behandlingsgrunnlag-per-kilde-med-minst-mulig-endring.md) | Behandlingsgrunnlag per kilde, med minst mulig endring | Foreslått |
+| [ADR-0007](ADR-0007-faktagrunnlag-per-kilde-med-minst-mulig-endring.md) | Faktagrunnlag per kilde, med minst mulig endring | Foreslått |
 | [ADR-0008](ADR-0008-deterministisk-logikk-utenfor-spring.md) | Deterministisk logikk utenfor Spring | Foreslått |

@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  hentMedlemskapBehandlingsgrunnlag,
-  innhentBehandlingsgrunnlagFraPdl,
+  hentMedlemskapFaktagrunnlag,
+  innhentFaktagrunnlagFraPdl,
 } from "~/api/generated/sdk.gen";
-import type { MedlemskapBehandlingsgrunnlagResponse } from "~/api/generated/types.gen";
+import type { MedlemskapFaktagrunnlagResponse } from "~/api/generated/types.gen";
 import { useVilkårApiKall } from "../vilkår/felles/useVilkårApiKall";
 
 interface GrunnlagState {
   behandlingId: string;
   hentIndeks: number;
-  medlemskapBehandlingsgrunnlag?: MedlemskapBehandlingsgrunnlagResponse;
+  medlemskapFaktagrunnlag?: MedlemskapFaktagrunnlagResponse;
   error?: unknown;
 }
 
-type InnhentOptions = Parameters<typeof innhentBehandlingsgrunnlagFraPdl>[0];
+type InnhentOptions = Parameters<typeof innhentFaktagrunnlagFraPdl>[0];
 
-export function useMedlemskapBehandlingsgrunnlag(behandlingId: string) {
+export function useMedlemskapFaktagrunnlag(behandlingId: string) {
   const [state, settState] = useState<GrunnlagState>({ behandlingId, hentIndeks: -1 });
   const [hentIndeks, settHentIndeks] = useState(0);
 
@@ -25,14 +25,14 @@ export function useMedlemskapBehandlingsgrunnlag(behandlingId: string) {
     const controller = new AbortController();
     const { signal } = controller;
 
-    void hentMedlemskapBehandlingsgrunnlag({
+    void hentMedlemskapFaktagrunnlag({
       path: { behandlingId },
       signal,
       throwOnError: true,
     }).then(
-      ({ data: medlemskapBehandlingsgrunnlag }) => {
+      ({ data: medlemskapFaktagrunnlag }) => {
         if (signal.aborted) return;
-        settState({ behandlingId, hentIndeks, medlemskapBehandlingsgrunnlag });
+        settState({ behandlingId, hentIndeks, medlemskapFaktagrunnlag });
       },
       (error: unknown) => {
         if (signal.aborted) return;
@@ -44,22 +44,22 @@ export function useMedlemskapBehandlingsgrunnlag(behandlingId: string) {
   }, [behandlingId, hentIndeks]);
 
   const innhentFraPdlKall = useCallback(
-    (options: InnhentOptions) => innhentBehandlingsgrunnlagFraPdl({ ...options, throwOnError: true }),
+    (options: InnhentOptions) => innhentFaktagrunnlagFraPdl({ ...options, throwOnError: true }),
     []
   );
   const innhentFraPdl = useVilkårApiKall(innhentFraPdlKall);
 
   const harGjeldendeState = state.behandlingId === behandlingId && state.hentIndeks === hentIndeks;
-  const medlemskapBehandlingsgrunnlag =
-    state.behandlingId === behandlingId ? state.medlemskapBehandlingsgrunnlag : undefined;
+  const medlemskapFaktagrunnlag =
+    state.behandlingId === behandlingId ? state.medlemskapFaktagrunnlag : undefined;
 
   return {
-    medlemskapBehandlingsgrunnlag,
+    medlemskapFaktagrunnlag,
     error: state.behandlingId === behandlingId ? state.error : undefined,
     laster:
       Boolean(behandlingId) &&
       !harGjeldendeState &&
-      medlemskapBehandlingsgrunnlag === undefined,
+      medlemskapFaktagrunnlag === undefined,
     hentPåNytt,
     innhentFraPdl,
   };

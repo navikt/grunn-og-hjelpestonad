@@ -462,7 +462,7 @@ export const zOpplysningResponse = z.object({
     beskrivelse: z.string()
 });
 
-export const zMedlemskapBehandlingsgrunnlagResponse = z.object({
+export const zMedlemskapFaktagrunnlagResponse = z.object({
     hentetTidspunkt: z.iso.datetime({ local: true }).nullish(),
     bosted: z.array(zOpplysningResponse),
     statsborgerskap: z.array(zOpplysningResponse),
@@ -899,14 +899,14 @@ export const zLagreDiagnosePeriodePath = z.object({
  */
 export const zLagreDiagnosePeriodeResponse = zVilkårDiagnoseResponse;
 
-export const zInnhentBehandlingsgrunnlagFraPdlPath = z.object({
+export const zInnhentFaktagrunnlagFraPdlPath = z.object({
     behandlingId: z.uuid()
 });
 
 /**
  * OK
  */
-export const zInnhentBehandlingsgrunnlagFraPdlResponse = zMedlemskapBehandlingsgrunnlagResponse;
+export const zInnhentFaktagrunnlagFraPdlResponse = zMedlemskapFaktagrunnlagResponse;
 
 export const zOpprettBehandlingBody = zOpprettRequest;
 
@@ -1060,14 +1060,14 @@ export const zHentPerioderMedRettPath = z.object({
  */
 export const zHentPerioderMedRettResponse = z.array(zPeriodeMedRettResponse);
 
-export const zHentMedlemskapBehandlingsgrunnlagPath = z.object({
+export const zHentMedlemskapFaktagrunnlagPath = z.object({
     behandlingId: z.uuid()
 });
 
 /**
  * OK
  */
-export const zHentMedlemskapBehandlingsgrunnlagResponse = zMedlemskapBehandlingsgrunnlagResponse;
+export const zHentMedlemskapFaktagrunnlagResponse = zMedlemskapFaktagrunnlagResponse;
 
 export const zSlettMedlemskapPeriodePath = z.object({
     behandlingId: z.uuid(),
