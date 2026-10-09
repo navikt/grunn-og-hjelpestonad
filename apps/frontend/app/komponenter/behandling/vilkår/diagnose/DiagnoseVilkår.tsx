@@ -1,5 +1,5 @@
 import React from "react";
-import { Checkbox, TextField } from "@navikt/ds-react";
+import { Checkbox } from "@navikt/ds-react";
 import { feilmeldingFra } from "../felles/feilmeldingFra";
 import { useDiagnoseVilkårApi } from "./useDiagnoseVilkår";
 import { vilkårSpørsmål, type VilkårDiagnoseResponse } from "~/types/vilkår";
@@ -12,7 +12,9 @@ import { VilkårPeriodeSkjema } from "../felles/VilkårPeriodeSkjema";
 import { useSlettVilkårPeriode } from "../felles/useSlettVilkårPeriode";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useVilkårContext } from "~/komponenter/behandling/vilkår/VilkårContext";
-import { diagnoseNøkkel, useDiagnoseVilkårSkjema } from "./useDiagnoseVilkårSkjema";
+import { useDiagnoseVilkårSkjema } from "./useDiagnoseVilkårSkjema";
+import { DiagnosekodeVelger } from "./DiagnosekodeVelger";
+import { visningAvDiagnosekode } from "./diagnosekode";
 import styles from "./DiagnoseVilkår.module.css";
 
 const ID_PREFIKS = "diagnose";
@@ -23,7 +25,7 @@ function grupperDiagnoser(
   const grupper = new Map<string, VilkårPeriodeGruppe<VilkårDiagnoseResponse>>();
 
   for (const periode of perioder ?? []) {
-    const nøkkel = diagnoseNøkkel(periode.diagnose);
+    const nøkkel = periode.diagnose.kode;
     const gruppe = grupper.get(nøkkel);
 
     if (gruppe) {
@@ -31,7 +33,7 @@ function grupperDiagnoser(
     } else {
       grupper.set(nøkkel, {
         nøkkel,
-        tittel: periode.diagnose,
+        tittel: visningAvDiagnosekode(periode.diagnose),
         perioder: [periode],
       });
     }
@@ -56,13 +58,15 @@ export const DiagnoseVilkår: React.FC = () => {
 
   const lagrePeriode = () => {
     const felles = skjema.fellesVerdier();
+    const { diagnosekode } = skjema;
+    if (!diagnosekode) return;
 
     lagre.kall(
       {
         path: { behandlingId },
         body: {
           id: felles.id,
-          diagnose: skjema.diagnose.trim(),
+          kode: diagnosekode.kode,
           erYrkesskade: skjema.erYrkesskade,
           vurdering: felles.vurdering,
           begrunnelse: felles.begrunnelse,
@@ -109,20 +113,13 @@ export const DiagnoseVilkår: React.FC = () => {
         onLagre={lagrePeriode}
         ekstraFelter={[{ felt: "diagnose", id: `${ID_PREFIKS}-diagnose` }]}
       >
-        <TextField
+        <DiagnosekodeVelger
           id={`${ID_PREFIKS}-diagnose`}
-          label="Diagnose"
-          description={
-            skjema.diagnoseErLåst ? "Diagnosen er valgt fra diagnosegruppen." : undefined
-          }
-          value={skjema.diagnose}
-          readOnly={skjema.diagnoseErLåst}
-          onChange={(event) => {
-            skjema.settDiagnose(event.target.value);
-          }}
+          valgt={skjema.diagnosekode}
+          låst={skjema.diagnoseErLåst}
+          feil={skjema.feil.diagnose}
+          onValgtEndret={skjema.velgDiagnose}
           onBlur={() => skjema.validerFelt("diagnose")}
-          error={skjema.feil.diagnose}
-          autoComplete="off"
         />
         <Checkbox
           checked={skjema.erYrkesskade}

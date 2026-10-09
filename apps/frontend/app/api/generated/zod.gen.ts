@@ -310,6 +310,15 @@ export const zFagsakResponse = z.object({
     eksternId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' })
 });
 
+export const zDiagnosekodeSøkRequest = z.object({
+    søketekst: z.string()
+});
+
+export const zDiagnosekodeResponse = z.object({
+    kode: z.string(),
+    tekst: z.string()
+});
+
 export const zBrevmottakerRequest = z.object({
     personRolle: z.enum([
         'BRUKER',
@@ -427,7 +436,7 @@ export const zPeriodeMedRettResponse = z.object({
 
 export const zVilkårDiagnoseRequest = z.object({
     id: z.uuid().nullish(),
-    diagnose: z.string(),
+    kode: z.string(),
     erYrkesskade: z.boolean(),
     vurdering: z.enum(['JA', 'NEI']),
     begrunnelse: z.string(),
@@ -438,7 +447,7 @@ export const zVilkårDiagnoseRequest = z.object({
 export const zVilkårDiagnoseResponse = z.object({
     id: z.uuid(),
     behandlingId: z.uuid(),
-    diagnose: z.string(),
+    diagnose: zDiagnosekodeResponse,
     erYrkesskade: z.boolean(),
     vurdering: z.enum(['JA', 'NEI']),
     begrunnelse: z.string(),
@@ -758,6 +767,13 @@ export const zHentEllerOpprettFagsakForPersonBody = zFagsakRequest;
  * OK
  */
 export const zHentEllerOpprettFagsakForPersonResponse = zFagsakResponse;
+
+export const zSøkDiagnosekoderBody = zDiagnosekodeSøkRequest;
+
+/**
+ * OK
+ */
+export const zSøkDiagnosekoderResponse = z.array(zDiagnosekodeResponse);
 
 export const zOppdaterBrevmottakereBody = z.array(zBrevmottakerRequest);
 
