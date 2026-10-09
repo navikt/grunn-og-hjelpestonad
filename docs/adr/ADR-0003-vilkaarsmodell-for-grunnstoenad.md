@@ -104,7 +104,7 @@ i tillegg de feltene vilkåret faktisk trenger:
 | Tabell | Hjemmel | Vilkårsspesifikke felt |
 |---|---|---|
 | `vilkar_medlemskap` | ftrl. kap. 2, § 6-1 a | `regelverk` (`NASJONALE_REGLER` / `EØS_FORORDNINGEN`) |
-| `vilkar_diagnose` | § 6-2, § 6-9 | `diagnose` (fritekst), `er_yrkesskade` |
+| `vilkar_diagnose` | § 6-2, § 6-9 | `kode` (ICD-10), `tekst`, `er_yrkesskade` |
 | `vilkar_institusjon` | § 6-8 | `oppholdstype`, `unntakshjemmel` |
 
 Med bare tre vilkår gir ikke en felles `VilkårVurdering`-klasse nok igjen til å
@@ -136,15 +136,17 @@ det databasestrukturen som håndhever gyldigheten.
 **Diagnose** er i tillegg begrunnet i personvern: dette er helseopplysning etter
 **GDPR artikkel 9**. Egen tabell gir egen tilgangsstyring, eget auditspor og
 mulighet til å holde opplysningen utenfor generiske vilkårsresponser, logger og
-eksport. ICD-10/ICPC-2 er heller ikke en lukket mengde, og komorbiditet gjør
-flere diagnoser per behandling til normalsituasjonen. Diagnosen lagres som
-`String` inntil videre; vi bygger ikke kodeverksintegrasjon eller validering nå,
-ut over at tom eller whitespace-only verdi avvises i service og av CHECK-
-constrainten `vilkar_diagnose_ikke_tom`.
+eksport. ICD-10 er heller ikke en lukket mengde, og komorbiditet gjør
+flere diagnoser per behandling til normalsituasjonen. Diagnosen ble først lagret
+som fritekst. Nå velges den fra ICD-10, samme kodeverk som Infotrygd bruker, og
+lagres som `kode` og `tekst`. Bakgrunnen står i
+[diagnosekodeverk.md](../behandlingsgrunnlag/diagnose/diagnosekodeverk.md).
+Backend avviser koder som ikke finnes i ICD-10, og CHECK-constrainten
+`vilkar_diagnose_kode_ikke_tom` avviser tom kode.
 
 Fordi flere diagnoser kan løpe samtidig, gjelder overlappforbudet for diagnose
-**kun innenfor samme diagnose** (sammenlignet trimmet og case-insensitivt). To
-ulike diagnoser kan dekke samme periode.
+**kun innenfor samme diagnose**, det vil si samme kode. To ulike
+diagnoser kan dekke samme periode.
 
 Yrkesskade (§ 6-9) lagres som flagget `er_yrkesskade` på diagnoseraden, ikke som
 eget vilkår. Det er en egenskap ved diagnosen. Skadedatoen er radens
@@ -466,6 +468,8 @@ preferanse.
   forkorting av overlappende perioder.
 - [x] Backend — opprett `vilkar_diagnose` med støtte for flere diagnoser,
   diagnose som `String`, og `er_yrkesskade` der skadedatoen er `fra_og_med_dato`.
+- [x] Backend og frontend — bytt ut fritekstdiagnosen med kode fra ICD-10
+  (`V40__diagnosekode_i_vilkaar_diagnose.sql`).
 - [x] Backend — verifiser at diagnose ikke havner i `detaljer` i
   `EndringshistorikkService` eller i logger.
 - [x] Frontend — migrer vilkårskomponenter og hook til de tre nye endepunktene,

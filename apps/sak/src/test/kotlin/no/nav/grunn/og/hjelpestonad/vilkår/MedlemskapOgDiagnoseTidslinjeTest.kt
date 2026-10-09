@@ -14,6 +14,9 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.Test
 
+private const val DIABETES_TYPE_1 = "E109"
+private const val STØYSKADE = "H833"
+
 /**
  * Medlemskapsvilkåret sett sammen med diagnosene, jf. ftrl. § 6-9 om yrkesskade.
  */
@@ -24,7 +27,7 @@ class MedlemskapOgDiagnoseTidslinjeTest {
     fun `diagnose og medlemskap i samme periode gir oppfylt periode`() {
         val tidslinje =
             listOf(medlemskap("2025-01-01", "2025-12-31"))
-                .erOppfyltTidslinje(listOf(diagnose("Diabetes type 1", "2025-01-01", "2025-12-31")))
+                .erOppfyltTidslinje(listOf(diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-12-31")))
 
         assertThat(tidslinje.oppfyltePerioder()).containsExactly(
             LocalDate.of(2025, 1, 1) to LocalDate.of(2025, 12, 31),
@@ -35,7 +38,7 @@ class MedlemskapOgDiagnoseTidslinjeTest {
     fun `diagnose uten medlemskap gir ingen oppfylt periode`() {
         val tidslinje =
             listOf(medlemskap("2025-01-01", "2025-12-31", vurdering = Vurdering.NEI))
-                .erOppfyltTidslinje(listOf(diagnose("Diabetes type 1", "2025-01-01", "2025-12-31")))
+                .erOppfyltTidslinje(listOf(diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-12-31")))
 
         assertThat(tidslinje.oppfyltePerioder()).isEmpty()
     }
@@ -51,7 +54,7 @@ class MedlemskapOgDiagnoseTidslinjeTest {
     fun `diagnose som ikke er oppfylt teller ikke`() {
         val tidslinje =
             listOf(medlemskap("2025-01-01", "2025-12-31"))
-                .erOppfyltTidslinje(listOf(diagnose("Støyskade", "2025-01-01", "2025-12-31", vurdering = Vurdering.NEI)))
+                .erOppfyltTidslinje(listOf(diagnose(STØYSKADE, "2025-01-01", "2025-12-31", vurdering = Vurdering.NEI)))
 
         assertThat(tidslinje.oppfyltePerioder()).isEmpty()
     }
@@ -60,7 +63,7 @@ class MedlemskapOgDiagnoseTidslinjeTest {
     fun `oppfylt bare i overlappet mellom diagnose og medlemskap`() {
         val tidslinje =
             listOf(medlemskap("2025-01-01", "2025-06-30"))
-                .erOppfyltTidslinje(listOf(diagnose("Diabetes type 1", "2025-04-01", "2025-12-31")))
+                .erOppfyltTidslinje(listOf(diagnose(DIABETES_TYPE_1, "2025-04-01", "2025-12-31")))
 
         assertThat(tidslinje.oppfyltePerioder()).containsExactly(
             LocalDate.of(2025, 4, 1) to LocalDate.of(2025, 6, 30),
@@ -73,8 +76,8 @@ class MedlemskapOgDiagnoseTidslinjeTest {
             listOf(medlemskap("2025-01-01", "2025-12-31"))
                 .erOppfyltTidslinje(
                     listOf(
-                        diagnose("Diabetes type 1", "2025-01-01", "2025-06-30"),
-                        diagnose("Støyskade", "2025-07-01", "2025-12-31"),
+                        diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-06-30"),
+                        diagnose(STØYSKADE, "2025-07-01", "2025-12-31"),
                     ),
                 )
 
@@ -87,7 +90,7 @@ class MedlemskapOgDiagnoseTidslinjeTest {
     fun `yrkesskade med medlemskap ved start gir rett ut hele diagnoseperioden`() {
         val tidslinje =
             listOf(medlemskap("2025-01-01", "2025-03-31"))
-                .erOppfyltTidslinje(listOf(diagnose("Støyskade", "2025-01-01", "2025-12-31", erYrkesskade = true)))
+                .erOppfyltTidslinje(listOf(diagnose(STØYSKADE, "2025-01-01", "2025-12-31", erYrkesskade = true)))
 
         assertThat(tidslinje.oppfyltePerioder()).containsExactly(
             LocalDate.of(2025, 1, 1) to LocalDate.of(2025, 12, 31),
@@ -98,7 +101,7 @@ class MedlemskapOgDiagnoseTidslinjeTest {
     fun `yrkesskade uten medlemskap ved start gir ingen lemping`() {
         val tidslinje =
             listOf(medlemskap("2025-07-01", "2025-12-31"))
-                .erOppfyltTidslinje(listOf(diagnose("Støyskade", "2025-01-01", "2025-12-31", erYrkesskade = true)))
+                .erOppfyltTidslinje(listOf(diagnose(STØYSKADE, "2025-01-01", "2025-12-31", erYrkesskade = true)))
 
         assertThat(tidslinje.oppfyltePerioder()).containsExactly(
             LocalDate.of(2025, 7, 1) to LocalDate.of(2025, 12, 31),
@@ -111,7 +114,7 @@ class MedlemskapOgDiagnoseTidslinjeTest {
             listOf(
                 medlemskap("2025-01-01", "2025-03-31", vurdering = Vurdering.NEI),
                 medlemskap("2025-04-01", "2025-12-31"),
-            ).erOppfyltTidslinje(listOf(diagnose("Støyskade", "2025-01-01", "2025-12-31", erYrkesskade = true)))
+            ).erOppfyltTidslinje(listOf(diagnose(STØYSKADE, "2025-01-01", "2025-12-31", erYrkesskade = true)))
 
         assertThat(tidslinje.oppfyltePerioder()).containsExactly(
             LocalDate.of(2025, 4, 1) to LocalDate.of(2025, 12, 31),
@@ -122,7 +125,7 @@ class MedlemskapOgDiagnoseTidslinjeTest {
     fun `yrkesskade uten fra og med-dato kaster`() {
         assertThatThrownBy {
             listOf(medlemskap(null, "2025-03-31"))
-                .erOppfyltTidslinje(listOf(diagnose("Støyskade", null, "2025-12-31", erYrkesskade = true)))
+                .erOppfyltTidslinje(listOf(diagnose(STØYSKADE, null, "2025-12-31", erYrkesskade = true)))
         }.isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("fra og med")
     }
@@ -133,8 +136,8 @@ class MedlemskapOgDiagnoseTidslinjeTest {
             listOf(medlemskap("2025-01-01", "2025-01-31"))
                 .erOppfyltTidslinje(
                     listOf(
-                        diagnose("Støyskade", "2025-01-01", "2025-06-30", erYrkesskade = true),
-                        diagnose("Diabetes type 1", "2025-07-01", "2025-12-31"),
+                        diagnose(STØYSKADE, "2025-01-01", "2025-06-30", erYrkesskade = true),
+                        diagnose(DIABETES_TYPE_1, "2025-07-01", "2025-12-31"),
                     ),
                 )
 
@@ -149,13 +152,13 @@ class MedlemskapOgDiagnoseTidslinjeTest {
             listOf(medlemskap("2020-01-01", "2020-12-31"))
                 .erOppfyltTidslinje(
                     listOf(
-                        diagnose("Støyskade", "2020-01-01", "2020-12-31", erYrkesskade = true),
-                        diagnose(" støyskade ", "2023-01-01", "2023-12-31", erYrkesskade = true),
+                        diagnose(STØYSKADE, "2020-01-01", "2020-12-31", erYrkesskade = true),
+                        diagnose(STØYSKADE, "2023-01-01", "2023-12-31", erYrkesskade = true),
                     ),
                 )
         }.isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("støttes ikke enda")
-            .hasMessageNotContaining("øyskade")
+            .hasMessageNotContaining(STØYSKADE)
     }
 
     @Test
@@ -183,14 +186,15 @@ class MedlemskapOgDiagnoseTidslinjeTest {
     )
 
     private fun diagnose(
-        diagnose: String,
+        kode: String,
         fraOgMedDato: String?,
         tilOgMedDato: String?,
         vurdering: Vurdering = Vurdering.JA,
         erYrkesskade: Boolean = false,
     ) = VilkårDiagnose(
         behandlingId = behandlingId,
-        diagnose = diagnose,
+        kode = kode,
+        tekst = "Tekst fra kodeverket",
         erYrkesskade = erYrkesskade,
         vurdering = vurdering,
         fraOgMedDato = fraOgMedDato?.let { LocalDate.parse(it) },

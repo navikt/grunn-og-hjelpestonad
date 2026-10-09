@@ -73,7 +73,8 @@ class VilkårTidslinjeTest {
             VilkårDiagnose(
                 behandlingId = UUID.randomUUID(),
                 vurdering = Vurdering.JA,
-                diagnose = "Diabetes type 1",
+                kode = "E109",
+                tekst = "Diabetes mellitus type 1 uten komplikasjoner",
                 fraOgMedDato = LocalDate.of(2025, 1, 1),
                 tilOgMedDato = LocalDate.of(2025, 6, 30),
             )

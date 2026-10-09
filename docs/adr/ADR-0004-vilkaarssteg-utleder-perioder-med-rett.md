@@ -160,8 +160,9 @@ av modellen i ADR-0003 og må håndheves:
 1. **Én tidslinje per diagnose.** ADR-0003 tillater flere samtidige diagnoser;
    overlappforbudet gjelder bare innenfor samme diagnose. Å legge alle
    diagnoserader på én tidslinje får `tilTidslinje()` til å kaste. Vi grupperer
-   på `diagnose.trim().lowercase()` — samme nøkkel som overlappforbudet bruker —
-   og kombinerer gruppene med OR: minst én oppfylt diagnose er nok.
+   på ICD-10-koden (`VilkårDiagnose.kode`), samme nøkkel som
+   overlappforbudet bruker, og kombinerer gruppene med OR: minst én oppfylt
+   diagnose er nok.
 2. **Hull betyr ikke oppfylt.** Der et vilkår mangler periode gir `kombinerMed`
    `null`. Det skal gi *ingen rett*, ikke «ukjent». Sammenligningen er `== true`,
    aldri `!= false`. Dette er også svaret på R4: saksbehandler tvinges ikke til å

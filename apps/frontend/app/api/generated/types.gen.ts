@@ -261,6 +261,15 @@ export type FagsakResponse = {
     eksternId: number;
 };
 
+export type DiagnosekodeSøkRequest = {
+    søketekst: string;
+};
+
+export type DiagnosekodeResponse = {
+    kode: string;
+    tekst: string;
+};
+
 export type BrevmottakerRequest = {
     personRolle: 'BRUKER' | 'VERGE' | 'FULLMEKTIG';
     mottakerType: 'PERSON' | 'ORGANISASJON';
@@ -347,7 +356,7 @@ export type PeriodeMedRettResponse = {
 
 export type VilkårDiagnoseRequest = {
     id?: string | null;
-    diagnose: string;
+    kode: string;
     erYrkesskade: boolean;
     vurdering: 'JA' | 'NEI';
     begrunnelse: string;
@@ -358,7 +367,7 @@ export type VilkårDiagnoseRequest = {
 export type VilkårDiagnoseResponse = {
     id: string;
     behandlingId: string;
-    diagnose: string;
+    diagnose: DiagnosekodeResponse;
     erYrkesskade: boolean;
     vurdering: 'JA' | 'NEI';
     begrunnelse: string;
@@ -711,6 +720,19 @@ export type HentEllerOpprettFagsakForPersonResponses = {
 };
 
 export type HentEllerOpprettFagsakForPersonResponse = HentEllerOpprettFagsakForPersonResponses[keyof HentEllerOpprettFagsakForPersonResponses];
+
+export type SøkDiagnosekoderData = {
+    body: DiagnosekodeSøkRequest;
+    path?: never;
+    query?: never;
+    url: '/api/diagnosekoder/sok';
+};
+
+export type SøkDiagnosekoderResponses = {
+    200: Array<DiagnosekodeResponse>;
+};
+
+export type SøkDiagnosekoderResponse = SøkDiagnosekoderResponses[keyof SøkDiagnosekoderResponses];
 
 export type OppdaterBrevmottakereData = {
     body: Array<BrevmottakerRequest>;

@@ -1,4 +1,5 @@
 import type {
+  DiagnosekodeResponse,
   VilkårDiagnoseRequest,
   VilkårDiagnoseResponse,
   VilkårInstitusjonRequest,
@@ -8,6 +9,7 @@ import type {
 } from "~/api/generated/types.gen";
 
 export type {
+  DiagnosekodeResponse,
   VilkårDiagnoseRequest,
   VilkårDiagnoseResponse,
   VilkårInstitusjonRequest,

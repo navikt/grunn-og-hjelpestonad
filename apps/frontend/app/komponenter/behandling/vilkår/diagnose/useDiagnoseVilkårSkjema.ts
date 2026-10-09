@@ -1,45 +1,43 @@
 import { useState } from "react";
-import type { VilkårDiagnoseResponse } from "~/types/vilkår";
+import type { DiagnosekodeResponse, VilkårDiagnoseResponse } from "~/types/vilkår";
 import { useVilkårSkjema, type Skjemafeil } from "../felles/useVilkårSkjema";
+import type { VilkårPeriodeGruppe } from "../felles/VilkårSeksjon";
 
-const DIAGNOSE_FEIL = "Du må oppgi diagnosen, for eksempel diagnosekode eller diagnosenavn.";
-
-export interface DiagnoseGruppe {
-  nøkkel: string;
-  tittel: string;
-}
-
-export function diagnoseNøkkel(diagnose: string): string {
-  return diagnose.trim().toLowerCase();
-}
+const DIAGNOSE_FEIL = "Du må velge en diagnose fra kodeverket.";
 
 export function useDiagnoseVilkårSkjema() {
-  const [diagnose, settDiagnose] = useState("");
+  const [diagnosekode, settDiagnosekode] = useState<DiagnosekodeResponse | undefined>(undefined);
   const [erYrkesskade, settErYrkesskade] = useState(false);
   const [åpenGruppe, settÅpenGruppe] = useState<string | undefined>(undefined);
 
   const { åpneNyPeriode: åpneTomtSkjema, ...fellesSkjema } = useVilkårSkjema<"diagnose">(
-    (): Skjemafeil<"diagnose"> => (diagnose.trim() === "" ? { diagnose: DIAGNOSE_FEIL } : {})
+    (): Skjemafeil<"diagnose"> => (diagnosekode === undefined ? { diagnose: DIAGNOSE_FEIL } : {})
   );
 
+  const velgDiagnose = (valgt: DiagnosekodeResponse | undefined) => {
+    settDiagnosekode(valgt);
+    if (valgt) fellesSkjema.fjernFeil("diagnose");
+  };
+
   const åpneNyDiagnose = () => {
-    settDiagnose("");
+    settDiagnosekode(undefined);
     settErYrkesskade(false);
     settÅpenGruppe(undefined);
     åpneTomtSkjema();
   };
 
-  const åpneNyPeriodeForDiagnose = (gruppe: DiagnoseGruppe) => {
-    settDiagnose(gruppe.tittel);
+  const åpneNyPeriodeForDiagnose = (gruppe: VilkårPeriodeGruppe<VilkårDiagnoseResponse>) => {
+    const [periode] = gruppe.perioder;
+    settDiagnosekode(periode?.diagnose);
     settErYrkesskade(false);
     settÅpenGruppe(gruppe.nøkkel);
     åpneTomtSkjema();
   };
 
   const åpneRedigeringAvPeriode = (periode: VilkårDiagnoseResponse) => {
-    settDiagnose(periode.diagnose);
+    settDiagnosekode(periode.diagnose);
     settErYrkesskade(periode.erYrkesskade);
-    settÅpenGruppe(diagnoseNøkkel(periode.diagnose));
+    settÅpenGruppe(periode.diagnose.kode);
     fellesSkjema.åpneRedigeringAvPeriode(periode);
   };
 
@@ -50,8 +48,8 @@ export function useDiagnoseVilkårSkjema() {
 
   return {
     ...fellesSkjema,
-    diagnose,
-    settDiagnose,
+    diagnosekode,
+    velgDiagnose,
     erYrkesskade,
     settErYrkesskade,
     åpenGruppe,

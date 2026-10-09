@@ -94,7 +94,7 @@ class VilkårVurderingValideringTest {
     fun `feilmeldingene røper ikke diagnoseopplysninger`() {
         val feil = VilkårVurderingValidering.valider(VilkårVurderingStegGrunnlag(behandlingId, emptyList(), emptyList(), emptyList()))
 
-        assertThat(feil.map { it.melding }).noneMatch { it.contains("Diabetes", ignoreCase = true) }
+        assertThat(feil.map { it.melding }).noneMatch { it.contains("Diabetes", ignoreCase = true) || it.contains("E109") }
     }
 
     private fun komplettGrunnlag() =
@@ -120,7 +120,8 @@ class VilkårVurderingValideringTest {
     private fun diagnose(vurdering: Vurdering = Vurdering.JA) =
         VilkårDiagnose(
             behandlingId = behandlingId,
-            diagnose = "Diabetes type 1",
+            kode = "E109",
+            tekst = "Diabetes mellitus type 1 uten komplikasjoner",
             vurdering = vurdering,
         )
 

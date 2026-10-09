@@ -8,7 +8,7 @@ import java.util.UUID
 data class VilkårDiagnoseResponse(
     val id: UUID,
     val behandlingId: UUID,
-    val diagnose: String,
+    val diagnose: DiagnosekodeResponse,
     val erYrkesskade: Boolean,
     val vurdering: Vurdering,
     val begrunnelse: String,
@@ -19,7 +19,7 @@ data class VilkårDiagnoseResponse(
 
 data class VilkårDiagnoseRequest(
     override val id: UUID? = null,
-    val diagnose: String,
+    val kode: String,
     val erYrkesskade: Boolean = false,
     override val vurdering: Vurdering,
     override val begrunnelse: String = "",
@@ -31,7 +31,7 @@ fun VilkårDiagnose.tilResponse() =
     VilkårDiagnoseResponse(
         id = this.id,
         behandlingId = this.behandlingId,
-        diagnose = this.diagnose,
+        diagnose = DiagnosekodeResponse(kode = this.kode, tekst = this.tekst),
         erYrkesskade = this.erYrkesskade,
         vurdering = this.vurdering,
         begrunnelse = this.begrunnelse,

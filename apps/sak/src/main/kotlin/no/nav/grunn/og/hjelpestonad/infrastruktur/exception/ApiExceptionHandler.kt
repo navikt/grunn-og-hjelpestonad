@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.infrastruktur.exception
 
+import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -20,6 +21,12 @@ class ApiExceptionHandler {
             .status(feil.httpStatus)
             .body(FeilResponse(melding = feil.melding, status = feil.httpStatus.value()))
     }
+
+    @ExceptionHandler(UgyldigInput::class)
+    fun handleUgyldigInput(ugyldigInput: UgyldigInput): ResponseEntity<FeilResponse> =
+        ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(FeilResponse(melding = ugyldigInput.melding, status = HttpStatus.BAD_REQUEST.value()))
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(e: IllegalArgumentException): ResponseEntity<FeilResponse> {

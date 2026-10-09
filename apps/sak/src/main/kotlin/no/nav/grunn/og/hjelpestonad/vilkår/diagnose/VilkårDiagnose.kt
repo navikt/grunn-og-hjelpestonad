@@ -20,7 +20,8 @@ data class VilkårDiagnose(
     override val tilOgMedDato: LocalDate? = null,
     @Embedded(onEmpty = Embedded.OnEmpty.USE_EMPTY)
     override val sporbar: Sporbar = Sporbar(),
-    val diagnose: String,
+    val kode: String,
+    val tekst: String,
     val erYrkesskade: Boolean = false,
 ) : VilkårPeriode<VilkårDiagnose> {
     override fun kopierMedTidsrom(
