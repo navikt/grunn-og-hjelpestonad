@@ -1,10 +1,10 @@
-package no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl
+package no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl
 
 import no.nav.grunn.og.hjelpestonad.util.landnavn
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class MedlemskapBehandlingsgrunnlagResponse(
+data class MedlemskapFaktagrunnlagResponse(
     val hentetTidspunkt: LocalDateTime?,
     val bosted: List<OpplysningResponse>,
     val statsborgerskap: List<OpplysningResponse>,
@@ -17,9 +17,9 @@ data class OpplysningResponse(
     val beskrivelse: String,
 )
 
-fun PdlBehandlingsgrunnlag?.tilMedlemskapBehandlingsgrunnlagResponse(): MedlemskapBehandlingsgrunnlagResponse {
+fun PdlFaktagrunnlag?.tilMedlemskapFaktagrunnlagResponse(): MedlemskapFaktagrunnlagResponse {
     if (this == null) {
-        return MedlemskapBehandlingsgrunnlagResponse(
+        return MedlemskapFaktagrunnlagResponse(
             hentetTidspunkt = null,
             bosted = emptyList(),
             statsborgerskap = emptyList(),
@@ -79,7 +79,7 @@ fun PdlBehandlingsgrunnlag?.tilMedlemskapBehandlingsgrunnlagResponse(): Medlemsk
             )
         }
 
-    return MedlemskapBehandlingsgrunnlagResponse(
+    return MedlemskapFaktagrunnlagResponse(
         hentetTidspunkt = hentetTidspunkt,
         bosted = (adresser + oppholdsadresser + personstatuser + innflyttinger + utflyttinger + dødsfall).nyesteFørst(),
         statsborgerskap =

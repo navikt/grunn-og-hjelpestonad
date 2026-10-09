@@ -111,8 +111,8 @@ class PdlClient(
         }
     }
 
-    fun hentBehandlingsgrunnlag(request: PdlRequest): PersonBehandlingsgrunnlag? {
-        logger.info("Utfører PDL-operasjon: hentBehandlingsgrunnlag")
+    fun hentFaktagrunnlag(request: PdlRequest): PersonFaktagrunnlag? {
+        logger.info("Utfører PDL-operasjon: hentFaktagrunnlag")
         try {
             val pdlResponse =
                 pdlRestClient
@@ -121,9 +121,9 @@ class PdlClient(
                     .headers { it.addAll(lagPdlOnBehalfOfHeaders()) }
                     .body(request)
                     .retrieve()
-                    .body(PdlResponseBehandlingsgrunnlag::class.java)
+                    .body(PdlResponseFaktagrunnlag::class.java)
 
-            håndterPdlErrors(pdlResponse?.errors, "hentBehandlingsgrunnlag")
+            håndterPdlErrors(pdlResponse?.errors, "hentFaktagrunnlag")
             return pdlResponse?.data?.hentPerson
         } catch (e: Exception) {
             when (e) {
@@ -133,7 +133,7 @@ class PdlClient(
 
                 else -> {
                     logger.error("Feil ved kall til PDL", e)
-                    throw PdlException("Teknisk feil ved henting av behandlingsgrunnlag fra PDL", e)
+                    throw PdlException("Teknisk feil ved henting av faktagrunnlag fra PDL", e)
                 }
             }
         }

@@ -140,7 +140,7 @@ eksport. ICD-10 er heller ikke en lukket mengde, og komorbiditet gjør
 flere diagnoser per behandling til normalsituasjonen. Diagnosen ble først lagret
 som fritekst. Nå velges den fra ICD-10, samme kodeverk som Infotrygd bruker, og
 lagres som `kode` og `tekst`. Bakgrunnen står i
-[diagnosekodeverk.md](../behandlingsgrunnlag/diagnose/diagnosekodeverk.md).
+[diagnosekodeverk.md](../faktagrunnlag/diagnose/diagnosekodeverk.md).
 Backend avviser koder som ikke finnes i ICD-10, og CHECK-constrainten
 `vilkar_diagnose_kode_ikke_tom` avviser tom kode.
 

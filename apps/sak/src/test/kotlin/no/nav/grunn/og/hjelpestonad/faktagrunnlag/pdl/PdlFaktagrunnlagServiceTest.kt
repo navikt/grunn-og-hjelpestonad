@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl
+package no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl
 
 import io.mockk.every
 import io.mockk.mockk
@@ -27,7 +27,7 @@ import no.nav.grunn.og.hjelpestonad.pdl.Opphold
 import no.nav.grunn.og.hjelpestonad.pdl.Oppholdsadresse
 import no.nav.grunn.og.hjelpestonad.pdl.PdlException
 import no.nav.grunn.og.hjelpestonad.pdl.PdlService
-import no.nav.grunn.og.hjelpestonad.pdl.PersonBehandlingsgrunnlag
+import no.nav.grunn.og.hjelpestonad.pdl.PersonFaktagrunnlag
 import no.nav.grunn.og.hjelpestonad.pdl.Statsborgerskap
 import no.nav.grunn.og.hjelpestonad.pdl.UkjentBosted
 import no.nav.grunn.og.hjelpestonad.pdl.UtenlandskAdresse
@@ -40,33 +40,33 @@ import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-class PdlBehandlingsgrunnlagServiceTest(
+class PdlFaktagrunnlagServiceTest(
     private val behandlingRepository: BehandlingRepository,
     private val behandlingService: BehandlingService,
     private val fagsakRepository: FagsakRepository,
     private val fagsakPersonRepository: FagsakPersonRepository,
     private val fagsakService: FagsakService,
-    private val dbService: PdlBehandlingsgrunnlagDbService,
+    private val dbService: PdlFaktagrunnlagDbService,
     private val transactionTemplate: TransactionTemplate,
 ) : SpringContextTest() {
     private val pdlService = mockk<PdlService>()
     private val ident = (10_000_000_000L..99_999_999_999L).random().toString()
 
     private val service =
-        PdlBehandlingsgrunnlagService(
+        PdlFaktagrunnlagService(
             pdlService = pdlService,
             behandlingService = behandlingService,
             ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true),
             fagsakService = fagsakService,
-            pdlBehandlingsgrunnlagDbService = dbService,
+            pdlFaktagrunnlagDbService = dbService,
         )
 
     @Test
     fun `lagrer personopplysningene slik PDL leverte dem`() {
         val behandling = opprettBehandling()
-        every { pdlService.hentBehandlingsgrunnlag(ident) } returns person
+        every { pdlService.hentFaktagrunnlag(ident) } returns person
 
-        service.innhentBehandlingsgrunnlagFraPdl(behandling)
+        service.innhentFaktagrunnlagFraPdl(behandling)
 
         val grunnlag = service.hent(behandling.id)!!
         assertThat(grunnlag.folkeregisterpersonstatus.single().status).isEqualTo("bosatt")
@@ -91,14 +91,14 @@ class PdlBehandlingsgrunnlagServiceTest(
     fun `ny innhenting erstatter det som er lagret for behandlingen, men ikke for andre behandlinger`() {
         val behandling = opprettBehandling()
         val annenBehandling = opprettBehandling()
-        every { pdlService.hentBehandlingsgrunnlag(ident) } returns person
-        service.innhentBehandlingsgrunnlagFraPdl(behandling)
-        service.innhentBehandlingsgrunnlagFraPdl(annenBehandling)
+        every { pdlService.hentFaktagrunnlag(ident) } returns person
+        service.innhentFaktagrunnlagFraPdl(behandling)
+        service.innhentFaktagrunnlagFraPdl(annenBehandling)
         val førsteHenting = service.hent(behandling.id)!!.hentetTidspunkt
 
-        every { pdlService.hentBehandlingsgrunnlag(ident) } returns
-            PersonBehandlingsgrunnlag(statsborgerskap = listOf(statsborgerskap("DNK")))
-        val nyttGrunnlag = service.innhentBehandlingsgrunnlagFraPdl(behandling.id)
+        every { pdlService.hentFaktagrunnlag(ident) } returns
+            PersonFaktagrunnlag(statsborgerskap = listOf(statsborgerskap("DNK")))
+        val nyttGrunnlag = service.innhentFaktagrunnlagFraPdl(behandling.id)
 
         assertThat(nyttGrunnlag.hentetTidspunkt).isAfterOrEqualTo(førsteHenting)
         assertThat(nyttGrunnlag.statsborgerskap.map { it.land }).containsExactly("DNK")
@@ -115,8 +115,8 @@ class PdlBehandlingsgrunnlagServiceTest(
         val behandling = opprettBehandling()
         assertThat(service.hent(behandling.id)).isNull()
 
-        every { pdlService.hentBehandlingsgrunnlag(ident) } returns PersonBehandlingsgrunnlag()
-        service.innhentBehandlingsgrunnlagFraPdl(behandling)
+        every { pdlService.hentFaktagrunnlag(ident) } returns PersonFaktagrunnlag()
+        service.innhentFaktagrunnlagFraPdl(behandling)
 
         val grunnlag = service.hent(behandling.id)!!
         assertThat(grunnlag.folkeregisterpersonstatus).isEmpty()
@@ -126,20 +126,20 @@ class PdlBehandlingsgrunnlagServiceTest(
     @Test
     fun `feil fra PDL ved opprettelse kastes videre og lagrer ingenting`() {
         val behandling = opprettBehandling()
-        every { pdlService.hentBehandlingsgrunnlag(ident) } throws PdlException("PDL er nede")
+        every { pdlService.hentFaktagrunnlag(ident) } throws PdlException("PDL er nede")
 
-        assertThatThrownBy { service.innhentBehandlingsgrunnlagFraPdl(behandling) }.isInstanceOf(PdlException::class.java)
+        assertThatThrownBy { service.innhentFaktagrunnlagFraPdl(behandling) }.isInstanceOf(PdlException::class.java)
 
         assertThat(service.hent(behandling.id)).isNull()
     }
 
     @Test
     fun `innhenting i transaksjonen som oppretter behandlingen lagrer begge`() {
-        every { pdlService.hentBehandlingsgrunnlag(ident) } returns person
+        every { pdlService.hentFaktagrunnlag(ident) } returns person
 
         val behandling =
             transactionTemplate.execute {
-                opprettBehandling().also { service.innhentBehandlingsgrunnlagFraPdl(it) }
+                opprettBehandling().also { service.innhentFaktagrunnlagFraPdl(it) }
             }!!
 
         assertThat(behandlingRepository.existsById(behandling.id)).isTrue
@@ -148,13 +148,13 @@ class PdlBehandlingsgrunnlagServiceTest(
 
     @Test
     fun `feil fra PDL i transaksjonen som oppretter behandlingen ruller tilbake behandlingen`() {
-        every { pdlService.hentBehandlingsgrunnlag(ident) } throws PdlException("PDL er nede")
+        every { pdlService.hentFaktagrunnlag(ident) } throws PdlException("PDL er nede")
         val behandling = Behandling(fagsakId = opprettFagsak().id, status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT)
 
         assertThatThrownBy {
             transactionTemplate.executeWithoutResult {
                 behandlingRepository.insert(behandling)
-                service.innhentBehandlingsgrunnlagFraPdl(behandling)
+                service.innhentFaktagrunnlagFraPdl(behandling)
             }
         }.isInstanceOf(PdlException::class.java)
 
@@ -164,12 +164,12 @@ class PdlBehandlingsgrunnlagServiceTest(
     @Test
     fun `feil fra PDL ved ny innhenting beholder det som er lagret`() {
         val behandling = opprettBehandling()
-        every { pdlService.hentBehandlingsgrunnlag(ident) } returns person
-        service.innhentBehandlingsgrunnlagFraPdl(behandling)
+        every { pdlService.hentFaktagrunnlag(ident) } returns person
+        service.innhentFaktagrunnlagFraPdl(behandling)
 
-        every { pdlService.hentBehandlingsgrunnlag(ident) } throws PdlException("PDL er nede")
+        every { pdlService.hentFaktagrunnlag(ident) } throws PdlException("PDL er nede")
 
-        assertThatThrownBy { service.innhentBehandlingsgrunnlagFraPdl(behandling.id) }.isInstanceOf(PdlException::class.java)
+        assertThatThrownBy { service.innhentFaktagrunnlagFraPdl(behandling.id) }.isInstanceOf(PdlException::class.java)
         assertThat(service.hent(behandling.id)!!.statsborgerskap).hasSize(2)
     }
 
@@ -177,11 +177,11 @@ class PdlBehandlingsgrunnlagServiceTest(
     fun `kan ikke innhente på nytt når behandlingen ikke kan redigeres`() {
         val behandlingId = opprettBehandling(BehandlingStatus.FATTER_VEDTAK).id
 
-        assertThatThrownBy { service.innhentBehandlingsgrunnlagFraPdl(behandlingId) }.isInstanceOf(Feil::class.java)
+        assertThatThrownBy { service.innhentFaktagrunnlagFraPdl(behandlingId) }.isInstanceOf(Feil::class.java)
     }
 
     private val person =
-        PersonBehandlingsgrunnlag(
+        PersonFaktagrunnlag(
             folkeregisterpersonstatus =
                 listOf(
                     Folkeregisterpersonstatus(

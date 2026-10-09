@@ -1,7 +1,7 @@
 import React from "react";
 import { BodyShort, Detail, HStack, Table } from "@navikt/ds-react";
 import type {
-  MedlemskapBehandlingsgrunnlagResponse,
+  MedlemskapFaktagrunnlagResponse,
   OpplysningResponse,
 } from "~/api/generated/types.gen";
 
@@ -12,29 +12,29 @@ interface Opplysningsgruppe {
 }
 
 interface MedlemskapOpplysningstabellProps {
-  medlemskapBehandlingsgrunnlag: MedlemskapBehandlingsgrunnlagResponse;
+  medlemskapFaktagrunnlag: MedlemskapFaktagrunnlagResponse;
   visOpplysningsperiode: (opplysning: OpplysningResponse) => string;
 }
 
 export function MedlemskapOpplysningstabell({
-  medlemskapBehandlingsgrunnlag,
+  medlemskapFaktagrunnlag,
   visOpplysningsperiode,
 }: MedlemskapOpplysningstabellProps) {
   const grupper: Opplysningsgruppe[] = [
     {
       tittel: "Bosted",
       kilde: "Folkeregisteret",
-      opplysninger: medlemskapBehandlingsgrunnlag.bosted,
+      opplysninger: medlemskapFaktagrunnlag.bosted,
     },
     {
       tittel: "Statsborgerskap",
       kilde: "Folkeregisteret",
-      opplysninger: medlemskapBehandlingsgrunnlag.statsborgerskap,
+      opplysninger: medlemskapFaktagrunnlag.statsborgerskap,
     },
     {
       tittel: "Oppholdstillatelse",
       kilde: "UDI via Folkeregisteret",
-      opplysninger: medlemskapBehandlingsgrunnlag.oppholdstillatelse,
+      opplysninger: medlemskapFaktagrunnlag.oppholdstillatelse,
     },
   ];
 

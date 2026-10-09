@@ -9,7 +9,7 @@ import { useMedlemskapVilkårSkjema } from "./useMedlemskapVilkårSkjema";
 import { useSlettVilkårPeriode } from "../felles/useSlettVilkårPeriode";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useVilkårContext } from "~/komponenter/behandling/vilkår/VilkårContext";
-import { MedlemskapBehandlingsgrunnlag } from "~/komponenter/behandling/behandlingsgrunnlag/MedlemskapBehandlingsgrunnlag";
+import { MedlemskapFaktagrunnlag } from "~/komponenter/behandling/faktagrunnlag/MedlemskapFaktagrunnlag";
 
 const ID_PREFIKS = "medlemskap";
 
@@ -64,7 +64,7 @@ export const MedlemskapVilkår: React.FC = () => {
       skjema={skjema}
       sletting={sletting}
       leggTil={{ åpne: skjema.åpneNyPeriode }}
-      grunnlag={<MedlemskapBehandlingsgrunnlag />}
+      grunnlag={<MedlemskapFaktagrunnlag />}
     >
       <VilkårPeriodeSkjema
         idPrefiks={ID_PREFIKS}

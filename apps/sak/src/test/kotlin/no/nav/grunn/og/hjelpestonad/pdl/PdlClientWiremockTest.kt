@@ -204,7 +204,7 @@ class PdlClientWiremockTest {
     }
 
     @Test
-    fun `hentBehandlingsgrunnlag leser personopplysningene fra PDL`() {
+    fun `hentFaktagrunnlag leser personopplysningene fra PDL`() {
         stubForGraphql(
             """
             {
@@ -274,7 +274,7 @@ class PdlClientWiremockTest {
             """.trimIndent(),
         )
 
-        val person = pdlClient.hentBehandlingsgrunnlag(PdlRequest(query = "query {}", variables = mapOf("ident" to "123")))
+        val person = pdlClient.hentFaktagrunnlag(PdlRequest(query = "query {}", variables = mapOf("ident" to "123")))
 
         assertThat(person).isNotNull
         val personstatus = person!!.folkeregisterpersonstatus.single()
@@ -298,14 +298,14 @@ class PdlClientWiremockTest {
     }
 
     @Test
-    fun `hentBehandlingsgrunnlag kaster PdlException ved teknisk feil`() {
+    fun `hentFaktagrunnlag kaster PdlException ved teknisk feil`() {
         wireMockServer.stubFor(
             post(urlEqualTo("/graphql"))
                 .willReturn(serverError()),
         )
 
         assertThrows<PdlException> {
-            pdlClient.hentBehandlingsgrunnlag(PdlRequest(query = "query {}", variables = emptyMap()))
+            pdlClient.hentFaktagrunnlag(PdlRequest(query = "query {}", variables = emptyMap()))
         }
     }
 

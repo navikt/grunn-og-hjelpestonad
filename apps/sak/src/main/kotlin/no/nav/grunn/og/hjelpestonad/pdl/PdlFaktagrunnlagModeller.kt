@@ -3,16 +3,16 @@ package no.nav.grunn.og.hjelpestonad.pdl
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class PdlResponseBehandlingsgrunnlag(
-    val data: HentBehandlingsgrunnlagData?,
+data class PdlResponseFaktagrunnlag(
+    val data: HentFaktagrunnlagData?,
     val errors: List<PdlError>? = null,
 )
 
-data class HentBehandlingsgrunnlagData(
-    val hentPerson: PersonBehandlingsgrunnlag?,
+data class HentFaktagrunnlagData(
+    val hentPerson: PersonFaktagrunnlag?,
 )
 
-data class PersonBehandlingsgrunnlag(
+data class PersonFaktagrunnlag(
     val folkeregisterpersonstatus: List<Folkeregisterpersonstatus> = emptyList(),
     val bostedsadresse: List<Bostedsadresse> = emptyList(),
     val statsborgerskap: List<Statsborgerskap> = emptyList(),

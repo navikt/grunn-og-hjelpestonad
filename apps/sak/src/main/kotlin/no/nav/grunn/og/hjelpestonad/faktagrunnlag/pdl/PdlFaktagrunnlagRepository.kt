@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl
+package no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl
 
 import no.nav.grunn.og.hjelpestonad.felles.InsertUpdateRepository
 import no.nav.grunn.og.hjelpestonad.felles.RepositoryInterface
@@ -14,7 +14,7 @@ interface PdlFolkeregisterpersonstatusRepository :
     fun findByBehandlingId(behandlingId: UUID): List<PdlFolkeregisterpersonstatus>
 
     @Modifying
-    @Query("DELETE FROM behandlingsgrunnlag_pdl_folkeregisterpersonstatus WHERE behandling_id = :behandlingId")
+    @Query("DELETE FROM faktagrunnlag_pdl_folkeregisterpersonstatus WHERE behandling_id = :behandlingId")
     fun slettForBehandling(behandlingId: UUID)
 }
 
@@ -25,7 +25,7 @@ interface PdlBostedsadresseRepository :
     fun findByBehandlingId(behandlingId: UUID): List<PdlBostedsadresse>
 
     @Modifying
-    @Query("DELETE FROM behandlingsgrunnlag_pdl_bostedsadresse WHERE behandling_id = :behandlingId")
+    @Query("DELETE FROM faktagrunnlag_pdl_bostedsadresse WHERE behandling_id = :behandlingId")
     fun slettForBehandling(behandlingId: UUID)
 }
 
@@ -36,7 +36,7 @@ interface PdlStatsborgerskapRepository :
     fun findByBehandlingId(behandlingId: UUID): List<PdlStatsborgerskap>
 
     @Modifying
-    @Query("DELETE FROM behandlingsgrunnlag_pdl_statsborgerskap WHERE behandling_id = :behandlingId")
+    @Query("DELETE FROM faktagrunnlag_pdl_statsborgerskap WHERE behandling_id = :behandlingId")
     fun slettForBehandling(behandlingId: UUID)
 }
 
@@ -47,7 +47,7 @@ interface PdlOppholdRepository :
     fun findByBehandlingId(behandlingId: UUID): List<PdlOpphold>
 
     @Modifying
-    @Query("DELETE FROM behandlingsgrunnlag_pdl_opphold WHERE behandling_id = :behandlingId")
+    @Query("DELETE FROM faktagrunnlag_pdl_opphold WHERE behandling_id = :behandlingId")
     fun slettForBehandling(behandlingId: UUID)
 }
 
@@ -58,7 +58,7 @@ interface PdlInnflyttingTilNorgeRepository :
     fun findByBehandlingId(behandlingId: UUID): List<PdlInnflyttingTilNorge>
 
     @Modifying
-    @Query("DELETE FROM behandlingsgrunnlag_pdl_innflytting_til_norge WHERE behandling_id = :behandlingId")
+    @Query("DELETE FROM faktagrunnlag_pdl_innflytting_til_norge WHERE behandling_id = :behandlingId")
     fun slettForBehandling(behandlingId: UUID)
 }
 
@@ -69,7 +69,7 @@ interface PdlUtflyttingFraNorgeRepository :
     fun findByBehandlingId(behandlingId: UUID): List<PdlUtflyttingFraNorge>
 
     @Modifying
-    @Query("DELETE FROM behandlingsgrunnlag_pdl_utflytting_fra_norge WHERE behandling_id = :behandlingId")
+    @Query("DELETE FROM faktagrunnlag_pdl_utflytting_fra_norge WHERE behandling_id = :behandlingId")
     fun slettForBehandling(behandlingId: UUID)
 }
 
@@ -80,7 +80,7 @@ interface PdlOppholdsadresseRepository :
     fun findByBehandlingId(behandlingId: UUID): List<PdlOppholdsadresse>
 
     @Modifying
-    @Query("DELETE FROM behandlingsgrunnlag_pdl_oppholdsadresse WHERE behandling_id = :behandlingId")
+    @Query("DELETE FROM faktagrunnlag_pdl_oppholdsadresse WHERE behandling_id = :behandlingId")
     fun slettForBehandling(behandlingId: UUID)
 }
 
@@ -91,6 +91,6 @@ interface PdlDoedsfallRepository :
     fun findByBehandlingId(behandlingId: UUID): List<PdlDoedsfall>
 
     @Modifying
-    @Query("DELETE FROM behandlingsgrunnlag_pdl_doedsfall WHERE behandling_id = :behandlingId")
+    @Query("DELETE FROM faktagrunnlag_pdl_doedsfall WHERE behandling_id = :behandlingId")
     fun slettForBehandling(behandlingId: UUID)
 }

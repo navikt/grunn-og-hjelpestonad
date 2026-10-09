@@ -1,6 +1,6 @@
 # Vilkår for grunnstønad
 
-Oversikt over hvordan behandlingsgrunnlaget brukes til å vurdere vilkårene for
+Oversikt over hvordan faktagrunnlaget brukes til å vurdere vilkårene for
 grunnstønad etter folketrygdloven kapittel 6, og hvordan vilkårene gir tilkjent
 ytelse. Begrepene er definert i [CONTEXT.md](../../CONTEXT.md). Beslutningene
 og de åpne spørsmålene står i
@@ -47,13 +47,13 @@ flowchart TD
     trygdetid --> tilkjent
 ```
 
-## Behandlingsgrunnlag
+## Faktagrunnlag
 
-Behandlingsgrunnlaget kommer med søknaden eller fra registre. Mangler noe, kan
+Faktagrunnlaget kommer med søknaden eller fra registre. Mangler noe, kan
 saksbehandler be søker om ettersending eller innhente opplysninger direkte fra
 lege, spesialist eller medisinsk ekspert.
 
-| Vilkår | Behandlingsgrunnlag | Kilde |
+| Vilkår | Faktagrunnlag | Kilde |
 |---|---|---|
 | Medlemskap | Personopplysninger, unntaksperioder for medlemskap | PDL, MEDL |
 | Diagnose | Legeerklæring, uttalelse fra medisinsk ekspert | Søknad, ettersending, innhenting |
@@ -89,7 +89,7 @@ lege, spesialist eller medisinsk ekspert.
 
 ## Periodisering
 
-Alt periodiseres: behandlingsgrunnlaget, hvert vilkår og tilkjent ytelse.
+Alt periodiseres: faktagrunnlaget, hvert vilkår og tilkjent ytelse.
 Tilkjent ytelse er tidslinjen av sats × trygdetidsbrøk i periodene der søker
 har rett. Satsen og trygdetidsbrøken kan endre seg underveis, for eksempel når
 søker får alderspensjon eller får nye ekstrautgifter.

@@ -7,14 +7,14 @@ import { useErLesevisning } from "~/hooks/useErLesevisning";
 import { formaterIsoDatoTid } from "~/utils/utils";
 import { feilmeldingFra } from "../vilkår/felles/feilmeldingFra";
 import { visDato } from "../vilkår/felles/useVilkårSkjema";
-import { useMedlemskapBehandlingsgrunnlag } from "./useMedlemskapBehandlingsgrunnlag";
+import { useMedlemskapFaktagrunnlag } from "./useMedlemskapFaktagrunnlag";
 import { MedlemskapOpplysningstabell } from "./MedlemskapOpplysningstabell";
 
-export const MedlemskapBehandlingsgrunnlag: React.FC = () => {
+export const MedlemskapFaktagrunnlag: React.FC = () => {
   const { behandlingId } = useBehandlingContext();
   const erLesevisning = useErLesevisning();
-  const { medlemskapBehandlingsgrunnlag, error, laster, hentPåNytt, innhentFraPdl } =
-    useMedlemskapBehandlingsgrunnlag(behandlingId);
+  const { medlemskapFaktagrunnlag, error, laster, hentPåNytt, innhentFraPdl } =
+    useMedlemskapFaktagrunnlag(behandlingId);
   const [innhentingsfeil, settInnhentingsfeil] = React.useState<string>();
 
   const innhentFraFolkeregisteret = () => {
@@ -47,7 +47,7 @@ export const MedlemskapBehandlingsgrunnlag: React.FC = () => {
         </LocalAlert>
       )}
 
-      {medlemskapBehandlingsgrunnlag && !medlemskapBehandlingsgrunnlag.hentetTidspunkt && (
+      {medlemskapFaktagrunnlag && !medlemskapFaktagrunnlag.hentetTidspunkt && (
         <VStack gap="space-8" align="start">
           <BodyShort size="small">Opplysningene er ikke hentet fra Folkeregisteret.</BodyShort>
           {!erLesevisning && (
@@ -65,12 +65,12 @@ export const MedlemskapBehandlingsgrunnlag: React.FC = () => {
         </VStack>
       )}
 
-      {medlemskapBehandlingsgrunnlag?.hentetTidspunkt && (
+      {medlemskapFaktagrunnlag?.hentetTidspunkt && (
         <>
           <HStack gap="space-8" align="center" justify="space-between">
             <BodyShort size="small" textColor="subtle">
               Hentet fra Folkeregisteret{" "}
-              {formaterIsoDatoTid(medlemskapBehandlingsgrunnlag.hentetTidspunkt)}
+              {formaterIsoDatoTid(medlemskapFaktagrunnlag.hentetTidspunkt)}
             </BodyShort>
             {!erLesevisning && (
               <Button
@@ -86,7 +86,7 @@ export const MedlemskapBehandlingsgrunnlag: React.FC = () => {
             )}
           </HStack>
           <MedlemskapOpplysningstabell
-            medlemskapBehandlingsgrunnlag={medlemskapBehandlingsgrunnlag}
+            medlemskapFaktagrunnlag={medlemskapFaktagrunnlag}
             visOpplysningsperiode={visOpplysningsperiode}
           />
         </>

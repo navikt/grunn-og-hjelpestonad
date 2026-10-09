@@ -1,16 +1,16 @@
-package no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.pdl
+package no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl
 
-import no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.BehandlingsgrunnlagHenting
-import no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.BehandlingsgrunnlagHentingRepository
-import no.nav.grunn.og.hjelpestonad.behandlingsgrunnlag.Behandlingsgrunnlagskilde
-import no.nav.grunn.og.hjelpestonad.pdl.PersonBehandlingsgrunnlag
+import no.nav.grunn.og.hjelpestonad.faktagrunnlag.FaktagrunnlagHenting
+import no.nav.grunn.og.hjelpestonad.faktagrunnlag.FaktagrunnlagHentingRepository
+import no.nav.grunn.og.hjelpestonad.faktagrunnlag.Faktagrunnlagskilde
+import no.nav.grunn.og.hjelpestonad.pdl.PersonFaktagrunnlag
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Service
-class PdlBehandlingsgrunnlagDbService(
-    private val hentingRepository: BehandlingsgrunnlagHentingRepository,
+class PdlFaktagrunnlagDbService(
+    private val hentingRepository: FaktagrunnlagHentingRepository,
     private val folkeregisterpersonstatusRepository: PdlFolkeregisterpersonstatusRepository,
     private val bostedsadresseRepository: PdlBostedsadresseRepository,
     private val statsborgerskapRepository: PdlStatsborgerskapRepository,
@@ -20,9 +20,9 @@ class PdlBehandlingsgrunnlagDbService(
     private val oppholdsadresseRepository: PdlOppholdsadresseRepository,
     private val doedsfallRepository: PdlDoedsfallRepository,
 ) {
-    fun hent(behandlingId: UUID): PdlBehandlingsgrunnlag? {
-        val henting = hentingRepository.findByBehandlingIdAndKilde(behandlingId, Behandlingsgrunnlagskilde.PDL) ?: return null
-        return PdlBehandlingsgrunnlag(
+    fun hent(behandlingId: UUID): PdlFaktagrunnlag? {
+        val henting = hentingRepository.findByBehandlingIdAndKilde(behandlingId, Faktagrunnlagskilde.PDL) ?: return null
+        return PdlFaktagrunnlag(
             hentetTidspunkt = henting.hentetTidspunkt,
             folkeregisterpersonstatus = folkeregisterpersonstatusRepository.findByBehandlingId(behandlingId),
             bostedsadresse = bostedsadresseRepository.findByBehandlingId(behandlingId),
@@ -38,11 +38,11 @@ class PdlBehandlingsgrunnlagDbService(
     @Transactional
     fun erstatt(
         behandlingId: UUID,
-        person: PersonBehandlingsgrunnlag,
-    ): PdlBehandlingsgrunnlag {
+        person: PersonFaktagrunnlag,
+    ): PdlFaktagrunnlag {
         slett(behandlingId)
-        val henting = hentingRepository.insert(BehandlingsgrunnlagHenting(behandlingId = behandlingId, kilde = Behandlingsgrunnlagskilde.PDL))
-        return PdlBehandlingsgrunnlag(
+        val henting = hentingRepository.insert(FaktagrunnlagHenting(behandlingId = behandlingId, kilde = Faktagrunnlagskilde.PDL))
+        return PdlFaktagrunnlag(
             hentetTidspunkt = henting.hentetTidspunkt,
             folkeregisterpersonstatus = folkeregisterpersonstatusRepository.insertAll(person.folkeregisterpersonstatus.map { it.tilPdlFolkeregisterpersonstatus(behandlingId) }),
             bostedsadresse = bostedsadresseRepository.insertAll(person.bostedsadresse.map { it.tilPdlBostedsadresse(behandlingId) }),
@@ -56,7 +56,7 @@ class PdlBehandlingsgrunnlagDbService(
     }
 
     private fun slett(behandlingId: UUID) {
-        hentingRepository.slett(behandlingId, Behandlingsgrunnlagskilde.PDL)
+        hentingRepository.slett(behandlingId, Faktagrunnlagskilde.PDL)
         folkeregisterpersonstatusRepository.slettForBehandling(behandlingId)
         bostedsadresseRepository.slettForBehandling(behandlingId)
         statsborgerskapRepository.slettForBehandling(behandlingId)

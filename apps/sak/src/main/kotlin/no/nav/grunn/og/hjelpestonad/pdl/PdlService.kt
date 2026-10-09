@@ -80,13 +80,13 @@ class PdlService(
         return data.hentPerson?.forelderBarnRelasjon
     }
 
-    fun hentBehandlingsgrunnlag(personident: String): PersonBehandlingsgrunnlag {
+    fun hentFaktagrunnlag(personident: String): PersonFaktagrunnlag {
         val request =
             PdlRequest(
-                query = graphqlQuery("/pdl/hent_behandlingsgrunnlag.graphql"),
+                query = graphqlQuery("/pdl/hent_faktagrunnlag.graphql"),
                 variables = mapOf("ident" to personident),
             )
-        return pdlClient.hentBehandlingsgrunnlag(request) ?: throw PdlException("Fant ingen person i PDL")
+        return pdlClient.hentFaktagrunnlag(request) ?: throw PdlException("Fant ingen person i PDL")
     }
 
     fun graphqlQuery(path: String) =

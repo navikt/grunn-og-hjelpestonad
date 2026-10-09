@@ -1,11 +1,11 @@
 # Medlemskap etter nasjonale regler
 
 Hvordan systemet lager et forslag til medlemskapsperioder fra
-behandlingsgrunnlaget for medlemskap, for personer som ikke vurderes etter
+faktagrunnlaget for medlemskap, for personer som ikke vurderes etter
 EØS-reglene. Forslaget bygger på hvordan K9, EF og LovMe gjør det, og de er
 beskrevet lenger ned. Begrepene er definert i [CONTEXT.md](../../CONTEXT.md), og
-behandlingsgrunnlaget er beskrevet i
-[behandlingsgrunnlag/medlemskap](../behandlingsgrunnlag/medlemskap/medlemskap.md).
+faktagrunnlaget er beskrevet i
+[faktagrunnlag/medlemskap](../faktagrunnlag/medlemskap/medlemskap.md).
 
 Reglene og grunnlaget er beskrevet for fag og saksbehandlere i
 [confluence/medlemskapsvilkaret.md](../../confluence/medlemskapsvilkaret.md).
@@ -24,7 +24,7 @@ under er merket med steget de hører til.
 
 | Steg | Systemet |
 |---|---|
-| 1 (MVP) | Henter og viser behandlingsgrunnlaget. Saksbehandler vurderer alle periodene. |
+| 1 (MVP) | Henter og viser faktagrunnlaget. Saksbehandler vurderer alle periodene. |
 | 2 | Foreslår JA i klare tilfeller: bosatt nordisk statsborger uten noe i MEDL, eller gyldig trygdedekning for kap. 6 i MEDL |
 | 3 | Foreslår NEI ut fra gyldige unntaksperioder i MEDL |
 | 4 | Foreslår JA etter § 2-2 ut fra Aa-registeret og A-ordningen |
@@ -35,7 +35,7 @@ Fra steg 2 til steg 5 gjelder funksjonen under.
 
 ## Funksjonen
 
-Funksjonen tar inn behandlingsgrunnlaget og gir et forslag til
+Funksjonen tar inn faktagrunnlaget og gir et forslag til
 medlemskapsperioder for hele tidslinjen. Arbeidsforhold og inntekt blir input
 fra steg 4. Funksjonen er ren: den henter ikke noe, den lagrer ikke noe, og
 den vet ikke hvilken behandling den gjelder. Den som kaller den, kutter
@@ -253,8 +253,8 @@ regler som mulig, og senere eventuelt mer avanserte.
 ## Slik gjør EF
 
 familie-ef-sak har to vilkår: forutgående medlemskap og opphold i Norge.
-Opphold i Norge ligner mest på vårt vilkår. Behandlingsgrunnlaget er beskrevet
-i [behandlingsgrunnlag/medlemskap](../behandlingsgrunnlag/medlemskap/medlemskap.md#slik-gjør-ef).
+Opphold i Norge ligner mest på vårt vilkår. Faktagrunnlaget er beskrevet
+i [faktagrunnlag/medlemskap](../faktagrunnlag/medlemskap/medlemskap.md#slik-gjør-ef).
 
 - Vilkåret vurderes for hele behandlingen, ikke per periode.
 - Systemet vurderer bare de klare tilfellene, og bare som «ja»: norsk
@@ -305,7 +305,7 @@ Kildene er k9-sak på commit
   (`Medlemskapsvilkår`, `FP_VK_2`) og grunnlaget for det
   (`VurderLøpendeMedlemskap`).
 
-### Behandlingsgrunnlaget K9 bruker
+### Faktagrunnlaget K9 bruker
 
 | Opplysning | Kilde | Hvordan K9 bruker den |
 |---|---|---|
