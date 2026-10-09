@@ -15,6 +15,9 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.Test
 
+private const val DIABETES_TYPE_1 = "E109"
+private const val STØYSKADE = "H833"
+
 /**
  * Sannhetstabellen for utledningen. Ren test uten Spring og uten mockk, jf. ADR-0004.
  */
@@ -26,7 +29,7 @@ class PeriodeMedRettUtlederTest {
         val perioder =
             utled(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
-                diagnoser = listOf(diagnose("Diabetes type 1", "2025-01-01", "2025-12-31")),
+                diagnoser = listOf(diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-12-31")),
                 institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
 
@@ -41,7 +44,7 @@ class PeriodeMedRettUtlederTest {
         val perioder =
             utled(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
-                diagnoser = listOf(diagnose("Diabetes type 1", "2025-01-01", "2025-12-31")),
+                diagnoser = listOf(diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-12-31")),
                 institusjon =
                     listOf(
                         institusjon("2025-01-01", "2025-03-31"),
@@ -65,7 +68,7 @@ class PeriodeMedRettUtlederTest {
                         medlemskap("2025-01-01", "2025-03-31"),
                         medlemskap("2025-06-01", "2025-12-31"),
                     ),
-                diagnoser = listOf(diagnose("Diabetes type 1", "2025-01-01", "2025-12-31")),
+                diagnoser = listOf(diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-12-31")),
                 institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
 
@@ -80,7 +83,7 @@ class PeriodeMedRettUtlederTest {
         val perioder =
             utled(
                 medlemskap = listOf(medlemskap(null, null)),
-                diagnoser = listOf(diagnose("Diabetes type 1", null, null)),
+                diagnoser = listOf(diagnose(DIABETES_TYPE_1, null, null)),
                 institusjon = listOf(institusjon(null, null)),
             )
 
@@ -96,8 +99,8 @@ class PeriodeMedRettUtlederTest {
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
                 diagnoser =
                     listOf(
-                        diagnose("Diabetes type 1", "2025-01-01", "2025-06-30"),
-                        diagnose("Støyskade", "2025-01-01", "2025-12-31", vurdering = Vurdering.NEI),
+                        diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-06-30"),
+                        diagnose(STØYSKADE, "2025-01-01", "2025-12-31", vurdering = Vurdering.NEI),
                     ),
                 institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
@@ -116,8 +119,8 @@ class PeriodeMedRettUtlederTest {
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
                 diagnoser =
                     listOf(
-                        diagnose("Diabetes type 1", "2025-01-01", "2025-06-30"),
-                        diagnose(" diabetes TYPE 1 ", "2025-07-01", "2025-12-31"),
+                        diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-06-30"),
+                        diagnose(DIABETES_TYPE_1, "2025-07-01", "2025-12-31"),
                     ),
                 institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
@@ -132,7 +135,7 @@ class PeriodeMedRettUtlederTest {
         val perioder =
             utled(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
-                diagnoser = listOf(diagnose("Diabetes type 1", "2025-01-01", "2025-12-31")),
+                diagnoser = listOf(diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-12-31")),
                 institusjon =
                     listOf(
                         institusjon(
@@ -166,7 +169,7 @@ class PeriodeMedRettUtlederTest {
         val perioder =
             utled(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-03-31")),
-                diagnoser = listOf(diagnose("Diabetes type 1", "2025-04-01", "2025-06-30")),
+                diagnoser = listOf(diagnose(DIABETES_TYPE_1, "2025-04-01", "2025-06-30")),
                 institusjon = listOf(institusjon(null, null)),
             )
 
@@ -182,7 +185,7 @@ class PeriodeMedRettUtlederTest {
                         medlemskap("2025-01-01", "2025-03-31"),
                         medlemskap("2025-04-01", "2025-12-31", vurdering = Vurdering.NEI),
                     ),
-                diagnoser = listOf(diagnose("Støyskade", "2025-01-01", "2025-12-31", erYrkesskade = true)),
+                diagnoser = listOf(diagnose(STØYSKADE, "2025-01-01", "2025-12-31", erYrkesskade = true)),
                 institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
 
@@ -196,7 +199,7 @@ class PeriodeMedRettUtlederTest {
         val perioder =
             utled(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31", vurdering = Vurdering.NEI)),
-                diagnoser = listOf(diagnose("Støyskade", "2025-01-01", "2025-12-31", erYrkesskade = true)),
+                diagnoser = listOf(diagnose(STØYSKADE, "2025-01-01", "2025-12-31", erYrkesskade = true)),
                 institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
 
@@ -233,14 +236,15 @@ class PeriodeMedRettUtlederTest {
     )
 
     private fun diagnose(
-        diagnose: String,
+        kode: String,
         fraOgMedDato: String?,
         tilOgMedDato: String?,
         vurdering: Vurdering = Vurdering.JA,
         erYrkesskade: Boolean = false,
     ) = VilkårDiagnose(
         behandlingId = behandlingId,
-        diagnose = diagnose,
+        kode = kode,
+        tekst = "Tekst fra kodeverket",
         erYrkesskade = erYrkesskade,
         vurdering = vurdering,
         fraOgMedDato = fraOgMedDato?.let { LocalDate.parse(it) },

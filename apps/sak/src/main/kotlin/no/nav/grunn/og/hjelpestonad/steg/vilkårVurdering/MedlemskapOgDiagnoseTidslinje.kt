@@ -15,7 +15,7 @@ fun List<VilkårMedlemskap>.erOppfyltTidslinje(diagnoser: List<VilkårDiagnose>)
 
     return diagnoser
         .filter { it.erVilkårOppfylt() }
-        .groupBy { it.diagnose.trim().lowercase() }
+        .groupBy { it.kode }
         .values
         .map { perioderMedSammeDiagnose -> perioderMedSammeDiagnose.medMedlemskapskrav(medlemskapTidslinje) }
         .reduceOrNull { venstreTidslinje, høyreTidslinje -> venstreTidslinje.eller(høyreTidslinje) }

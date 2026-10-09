@@ -61,9 +61,9 @@ class VilkårRepositoryTest(
     fun `flere ulike diagnoser kan løpe samtidig på samme behandling`() {
         val behandlingId = opprettBehandling()
 
-        vilkårDiagnoseRepository.insert(diagnose(behandlingId, "Diabetes type 1", fraOgMedDato = LocalDate.of(2025, 1, 1)))
+        vilkårDiagnoseRepository.insert(diagnose(behandlingId, "E109", fraOgMedDato = LocalDate.of(2025, 1, 1)))
         vilkårDiagnoseRepository.insert(
-            diagnose(behandlingId, "Støyskade", erYrkesskade = true, fraOgMedDato = LocalDate.of(2025, 1, 1)),
+            diagnose(behandlingId, "H833", erYrkesskade = true, fraOgMedDato = LocalDate.of(2025, 1, 1)),
         )
 
         val diagnoser = vilkårDiagnoseRepository.findByBehandlingId(behandlingId)
@@ -72,11 +72,22 @@ class VilkårRepositoryTest(
     }
 
     @Test
-    fun `databasen avviser diagnose uten innhold`() {
+    fun `lagrer kode og tekst for diagnosen`() {
+        val behandlingId = opprettBehandling()
+
+        vilkårDiagnoseRepository.insert(diagnose(behandlingId, "K900"))
+
+        val diagnose = vilkårDiagnoseRepository.findByBehandlingId(behandlingId).single()
+        assertThat(diagnose.kode).isEqualTo("K900")
+        assertThat(diagnose.tekst).isEqualTo("Tekst fra kodeverket")
+    }
+
+    @Test
+    fun `databasen avviser diagnose uten kode`() {
         val behandlingId = opprettBehandling()
 
         assertThatThrownBy { vilkårDiagnoseRepository.insert(diagnose(behandlingId, "   ")) }
-            .hasStackTraceContaining("vilkar_diagnose_ikke_tom")
+            .hasStackTraceContaining("vilkar_diagnose_kode_ikke_tom")
     }
 
     @Test
@@ -183,7 +194,7 @@ class VilkårRepositoryTest(
         vilkårMedlemskapRepository.insert(
             VilkårMedlemskap(behandlingId = behandlingId, regelverk = Regelverk.NASJONALE_REGLER, vurdering = Vurdering.JA),
         )
-        vilkårDiagnoseRepository.insert(diagnose(behandlingId, "Diabetes type 1"))
+        vilkårDiagnoseRepository.insert(diagnose(behandlingId, "E109"))
         vilkårInstitusjonRepository.insert(VilkårInstitusjon(behandlingId = behandlingId, vurdering = Vurdering.JA))
         periodeMedRettRepository.insert(PeriodeMedRett(behandlingId = behandlingId))
 
@@ -197,12 +208,13 @@ class VilkårRepositoryTest(
 
     private fun diagnose(
         behandlingId: UUID,
-        diagnose: String,
+        kode: String,
         erYrkesskade: Boolean = false,
         fraOgMedDato: LocalDate? = null,
     ) = VilkårDiagnose(
         behandlingId = behandlingId,
-        diagnose = diagnose,
+        kode = kode,
+        tekst = "Tekst fra kodeverket",
         erYrkesskade = erYrkesskade,
         vurdering = Vurdering.JA,
         begrunnelse = "Test",

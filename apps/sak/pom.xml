@@ -48,6 +48,7 @@
         <prosessering.version>2.20260817115650_f13f507</prosessering.version>
         <familie-felles.version>4.20260818093920_16ad74a</familie-felles.version>
         <openapi-generator.version>7.25.0</openapi-generator.version>
+        <diagnosekoder.version>1.2026.0</diagnosekoder.version>
 
     </properties>
     <dependencies>
@@ -132,6 +133,11 @@
             <groupId>no.nav.familie.felles</groupId>
             <artifactId>tidslinje</artifactId>
             <version>${familie-felles.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.helse</groupId>
+            <artifactId>diagnosekoder</artifactId>
+            <version>${diagnosekoder.version}</version>
         </dependency>
 
         <dependency>

@@ -151,7 +151,7 @@ class VilkårVurderingStegServiceTest {
         service.fullførSteg(behandlingId)
 
         assertThat(detaljer.captured).isEqualTo("1 perioder med oppfylte vilkår: 01.01.2025 – 31.12.2025")
-        assertThat(detaljer.captured).doesNotContain("Diabetes")
+        assertThat(detaljer.captured).doesNotContain("Diabetes").doesNotContain("E109")
     }
 
     @Test
@@ -180,7 +180,8 @@ class VilkårVurderingStegServiceTest {
             listOf(
                 VilkårDiagnose(
                     behandlingId = behandlingId,
-                    diagnose = "Diabetes type 1",
+                    kode = "E109",
+                    tekst = "Diabetes mellitus type 1 uten komplikasjoner",
                     vurdering = Vurdering.JA,
                     fraOgMedDato = LocalDate.of(2025, 1, 1),
                     tilOgMedDato = LocalDate.of(2025, 12, 31),
