@@ -20,7 +20,10 @@ interface Props {
   mottakere: Brevmottaker[];
   settMottakere: (mottakere: Brevmottaker[]) => void;
   utledBrevmottakere: () => string;
-  sendMottakereTilSak: (behandlingId: string, mottakere: Brevmottaker[]) => void;
+  sendMottakereTilSak: (
+    behandlingId: string,
+    mottakere: Brevmottaker[]
+  ) => Promise<{ melding?: string; httpStatus?: number }>;
   className?: string;
 }
 

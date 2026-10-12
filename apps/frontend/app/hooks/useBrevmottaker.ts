@@ -6,7 +6,6 @@ export enum BrevmottakerRolle {
   BRUKER = "BRUKER",
   VERGE = "VERGE",
   FULLMEKTIG = "FULLMEKTIG",
-  ANNEN = "ANNEN",
 }
 
 export enum MottakerType {
