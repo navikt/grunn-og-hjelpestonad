@@ -3,7 +3,6 @@ package no.nav.grunn.og.hjelpestonad.beslutter
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import io.mockk.verifySequence
 import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
@@ -91,6 +90,8 @@ class BeslutterServiceTest {
             .isInstanceOf(Feil::class.java)
             .extracting { (it as Feil).httpStatus }
             .isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThatThrownBy { beslutterService.angreSendTilBeslutter(behandlingId) }
+            .hasMessage("Kan ikke angre send til beslutter fordi behandlingen ikke venter på beslutning.")
 
         verify(exactly = 0) { taskService.save(any()) }
         verify(exactly = 0) { lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(any(), any()) }
@@ -102,6 +103,8 @@ class BeslutterServiceTest {
     fun `besluttVedtak kaster ManglerTilgang når bruker ikke er ansvarlig saksbehandler`() {
         val behandlingId = UUID.randomUUID()
         val beslutteVedtakRequest = BeslutteVedtakRequest(godkjent = true)
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
+            behandling(behandlingId, BehandlingStatus.UTREDES)
 
         every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
             IkkeAnsvarligSaksbehandlerFeil("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
@@ -115,13 +118,8 @@ class BeslutterServiceTest {
     fun `besluttVedtak avviser behandling som ikke venter på beslutning uten endringer`() {
         listOf(BehandlingStatus.OPPRETTET, BehandlingStatus.UTREDES, BehandlingStatus.FERDIGSTILT).forEach { status ->
             val behandlingId = UUID.randomUUID()
-            every { behandlingService.hentBehandling(behandlingId) } returns
-                Behandling(
-                    id = behandlingId,
-                    fagsakId = UUID.randomUUID(),
-                    status = status,
-                    resultat = BehandlingResultat.IKKE_SATT,
-                )
+            every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
+                behandling(behandlingId, status)
 
             assertThatThrownBy {
                 beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
@@ -141,37 +139,36 @@ class BeslutterServiceTest {
     }
 
     @Test
-    fun `besluttVedtak sjekker status etter ansvarlig saksbehandler og før samme saksbehandler`() {
+    fun `besluttVedtak avviser feil status før kontroll av samme saksbehandler`() {
         val behandlingId = UUID.randomUUID()
-        every { behandlingService.hentBehandling(behandlingId) } returns
-            Behandling(
-                id = behandlingId,
-                fagsakId = UUID.randomUUID(),
-                status = BehandlingStatus.UTREDES,
-                resultat = BehandlingResultat.IKKE_SATT,
-            )
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
+            behandling(behandlingId, BehandlingStatus.UTREDES)
+        every {
+            totrinnskontrollService.validerAtBeslutterIkkeErSammeSomSaksbehandler(behandlingId)
+        } throws IllegalStateException("Beslutter og saksbehandler er samme person")
 
         assertThatThrownBy {
             beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
         }.isInstanceOf(Feil::class.java)
-
-        verifySequence {
-            ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
-            behandlingService.hentBehandling(behandlingId)
-        }
+            .hasMessageContaining("Behandlingen kan bare besluttes når den venter på beslutning")
     }
+
+    private fun behandling(
+        id: UUID,
+        status: BehandlingStatus,
+    ) = Behandling(
+        id = id,
+        fagsakId = UUID.randomUUID(),
+        status = status,
+        resultat = BehandlingResultat.IKKE_SATT,
+    )
 
     @Test
     fun `godkjent innvilget vedtak sender vedtak til Infotrygd-feed`() {
         // Arrange
         val behandlingId = UUID.randomUUID()
-        every { behandlingService.hentBehandling(behandlingId) } returns
-            Behandling(
-                id = behandlingId,
-                fagsakId = UUID.randomUUID(),
-                status = BehandlingStatus.FATTER_VEDTAK,
-                resultat = BehandlingResultat.IKKE_SATT,
-            )
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
+            behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
         every { vedtakService.hentVedtak(behandlingId) } returns
             Vedtak(
                 behandlingId = behandlingId,
@@ -208,13 +205,8 @@ class BeslutterServiceTest {
     @Test
     fun `besluttVedtak kan underkjenne behandling som venter på beslutning`() {
         val behandlingId = UUID.randomUUID()
-        every { behandlingService.hentBehandling(behandlingId) } returns
-            Behandling(
-                id = behandlingId,
-                fagsakId = UUID.randomUUID(),
-                status = BehandlingStatus.FATTER_VEDTAK,
-                resultat = BehandlingResultat.IKKE_SATT,
-            )
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
+            behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
 
         beslutterService.besluttVedtak(
             behandlingId,
