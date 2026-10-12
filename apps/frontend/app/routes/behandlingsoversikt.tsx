@@ -7,7 +7,7 @@ import {
   Table,
   Tag,
   type DataCellProps,
-  Alert,
+  LocalAlert,
 } from "@navikt/ds-react";
 import type { Route } from "./+types/behandlingsoversikt";
 import { useHentBehandlinger } from "~/hooks/useHentBehandlinger";
@@ -41,7 +41,7 @@ export default function Behandlingsoversikt() {
   const navigate = useNavigate();
   const { opprettBehandling, opprettFeilmelding, oppretter } = useOpprettBehandling();
   const { fagsak, fagsakId } = usePersonContext();
-  const { behandlinger, laster } = useHentBehandlinger(fagsakId);
+  const { behandlinger, laster, melding } = useHentBehandlinger(fagsakId);
 
   const behandlingerSortert = behandlinger
     ? [...behandlinger].sort(
@@ -49,12 +49,25 @@ export default function Behandlingsoversikt() {
       )
     : [];
 
-  if (laster || !behandlinger || !fagsak) {
+  if (laster || !fagsak) {
     return (
       <div>
         Henter data...
         <Loader title="Laster..." />
       </div>
+    );
+  }
+
+  if (melding || !behandlinger) {
+    return (
+      <VStack gap="space-8">
+        <Heading level="1" size="large">
+          Behandlingsoversikt
+        </Heading>
+        <LocalAlert status="error">
+          <LocalAlert.Content>Kunne ikke hente behandlinger: {melding ?? "Mangler data"}</LocalAlert.Content>
+        </LocalAlert>
+      </VStack>
     );
   }
 
@@ -124,9 +137,9 @@ export default function Behandlingsoversikt() {
         </div>
 
         {opprettFeilmelding && (
-          <Alert variant="warning" size="small">
+          <LocalAlert status="warning" size="small">
             {opprettFeilmelding}
-          </Alert>
+          </LocalAlert>
         )}
       </VStack>
     </VStack>

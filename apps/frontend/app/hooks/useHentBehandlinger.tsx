@@ -3,7 +3,7 @@ import { apiCall, type ApiResponse } from "~/api/backend";
 import type { Behandling } from "~/types/behandling";
 
 interface BehandlingerState {
-  behandlinger: [Behandling] | null;
+  behandlinger: Behandling[] | null;
   melding: string | null;
   laster: boolean;
 }
@@ -16,9 +16,7 @@ export function useHentBehandlinger(fagsakId: string | undefined) {
   });
 
   useEffect(() => {
-    const hentBehandlingerForFagsak = async (
-      fagsakId: string
-    ): Promise<ApiResponse<[Behandling]>> => {
+    const hentBehandlingerForFagsak = async (fagsakId: string): Promise<ApiResponse<Behandling[]>> => {
       return apiCall(`/behandling/hentBehandlinger`, {
         method: "POST",
         body: JSON.stringify({ fagsakId }),
@@ -29,6 +27,7 @@ export function useHentBehandlinger(fagsakId: string | undefined) {
       if (!fagsakId) {
         settState((prev) => ({
           ...prev,
+          behandlinger: null,
           melding: "Mangler fagsakId",
           laster: false,
         }));
@@ -43,6 +42,14 @@ export function useHentBehandlinger(fagsakId: string | undefined) {
         settState((prev) => ({
           ...prev,
           behandlinger: response.data ?? null,
+          melding: null,
+          laster: false,
+        }));
+      } else {
+        settState((prev) => ({
+          ...prev,
+          behandlinger: null,
+          melding: response.melding ?? "Ukjent feil",
           laster: false,
         }));
       }

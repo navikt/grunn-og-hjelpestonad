@@ -3,7 +3,7 @@ import { apiCall, type ApiResponse } from "~/api/backend";
 import type { Dokumentinfo } from "~/api/dokument";
 
 interface DokumenterState {
-  dokumenter: [Dokumentinfo] | null;
+  dokumenter: Dokumentinfo[] | null;
   melding: string | null;
   laster: boolean;
 }
@@ -18,7 +18,7 @@ export function useHentDokumenter(fagsakPersonId: string | undefined) {
   useEffect(() => {
     const hentDokumenterForPerson = async (
       fagsakPersonId: string
-    ): Promise<ApiResponse<[Dokumentinfo]>> => {
+    ): Promise<ApiResponse<Dokumentinfo[]>> => {
       return apiCall(`/saf/dokumenter`, {
         method: "POST",
         body: JSON.stringify({ fagsakPersonId }),
@@ -33,7 +33,8 @@ export function useHentDokumenter(fagsakPersonId: string | undefined) {
       if (!fagsakPersonId) {
         settState((prev) => ({
           ...prev,
-          melding: "Mangler fagsakId",
+          dokumenter: null,
+          melding: "Mangler fagsakPersonId",
           laster: false,
         }));
         return;
@@ -49,6 +50,14 @@ export function useHentDokumenter(fagsakPersonId: string | undefined) {
         settState((prev) => ({
           ...prev,
           dokumenter: response.data ?? null,
+          melding: null,
+          laster: false,
+        }));
+      } else {
+        settState((prev) => ({
+          ...prev,
+          dokumenter: null,
+          melding: response.melding ?? "Ukjent feil",
           laster: false,
         }));
       }
