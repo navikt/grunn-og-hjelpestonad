@@ -57,12 +57,6 @@ class PdlService(
         return PersonResponse(navnListe.first(), fødselsdato.first().foedselsdato)
     }
 
-    fun hentBarnPersonidenter(personident: String): List<String> =
-        hentFamilieRelasjoner(personident)
-            ?.filter { it.relatertPersonsRolle == Familierolle.BARN }
-            ?.mapNotNull { it.relatertPersonsIdent }
-            ?: emptyList()
-
     fun hentForeldrePersonidenter(personident: String): List<String> =
         hentFamilieRelasjoner(personident)
             ?.filter { it.relatertPersonsRolle in listOf(Familierolle.FAR, Familierolle.MOR, Familierolle.MEDMOR) }
