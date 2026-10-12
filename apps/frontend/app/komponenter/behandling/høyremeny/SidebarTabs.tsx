@@ -1,5 +1,5 @@
 import React from "react";
-import { Tabs, BodyShort, Skeleton, VStack } from "@navikt/ds-react";
+import { Tabs, LocalAlert, Skeleton, VStack } from "@navikt/ds-react";
 import { Endringshistorikk } from "~/komponenter/behandling/høyremeny/Endringshistorikk";
 import { Dokumentliste } from "~/komponenter/dokumentoversikt/Dokumentliste";
 import { usePersonContext } from "~/fellesContext/PersonContext";
@@ -8,7 +8,7 @@ import styles from "./SidebarTabs.module.css";
 
 const DokumenterTab = () => {
   const { fagsakPersonId } = usePersonContext();
-  const { dokumenter, laster } = useHentDokumenter(fagsakPersonId);
+  const { dokumenter, laster, melding } = useHentDokumenter(fagsakPersonId);
 
   if (laster) {
     return (
@@ -21,11 +21,11 @@ const DokumenterTab = () => {
     );
   }
 
-  if (!dokumenter) {
+  if (melding || !dokumenter) {
     return (
-      <BodyShort size="small" textColor="subtle">
-        Kunne ikke hente dokumenter
-      </BodyShort>
+      <LocalAlert status="error" size="small">
+        <LocalAlert.Content>Kunne ikke hente dokumenter: {melding ?? "Mangler data"}</LocalAlert.Content>
+      </LocalAlert>
     );
   }
 
