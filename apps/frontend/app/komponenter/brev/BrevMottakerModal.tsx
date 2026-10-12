@@ -1,4 +1,4 @@
-import { Button, HGrid, HStack, Modal, VStack } from "@navikt/ds-react";
+import { Alert, Button, HGrid, HStack, Modal, VStack } from "@navikt/ds-react";
 import React, { useState } from "react";
 import { BrevmottakereListe } from "~/komponenter/brev/BrevmottakereListe";
 import { type Brevmottaker } from "~/hooks/useBrevmottaker";
@@ -11,7 +11,10 @@ interface Props {
   mottakere: Brevmottaker[];
   settMottakere: (mottakere: Brevmottaker[]) => void;
   lukkModal: () => void;
-  sendMottakereTilSak: (behandlingId: string, mottakere: Brevmottaker[]) => void;
+  sendMottakereTilSak: (
+    behandlingId: string,
+    mottakere: Brevmottaker[]
+  ) => Promise<{ melding?: string; httpStatus?: number }>;
 }
 
 export default function BrevmottakerModalInnhold({
@@ -22,6 +25,8 @@ export default function BrevmottakerModalInnhold({
 }: Props) {
   const [midlertidigMottakerliste, settMidlertidigMottakerliste] =
     useState<Brevmottaker[]>(mottakere);
+  const [feilmelding, settFeilmelding] = useState<string>();
+  const [lagrer, settLagrer] = useState(false);
   const { behandlingId } = useBehandlingContext();
 
   const leggTilMottaker = (mottaker: Brevmottaker) => {
@@ -32,11 +37,23 @@ export default function BrevmottakerModalInnhold({
     settMidlertidigMottakerliste((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const håndterSettMottakere = () => {
-    settMottakere(midlertidigMottakerliste);
-    sendMottakereTilSak(behandlingId, midlertidigMottakerliste);
+  const håndterSettMottakere = async () => {
+    settLagrer(true);
+    settFeilmelding(undefined);
+    try {
+      const response = await sendMottakereTilSak(behandlingId, midlertidigMottakerliste);
+      if (response.melding || response.httpStatus) {
+        settFeilmelding(response.melding || "Kunne ikke lagre brevmottakerne.");
+        return;
+      }
 
-    lukkModal();
+      settMottakere(midlertidigMottakerliste);
+      lukkModal();
+    } catch {
+      settFeilmelding("Kunne ikke lagre brevmottakerne.");
+    } finally {
+      settLagrer(false);
+    }
   };
 
   const håndterAvbryt = () => {
@@ -49,6 +66,11 @@ export default function BrevmottakerModalInnhold({
   return (
     <>
       <Modal.Body>
+        {feilmelding && (
+          <Alert variant="error" size="small">
+            {feilmelding}
+          </Alert>
+        )}
         <HGrid columns={2} gap="space-24">
           <VStack gap="space-6">
             <ManueltSøk leggTilMottaker={leggTilMottaker} />
@@ -80,9 +102,9 @@ export default function BrevmottakerModalInnhold({
           </Button>
           <Button
             onClick={håndterSettMottakere}
-            disabled={!harEndringer || midlertidigMottakerliste.length === 0}
+            disabled={!harEndringer || midlertidigMottakerliste.length === 0 || lagrer}
           >
-            Sett mottakere
+            {lagrer ? "Lagrer …" : "Sett mottakere"}
           </Button>
         </HStack>
       </Modal.Footer>
