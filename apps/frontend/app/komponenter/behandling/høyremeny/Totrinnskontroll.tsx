@@ -23,6 +23,7 @@ import {
 } from "~/types/totrinnskontroll";
 import { formaterIsoDatoTid } from "~/utils/utils";
 import type { AnsvarligSaksbehandlerResponse } from "~/types/saksbehandler";
+import type { BeslutterRespons } from "~/hooks/useBeslutter";
 
 enum Totrinnsresultat {
   IKKE_VALGT = "IKKE_VALGT",
@@ -88,7 +89,7 @@ export const Totrinnskontroll = () => {
 
 const SendtTilBeslutter: React.FC<{
   behandlingId: string;
-  angreSendTilBeslutter: (behandlingId: string) => Promise<{ data?: unknown }>;
+  angreSendTilBeslutter: (behandlingId: string) => Promise<BeslutterRespons>;
   revaliderBehandling: () => void;
   hentTotrinnskontrollStatusPåNytt: () => void;
   hentAnsvarligSaksbehandlerPåNytt: () => void;
@@ -105,12 +106,14 @@ const SendtTilBeslutter: React.FC<{
 }) => {
   const { ansvarligSaksbehandler } = useBehandlingContext();
   const [laster, settLaster] = useState(false);
+  const [feilmelding, settFeilmelding] = useState<string | null>(null);
 
   const erAnsvarligSaksbehandler = ansvarligSaksbehandler?.rolle === "INNLOGGET_SAKSBEHANDLER";
   const behandlingHarIngenAnsvarligSaksbehandler = ansvarligSaksbehandler === null;
 
   const handleAngreSendTilBeslutter = async () => {
     settLaster(true);
+    settFeilmelding(null);
     try {
       const respons = await angreSendTilBeslutter(behandlingId);
       if (respons.data) {
@@ -118,6 +121,8 @@ const SendtTilBeslutter: React.FC<{
         revaliderBehandling();
         hentTotrinnskontrollStatusPåNytt();
         hentAnsvarligSaksbehandlerPåNytt();
+      } else if (respons.melding) {
+        settFeilmelding(respons.melding);
       }
     } finally {
       settLaster(false);
@@ -135,6 +140,11 @@ const SendtTilBeslutter: React.FC<{
           <InfoRad label="Sendt inn av" verdi={opprettetAv || ""} />
           <InfoRad label="Sendt inn" verdi={opprettetTid || ""} />
         </VStack>
+        {feilmelding && (
+          <Alert variant="error" size="small">
+            {feilmelding}
+          </Alert>
+        )}
         <Button
           size="small"
           variant="secondary"
@@ -154,7 +164,7 @@ const FatterVedtak: React.FC<{
   besluttVedtak: (
     behandlingId: string,
     data: { godkjent: boolean; årsakUnderkjent?: ÅrsakUnderkjent; begrunnelse?: string }
-  ) => Promise<{ data?: unknown; feilmelding?: string }>;
+  ) => Promise<BeslutterRespons>;
   sender: boolean;
   revaliderBehandling: () => void;
   hentTotrinnskontrollStatusPåNytt: () => void;
@@ -197,8 +207,8 @@ const FatterVedtak: React.FC<{
       revaliderBehandling();
       hentTotrinnskontrollStatusPåNytt();
       hentAnsvarligSaksbehandlerPåNytt();
-    } else if (respons.feilmelding) {
-      settFeilmelding(respons.feilmelding);
+    } else if (respons.melding) {
+      settFeilmelding(respons.melding);
     }
   };
 

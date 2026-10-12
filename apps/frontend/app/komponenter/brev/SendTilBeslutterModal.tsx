@@ -1,13 +1,15 @@
 import React from "react";
-import { BodyLong, Button, HStack, Modal } from "@navikt/ds-react";
+import { Alert, BodyLong, Button, HStack, Modal } from "@navikt/ds-react";
+import type { BeslutterRespons } from "~/hooks/useBeslutter";
 
 interface Props {
   modalRef: React.RefObject<HTMLDialogElement | null>;
   laster: boolean;
-  onSendTilBeslutter: () => void;
+  feilmelding: string | null;
+  onSendTilBeslutter: () => Promise<BeslutterRespons>;
 }
 
-export function SendTilBeslutterModal({ modalRef, laster, onSendTilBeslutter }: Props) {
+export function SendTilBeslutterModal({ modalRef, laster, feilmelding, onSendTilBeslutter }: Props) {
   const lukkModal = () => modalRef.current?.close();
 
   return (
@@ -23,15 +25,20 @@ export function SendTilBeslutterModal({ modalRef, laster, onSendTilBeslutter }: 
             Avbryt
           </Button>
           <Button
-            onClick={() => {
-              onSendTilBeslutter();
-              lukkModal();
+            onClick={async () => {
+              const respons = await onSendTilBeslutter();
+              if (respons.data) lukkModal();
             }}
             disabled={laster}
           >
             Send til beslutter
           </Button>
         </HStack>
+        {feilmelding && (
+          <Alert variant="error" size="small">
+            {feilmelding}
+          </Alert>
+        )}
       </Modal.Footer>
     </Modal>
   );
