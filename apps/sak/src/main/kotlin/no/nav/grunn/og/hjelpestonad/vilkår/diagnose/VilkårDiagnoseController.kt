@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.vilkår.diagnose
 
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -16,23 +17,31 @@ import java.util.UUID
 @RequestMapping("/api/behandling/{behandlingId}/vilkar/diagnose")
 class VilkårDiagnoseController(
     private val vilkårDiagnoseService: VilkårDiagnoseService,
+    private val tilgangService: TilgangService,
 ) {
     @GetMapping
     fun hentDiagnosePerioder(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<List<VilkårDiagnoseResponse>> = ResponseEntity.ok(vilkårDiagnoseService.hentPerioder(behandlingId).map { it.tilResponse() })
+    ): ResponseEntity<List<VilkårDiagnoseResponse>> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
+        return ResponseEntity.ok(vilkårDiagnoseService.hentPerioder(behandlingId).map { it.tilResponse() })
+    }
 
     @PostMapping
     fun lagreDiagnosePeriode(
         @PathVariable behandlingId: UUID,
         @RequestBody request: VilkårDiagnoseRequest,
-    ): ResponseEntity<VilkårDiagnoseResponse> = ResponseEntity.ok(vilkårDiagnoseService.lagrePeriode(behandlingId, request).tilResponse())
+    ): ResponseEntity<VilkårDiagnoseResponse> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
+        return ResponseEntity.ok(vilkårDiagnoseService.lagrePeriode(behandlingId, request).tilResponse())
+    }
 
     @DeleteMapping("/{vilkårPeriodeId}")
     fun slettDiagnosePeriode(
         @PathVariable behandlingId: UUID,
         @PathVariable vilkårPeriodeId: UUID,
     ): ResponseEntity<Void> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         vilkårDiagnoseService.slettPeriode(behandlingId, vilkårPeriodeId)
         return ResponseEntity.noContent().build()
     }

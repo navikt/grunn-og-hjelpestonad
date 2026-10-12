@@ -1,12 +1,7 @@
 import React from "react";
 import type { Dokumentinfo } from "~/api/dokument";
 import { BodyShort, Detail, Tag, Tooltip } from "@navikt/ds-react";
-import {
-  InboxDownIcon,
-  PaperplaneIcon,
-  DocPencilIcon,
-  PaperclipIcon,
-} from "@navikt/aksel-icons";
+import { InboxDownIcon, PaperplaneIcon, DocPencilIcon, PaperclipIcon } from "@navikt/aksel-icons";
 import type { Journalposttype } from "~/api/journalføring";
 import type { TagFarge } from "~/types/farge";
 import styles from "./Dokumentliste.module.css";
@@ -51,20 +46,21 @@ function formaterDato(datoStreng?: string): string {
 
 export interface Props {
   dokument: Dokumentinfo;
+  fagsakPersonId: string;
 }
 
 const tittelMedUrlGodkjenteTegn = (tittel?: string) => {
   if (!tittel) {
-    return 'uten_tittel';
+    return "uten_tittel";
   }
   const tittelUtenTvilsommeTegn = tittel
-      .replaceAll('/', '_')
-      .replaceAll('\\', '_')
-      .replaceAll('%', 'pst');
+    .replaceAll("/", "_")
+    .replaceAll("\\", "_")
+    .replaceAll("%", "pst");
   return encodeURIComponent(tittelUtenTvilsommeTegn);
 };
 
-export const DokumentListeElement: React.FC<Props> = ({ dokument }) => {
+export const DokumentListeElement: React.FC<Props> = ({ dokument, fagsakPersonId }) => {
   const meta = journalposttypeMeta[dokument.journalposttype];
   const Ikon = meta.ikon;
 
@@ -81,7 +77,7 @@ export const DokumentListeElement: React.FC<Props> = ({ dokument }) => {
         <Tooltip content={dokument.tittel} placement="top">
           <BodyShort size="small" weight="semibold" truncate>
             <a
-              href={`/api/saf/${dokument.journalpostId}/dokument-pdf/${dokument.dokumentinfoId}/${tittelMedUrlGodkjenteTegn(dokument.tittel)}`}
+              href={`/api/saf/${dokument.journalpostId}/dokument-pdf/${dokument.dokumentinfoId}/${tittelMedUrlGodkjenteTegn(dokument.tittel)}?fagsakPersonId=${encodeURIComponent(fagsakPersonId)}`}
               target="_blank"
               rel="noreferrer"
             >
@@ -102,8 +98,7 @@ export const DokumentListeElement: React.FC<Props> = ({ dokument }) => {
         </div>
         {dokument.avsenderMottaker?.navn && (
           <Detail textColor="subtle">
-            {dokument.journalposttype === "I" ? "Fra" : "Til"}:{" "}
-            {dokument.avsenderMottaker.navn}
+            {dokument.journalposttype === "I" ? "Fra" : "Til"}: {dokument.avsenderMottaker.navn}
           </Detail>
         )}
         {dokument.logiskeVedlegg.length > 0 && (

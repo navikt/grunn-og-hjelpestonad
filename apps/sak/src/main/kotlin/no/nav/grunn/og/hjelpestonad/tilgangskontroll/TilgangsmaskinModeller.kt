@@ -1,127 +1,50 @@
 package no.nav.grunn.og.hjelpestonad.tilgangskontroll
 
-import com.fasterxml.jackson.annotation.JsonProperty
+enum class Regeltype { KJERNE_REGELTYPE, KOMPLETT_REGELTYPE }
 
-enum class RegelType {
-    @JsonProperty("KOMPLETT_REGELTYPE")
-    KOMPLETT_REGELTYPE,
-
-    @JsonProperty("KJERNE_REGELTYPE")
-    KJERNE_REGELTYPE,
+enum class Avvisningskode(
+    val feilmelding: String,
+) {
+    AVVIST_STRENGT_FORTROLIG_ADRESSE("Du har ikke tilgang til brukere med strengt fortrolig adresse (kode 6)."),
+    AVVIST_STRENGT_FORTROLIG_UTLAND("Du har ikke tilgang til brukere med strengt fortrolig adresse i utlandet (§19)."),
+    AVVIST_FORTROLIG_ADRESSE("Du har ikke tilgang til brukere med fortrolig adresse (kode 7)."),
+    AVVIST_SKJERMING("Du har ikke tilgang til Nav-ansatte og deres nærmeste familie."),
+    AVVIST_HABILITET("Du har ikke tilgang til data om deg selv eller dine nærstående."),
+    AVVIST_VERGE("Du har ikke tilgang fordi du er registrert som brukerens verge."),
+    AVVIST_GEOGRAFISK("Du har ikke tilgang til brukerens geografiske område eller enhet."),
+    AVVIST_AVDØD(
+        "Du har ikke tilgang til brukere som har vært død mer enn 12 måneder. " +
+            "Du kan be om tilgangen «Populasjon avdød bruker» gjennom Mine Tilganger.",
+    ),
+    AVVIST_PERSON_UTLAND("Du har ikke tilgang til brukere som bor i utlandet."),
+    AVVIST_UKJENT_BOSTED("Du har ikke tilgang til brukere uten kjent bosted."),
 }
 
-enum class Avvisningskode {
-    AVVIST_STRENGT_FORTROLIG_ADRESSE,
-    AVVIST_STRENGT_FORTROLIG_UTLAND,
-    AVVIST_AVDØD,
-    AVVIST_PERSON_UTLAND,
-    AVVIST_SKJERMING,
-    AVVIST_FORTROLIG_ADRESSE,
-    AVVIST_UKJENT_BOSTED,
-    AVVIST_GEOGRAFISK,
-    AVVIST_HABILITET,
-}
-
-data class TilgangssjekkRequest(
+data class Tilgangsvurdering(
     val personident: String,
+    val harTilgang: Boolean,
+    val avvisningskode: Avvisningskode?,
+    val traceId: String? = null,
 )
 
-data class AnsattInfoRequest(
-    val navIdent: String,
+data class BrukerIdOgRegeltypeDto(
+    val brukerId: String,
+    val type: Regeltype,
 )
 
-data class BulkTilgangsRequest(
-    val personidenter: List<String>,
+data class BulkResponsDto(
+    val ansattId: String? = null,
+    val resultater: List<BulkResultatDto> = emptyList(),
 )
 
-data class BulkTilgangsResponse(
-    @JsonProperty("ansattId")
-    val navIdent: String,
-    val resultater: Set<TilgangsResultat> = emptySet(),
-)
-
-data class TilgangsResultat(
-    @JsonProperty("brukerId")
-    val personident: String,
+data class BulkResultatDto(
+    val brukerId: String,
     val status: Int,
-    val detaljer: Any? = null,
-) {
-    val harTilgang: Boolean
-        get() = status == 204
-}
-
-data class ForenkletBulkTilgangsResponse(
-    val navIdent: String,
-    val resultater: List<ForenkletTilgangsResultat>,
+    val detaljer: DetaljerDto? = null,
 )
 
-data class ForenkletTilgangsResultat(
-    val personident: String,
-    val harTilgang: Boolean,
-    val avvisningskode: Avvisningskode? = null,
-    val begrunnelse: String? = null,
-)
-
-data class EnkelTilgangsResponse(
-    val navIdent: String,
-    val personident: String,
-    val harTilgang: Boolean,
-    val avvisningskode: Avvisningskode? = null,
-    val begrunnelse: String? = null,
-)
-
-data class AnsattInfoResponse(
-    @JsonProperty("ansattId")
-    val navIdent: String,
-    val bruker: BrukerInfo? = null,
-    val grupper: List<GruppeInfo> = emptyList(),
-)
-
-data class GruppeInfo(
-    val id: String,
-    val displayName: String = "N/A",
-)
-
-data class BrukerInfo(
-    val brukerIds: BrukerIds,
-    val geografiskTilknytning: GeografiskTilknytning? = null,
-    val familie: FamilieInfo? = null,
-    val harUkjentBosted: Boolean = false,
-    val harUtenlandskBosted: Boolean = false,
-    val oppslagId: String,
-) {
-    val kommunenummer: String?
-        get() = geografiskTilknytning?.kommune?.verdi
-}
-
-data class BrukerIds(
-    @JsonProperty("aktivBrukerId")
-    val aktivPersonident: String,
-    val oppslagId: String,
-    val historiskeIds: List<String> = emptyList(),
-)
-
-data class GeografiskTilknytning(
-    val kommune: KommuneInfo? = null,
-)
-
-data class KommuneInfo(
-    val verdi: String,
-)
-
-data class FamilieInfo(
-    val foreldre: List<FamilieRelasjon> = emptyList(),
-    val barn: List<FamilieRelasjon> = emptyList(),
-    val partnere: List<FamilieRelasjon> = emptyList(),
-)
-
-data class FamilieRelasjon(
-    @JsonProperty("brukerId")
-    val personident: String,
-    val relasjon: String,
-)
-
-data class TilgangsmaskinFeilResponse(
+data class DetaljerDto(
     val title: String? = null,
     val begrunnelse: String? = null,
+    val traceId: String? = null,
 )

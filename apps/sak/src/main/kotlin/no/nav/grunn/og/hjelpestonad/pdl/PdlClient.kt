@@ -1,6 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.pdl
 
-import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgangIPdlException
 import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -40,7 +40,7 @@ class PdlClient(
             return pdlResponse?.data
         } catch (e: Exception) {
             when (e) {
-                is PdlException, is ManglerTilgang -> {
+                is PdlException, is ManglerTilgangIPdlException -> {
                     throw e
                 }
 
@@ -71,7 +71,7 @@ class PdlClient(
             return pdlResponse?.data
         } catch (e: Exception) {
             when (e) {
-                is PdlException, is ManglerTilgang -> {
+                is PdlException, is ManglerTilgangIPdlException -> {
                     throw e
                 }
 
@@ -99,7 +99,7 @@ class PdlClient(
             return pdlResponse?.data
         } catch (e: Exception) {
             when (e) {
-                is PdlException, is ManglerTilgang -> {
+                is PdlException, is ManglerTilgangIPdlException -> {
                     throw e
                 }
 
@@ -127,7 +127,7 @@ class PdlClient(
             return pdlResponse?.data?.hentPerson
         } catch (e: Exception) {
             when (e) {
-                is PdlException, is ManglerTilgang -> {
+                is PdlException, is ManglerTilgangIPdlException -> {
                     throw e
                 }
 
@@ -165,7 +165,7 @@ class PdlClient(
         logger.error("PDL returnerte {} feil ved {}", errors.size, operasjon)
 
         if (errors.any { it.extensions?.code == "unauthorized" }) {
-            throw ManglerTilgang(melding = "Mangler tilgang til opplysningene for denne personen")
+            throw ManglerTilgangIPdlException(melding = "Mangler tilgang til opplysningene for denne personen")
         }
 
         throw PdlException("Feil ved $operasjon: ${errors.first().message}")

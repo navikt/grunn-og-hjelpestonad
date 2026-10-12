@@ -61,6 +61,17 @@ class BehandlingServiceTest {
             .hasMessageContaining("Behandlingen er ikke redigerbar")
     }
 
+    @Test
+    fun `hentBehandlingEllerKast gir 404 når behandlingen ikke finnes`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingRepository.findByIdOrNull(behandlingId) } returns null
+
+        assertThatThrownBy { behandlingService.hentBehandlingEllerKast(behandlingId) }
+            .isInstanceOf(Feil::class.java)
+            .extracting("httpStatus")
+            .isEqualTo(HttpStatus.NOT_FOUND)
+    }
+
     private fun lagBehandling(
         behandlingId: UUID,
         status: BehandlingStatus,

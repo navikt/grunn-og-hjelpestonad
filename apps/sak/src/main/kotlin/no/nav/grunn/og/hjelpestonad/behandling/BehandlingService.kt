@@ -28,6 +28,12 @@ class BehandlingService(
 
     fun hentBehandling(behandlingId: UUID): Behandling? = behandlingRepository.findByIdOrNull(behandlingId)
 
+    fun hentBehandlingEllerKast(behandlingId: UUID): Behandling =
+        hentBehandling(behandlingId) ?: throw Feil(
+            melding = "Fant ikke behandling med id=$behandlingId",
+            httpStatus = HttpStatus.NOT_FOUND,
+        )
+
     fun hentBehandlingerFraFagsak(fagsakId: UUID): List<Behandling> = behandlingRepository.findAllByFagsakId(fagsakId)
 
     fun finnesÅpenBehandling(fagsakId: UUID) = behandlingRepository.existsByFagsakIdAndStatusIsNot(fagsakId, BehandlingStatus.FERDIGSTILT)

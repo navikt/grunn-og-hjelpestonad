@@ -5,7 +5,7 @@ import io.mockk.mockk
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
-import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import java.time.LocalDate
@@ -47,10 +47,10 @@ class ÅrsakBehandlingServiceTest {
             )
 
         every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
-            ManglerTilgang("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
+            IkkeAnsvarligSaksbehandlerFeil("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
 
         assertThatThrownBy { årsakBehandlingService.lagreÅrsakForBehandling(behandlingId, request) }
-            .isInstanceOf(ManglerTilgang::class.java)
+            .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }
 }

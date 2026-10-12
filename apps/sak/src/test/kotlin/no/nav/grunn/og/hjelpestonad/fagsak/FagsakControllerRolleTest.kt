@@ -6,6 +6,7 @@ import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.ApplicationLocalSetup
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
 import no.nav.grunn.og.hjelpestonad.fagsak.dto.FagsakResponse
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
@@ -38,6 +39,10 @@ class FagsakControllerRolleTest {
 
     @MockkBean
     private lateinit var fagsakService: FagsakService
+
+    @MockkBean(relaxed = true)
+    private lateinit var tilgangService: TilgangService
+
     private val personident = "12345678910"
     private val fagsakPersonId = UUID.randomUUID()
     private val hentUrl = "/api/fagsak/fagsak-person/$fagsakPersonId/BARNETILSYN"
@@ -78,6 +83,8 @@ class FagsakControllerRolleTest {
     @WithMockUser
     fun `bruker uten rolle får ikke hente fagsak`() {
         mockMvc.get(hentUrl).andExpect { status { isForbidden() } }
+
+        verify(exactly = 0) { tilgangService.validerTilgangTilFagsakPerson(any()) }
         verify(exactly = 0) { fagsakService.hentFagsak(any(), any()) }
     }
 
@@ -93,6 +100,8 @@ class FagsakControllerRolleTest {
     @WithMockUser(roles = ["BESLUTTER", "LESETILGANG"])
     fun `bruker uten saksbehandlerrollen får ikke opprette fagsak`() {
         opprettFagsak().andExpect { status { isForbidden() } }
+
+        verify(exactly = 0) { tilgangService.validerTilgangTilPerson(any()) }
         verify(exactly = 0) { fagsakService.hentEllerOpprettFagsak(any(), any()) }
     }
 

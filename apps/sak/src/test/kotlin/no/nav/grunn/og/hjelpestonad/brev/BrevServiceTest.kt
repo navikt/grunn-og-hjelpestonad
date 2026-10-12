@@ -11,7 +11,7 @@ import no.nav.grunn.og.hjelpestonad.brev.domain.InformasjonOmBrukerDto
 import no.nav.grunn.og.hjelpestonad.brev.domain.TekstbolkDto
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
-import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.saksbehandler.EntraProxyClient
 import org.assertj.core.api.Assertions.assertThat
@@ -111,10 +111,10 @@ class BrevServiceTest {
         val brevRequest = gyldigBrevRequest()
 
         every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
-            ManglerTilgang("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
+            IkkeAnsvarligSaksbehandlerFeil("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
 
         assertThatThrownBy { brevService.mellomlagreBrev(behandlingId, brevRequest) }
-            .isInstanceOf(ManglerTilgang::class.java)
+            .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }
 

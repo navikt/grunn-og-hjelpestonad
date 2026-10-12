@@ -13,7 +13,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.felles.sporbar.Sporbar
-import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.dto.SaksbehandlerRolle
 import no.nav.grunn.og.hjelpestonad.saksbehandler.EntraProxyClient
 import org.assertj.core.api.Assertions.assertThat
@@ -171,7 +171,7 @@ class AnsvarligSaksbehandlerServiceTest {
         every { oppgaveClient.hentOppgaveM2M(gsakOppgaveId) } returns lagGosysOppgave(tilordnetRessurs = "B654321")
 
         assertThatThrownBy { service.validerErAnsvarligSaksbehandler(behandlingId) }
-            .isInstanceOf(ManglerTilgang::class.java)
+            .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }
 
@@ -187,7 +187,7 @@ class AnsvarligSaksbehandlerServiceTest {
         every { oppgaveClient.hentOppgaveM2M(gsakOppgaveId) } returns lagGosysOppgave(tilordnetRessurs = null)
 
         assertThatThrownBy { service.validerErAnsvarligSaksbehandler(behandlingId) }
-            .isInstanceOf(ManglerTilgang::class.java)
+            .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }
 

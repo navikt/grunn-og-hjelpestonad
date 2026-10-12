@@ -29,7 +29,9 @@ const DokumenterTab = () => {
     );
   }
 
-  return <Dokumentliste dokumenter={dokumenter} medScroll={false} />;
+  return (
+    <Dokumentliste dokumenter={dokumenter} medScroll={false} fagsakPersonId={fagsakPersonId} />
+  );
 };
 
 export const SidebarTabs = () => {

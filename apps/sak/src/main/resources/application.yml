@@ -123,7 +123,7 @@ integrasjoner:
         scope: api://dev-fss.teamdokumenthandtering.saf/.default
     tilgangsmaskin:
         url: http://populasjonstilgangskontroll.tilgangsmaskin
-        scope: api://dev-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default
+        scope: api://${nais.miljo}-gcp.tilgangsmaskin.populasjonstilgangskontroll/.default
 
 # Swagger/OpenAPI konfigurasjon
 springdoc:

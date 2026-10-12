@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevmottakerRequest
 import no.nav.grunn.og.hjelpestonad.brev.dto.BrevmottakerResponse
 import no.nav.grunn.og.hjelpestonad.brev.dto.tilResponse
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,6 +21,7 @@ import java.util.UUID
 @Tag(name = "BrevmottakerController", description = "Endepunkter for håndtering av brevmottakere")
 class BrevmottakerController(
     private val brevmottakerService: BrevmottakerService,
+    private val tilgangService: TilgangService,
 ) {
     @GetMapping("/{behandlingId}")
     @PreAuthorize("hasRole('SAKSBEHANDLER')")
@@ -30,6 +32,7 @@ class BrevmottakerController(
     fun hentBrevmottakere(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<List<BrevmottakerResponse>> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         val brevmottakere = brevmottakerService.hentBrevmottakere(behandlingId).map { it.tilResponse() }
         return ResponseEntity.ok(brevmottakere)
     }
@@ -44,6 +47,7 @@ class BrevmottakerController(
         @PathVariable behandlingId: UUID,
         @RequestBody brevmottakere: List<BrevmottakerRequest>,
     ): ResponseEntity<String> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         brevmottakerService.oppdaterBrevmottakere(
             behandlingId,
             brevmottakere.map { it.tilBrevmottaker(behandlingId) },

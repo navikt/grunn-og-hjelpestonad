@@ -9,7 +9,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.LagBehandleSakOppgaveTask
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
-import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
@@ -56,10 +56,10 @@ class BeslutterServiceTest {
         val behandlingId = UUID.randomUUID()
 
         every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
-            ManglerTilgang("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
+            IkkeAnsvarligSaksbehandlerFeil("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
 
         assertThatThrownBy { beslutterService.sendTilBeslutter(behandlingId) }
-            .isInstanceOf(ManglerTilgang::class.java)
+            .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }
 
@@ -68,10 +68,10 @@ class BeslutterServiceTest {
         val behandlingId = UUID.randomUUID()
 
         every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
-            ManglerTilgang("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
+            IkkeAnsvarligSaksbehandlerFeil("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
 
         assertThatThrownBy { beslutterService.angreSendTilBeslutter(behandlingId) }
-            .isInstanceOf(ManglerTilgang::class.java)
+            .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }
 
@@ -81,10 +81,10 @@ class BeslutterServiceTest {
         val beslutteVedtakRequest = BeslutteVedtakRequest(godkjent = true)
 
         every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
-            ManglerTilgang("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
+            IkkeAnsvarligSaksbehandlerFeil("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
 
         assertThatThrownBy { beslutterService.besluttVedtak(behandlingId, beslutteVedtakRequest) }
-            .isInstanceOf(ManglerTilgang::class.java)
+            .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }
 

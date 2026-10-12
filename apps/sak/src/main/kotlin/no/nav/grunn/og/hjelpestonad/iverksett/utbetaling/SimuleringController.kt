@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.iverksett.utbetaling
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.core.env.Environment
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -19,11 +20,13 @@ class SimuleringController(
     private val behandlingService: BehandlingService,
     private val simuleringService: SimuleringService,
     private val environment: Environment,
+    private val tilgangService: TilgangService,
 ) {
     @PostMapping("/{behandlingId}")
     fun simulerForBehandling(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<String> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         requireNotNull(behandlingService.hentBehandling(behandlingId))
         simuleringService.simuler(behandlingId)
         return ResponseEntity.ok("OK")
@@ -33,6 +36,7 @@ class SimuleringController(
     fun hentSimuleringsresultat(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<SimuleringResultatResponse> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         if (environment.matchesProfiles("dev")) {
             return ResponseEntity.ok(mockSimuleringsrespons().tilResultatResponse())
         }

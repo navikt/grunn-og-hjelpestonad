@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.ApplicationLocalSetup
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
@@ -33,6 +34,10 @@ class SøkControllerRolleTest {
 
     @MockkBean
     private lateinit var søkService: SøkService
+
+    @MockkBean(relaxed = true)
+    private lateinit var tilgangService: TilgangService
+
     private val fagsakPersonId = UUID.randomUUID()
     private val url = "/api/sok/fagsak-person/$fagsakPersonId"
 
@@ -72,6 +77,8 @@ class SøkControllerRolleTest {
     @WithMockUser
     fun `bruker uten rolle får ikke søke`() {
         mockMvc.get(url).andExpect { status { isForbidden() } }
+
+        verify(exactly = 0) { tilgangService.validerTilgangTilFagsakPerson(any()) }
         verify(exactly = 0) { søkService.søkMedFagsakPersonId(any()) }
     }
 }

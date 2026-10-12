@@ -2,6 +2,7 @@ package no.nav.grunn.og.hjelpestonad.fagsak
 
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
 import no.nav.grunn.og.hjelpestonad.fagsak.dto.FagsakResponse
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -15,6 +16,7 @@ import java.util.UUID
 @RequestMapping(path = ["/api/fagsak"])
 class FagsakController(
     private val fagsakService: FagsakService,
+    private val tilgangService: TilgangService,
 ) {
     @PostMapping
     @PreAuthorize("hasRole('SAKSBEHANDLER')")
@@ -22,6 +24,7 @@ class FagsakController(
         @RequestBody request: FagsakRequest,
     ): FagsakResponse {
         validerErPersonident(request.personident)
+        tilgangService.validerTilgangTilPerson(request.personident)
         return fagsakService.hentEllerOpprettFagsak(personident = request.personident, stønadstype = request.stønadstype)
     }
 
@@ -30,5 +33,8 @@ class FagsakController(
     fun hentFagsak(
         @PathVariable("fagsakPersonId") fagsakPersonId: UUID,
         @PathVariable("stonadstype") stønadstype: StønadType,
-    ): FagsakResponse = fagsakService.hentFagsak(fagsakPersonId = fagsakPersonId, stønadstype = stønadstype)
+    ): FagsakResponse {
+        tilgangService.validerTilgangTilFagsakPerson(fagsakPersonId)
+        return fagsakService.hentFagsak(fagsakPersonId = fagsakPersonId, stønadstype = stønadstype)
+    }
 }

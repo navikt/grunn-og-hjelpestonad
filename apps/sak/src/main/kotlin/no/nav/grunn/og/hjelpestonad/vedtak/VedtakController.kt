@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.vedtak
 
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -15,11 +16,13 @@ import java.util.UUID
 class VedtakController(
     private val vedtakService: VedtakService,
     private val gjeldendeVedtakService: GjeldendeVedtakService,
+    private val tilgangService: TilgangService,
 ) {
     @GetMapping("/{behandlingId}/hent-vedtak")
     fun hentVedtak(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<VedtakResponse> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         val vedtak = vedtakService.hentVedtak(behandlingId)
 
         return if (vedtak == null) {
@@ -34,6 +37,7 @@ class VedtakController(
         @PathVariable behandlingId: UUID,
         @RequestBody vedtakRequest: VedtakRequest,
     ): ResponseEntity<Map<String, String>> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         vedtakService.validerKanLagreVedtak(vedtakRequest)
         vedtakService.slettVedtakHvisFinnes(behandlingId)
         vedtakService.lagreVedtak(vedtakRequest = vedtakRequest, behandlingId = behandlingId)
@@ -45,6 +49,7 @@ class VedtakController(
         @PathVariable behandlingId: UUID,
         @RequestBody barnetilsynBeregningRequest: BarnetilsynBeregningRequest,
     ): ResponseEntity<List<BeløpsperioderResponse>> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         vedtakService.validerKanBeregne(barnetilsynBeregningRequest)
         return ResponseEntity.ok(vedtakService.lagBeløpsperioder(barnetilsynBeregningRequest))
     }
@@ -53,5 +58,8 @@ class VedtakController(
     fun hentHistoriskVedtakForBehanling(
         @PathVariable behandlingId: UUID,
         @PathVariable fra: YearMonth,
-    ): ResponseEntity<HistoriskVedtakResponse> = ResponseEntity.ok(gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandlingId, fra))
+    ): ResponseEntity<HistoriskVedtakResponse> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
+        return ResponseEntity.ok(gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandlingId, fra))
+    }
 }

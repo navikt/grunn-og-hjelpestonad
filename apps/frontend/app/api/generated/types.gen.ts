@@ -55,84 +55,6 @@ export type BeløpsperioderResponse = {
     periodetype: 'ORDINÆR' | 'INGEN_STØNAD';
 };
 
-export type BulkTilgangsRequest = {
-    personidenter: Array<string>;
-};
-
-export type ForenkletBulkTilgangsResponse = {
-    navIdent: string;
-    resultater: Array<ForenkletTilgangsResultat>;
-};
-
-export type ForenkletTilgangsResultat = {
-    personident: string;
-    harTilgang: boolean;
-    avvisningskode?: 'AVVIST_STRENGT_FORTROLIG_ADRESSE' | 'AVVIST_STRENGT_FORTROLIG_UTLAND' | 'AVVIST_AVDØD' | 'AVVIST_PERSON_UTLAND' | 'AVVIST_SKJERMING' | 'AVVIST_FORTROLIG_ADRESSE' | 'AVVIST_UKJENT_BOSTED' | 'AVVIST_GEOGRAFISK' | 'AVVIST_HABILITET' | null;
-    begrunnelse?: string | null;
-};
-
-export type BulkTilgangsResponse = {
-    ansattId: string;
-    resultater: Array<TilgangsResultat>;
-};
-
-export type TilgangsResultat = {
-    brukerId: string;
-    status: number;
-    detaljer?: unknown;
-    harTilgang: boolean;
-};
-
-export type AnsattInfoRequest = {
-    navIdent: string;
-};
-
-export type AnsattInfoResponse = {
-    ansattId: string;
-    bruker?: BrukerInfo | null;
-    grupper: Array<GruppeInfo>;
-};
-
-export type BrukerIds = {
-    aktivBrukerId: string;
-    oppslagId: string;
-    historiskeIds: Array<string>;
-};
-
-export type BrukerInfo = {
-    brukerIds: BrukerIds;
-    geografiskTilknytning?: GeografiskTilknytning | null;
-    familie?: FamilieInfo | null;
-    harUkjentBosted: boolean;
-    harUtenlandskBosted: boolean;
-    oppslagId: string;
-    kommunenummer?: string | null;
-};
-
-export type FamilieInfo = {
-    foreldre: Array<FamilieRelasjon>;
-    barn: Array<FamilieRelasjon>;
-    partnere: Array<FamilieRelasjon>;
-};
-
-export type FamilieRelasjon = {
-    brukerId: string;
-    relasjon: string;
-};
-
-export type GeografiskTilknytning = {
-    kommune?: KommuneInfo | null;
-};
-
-export type GruppeInfo = {
-    id: string;
-    displayName: string;
-};
-
-export type KommuneInfo = {
-    verdi: string;
-};
-
 export type PersonidentRequest = {
     personident: string;
 };
@@ -530,45 +452,6 @@ export type BeregnResponses = {
 };
 
 export type BeregnResponse = BeregnResponses[keyof BeregnResponses];
-
-export type SjekkTilgangBulkForenkletData = {
-    body: BulkTilgangsRequest;
-    path?: never;
-    query?: never;
-    url: '/api/tilgangsmaskin/sjekk/bulk';
-};
-
-export type SjekkTilgangBulkForenkletResponses = {
-    200: ForenkletBulkTilgangsResponse;
-};
-
-export type SjekkTilgangBulkForenkletResponse = SjekkTilgangBulkForenkletResponses[keyof SjekkTilgangBulkForenkletResponses];
-
-export type SjekkTilgangBulkKomplettData = {
-    body: BulkTilgangsRequest;
-    path?: never;
-    query?: never;
-    url: '/api/tilgangsmaskin/sjekk/bulk/komplett';
-};
-
-export type SjekkTilgangBulkKomplettResponses = {
-    200: BulkTilgangsResponse;
-};
-
-export type SjekkTilgangBulkKomplettResponse = SjekkTilgangBulkKomplettResponses[keyof SjekkTilgangBulkKomplettResponses];
-
-export type HentAnsattInfoData = {
-    body: AnsattInfoRequest;
-    path?: never;
-    query?: never;
-    url: '/api/tilgangsmaskin/ansatt';
-};
-
-export type HentAnsattInfoResponses = {
-    200: AnsattInfoResponse;
-};
-
-export type HentAnsattInfoResponse = HentAnsattInfoResponses[keyof HentAnsattInfoResponses];
 
 export type HentPerioderForPersonData = {
     body: PersonidentRequest;
@@ -1101,7 +984,9 @@ export type HentDokumentSomPdfData = {
         journalpostId: string;
         dokumentInfoId: string;
     };
-    query?: never;
+    query: {
+        fagsakPersonId: string;
+    };
     url: '/api/saf/{journalpostId}/dokument-pdf/{dokumentInfoId}/{filnavn}';
 };
 
@@ -1117,7 +1002,9 @@ export type HentDokumentSomPdf1Data = {
         journalpostId: string;
         dokumentInfoId: string;
     };
-    query?: never;
+    query: {
+        fagsakPersonId: string;
+    };
     url: '/api/saf/{journalpostId}/dokument-pdf/{dokumentInfoId}';
 };
 

@@ -8,9 +8,14 @@ import styles from "./Dokumentliste.module.css";
 export interface Props {
   dokumenter: Dokumentinfo[];
   medScroll: boolean;
+  fagsakPersonId: string;
 }
 
-export const Dokumentliste: React.FC<Props> = ({ dokumenter, medScroll = false }) => {
+export const Dokumentliste: React.FC<Props> = ({
+  dokumenter,
+  medScroll = false,
+  fagsakPersonId,
+}) => {
   if (dokumenter.length === 0) {
     return (
       <div className={styles.tomtResultat}>
@@ -23,11 +28,14 @@ export const Dokumentliste: React.FC<Props> = ({ dokumenter, medScroll = false }
   }
 
   return (
-    <div className={`${styles.dokumentListe}${medScroll ? ` ${styles.dokumentListeMedScroll}` : ""}`}>
+    <div
+      className={`${styles.dokumentListe}${medScroll ? ` ${styles.dokumentListeMedScroll}` : ""}`}
+    >
       {dokumenter.map((dokument: Dokumentinfo) => (
         <DokumentListeElement
           key={dokument.dokumentinfoId}
           dokument={dokument}
+          fagsakPersonId={fagsakPersonId}
         />
       ))}
     </div>

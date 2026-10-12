@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.fagsak
 
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -28,17 +29,22 @@ data class SøkRequest(
 @RequestMapping(path = ["/api/sok"])
 class SøkController(
     private val søkService: SøkService,
+    private val tilgangService: TilgangService,
 ) {
     @PostMapping("/person")
     fun søkPerson(
         @RequestBody søkRequest: SøkRequest,
     ): SøkeresultatResponse {
         validerErPersonident(søkRequest.personident)
+        tilgangService.validerTilgangTilPerson(søkRequest.personident)
         return søkService.søkPerson(søkRequest.personident)
     }
 
     @GetMapping("/fagsak-person/{fagsakPersonId}")
     fun søkPersonMedFagsakPersonId(
         @PathVariable("fagsakPersonId") fagsakPersonId: UUID,
-    ): SøkeresultatResponse = søkService.søkMedFagsakPersonId(fagsakPersonId)
+    ): SøkeresultatResponse {
+        tilgangService.validerTilgangTilFagsakPerson(fagsakPersonId)
+        return søkService.søkMedFagsakPersonId(fagsakPersonId)
+    }
 }

@@ -5,6 +5,7 @@ import io.mockk.every
 import io.mockk.justRun
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.ApplicationLocalSetup
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -31,6 +32,9 @@ class VedtakControllerTest {
 
     @MockkBean
     private lateinit var gjeldendeVedtakService: GjeldendeVedtakService
+
+    @MockkBean(relaxed = true)
+    private lateinit var tilgangService: TilgangService
 
     @Test
     fun `Skal lagre vedtak fra json`() {

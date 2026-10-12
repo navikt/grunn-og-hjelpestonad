@@ -1,6 +1,9 @@
 package no.nav.grunn.og.hjelpestonad.saf
 
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakPersonService
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.UUID
@@ -27,10 +30,26 @@ class SafService(
             ?.flatMap { journalpost -> journalpost.dokumenter?.map { tilDokumentInfoResponse(it, journalpost) } ?: emptyList() } ?: emptyList()
     }
 
-    fun hentDokument(
+    fun hentDokumentForPerson(
+        fagsakPersonId: UUID,
         journalpostId: String,
         dokumentInfoId: String,
-    ): ByteArray = safClient.hentDokument(journalpostId, dokumentInfoId)
+    ): ByteArray {
+        validerAtDokumentTilhørerPerson(fagsakPersonId, journalpostId, dokumentInfoId)
+        return safClient.hentDokument(journalpostId, dokumentInfoId)
+    }
+
+    private fun validerAtDokumentTilhørerPerson(
+        fagsakPersonId: UUID,
+        journalpostId: String,
+        dokumentInfoId: String,
+    ) {
+        hentJournalposterForIdent(fagsakPersonService.hentAktivIdent(fagsakPersonId))
+            ?.find { it.journalpostId == journalpostId }
+            ?.dokumenter
+            ?.find { it.dokumentInfoId == dokumentInfoId }
+            ?: throw Feil(DOKUMENT_TILHØRER_IKKE_PERSON_FEIL, httpStatus = HttpStatus.FORBIDDEN)
+    }
 
     private fun tilDokumentInfoResponse(
         dokumentInfo: DokumentInfo,
@@ -61,3 +80,5 @@ class SafService(
             else -> 0
         }
 }
+
+const val DOKUMENT_TILHØRER_IKKE_PERSON_FEIL = "Dokumentet tilhører ikke personen"
