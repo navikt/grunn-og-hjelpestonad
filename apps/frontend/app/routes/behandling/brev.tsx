@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Box, HGrid, VStack } from "@navikt/ds-react";
 import type { Route } from "./+types/brev";
 import { useBrev } from "~/komponenter/brev/useBrev";
@@ -50,6 +50,7 @@ export default function Brev() {
   const { sender: senderTilBeslutter, sendTilBeslutter } = useBeslutter();
   const { navigerTilForrige, harForrigeSteg } = useStegNavigering(STEG_PATH);
   const bekreftModalRef = useRef<HTMLDialogElement>(null);
+  const [feilmeldingBeslutter, settFeilmeldingBeslutter] = useState<string | null>(null);
   const erLesevisning = useErLesevisning();
 
   useEffect(() => {
@@ -64,9 +65,13 @@ export default function Brev() {
   const handleSendTilBeslutter = async () => {
     const respons = await sendTilBeslutter(behandlingId);
     if (respons.data) {
+      settFeilmeldingBeslutter(null);
       oppdaterEndringshistorikk();
       revaliderBehandling();
+    } else if (respons.melding) {
+      settFeilmeldingBeslutter(respons.melding);
     }
+    return respons;
   };
 
   const handleSendTilBeslutterKlikk = () => {
@@ -125,6 +130,7 @@ export default function Brev() {
       <SendTilBeslutterModal
         modalRef={bekreftModalRef}
         laster={senderTilBeslutter}
+        feilmelding={feilmeldingBeslutter}
         onSendTilBeslutter={handleSendTilBeslutter}
       />
     </VStack>

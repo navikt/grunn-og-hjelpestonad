@@ -2,6 +2,8 @@ import { useState } from "react";
 import { apiCall, type ApiResponse } from "~/api/backend";
 import type { BeslutteVedtakRequest } from "~/api/generated/types.gen";
 
+export type BeslutterRespons = ApiResponse;
+
 export const useBeslutter = () => {
   const [sender, settSender] = useState(false);
 
