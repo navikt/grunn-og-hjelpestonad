@@ -28,7 +28,7 @@ export async function apiCall<T = unknown>(
 
     if (!response.ok) {
       if (response.status === 403) {
-        varsleManglerTilgang();
+        varsleManglerTilgang(endpoint);
       }
       return {
         status: data?.status,

@@ -13,7 +13,7 @@ import { apiCall, type ApiResponse } from "~/api/backend";
 import type { ÅrsakBehandlingResponse } from "~/hooks/useÅrsakBehandling";
 import type { Behandling } from "~/types/behandling";
 import { useLesevisningsContext } from "~/fellesContext/LesevisningsContext";
-import { Box, Button } from "@navikt/ds-react";
+import { Alert, Box, Button } from "@navikt/ds-react";
 import { AnsvarligSaksbehandler } from "~/komponenter/behandling/høyremeny/AnsvarligSaksbehandler";
 import { Totrinnskontroll } from "~/komponenter/behandling/høyremeny/Totrinnskontroll";
 import { SidebarTabs } from "~/komponenter/behandling/høyremeny/SidebarTabs";
@@ -68,6 +68,7 @@ export default function BehandlingLayout() {
   const {
     ansvarligSaksbehandler,
     laster: lasterAnsvarligSaksbehandler,
+    manglerTilgang: manglerTilgangTilBehandling,
     hentPåNytt: hentAnsvarligSaksbehandlerPåNytt,
   } = useHentAnsvarligSaksbehandler(behandlingId);
 
@@ -137,7 +138,8 @@ export default function BehandlingLayout() {
   }, [behandling, ansvarligSaksbehandler, settErLesevisning]);
 
   useEffect(() => {
-    return lyttPåManglerTilgang(() => {
+    return lyttPåManglerTilgang((sti) => {
+      if (sti.includes("/oppgave/ansvarlig-saksbehandler")) return;
       hentAnsvarligSaksbehandlerPåNytt();
     });
   }, [hentAnsvarligSaksbehandlerPåNytt]);
@@ -253,7 +255,13 @@ export default function BehandlingLayout() {
         <Box style={{ display: "flex", flex: 1, minHeight: 0 }}>
           <Box style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>
             <Side>
-              <Outlet />
+              {manglerTilgangTilBehandling ? (
+                <Alert variant="error">
+                  Du har ikke tilgang til denne behandlingen.
+                </Alert>
+              ) : (
+                <Outlet />
+              )}
             </Side>
           </Box>
           <HøyreMeny>
