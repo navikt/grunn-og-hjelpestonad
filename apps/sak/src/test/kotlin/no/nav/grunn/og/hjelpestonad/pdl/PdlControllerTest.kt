@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.ApplicationLocalSetup
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,6 +32,9 @@ open class PdlControllerTest {
 
     @MockkBean
     private lateinit var pdlService: PdlService
+
+    @MockkBean(relaxed = true)
+    private lateinit var tilgangService: TilgangService
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper

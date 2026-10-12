@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.endringshistorikk
 
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -15,11 +16,13 @@ import java.util.UUID
 @Tag(name = "EndringshistorikkController", description = "Endepunkter for endringshistorikk")
 class EndringshistorikkController(
     private val endringshistorikkService: EndringshistorikkService,
+    private val tilgangService: TilgangService,
 ) {
     @GetMapping("/{behandlingId}")
     fun hentEndringshistorikk(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<List<BehandlingEndringResponse>> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         val historikk = endringshistorikkService.hentEndringshistorikk(behandlingId)
         return ResponseEntity.ok(historikk.map { it.tilResponse() })
     }

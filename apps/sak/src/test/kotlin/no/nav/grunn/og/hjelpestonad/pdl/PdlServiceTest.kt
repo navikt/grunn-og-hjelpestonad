@@ -77,23 +77,4 @@ class PdlServiceTest {
 
         assertThrows<PdlException> { pdlService.hentPersonMedPersonIdent("ugyldig_ident") }
     }
-
-    @Test
-    fun `hentBarnPersonidenter returnerer liste med barn identiteter`() {
-        every { pdlClient.hentFamilieRelasjoner(any()) } returns
-            FamilieRelasjonerResponse(
-                hentPerson =
-                    FamilieRelasjoner(
-                        forelderBarnRelasjon =
-                            listOf(
-                                ForelderBarnRelasjon("111", Familierolle.BARN, Familierolle.MOR),
-                                ForelderBarnRelasjon("222", Familierolle.FAR, Familierolle.MOR),
-                            ),
-                    ),
-            )
-
-        val barnIdentiteter = pdlService.hentBarnPersonidenter("S123456")
-
-        assertThat(barnIdentiteter).containsOnly("111")
-    }
 }

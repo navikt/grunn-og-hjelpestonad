@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import no.nav.grunn.og.hjelpestonad.vilkår.rett.PeriodeMedRettResponse
 import no.nav.grunn.og.hjelpestonad.vilkår.rett.tilResponse
 import org.slf4j.LoggerFactory
@@ -21,13 +22,17 @@ import java.util.UUID
 @RequestMapping("/api/behandling/{behandlingId}/vilkar")
 class VilkårVurderingStegController(
     private val vilkårVurderingStegService: VilkårVurderingStegService,
+    private val tilgangService: TilgangService,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     @PostMapping("/fullfor")
     fun fullførSteg(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<List<PeriodeMedRettResponse>> = ResponseEntity.ok(vilkårVurderingStegService.fullførSteg(behandlingId).map { it.tilResponse() })
+    ): ResponseEntity<List<PeriodeMedRettResponse>> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
+        return ResponseEntity.ok(vilkårVurderingStegService.fullførSteg(behandlingId).map { it.tilResponse() })
+    }
 
     /**
      * Lokal exception handler slik at springdoc dokumenterer 400-responsen på dette

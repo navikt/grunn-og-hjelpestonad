@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.infrastruktur.exception
 
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangsmaskinException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -61,13 +62,27 @@ class ApiExceptionHandler {
     }
 
     @ExceptionHandler(ManglerTilgang::class)
-    fun handleManglerTilgang(manglerTilgang: ManglerTilgang): ResponseEntity<ManglerTilgangResponse> {
-        logger.warn("En håndtert tilgangsfeil har oppstått")
+    fun handleManglerTilgang(e: ManglerTilgang): ResponseEntity<ManglerTilgangResponse> {
+        logger.warn("En håndtert tilgangsfeil har oppstått: {}", e.javaClass.simpleName)
         return ResponseEntity
             .status(HttpStatus.FORBIDDEN)
             .body(
                 ManglerTilgangResponse(
-                    melding = manglerTilgang.melding,
+                    melding = e.melding,
+                ),
+            )
+    }
+
+    // Logger bare melding og status. TilgangsmaskinException har ikke cause, så responsbodyen kommer ikke med.
+    @ExceptionHandler(TilgangsmaskinException::class)
+    fun handleTilgangsmaskinException(e: TilgangsmaskinException): ResponseEntity<FeilResponse> {
+        logger.warn("Kunne ikke sjekke tilgang mot tilgangsmaskinen: {} (httpStatus={})", e.message, e.httpStatus)
+        return ResponseEntity
+            .status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(
+                FeilResponse(
+                    melding = "Vi kunne ikke sjekke om du har tilgang. Prøv igjen om litt.",
+                    status = HttpStatus.SERVICE_UNAVAILABLE.value(),
                 ),
             )
     }

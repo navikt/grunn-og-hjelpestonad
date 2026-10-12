@@ -3,7 +3,6 @@ package no.nav.grunn.og.hjelpestonad
 import com.github.tomakehurst.wiremock.WireMockServer
 import no.nav.familie.prosessering.domene.Task
 import no.nav.familie.prosessering.domene.TaskLogg
-import no.nav.grunn.og.hjelpestonad.barn.BehandlingBarn
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandling
 import no.nav.grunn.og.hjelpestonad.brev.Brev
@@ -38,7 +37,6 @@ open class SpringContextTest {
     }
 
     private fun resetDatabase() {
-        jdbcAggregateOperations.deleteAll(BehandlingBarn::class.java)
         jdbcAggregateOperations.deleteAll(TilkjentYtelse::class.java)
         jdbcAggregateOperations.deleteAll(Vedtak::class.java)
         jdbcAggregateOperations.deleteAll(ÅrsakBehandling::class.java)

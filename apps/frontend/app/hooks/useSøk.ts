@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { apiCall } from "~/api/backend";
+import { søkPerson, søkPersonMedFagsakPersonId } from "~/api/generated/sdk.gen";
+import type { SøkeresultatResponse } from "~/api/generated/types.gen";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 import { erGyldigFagsakPersonId, erGyldigSøkestreng } from "~/utils/utils";
 
 interface UseSøkReturn {
@@ -11,13 +13,7 @@ interface UseSøkReturn {
   tilbakestillSøk: () => void;
 }
 
-export interface Søkeresultat {
-  navn: string;
-  fødselsdato: string | null;
-  personident: string;
-  fagsakPersonId: string;
-  harFagsak: boolean;
-}
+export type Søkeresultat = SøkeresultatResponse;
 
 interface FullførtSøk {
   søkestreng: string;
@@ -36,27 +32,33 @@ export const useSøk = (): UseSøkReturn => {
   useEffect(() => {
     if (!skalSøke) return;
 
-    let avbrutt = false;
+    const controller = new AbortController();
+    const { signal } = controller;
 
-    const erFagsakPersonId = erGyldigFagsakPersonId(trimmetSøk);
-    const body = erFagsakPersonId ? { fagsakPersonId: trimmetSøk } : { personident: trimmetSøk };
+    const søkekall: Promise<{ data: Søkeresultat }> = erGyldigFagsakPersonId(trimmetSøk)
+      ? søkPersonMedFagsakPersonId({
+          path: { fagsakPersonId: trimmetSøk },
+          signal,
+          throwOnError: true,
+        })
+      : søkPerson({ body: { personident: trimmetSøk }, signal, throwOnError: true });
 
-    void apiCall<Søkeresultat>(`/sok/person`, {
-      method: "POST",
-      body: JSON.stringify(body),
-    }).then((response) => {
-      if (avbrutt) return;
+    void søkekall.then(
+      ({ data }) => {
+        if (signal.aborted) return;
+        settFullførtSøk({ søkestreng: trimmetSøk, resultat: data, feilmelding: null });
+      },
+      (feil: unknown) => {
+        if (signal.aborted) return;
+        settFullførtSøk({
+          søkestreng: trimmetSøk,
+          resultat: null,
+          feilmelding: feilmeldingFra(feil, "Kunne ikke utføre søket"),
+        });
+      }
+    );
 
-      settFullførtSøk({
-        søkestreng: trimmetSøk,
-        resultat: response.data ?? null,
-        feilmelding: response.data ? null : (response.melding ?? "Kunne ikke utføre søket"),
-      });
-    });
-
-    return () => {
-      avbrutt = true;
-    };
+    return () => controller.abort();
   }, [trimmetSøk, skalSøke]);
 
   const tilbakestillSøk = useCallback(() => {

@@ -9,6 +9,7 @@ import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevmalDto
 import no.nav.grunn.og.hjelpestonad.brev.domain.InformasjonOmBrukerDto
 import no.nav.grunn.og.hjelpestonad.brev.domain.TekstbolkDto
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -34,6 +35,9 @@ open class BrevControllerTest {
 
     @MockkBean
     private lateinit var taskService: TaskService
+
+    @MockkBean(relaxed = true)
+    private lateinit var tilgangService: TilgangService
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper

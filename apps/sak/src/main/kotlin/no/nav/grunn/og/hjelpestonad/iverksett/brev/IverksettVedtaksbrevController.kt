@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.iverksett.brev
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.familie.prosessering.internal.TaskService
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
@@ -18,6 +19,7 @@ class IverksettVedtaksbrevController(
     private val taskService: TaskService,
     private val iverksettVedtaksbrevService: IverksettVedtaksbrevService,
     private val distribuerVedtaksbrevTask: DistribuerVedtaksbrevTask,
+    private val tilgangService: TilgangService,
 ) {
     @PostMapping("/lag-iverksettVedtaksbrevController-task/{behandlingId}")
     @PreAuthorize("hasRole('BESLUTTER')")
@@ -28,6 +30,7 @@ class IverksettVedtaksbrevController(
     fun lagIverksettVedtaksbrevTask(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<String> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         val task = iverksettVedtaksbrevService.opprettIverksettVedtaksbrevTask(behandlingId)
         taskService.save(task)
 
@@ -43,6 +46,7 @@ class IverksettVedtaksbrevController(
     fun distribuerVedtaksbrev(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<String> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         val task = iverksettVedtaksbrevService.opprettDistribuerVedtaksbrevTask(behandlingId)
         taskService.save(task)
 

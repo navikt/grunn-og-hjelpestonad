@@ -55,84 +55,6 @@ export type BeløpsperioderResponse = {
     periodetype: 'ORDINÆR' | 'INGEN_STØNAD';
 };
 
-export type BulkTilgangsRequest = {
-    personidenter: Array<string>;
-};
-
-export type ForenkletBulkTilgangsResponse = {
-    navIdent: string;
-    resultater: Array<ForenkletTilgangsResultat>;
-};
-
-export type ForenkletTilgangsResultat = {
-    personident: string;
-    harTilgang: boolean;
-    avvisningskode?: 'AVVIST_STRENGT_FORTROLIG_ADRESSE' | 'AVVIST_STRENGT_FORTROLIG_UTLAND' | 'AVVIST_AVDØD' | 'AVVIST_PERSON_UTLAND' | 'AVVIST_SKJERMING' | 'AVVIST_FORTROLIG_ADRESSE' | 'AVVIST_UKJENT_BOSTED' | 'AVVIST_GEOGRAFISK' | 'AVVIST_HABILITET' | null;
-    begrunnelse?: string | null;
-};
-
-export type BulkTilgangsResponse = {
-    ansattId: string;
-    resultater: Array<TilgangsResultat>;
-};
-
-export type TilgangsResultat = {
-    brukerId: string;
-    status: number;
-    detaljer?: unknown;
-    harTilgang: boolean;
-};
-
-export type AnsattInfoRequest = {
-    navIdent: string;
-};
-
-export type AnsattInfoResponse = {
-    ansattId: string;
-    bruker?: BrukerInfo | null;
-    grupper: Array<GruppeInfo>;
-};
-
-export type BrukerIds = {
-    aktivBrukerId: string;
-    oppslagId: string;
-    historiskeIds: Array<string>;
-};
-
-export type BrukerInfo = {
-    brukerIds: BrukerIds;
-    geografiskTilknytning?: GeografiskTilknytning | null;
-    familie?: FamilieInfo | null;
-    harUkjentBosted: boolean;
-    harUtenlandskBosted: boolean;
-    oppslagId: string;
-    kommunenummer?: string | null;
-};
-
-export type FamilieInfo = {
-    foreldre: Array<FamilieRelasjon>;
-    barn: Array<FamilieRelasjon>;
-    partnere: Array<FamilieRelasjon>;
-};
-
-export type FamilieRelasjon = {
-    brukerId: string;
-    relasjon: string;
-};
-
-export type GeografiskTilknytning = {
-    kommune?: KommuneInfo | null;
-};
-
-export type GruppeInfo = {
-    id: string;
-    displayName: string;
-};
-
-export type KommuneInfo = {
-    verdi: string;
-};
-
 export type PersonidentRequest = {
     personident: string;
 };
@@ -175,8 +97,7 @@ export type TrygdetidOgSatsResponse = {
 };
 
 export type SøkRequest = {
-    personident?: string | null;
-    fagsakPersonId?: string | null;
+    personident: string;
 };
 
 export type SøkeresultatResponse = {
@@ -248,8 +169,7 @@ export type AnsvarligSaksbehandlerResponse = {
 };
 
 export type FagsakRequest = {
-    personident?: string | null;
-    fagsakPersonId?: string | null;
+    personident: string;
     stønadstype: 'BARNETILSYN' | 'SKOLEPENGER';
 };
 
@@ -421,19 +341,6 @@ export type HenleggRequest = {
     behandlingId: string;
 };
 
-export type HentBarnRequest = {
-    personIdent: string;
-    behandlingId: string;
-};
-
-export type HentBarnResponse = {
-    id: string;
-    personIdent: string;
-    navn: string;
-    fødselsdato: string;
-    hentetTidspunkt: string;
-};
-
 export type ÅrsakBehandlingRequest = {
     kravdato: string;
     årsak: 'SØKNAD' | 'NYE_OPPLYSNINGER' | 'ANNET';
@@ -545,45 +452,6 @@ export type BeregnResponses = {
 };
 
 export type BeregnResponse = BeregnResponses[keyof BeregnResponses];
-
-export type SjekkTilgangBulkForenkletData = {
-    body: BulkTilgangsRequest;
-    path?: never;
-    query?: never;
-    url: '/api/tilgangsmaskin/sjekk/bulk';
-};
-
-export type SjekkTilgangBulkForenkletResponses = {
-    200: ForenkletBulkTilgangsResponse;
-};
-
-export type SjekkTilgangBulkForenkletResponse = SjekkTilgangBulkForenkletResponses[keyof SjekkTilgangBulkForenkletResponses];
-
-export type SjekkTilgangBulkKomplettData = {
-    body: BulkTilgangsRequest;
-    path?: never;
-    query?: never;
-    url: '/api/tilgangsmaskin/sjekk/bulk/komplett';
-};
-
-export type SjekkTilgangBulkKomplettResponses = {
-    200: BulkTilgangsResponse;
-};
-
-export type SjekkTilgangBulkKomplettResponse = SjekkTilgangBulkKomplettResponses[keyof SjekkTilgangBulkKomplettResponses];
-
-export type HentAnsattInfoData = {
-    body: AnsattInfoRequest;
-    path?: never;
-    query?: never;
-    url: '/api/tilgangsmaskin/ansatt';
-};
-
-export type HentAnsattInfoResponses = {
-    200: AnsattInfoResponse;
-};
-
-export type HentAnsattInfoResponse = HentAnsattInfoResponses[keyof HentAnsattInfoResponses];
 
 export type HentPerioderForPersonData = {
     body: PersonidentRequest;
@@ -708,18 +576,18 @@ export type DistribuerVedtaksbrevResponses = {
 
 export type DistribuerVedtaksbrevResponse = DistribuerVedtaksbrevResponses[keyof DistribuerVedtaksbrevResponses];
 
-export type HentEllerOpprettFagsakForPersonData = {
+export type OpprettFagsakData = {
     body: FagsakRequest;
     path?: never;
     query?: never;
     url: '/api/fagsak';
 };
 
-export type HentEllerOpprettFagsakForPersonResponses = {
+export type OpprettFagsakResponses = {
     200: FagsakResponse;
 };
 
-export type HentEllerOpprettFagsakForPersonResponse = HentEllerOpprettFagsakForPersonResponses[keyof HentEllerOpprettFagsakForPersonResponses];
+export type OpprettFagsakResponse = OpprettFagsakResponses[keyof OpprettFagsakResponses];
 
 export type SøkDiagnosekoderData = {
     body: DiagnosekodeSøkRequest;
@@ -1004,19 +872,6 @@ export type HenleggBehandlingResponses = {
     200: unknown;
 };
 
-export type HentBarnData = {
-    body: HentBarnRequest;
-    path?: never;
-    query?: never;
-    url: '/api/barn/hent';
-};
-
-export type HentBarnResponses = {
-    200: Array<HentBarnResponse>;
-};
-
-export type HentBarnResponse2 = HentBarnResponses[keyof HentBarnResponses];
-
 export type HentÅrsakBehandlingData = {
     body?: never;
     path: {
@@ -1093,6 +948,21 @@ export type HentTestDataResponses = {
 
 export type HentTestDataResponse = HentTestDataResponses[keyof HentTestDataResponses];
 
+export type SøkPersonMedFagsakPersonIdData = {
+    body?: never;
+    path: {
+        fagsakPersonId: string;
+    };
+    query?: never;
+    url: '/api/sok/fagsak-person/{fagsakPersonId}';
+};
+
+export type SøkPersonMedFagsakPersonIdResponses = {
+    200: SøkeresultatResponse;
+};
+
+export type SøkPersonMedFagsakPersonIdResponse = SøkPersonMedFagsakPersonIdResponses[keyof SøkPersonMedFagsakPersonIdResponses];
+
 export type HentSimuleringsresultatData = {
     body?: never;
     path: {
@@ -1114,7 +984,9 @@ export type HentDokumentSomPdfData = {
         journalpostId: string;
         dokumentInfoId: string;
     };
-    query?: never;
+    query: {
+        fagsakPersonId: string;
+    };
     url: '/api/saf/{journalpostId}/dokument-pdf/{dokumentInfoId}/{filnavn}';
 };
 
@@ -1130,7 +1002,9 @@ export type HentDokumentSomPdf1Data = {
         journalpostId: string;
         dokumentInfoId: string;
     };
-    query?: never;
+    query: {
+        fagsakPersonId: string;
+    };
     url: '/api/saf/{journalpostId}/dokument-pdf/{dokumentInfoId}';
 };
 
@@ -1139,6 +1013,22 @@ export type HentDokumentSomPdf1Responses = {
 };
 
 export type HentDokumentSomPdf1Response = HentDokumentSomPdf1Responses[keyof HentDokumentSomPdf1Responses];
+
+export type HentFagsakData = {
+    body?: never;
+    path: {
+        fagsakPersonId: string;
+        stonadstype: 'BARNETILSYN' | 'SKOLEPENGER';
+    };
+    query?: never;
+    url: '/api/fagsak/fagsak-person/{fagsakPersonId}/{stonadstype}';
+};
+
+export type HentFagsakResponses = {
+    200: FagsakResponse;
+};
+
+export type HentFagsakResponse = HentFagsakResponses[keyof HentFagsakResponses];
 
 export type HentEndringshistorikkData = {
     body?: never;

@@ -1,9 +1,10 @@
 package no.nav.grunn.og.hjelpestonad.fagsak
 
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.FagsakPerson
-import no.nav.grunn.og.hjelpestonad.pdl.Navn
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.pdl.PdlService
 import no.nav.grunn.og.hjelpestonad.pdl.PersonResponse
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -26,11 +27,9 @@ class SøkService(
     }
 
     fun søkMedFagsakPersonId(fagsakPersonId: UUID): SøkeresultatResponse {
-        val fagsakPerson = fagsakPersonService.finnPersonMedId(fagsakPersonId)
-
-        if (fagsakPerson == null) {
-            return tilSøkeresultat("Ukjent", null, null)
-        }
+        val fagsakPerson =
+            fagsakPersonService.finnPersonMedId(fagsakPersonId)
+                ?: throw Feil(melding = "Fant ikke person med fagsakPersonId=$fagsakPersonId", httpStatus = HttpStatus.NOT_FOUND)
         val personident = fagsakPersonService.hentAktivIdent(fagsakPersonId)
         val person = pdlService.hentPersonMedFagsakPersonId(fagsakPersonId)
 

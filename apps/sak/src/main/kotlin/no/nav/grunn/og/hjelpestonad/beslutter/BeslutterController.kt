@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.beslutter
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.TotrinnskontrollStatusResponse
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,11 +21,13 @@ import java.util.UUID
 class BeslutterController(
     private val beslutterService: BeslutterService,
     private val totrinnskontrollService: TotrinnskontrollService,
+    private val tilgangService: TilgangService,
 ) {
     @PostMapping("/send-til-beslutter/{behandlingId}")
     fun sendTilBeslutter(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<Map<String, String>> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         beslutterService.sendTilBeslutter(behandlingId)
         return ResponseEntity.ok(mapOf("status" to "OK"))
     }
@@ -33,6 +36,7 @@ class BeslutterController(
     fun angreSendTilBeslutter(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<Map<String, String>> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         beslutterService.angreSendTilBeslutter(behandlingId)
         return ResponseEntity.ok(mapOf("status" to "OK"))
     }
@@ -42,6 +46,7 @@ class BeslutterController(
         @PathVariable behandlingId: UUID,
         @RequestBody beslutteVedtakRequest: BeslutteVedtakRequest,
     ): ResponseEntity<Map<String, String>> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         beslutterService.besluttVedtak(
             behandlingId = behandlingId,
             beslutteVedtakRequest = beslutteVedtakRequest,
@@ -53,6 +58,7 @@ class BeslutterController(
     fun hentTotrinnskontrollStatus(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<TotrinnskontrollStatusResponse> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         val status = totrinnskontrollService.hentTotrinnskontrollStatus(behandlingId)
         return ResponseEntity.ok(status)
     }

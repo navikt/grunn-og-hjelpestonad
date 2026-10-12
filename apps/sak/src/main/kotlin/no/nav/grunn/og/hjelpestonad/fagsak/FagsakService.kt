@@ -7,6 +7,7 @@ import no.nav.grunn.og.hjelpestonad.fagsak.dto.FagsakResponse
 import no.nav.grunn.og.hjelpestonad.fagsak.dto.tilResponse
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -18,42 +19,37 @@ open class FagsakService(
 ) {
     @Transactional
     fun hentEllerOpprettFagsak(
-        request: FagsakRequest,
+        personident: String,
+        stønadstype: StønadType,
     ): FagsakResponse {
-        val (fagsakPerson, personident) = hentFagsakPersonMedIdent(request)
-        val fagsak = hentEllerOpprett(fagsakPerson = fagsakPerson, stønadstype = request.stønadstype)
+        val fagsakPerson =
+            fagsakPersonService.hentEllerOpprettPerson(
+                personidenter = setOf(personident),
+                gjeldendePersonident = personident,
+            )
+        val fagsak = hentEllerOpprett(fagsakPerson = fagsakPerson, stønadstype = stønadstype)
 
         return fagsak.tilResponse(personident)
+    }
+
+    fun hentFagsak(
+        fagsakPersonId: UUID,
+        stønadstype: StønadType,
+    ): FagsakResponse {
+        val fagsak =
+            fagsakRepository.findByFagsakPersonIdAndStønadstype(fagsakPersonId, stønadstype)
+                ?: throw Feil(
+                    melding = "Fant ikke fagsak med stønadstype $stønadstype for fagsakPersonId=$fagsakPersonId",
+                    httpStatus = HttpStatus.NOT_FOUND,
+                )
+
+        return fagsak.tilResponse(fagsakPersonService.hentAktivIdent(fagsakPersonId))
     }
 
     fun hentAktivIdent(fagsakId: UUID): String {
         val fagsak = fagsakRepository.findByIdOrNull(fagsakId) ?: error("Fant ikke fagsak med id=$fagsakId")
         return fagsakPersonService.hentAktivIdent(fagsak.fagsakPersonId)
     }
-
-    private fun hentFagsakPersonMedIdent(request: FagsakRequest): Pair<FagsakPerson, String> =
-        when {
-            request.personident != null -> {
-                val fagsakPerson =
-                    fagsakPersonService.hentEllerOpprettPerson(
-                        personidenter = setOf(request.personident),
-                        gjeldendePersonident = request.personident,
-                    )
-                Pair(fagsakPerson, request.personident)
-            }
-
-            request.fagsakPersonId != null -> {
-                val fagsakPerson =
-                    fagsakPersonService.finnPersonMedId(request.fagsakPersonId)
-                        ?: throw Feil("Fant ingen fagsakPerson med id ${request.fagsakPersonId}")
-                val personident = fagsakPersonService.hentAktivIdent(request.fagsakPersonId)
-                Pair(fagsakPerson, personident)
-            }
-
-            else -> {
-                throw Feil("Må oppgi enten personident eller fagsakPersonId")
-            }
-        }
 
     private fun hentEllerOpprett(
         fagsakPerson: FagsakPerson,

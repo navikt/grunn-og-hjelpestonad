@@ -1,7 +1,9 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router";
+import { opprettFagsak as opprettFagsakApi } from "~/api/generated/sdk.gen";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 import type { Søkeresultat } from "./useSøk";
-import { hentEllerOpprettFagsak } from "./useFagsak";
+import { STØNADSTYPE } from "./useFagsak";
 
 interface OpprettFagsak {
   opprettFagsak: (søkeresultat: Søkeresultat) => Promise<void>;
@@ -19,16 +21,16 @@ export const useOpprettFagsak = (): OpprettFagsak => {
       settOppretter(true);
       settOpprettFeilmelding(null);
 
-      const response = await hentEllerOpprettFagsak(søkeresultat.personident);
-      const fagsak = response.data;
-
-      if (fagsak?.fagsakPersonId) {
+      try {
+        const { data: fagsak } = await opprettFagsakApi({
+          body: { personident: søkeresultat.personident, stønadstype: STØNADSTYPE },
+          throwOnError: true,
+        });
         navigate(`/person/${fagsak.fagsakPersonId}/behandlingsoversikt`);
-        return;
+      } catch (feil) {
+        settOpprettFeilmelding(feilmeldingFra(feil, "Kunne ikke opprette fagsak."));
+        settOppretter(false);
       }
-
-      settOpprettFeilmelding(response.melding || "Kunne ikke opprette fagsak.");
-      settOppretter(false);
     },
     [navigate]
   );

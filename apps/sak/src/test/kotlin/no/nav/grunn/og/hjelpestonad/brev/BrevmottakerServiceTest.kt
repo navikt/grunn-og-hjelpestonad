@@ -7,7 +7,7 @@ import no.nav.grunn.og.hjelpestonad.brev.domain.Brevmottaker
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevmottakerRolle
 import no.nav.grunn.og.hjelpestonad.brev.domain.MottakerType
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
-import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import java.util.UUID
@@ -53,10 +53,10 @@ class BrevmottakerServiceTest {
             )
 
         every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
-            ManglerTilgang("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
+            IkkeAnsvarligSaksbehandlerFeil("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
 
         assertThatThrownBy { brevmottakerService.oppdaterBrevmottakere(behandlingId, brevmottakere) }
-            .isInstanceOf(ManglerTilgang::class.java)
+            .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }
 }

@@ -8,6 +8,17 @@ class Feil(
     throwable: Throwable? = null,
 ) : RuntimeException(melding, throwable)
 
-class ManglerTilgang(
+/**
+ * Felles type for avslag som gir 403. Meldingen vises til saksbehandleren.
+ */
+abstract class ManglerTilgang(
     val melding: String,
 ) : RuntimeException(melding)
+
+class ManglerTilgangIPdlException(
+    melding: String,
+) : ManglerTilgang(melding)
+
+class IkkeAnsvarligSaksbehandlerFeil(
+    melding: String,
+) : ManglerTilgang(melding)

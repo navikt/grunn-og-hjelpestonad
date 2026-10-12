@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl
 
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -14,14 +15,21 @@ import java.util.UUID
 @RequestMapping("/api/behandling/{behandlingId}/faktagrunnlag/pdl")
 class PdlFaktagrunnlagController(
     private val pdlFaktagrunnlagService: PdlFaktagrunnlagService,
+    private val tilgangService: TilgangService,
 ) {
     @GetMapping("/medlemskap")
     fun hentMedlemskapFaktagrunnlag(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<MedlemskapFaktagrunnlagResponse> = ResponseEntity.ok(pdlFaktagrunnlagService.hent(behandlingId).tilMedlemskapFaktagrunnlagResponse())
+    ): ResponseEntity<MedlemskapFaktagrunnlagResponse> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
+        return ResponseEntity.ok(pdlFaktagrunnlagService.hent(behandlingId).tilMedlemskapFaktagrunnlagResponse())
+    }
 
     @PostMapping
     fun innhentFaktagrunnlagFraPdl(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<MedlemskapFaktagrunnlagResponse> = ResponseEntity.ok(pdlFaktagrunnlagService.innhentFaktagrunnlagFraPdl(behandlingId).tilMedlemskapFaktagrunnlagResponse())
+    ): ResponseEntity<MedlemskapFaktagrunnlagResponse> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
+        return ResponseEntity.ok(pdlFaktagrunnlagService.innhentFaktagrunnlagFraPdl(behandlingId).tilMedlemskapFaktagrunnlagResponse())
+    }
 }

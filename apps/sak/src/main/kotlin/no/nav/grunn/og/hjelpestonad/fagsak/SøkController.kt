@@ -1,8 +1,9 @@
 package no.nav.grunn.og.hjelpestonad.fagsak
 
-import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
-import org.springframework.http.HttpStatus
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -18,63 +19,32 @@ data class SøkeresultatResponse(
     val harFagsak: Boolean,
 )
 
+// Personident i body, ikke i URL-en, så fødselsnummeret ikke havner i URL-logger.
 data class SøkRequest(
-    val personident: String?,
-    val fagsakPersonId: UUID?,
+    val personident: String,
 )
 
-const val LENGDE_PERSONIDENT = 11
-
 @RestController
-@PreAuthorize("hasRole('SAKSBEHANDLER')")
+@PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('BESLUTTER') or hasRole('LESETILGANG')")
 @RequestMapping(path = ["/api/sok"])
 class SøkController(
     private val søkService: SøkService,
+    private val tilgangService: TilgangService,
 ) {
     @PostMapping("/person")
     fun søkPerson(
         @RequestBody søkRequest: SøkRequest,
     ): SøkeresultatResponse {
-        val personident = søkRequest.personident
-        when {
-            personident != null -> {
-                validerErPersonident(personident)
-                return søkService.søkPerson(personident)
-            }
-
-            søkRequest.fagsakPersonId != null -> {
-                return søkService.søkMedFagsakPersonId(søkRequest.fagsakPersonId)
-            }
-
-            else -> {
-                throw Feil(
-                    melding = "Må oppgi enten personident eller fagsakPersonId",
-                    httpStatus = HttpStatus.BAD_REQUEST,
-                )
-            }
-        }
+        validerErPersonident(søkRequest.personident)
+        tilgangService.validerTilgangTilPerson(søkRequest.personident)
+        return søkService.søkPerson(søkRequest.personident)
     }
 
-    internal fun validerErPersonident(personident: String) {
-        if (personident.isBlank()) {
-            throw Feil(
-                melding = "Personident kan ikke være tom",
-                httpStatus = HttpStatus.BAD_REQUEST,
-            )
-        }
-
-        if (personident.length != LENGDE_PERSONIDENT) {
-            throw Feil(
-                melding = "Personident må være $LENGDE_PERSONIDENT siffer",
-                httpStatus = HttpStatus.BAD_REQUEST,
-            )
-        }
-
-        if (!personident.all { it.isDigit() }) {
-            throw Feil(
-                melding = "Personident kan kun inneholde tall",
-                httpStatus = HttpStatus.BAD_REQUEST,
-            )
-        }
+    @GetMapping("/fagsak-person/{fagsakPersonId}")
+    fun søkPersonMedFagsakPersonId(
+        @PathVariable("fagsakPersonId") fagsakPersonId: UUID,
+    ): SøkeresultatResponse {
+        tilgangService.validerTilgangTilFagsakPerson(fagsakPersonId)
+        return søkService.søkMedFagsakPersonId(fagsakPersonId)
     }
 }

@@ -2,7 +2,7 @@ package no.nav.grunn.og.hjelpestonad.oppgave
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
-import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.ManglerTilgang
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.dto.AnsvarligSaksbehandlerResponse
 import no.nav.grunn.og.hjelpestonad.oppgave.dto.SaksbehandlerRolle
 import no.nav.grunn.og.hjelpestonad.saksbehandler.EntraProxyClient
@@ -51,7 +51,7 @@ class AnsvarligSaksbehandlerService(
         val ansvarligIdent = hentAnsvarligSaksbehandlerIdent(behandlingId)
 
         if (ansvarligIdent.isNullOrBlank() || ansvarligIdent != innloggetSaksbehandler) {
-            throw ManglerTilgang("Innlogget saksbehandler $innloggetSaksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
+            throw IkkeAnsvarligSaksbehandlerFeil("Innlogget saksbehandler $innloggetSaksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
         }
     }
 

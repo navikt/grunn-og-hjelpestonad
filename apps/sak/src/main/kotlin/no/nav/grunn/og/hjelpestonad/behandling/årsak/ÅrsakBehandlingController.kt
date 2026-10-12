@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.behandling.årsak
 
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -24,11 +25,13 @@ data class ÅrsakBehandlingRequest(
 @RequestMapping("/api/arsak")
 class ÅrsakBehandlingController(
     private val årsakBehandlingService: ÅrsakBehandlingService,
+    private val tilgangService: TilgangService,
 ) {
     @GetMapping("/{behandlingId}")
     fun hentÅrsakBehandling(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<ÅrsakBehandlingResponse> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         val årsak = årsakBehandlingService.hentÅrsakBehandling(behandlingId)
 
         return if (årsak == null) {
@@ -43,6 +46,7 @@ class ÅrsakBehandlingController(
         @PathVariable behandlingId: UUID,
         @RequestBody årsakBehandlingRequest: ÅrsakBehandlingRequest,
     ): ResponseEntity<ÅrsakBehandlingResponse> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         val årsak = årsakBehandlingService.lagreÅrsakForBehandling(behandlingId, årsakBehandlingRequest)
         return ResponseEntity.ok(årsak.tilResponse())
     }

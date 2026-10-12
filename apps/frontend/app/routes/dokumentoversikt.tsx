@@ -26,7 +26,7 @@ export default function Dokumentoversikt() {
   }
   return (
     <VStack>
-      <Dokumentliste dokumenter={dokumenter} medScroll />
+      <Dokumentliste dokumenter={dokumenter} medScroll fagsakPersonId={fagsakPersonId} />
     </VStack>
   );
 }

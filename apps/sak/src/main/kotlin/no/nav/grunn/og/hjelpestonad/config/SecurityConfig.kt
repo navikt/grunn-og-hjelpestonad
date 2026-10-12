@@ -32,7 +32,6 @@ class SecurityConfig(
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
                         "/swagger-ui.html",
-                        "/api/test/infotrygd/uautentisert",
                     ).permitAll()
                     .anyRequest()
                     .authenticated()

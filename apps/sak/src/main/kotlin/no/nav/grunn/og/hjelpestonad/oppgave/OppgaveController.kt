@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.oppgave
 
 import no.nav.grunn.og.hjelpestonad.oppgave.dto.AnsvarligSaksbehandlerResponse
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
@@ -24,11 +25,13 @@ data class FordelOppgaveRequest(
 class OppgaveController(
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val oppgaveService: OppgaveService,
+    private val tilgangService: TilgangService,
 ) {
     @PostMapping("/ansvarlig-saksbehandler")
     fun hentAnsvarligSaksbehandler(
         @RequestBody request: HentAnsvarligSaksbehandlerRequest,
     ): ResponseEntity<AnsvarligSaksbehandlerResponse> {
+        tilgangService.validerTilgangTilBehandling(request.behandlingId)
         val ansvarligSaksbehandler = ansvarligSaksbehandlerService.hentAnsvarligSaksbehandler(request.behandlingId)
         return ResponseEntity.ok(ansvarligSaksbehandler)
     }
@@ -37,6 +40,7 @@ class OppgaveController(
     fun fordelOppgave(
         @RequestBody request: FordelOppgaveRequest,
     ): ResponseEntity<Long> {
+        tilgangService.validerTilgangTilBehandling(request.behandlingId)
         val oppgaveId =
             oppgaveService.fordelOppgave(
                 behandlingId = request.behandlingId,

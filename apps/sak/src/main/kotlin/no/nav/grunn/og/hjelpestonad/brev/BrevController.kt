@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevResponse
+import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,6 +22,7 @@ import java.util.UUID
 class BrevController(
     private val brevService: BrevService,
     private val taskService: TaskService,
+    private val tilgangService: TilgangService,
 ) {
     @PostMapping("/lag-task/{behandlingId}") // TODO renames til beslutte-behandling elr noe sånt
     @PreAuthorize("hasRole('BESLUTTER')")
@@ -31,6 +33,7 @@ class BrevController(
     fun lagBrevTask(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<String> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         brevService.oppdaterBeslutterForBrev(behandlingId)
         val task = brevService.lagBrevPdfTask(behandlingId)
         taskService.save(task)
@@ -48,6 +51,7 @@ class BrevController(
         @PathVariable behandlingId: UUID,
         @RequestBody brevRequest: BrevRequest,
     ): ResponseEntity<Void> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         brevService.mellomlagreBrev(behandlingId, brevRequest)
         return ResponseEntity.ok().build()
     }
@@ -61,6 +65,7 @@ class BrevController(
     fun hentMellomlagretBrev(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<BrevResponse> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
         val brev = brevService.hentBrev(behandlingId) ?: return ResponseEntity.noContent().build()
         return ResponseEntity.ok(
             BrevResponse(
