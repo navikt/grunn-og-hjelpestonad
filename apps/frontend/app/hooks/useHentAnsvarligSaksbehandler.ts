@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { apiCall } from "~/api/backend";
 import type { AnsvarligSaksbehandlerResponse } from "~/types/saksbehandler";
 
+export const ANSVARLIG_SAKSBEHANDLER_STI = "/oppgave/ansvarlig-saksbehandler";
+
 export function useHentAnsvarligSaksbehandler(behandlingId: string | undefined) {
   const [ansvarligSaksbehandler, settAnsvarligSaksbehandler] =
     useState<AnsvarligSaksbehandlerResponse | null>(null);
@@ -17,7 +19,7 @@ export function useHentAnsvarligSaksbehandler(behandlingId: string | undefined) 
 
     let avbrutt = false;
 
-    void apiCall<AnsvarligSaksbehandlerResponse>(`/oppgave/ansvarlig-saksbehandler`, {
+    void apiCall<AnsvarligSaksbehandlerResponse>(ANSVARLIG_SAKSBEHANDLER_STI, {
       method: "POST",
       body: JSON.stringify({ behandlingId }),
     }).then((respons) => {
