@@ -20,7 +20,7 @@ export function registrerApiInterceptorer(): void {
 
   client.interceptors.response.use((response) => {
     if (response.status === 403) {
-      varsleManglerTilgang();
+      varsleManglerTilgang(response.url);
     }
     return response;
   });

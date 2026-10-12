@@ -7,6 +7,7 @@ export function useHentAnsvarligSaksbehandler(behandlingId: string | undefined) 
     useState<AnsvarligSaksbehandlerResponse | null>(null);
   const [hentIndeks, settHentIndeks] = useState(0);
   const [fullførtHenting, settFullførtHenting] = useState<string | null>(null);
+  const [manglerTilgang, settManglerTilgang] = useState(false);
 
   const gjeldendeHenting = `${behandlingId}#${hentIndeks}`;
   const laster = Boolean(behandlingId) && fullførtHenting !== gjeldendeHenting;
@@ -23,6 +24,7 @@ export function useHentAnsvarligSaksbehandler(behandlingId: string | undefined) 
       if (avbrutt) return;
 
       settAnsvarligSaksbehandler(respons.data ?? null);
+      settManglerTilgang(respons.httpStatus === 403);
       settFullførtHenting(gjeldendeHenting);
     });
 
@@ -36,6 +38,7 @@ export function useHentAnsvarligSaksbehandler(behandlingId: string | undefined) 
   return {
     ansvarligSaksbehandler,
     laster,
+    manglerTilgang,
     hentPåNytt,
   };
 }
