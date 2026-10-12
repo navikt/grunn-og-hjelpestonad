@@ -75,6 +75,7 @@ export default function Brev() {
   };
 
   const handleSendTilBeslutterKlikk = () => {
+    settFeilmeldingBeslutter(null);
     bekreftModalRef.current?.showModal();
   };
 
@@ -132,6 +133,7 @@ export default function Brev() {
         laster={senderTilBeslutter}
         feilmelding={feilmeldingBeslutter}
         onSendTilBeslutter={handleSendTilBeslutter}
+        onAvbryt={() => settFeilmeldingBeslutter(null)}
       />
     </VStack>
   );

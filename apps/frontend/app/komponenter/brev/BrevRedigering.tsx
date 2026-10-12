@@ -7,6 +7,7 @@ import { Fritekstbolk } from "~/komponenter/brev/Fritekstbolk";
 import BrevmottakerModalInnhold from "~/komponenter/brev/BrevMottakerModal";
 import type { Brevmottaker } from "~/hooks/useBrevmottaker";
 import { useErLesevisning } from "~/hooks/useErLesevisning";
+import type { ApiResponse } from "~/api/backend";
 
 interface Props {
   brevMal: Brevmal | null;
@@ -23,7 +24,7 @@ interface Props {
   sendMottakereTilSak: (
     behandlingId: string,
     mottakere: Brevmottaker[]
-  ) => Promise<{ melding?: string; httpStatus?: number }>;
+  ) => Promise<ApiResponse>;
   className?: string;
 }
 

@@ -24,12 +24,13 @@ export async function apiCall<T = unknown>(
       return { data: undefined };
     }
 
-    const data = await response.json();
+    if (response.status === 403) {
+      varsleManglerTilgang(endpoint);
+    }
+
+    const data = await response.json().catch(() => undefined);
 
     if (!response.ok) {
-      if (response.status === 403) {
-        varsleManglerTilgang(endpoint);
-      }
       return {
         status: data?.status,
         httpStatus: response.status,

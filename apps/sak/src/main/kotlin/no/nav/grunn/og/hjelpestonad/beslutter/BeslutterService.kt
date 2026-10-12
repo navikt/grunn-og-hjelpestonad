@@ -79,7 +79,7 @@ class BeslutterService(
 
         if (aktivOppgavetype != OppgavetypeEYO.GOD_VED) {
             throw Feil(
-                "Kan kun angre send til beslutter hvis oppgaven er av type GOD_VED. Oppgave er ${aktivOppgavetype.name}",
+                "Kan ikke angre send til beslutter fordi behandlingen ikke venter på beslutning.",
                 HttpStatus.BAD_REQUEST,
             )
         }
@@ -92,8 +92,7 @@ class BeslutterService(
         )
 
         val behandling =
-            behandlingService.hentBehandling(behandlingId)
-                ?: throw IllegalStateException("Fant ikke behandling med id $behandlingId")
+            behandlingService.hentBehandlingEllerKast(behandlingId)
 
         lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(
             behandling = behandling,
@@ -118,8 +117,7 @@ class BeslutterService(
     ) {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         val behandling =
-            behandlingService.hentBehandling(behandlingId)
-                ?: throw IllegalStateException("Fant ikke behandling med id $behandlingId")
+            behandlingService.hentBehandlingEllerKast(behandlingId)
         if (behandling.status != BehandlingStatus.FATTER_VEDTAK) {
             throw Feil(
                 "Behandlingen kan bare besluttes når den venter på beslutning. Status: ${behandling.status}",

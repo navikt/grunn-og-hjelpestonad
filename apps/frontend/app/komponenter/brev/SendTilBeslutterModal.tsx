@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, BodyLong, Button, HStack, Modal } from "@navikt/ds-react";
+import { BodyLong, Button, HStack, LocalAlert, Modal } from "@navikt/ds-react";
 import type { BeslutterRespons } from "~/hooks/useBeslutter";
 
 interface Props {
@@ -7,13 +7,14 @@ interface Props {
   laster: boolean;
   feilmelding: string | null;
   onSendTilBeslutter: () => Promise<BeslutterRespons>;
+  onAvbryt: () => void;
 }
 
-export function SendTilBeslutterModal({ modalRef, laster, feilmelding, onSendTilBeslutter }: Props) {
+export function SendTilBeslutterModal({ modalRef, laster, feilmelding, onSendTilBeslutter, onAvbryt }: Props) {
   const lukkModal = () => modalRef.current?.close();
 
   return (
-    <Modal ref={modalRef} header={{ heading: "Totrinnskontroll" }}>
+    <Modal ref={modalRef} header={{ heading: "Totrinnskontroll" }} onClose={onAvbryt}>
       <Modal.Body>
         <BodyLong>
           Du er i ferd med å sende behandlingen til totrinnskontroll. Vil du fortsette?
@@ -21,7 +22,7 @@ export function SendTilBeslutterModal({ modalRef, laster, feilmelding, onSendTil
       </Modal.Body>
       <Modal.Footer>
         <HStack width={"100%"} gap="space-16" justify={"space-between"}>
-          <Button variant="secondary" onClick={lukkModal} disabled={laster}>
+          <Button variant="secondary" onClick={() => { onAvbryt(); lukkModal(); }} disabled={laster}>
             Avbryt
           </Button>
           <Button
@@ -35,9 +36,9 @@ export function SendTilBeslutterModal({ modalRef, laster, feilmelding, onSendTil
           </Button>
         </HStack>
         {feilmelding && (
-          <Alert variant="error" size="small">
-            {feilmelding}
-          </Alert>
+          <LocalAlert status="error" size="small">
+            <LocalAlert.Content>{feilmelding}</LocalAlert.Content>
+          </LocalAlert>
         )}
       </Modal.Footer>
     </Modal>

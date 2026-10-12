@@ -1,4 +1,4 @@
-import { Alert, Button, HGrid, HStack, Modal, VStack } from "@navikt/ds-react";
+import { Button, HGrid, HStack, LocalAlert, Modal, VStack } from "@navikt/ds-react";
 import React, { useState } from "react";
 import { BrevmottakereListe } from "~/komponenter/brev/BrevmottakereListe";
 import { type Brevmottaker } from "~/hooks/useBrevmottaker";
@@ -6,6 +6,7 @@ import { ManueltSøk } from "~/komponenter/brev/ManueltSøk";
 import { SkalBrukerMottaBrev } from "~/komponenter/brev/SkalBrukerMottaBrev";
 import { Skillelinje } from "~/komponenter/layout/Skillelinje";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
+import type { ApiResponse } from "~/api/backend";
 
 interface Props {
   mottakere: Brevmottaker[];
@@ -14,7 +15,7 @@ interface Props {
   sendMottakereTilSak: (
     behandlingId: string,
     mottakere: Brevmottaker[]
-  ) => Promise<{ melding?: string; httpStatus?: number }>;
+  ) => Promise<ApiResponse>;
 }
 
 export default function BrevmottakerModalInnhold({
@@ -58,6 +59,7 @@ export default function BrevmottakerModalInnhold({
 
   const håndterAvbryt = () => {
     settMidlertidigMottakerliste([...mottakere]);
+    settFeilmelding(undefined);
     lukkModal();
   };
 
@@ -67,9 +69,9 @@ export default function BrevmottakerModalInnhold({
     <>
       <Modal.Body>
         {feilmelding && (
-          <Alert variant="error" size="small">
-            {feilmelding}
-          </Alert>
+          <LocalAlert status="error" size="small">
+            <LocalAlert.Content>{feilmelding}</LocalAlert.Content>
+          </LocalAlert>
         )}
         <HGrid columns={2} gap="space-24">
           <VStack gap="space-6">

@@ -83,7 +83,6 @@ export const OrganisasjonsSøk: React.FC<Props> = ({ leggTilMottaker }) => {
           >
             <Stack gap="space-0 space-24" direction={"row"} wrap={false}>
               <Radio value={BrevmottakerRolle.FULLMEKTIG}>Fullmektig</Radio>
-              <Radio value={BrevmottakerRolle.VERGE}>Verge</Radio>
             </Stack>
           </RadioGroup>
           <HStack

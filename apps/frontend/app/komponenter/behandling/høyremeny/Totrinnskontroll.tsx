@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import {
-  Alert,
   BodyLong,
   BodyShort,
   Box,
   Button,
   Heading,
   InlineMessage,
+  LocalAlert,
   Radio,
   RadioGroup,
   Textarea,
@@ -141,9 +141,9 @@ const SendtTilBeslutter: React.FC<{
           <InfoRad label="Sendt inn" verdi={opprettetTid || ""} />
         </VStack>
         {feilmelding && (
-          <Alert variant="error" size="small">
-            {feilmelding}
-          </Alert>
+          <LocalAlert status="error" size="small">
+            <LocalAlert.Content>{feilmelding}</LocalAlert.Content>
+          </LocalAlert>
         )}
         <Button
           size="small"
@@ -257,9 +257,9 @@ const FatterVedtak: React.FC<{
         )}
 
         {feilmelding && (
-          <Alert variant="error" size="small">
-            {feilmelding}
-          </Alert>
+          <LocalAlert status="error" size="small">
+            <LocalAlert.Content>{feilmelding}</LocalAlert.Content>
+          </LocalAlert>
         )}
       </VStack>
     </Box>

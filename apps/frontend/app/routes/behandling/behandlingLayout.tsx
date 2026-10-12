@@ -13,12 +13,15 @@ import { apiCall, type ApiResponse } from "~/api/backend";
 import type { ÅrsakBehandlingResponse } from "~/hooks/useÅrsakBehandling";
 import type { Behandling } from "~/types/behandling";
 import { useLesevisningsContext } from "~/fellesContext/LesevisningsContext";
-import { Alert, Box, Button } from "@navikt/ds-react";
+import { Box, Button, LocalAlert } from "@navikt/ds-react";
 import { AnsvarligSaksbehandler } from "~/komponenter/behandling/høyremeny/AnsvarligSaksbehandler";
 import { Totrinnskontroll } from "~/komponenter/behandling/høyremeny/Totrinnskontroll";
 import { SidebarTabs } from "~/komponenter/behandling/høyremeny/SidebarTabs";
 import { TildelOppgave } from "~/komponenter/behandling/høyremeny/TildelOppgave";
-import { useHentAnsvarligSaksbehandler } from "~/hooks/useHentAnsvarligSaksbehandler";
+import {
+  ANSVARLIG_SAKSBEHANDLER_STI,
+  useHentAnsvarligSaksbehandler,
+} from "~/hooks/useHentAnsvarligSaksbehandler";
 import { useHentTotrinnskontrollStatus } from "~/hooks/useHentTotrinnskontrollStatus";
 import { LocalAlertBehandlingFerdigstilt } from "./LocalAlertBehandlingFerdigstilt";
 import { useHenleggBehandling } from "~/hooks/useHenleggBehandling";
@@ -139,7 +142,7 @@ export default function BehandlingLayout() {
 
   useEffect(() => {
     return lyttPåManglerTilgang((sti) => {
-      if (sti.includes("/oppgave/ansvarlig-saksbehandler")) return;
+      if (sti.includes(ANSVARLIG_SAKSBEHANDLER_STI)) return;
       hentAnsvarligSaksbehandlerPåNytt();
     });
   }, [hentAnsvarligSaksbehandlerPåNytt]);
@@ -256,15 +259,15 @@ export default function BehandlingLayout() {
           <Box style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>
             <Side>
               {manglerTilgangTilBehandling ? (
-                <Alert variant="error">
-                  Du har ikke tilgang til denne behandlingen.
-                </Alert>
+                <LocalAlert status="error">
+                  <LocalAlert.Content>Du har ikke tilgang til denne behandlingen.</LocalAlert.Content>
+                </LocalAlert>
               ) : (
                 <Outlet />
               )}
             </Side>
           </Box>
-          <HøyreMeny>
+          {!manglerTilgangTilBehandling && <HøyreMeny>
             <TildelOppgave />
 
             {erBehandlingFerdigstilt && <LocalAlertBehandlingFerdigstilt behandling={behandling} />}
@@ -273,7 +276,7 @@ export default function BehandlingLayout() {
 
             <AnsvarligSaksbehandler />
             <SidebarTabs />
-          </HøyreMeny>
+          </HøyreMeny>}
         </Box>
       </Box>
     </BehandlingContext.Provider>

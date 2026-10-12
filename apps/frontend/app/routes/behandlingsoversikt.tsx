@@ -138,7 +138,7 @@ export default function Behandlingsoversikt() {
 
         {opprettFeilmelding && (
           <LocalAlert status="warning" size="small">
-            {opprettFeilmelding}
+            <LocalAlert.Content>{opprettFeilmelding}</LocalAlert.Content>
           </LocalAlert>
         )}
       </VStack>
