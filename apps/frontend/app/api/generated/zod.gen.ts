@@ -196,8 +196,7 @@ export const zPerioderResponse = z.object({
 });
 
 export const zSøkRequest = z.object({
-    personident: z.string().nullish(),
-    fagsakPersonId: z.uuid().nullish()
+    personident: z.string()
 });
 
 export const zSøkeresultatResponse = z.object({
@@ -297,8 +296,7 @@ export const zAnsvarligSaksbehandlerResponse = z.object({
 });
 
 export const zFagsakRequest = z.object({
-    personident: z.string().nullish(),
-    fagsakPersonId: z.uuid().nullish(),
+    personident: z.string(),
     stønadstype: z.enum(['BARNETILSYN', 'SKOLEPENGER'])
 });
 
@@ -511,19 +509,6 @@ export const zHentBehandlingerRequest = z.object({
 
 export const zHenleggRequest = z.object({
     behandlingId: z.uuid()
-});
-
-export const zHentBarnRequest = z.object({
-    personIdent: z.string(),
-    behandlingId: z.uuid()
-});
-
-export const zHentBarnResponse = z.object({
-    id: z.uuid(),
-    personIdent: z.string(),
-    navn: z.string(),
-    fødselsdato: z.iso.date(),
-    hentetTidspunkt: z.iso.datetime({ local: true })
 });
 
 export const zÅrsakBehandlingRequest = z.object({
@@ -761,12 +746,12 @@ export const zDistribuerVedtaksbrevPath = z.object({
  */
 export const zDistribuerVedtaksbrevResponse = z.string();
 
-export const zHentEllerOpprettFagsakForPersonBody = zFagsakRequest;
+export const zOpprettFagsakBody = zFagsakRequest;
 
 /**
  * OK
  */
-export const zHentEllerOpprettFagsakForPersonResponse = zFagsakResponse;
+export const zOpprettFagsakResponse = zFagsakResponse;
 
 export const zSøkDiagnosekoderBody = zDiagnosekodeSøkRequest;
 
@@ -931,13 +916,6 @@ export const zHentBehandlingerResponse = z.array(zBehandlingResponse);
 
 export const zHenleggBehandlingBody = zHenleggRequest;
 
-export const zHentBarnBody = zHentBarnRequest;
-
-/**
- * OK
- */
-export const zHentBarnResponse2 = z.array(zHentBarnResponse);
-
 export const zHentÅrsakBehandlingPath = z.object({
     behandlingId: z.uuid()
 });
@@ -986,6 +964,15 @@ export const zHentTestDataQuery = z.object({
  */
 export const zHentTestDataResponse = z.array(z.string());
 
+export const zSøkPersonMedFagsakPersonIdPath = z.object({
+    fagsakPersonId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zSøkPersonMedFagsakPersonIdResponse = zSøkeresultatResponse;
+
 export const zHentSimuleringsresultatPath = z.object({
     behandlingId: z.uuid()
 });
@@ -1014,6 +1001,16 @@ export const zHentDokumentSomPdf1Path = z.object({
  * OK
  */
 export const zHentDokumentSomPdf1Response = z.string();
+
+export const zHentFagsakPath = z.object({
+    fagsakPersonId: z.uuid(),
+    stonadstype: z.enum(['BARNETILSYN', 'SKOLEPENGER'])
+});
+
+/**
+ * OK
+ */
+export const zHentFagsakResponse = zFagsakResponse;
 
 export const zHentEndringshistorikkPath = z.object({
     behandlingId: z.uuid()

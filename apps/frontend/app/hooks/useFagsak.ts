@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
-import { type ApiResponse, apiCall } from "~/api/backend";
+import type { ApiResponse } from "~/api/backend";
+import { hentFagsak as hentFagsakApi } from "~/api/generated/sdk.gen";
 import type { FagsakRequest, FagsakResponse } from "~/api/generated/types.gen";
-import { erGyldigFagsakPersonId, erGyldigPersonident } from "~/utils/utils";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
+import { erGyldigFagsakPersonId } from "~/utils/utils";
+
+export const STØNADSTYPE: FagsakRequest["stønadstype"] = "BARNETILSYN";
 
 interface FagsakState {
   fagsakPersonId?: string;
@@ -10,24 +14,21 @@ interface FagsakState {
   laster: boolean;
 }
 
-export async function hentEllerOpprettFagsak(søkestreng: string): Promise<ApiResponse<FagsakResponse>> {
-  // TODO: Refaktorer - kanskje dele opp i to funksjoner
-  const id = søkestreng.trim();
-
-  if (!erGyldigFagsakPersonId(id) && !erGyldigPersonident(id)) {
-    return {
-      melding: "Feil ved validering av fagsakPersonId/personident",
-    };
+// Bare lesing. Fagsaken opprettes eksplisitt fra søket, se useOpprettFagsak.
+async function hentFagsakForPerson(fagsakPersonId: string): Promise<ApiResponse<FagsakResponse>> {
+  if (!erGyldigFagsakPersonId(fagsakPersonId)) {
+    return { melding: "Ugyldig fagsakPersonId" };
   }
 
-  const request: FagsakRequest = erGyldigFagsakPersonId(id)
-    ? { fagsakPersonId: id, stønadstype: "BARNETILSYN" }
-    : { personident: id, stønadstype: "BARNETILSYN" };
-
-  return apiCall(`/fagsak`, {
-    method: "POST",
-    body: JSON.stringify(request),
-  });
+  try {
+    const { data } = await hentFagsakApi({
+      path: { fagsakPersonId, stonadstype: STØNADSTYPE },
+      throwOnError: true,
+    });
+    return { data };
+  } catch (feil) {
+    return { melding: feilmeldingFra(feil, "Fagsak ikke funnet") };
+  }
 }
 
 export const useFagsak = (fagsakPersonId: string | undefined) => {
@@ -43,7 +44,7 @@ export const useFagsak = (fagsakPersonId: string | undefined) => {
     let avbrutt = false;
 
     const hentFagsak = async () => {
-      const response = await hentEllerOpprettFagsak(fagsakPersonId);
+      const response = await hentFagsakForPerson(fagsakPersonId);
       if (avbrutt) return;
 
       const fagsak = response.data ?? null;

@@ -44,6 +44,7 @@ export const SøkePopover: React.FC<SøkePopoverProps> = ({
   const temaKlasse = mørktTema ? "dark" : "light";
 
   const alder = beregnAlder(søkeresultat?.fødselsdato);
+  const fagsakPersonId = søkeresultat?.harFagsak ? søkeresultat.fagsakPersonId : null;
 
   return (
     <Popover
@@ -78,10 +79,10 @@ export const SøkePopover: React.FC<SøkePopoverProps> = ({
                 </Detail>
               </div>
             </HStack>
-            {søkeresultat.harFagsak ? (
+            {fagsakPersonId ? (
               <Button
                 size="small"
-                onClick={() => onNavigate(søkeresultat.fagsakPersonId)}
+                onClick={() => onNavigate(fagsakPersonId)}
                 disabled={søker}
                 style={{ width: "100%" }}
               >

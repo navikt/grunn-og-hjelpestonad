@@ -175,8 +175,7 @@ export type TrygdetidOgSatsResponse = {
 };
 
 export type SøkRequest = {
-    personident?: string | null;
-    fagsakPersonId?: string | null;
+    personident: string;
 };
 
 export type SøkeresultatResponse = {
@@ -248,8 +247,7 @@ export type AnsvarligSaksbehandlerResponse = {
 };
 
 export type FagsakRequest = {
-    personident?: string | null;
-    fagsakPersonId?: string | null;
+    personident: string;
     stønadstype: 'BARNETILSYN' | 'SKOLEPENGER';
 };
 
@@ -419,19 +417,6 @@ export type HentBehandlingerRequest = {
 
 export type HenleggRequest = {
     behandlingId: string;
-};
-
-export type HentBarnRequest = {
-    personIdent: string;
-    behandlingId: string;
-};
-
-export type HentBarnResponse = {
-    id: string;
-    personIdent: string;
-    navn: string;
-    fødselsdato: string;
-    hentetTidspunkt: string;
 };
 
 export type ÅrsakBehandlingRequest = {
@@ -708,18 +693,18 @@ export type DistribuerVedtaksbrevResponses = {
 
 export type DistribuerVedtaksbrevResponse = DistribuerVedtaksbrevResponses[keyof DistribuerVedtaksbrevResponses];
 
-export type HentEllerOpprettFagsakForPersonData = {
+export type OpprettFagsakData = {
     body: FagsakRequest;
     path?: never;
     query?: never;
     url: '/api/fagsak';
 };
 
-export type HentEllerOpprettFagsakForPersonResponses = {
+export type OpprettFagsakResponses = {
     200: FagsakResponse;
 };
 
-export type HentEllerOpprettFagsakForPersonResponse = HentEllerOpprettFagsakForPersonResponses[keyof HentEllerOpprettFagsakForPersonResponses];
+export type OpprettFagsakResponse = OpprettFagsakResponses[keyof OpprettFagsakResponses];
 
 export type SøkDiagnosekoderData = {
     body: DiagnosekodeSøkRequest;
@@ -1004,19 +989,6 @@ export type HenleggBehandlingResponses = {
     200: unknown;
 };
 
-export type HentBarnData = {
-    body: HentBarnRequest;
-    path?: never;
-    query?: never;
-    url: '/api/barn/hent';
-};
-
-export type HentBarnResponses = {
-    200: Array<HentBarnResponse>;
-};
-
-export type HentBarnResponse2 = HentBarnResponses[keyof HentBarnResponses];
-
 export type HentÅrsakBehandlingData = {
     body?: never;
     path: {
@@ -1093,6 +1065,21 @@ export type HentTestDataResponses = {
 
 export type HentTestDataResponse = HentTestDataResponses[keyof HentTestDataResponses];
 
+export type SøkPersonMedFagsakPersonIdData = {
+    body?: never;
+    path: {
+        fagsakPersonId: string;
+    };
+    query?: never;
+    url: '/api/sok/fagsak-person/{fagsakPersonId}';
+};
+
+export type SøkPersonMedFagsakPersonIdResponses = {
+    200: SøkeresultatResponse;
+};
+
+export type SøkPersonMedFagsakPersonIdResponse = SøkPersonMedFagsakPersonIdResponses[keyof SøkPersonMedFagsakPersonIdResponses];
+
 export type HentSimuleringsresultatData = {
     body?: never;
     path: {
@@ -1139,6 +1126,22 @@ export type HentDokumentSomPdf1Responses = {
 };
 
 export type HentDokumentSomPdf1Response = HentDokumentSomPdf1Responses[keyof HentDokumentSomPdf1Responses];
+
+export type HentFagsakData = {
+    body?: never;
+    path: {
+        fagsakPersonId: string;
+        stonadstype: 'BARNETILSYN' | 'SKOLEPENGER';
+    };
+    query?: never;
+    url: '/api/fagsak/fagsak-person/{fagsakPersonId}/{stonadstype}';
+};
+
+export type HentFagsakResponses = {
+    200: FagsakResponse;
+};
+
+export type HentFagsakResponse = HentFagsakResponses[keyof HentFagsakResponses];
 
 export type HentEndringshistorikkData = {
     body?: never;
