@@ -20,6 +20,7 @@ import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
 import no.nav.grunn.og.hjelpestonad.vedtak.tilBehandlingResultat
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
@@ -74,10 +75,13 @@ class BeslutterService(
     fun angreSendTilBeslutter(behandlingId: UUID) {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
 
+        val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
         val aktivOppgavetype = oppgaveService.hentAktivOppgavetype(behandlingId)
-
-        if (aktivOppgavetype != OppgavetypeEYO.GOD_VED) {
-            Feil("Kan kun angre send til beslutter hvis oppgaven er av type GOD_VED. Oppgave er ${aktivOppgavetype.name}")
+        if (behandling.status != BehandlingStatus.FATTER_VEDTAK || aktivOppgavetype != OppgavetypeEYO.GOD_VED) {
+            throw Feil(
+                "Kan ikke angre send til beslutter fordi behandlingen ikke venter på beslutning.",
+                HttpStatus.BAD_REQUEST,
+            )
         }
 
         FerdigstillOppgaveTask.opprettTask(
@@ -86,10 +90,6 @@ class BeslutterService(
             objectMapper = objectMapper,
             taskService = taskService,
         )
-
-        val behandling =
-            behandlingService.hentBehandling(behandlingId)
-                ?: throw IllegalStateException("Fant ikke behandling med id $behandlingId")
 
         lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(
             behandling = behandling,
@@ -113,6 +113,13 @@ class BeslutterService(
         beslutteVedtakRequest: BeslutteVedtakRequest,
     ) {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
+        if (behandling.status != BehandlingStatus.FATTER_VEDTAK) {
+            throw Feil(
+                "Behandlingen kan bare besluttes når den venter på beslutning. Status: ${behandling.status}",
+                HttpStatus.BAD_REQUEST,
+            )
+        }
         totrinnskontrollService.validerAtBeslutterIkkeErSammeSomSaksbehandler(behandlingId)
 
         if (beslutteVedtakRequest.godkjent) {
