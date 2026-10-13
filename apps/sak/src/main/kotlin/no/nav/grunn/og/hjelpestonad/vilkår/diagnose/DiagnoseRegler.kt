@@ -3,6 +3,10 @@ package no.nav.grunn.og.hjelpestonad.vilkår.diagnose
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 
 object DiagnoseRegler {
+    const val YRKESSKADE_FORDELT_PÅ_FLERE_PERIODER =
+        "En diagnose med yrkesskade kan bare ha én oppfylt periode. " +
+            "Endre den eksisterende perioden i stedet for å legge til en ny eller dele den opp."
+
     fun valider(request: VilkårDiagnoseRequest) {
         if (request.kode.isBlank()) {
             throw UgyldigInput("Diagnosekode kan ikke være tom")
@@ -16,8 +20,11 @@ object DiagnoseRegler {
         }
     }
 
-    fun perioderMedSammeDiagnose(
-        lagredePerioder: List<VilkårDiagnose>,
-        diagnosekode: Diagnosekode,
-    ): List<VilkårDiagnose> = lagredePerioder.filter { it.kode == diagnosekode.kode }
+    fun validerMaksEnYrkesskadePeriode(perioder: List<VilkårDiagnose>) {
+        perioder.filter { it.erVilkårOppfylt() }.groupBy { it.tidslinjenøkkel() }.values.forEach { oppfylte ->
+            if (oppfylte.size > 1 && oppfylte.any { it.erYrkesskade }) {
+                throw UgyldigInput(YRKESSKADE_FORDELT_PÅ_FLERE_PERIODER)
+            }
+        }
+    }
 }

@@ -75,6 +75,7 @@ class VilkårPeriodeBindingTest {
         assertThatThrownBy { service.lagrePeriode(egenBehandlingId, request) }
             .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.NOT_FOUND) }
 
-        verify(exactly = 0) { repository.update(any()) }
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
     }
 }

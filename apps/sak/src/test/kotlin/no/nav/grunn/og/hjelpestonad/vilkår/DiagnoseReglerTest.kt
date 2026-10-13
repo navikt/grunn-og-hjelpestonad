@@ -2,7 +2,6 @@ package no.nav.grunn.og.hjelpestonad.vilkår
 
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.DiagnoseRegler
-import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.Diagnosekode
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseRequest
 import org.assertj.core.api.Assertions.assertThat
@@ -63,13 +62,19 @@ class DiagnoseReglerTest {
     }
 
     @Test
-    fun `returnerer bare perioder med samme diagnosekode`() {
+    fun `diagnoseperioder med samme kode har lik tidslinjenøkkel`() {
+        val diabetes = diagnose("E109")
+        val diabetes2 = diagnose("E109")
+
+        assertThat(diabetes.tidslinjenøkkel()).isEqualTo(diabetes2.tidslinjenøkkel())
+    }
+
+    @Test
+    fun `diagnoseperioder med ulik kode har ulik tidslinjenøkkel`() {
         val diabetes = diagnose("E109")
         val cøliaki = diagnose("K900")
 
-        val resultat = DiagnoseRegler.perioderMedSammeDiagnose(listOf(diabetes, cøliaki), Diagnosekode("E109", "Diabetes"))
-
-        assertThat(resultat).containsExactly(diabetes)
+        assertThat(diabetes.tidslinjenøkkel()).isNotEqualTo(cøliaki.tidslinjenøkkel())
     }
 
     private fun diagnose(kode: String) =
@@ -79,4 +84,35 @@ class DiagnoseReglerTest {
             tekst = "Tekst",
             vurdering = Vurdering.JA,
         )
+
+    @Test
+    fun `avviser to oppfylte yrkesskadeperioder med samme kode uten å røpe koden`() {
+        assertThatThrownBy {
+            DiagnoseRegler.validerMaksEnYrkesskadePeriode(listOf(diagnose("H833").copy(erYrkesskade = true), diagnose("H833")))
+        }.isInstanceOf(UgyldigInput::class.java)
+            .hasMessage(DiagnoseRegler.YRKESSKADE_FORDELT_PÅ_FLERE_PERIODER)
+            .hasMessageNotContaining("H833")
+    }
+
+    @Test
+    fun `NEI-periode teller ikke sammen med oppfylt yrkesskade`() {
+        assertThatCode {
+            DiagnoseRegler.validerMaksEnYrkesskadePeriode(
+                listOf(diagnose("H833").copy(erYrkesskade = true), diagnose("H833").copy(vurdering = Vurdering.NEI)),
+            )
+        }.doesNotThrowAnyException()
+    }
+
+    @Test
+    fun `to oppfylte perioder uten yrkesskade med samme kode godtas`() {
+        assertThatCode { DiagnoseRegler.validerMaksEnYrkesskadePeriode(listOf(diagnose("H833"), diagnose("H833"))) }
+            .doesNotThrowAnyException()
+    }
+
+    @Test
+    fun `oppfylt yrkesskade og oppfylt periode med annen kode godtas`() {
+        assertThatCode {
+            DiagnoseRegler.validerMaksEnYrkesskadePeriode(listOf(diagnose("H833").copy(erYrkesskade = true), diagnose("K900")))
+        }.doesNotThrowAnyException()
+    }
 }

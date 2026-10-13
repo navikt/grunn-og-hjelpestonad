@@ -4,11 +4,14 @@ import no.nav.familie.tidslinje.Tidslinje
 import no.nav.familie.tidslinje.filtrerIkkeNull
 import no.nav.familie.tidslinje.utvidelser.slåSammenLikePerioder
 import no.nav.familie.tidslinje.utvidelser.tilPerioder
+import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.erOppfyltTidslinje
+import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.DiagnoseRegler
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import java.time.LocalDate
 import java.util.UUID
@@ -156,9 +159,22 @@ class MedlemskapOgDiagnoseTidslinjeTest {
                         diagnose(STØYSKADE, "2023-01-01", "2023-12-31", erYrkesskade = true),
                     ),
                 )
-        }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessageContaining("støttes ikke enda")
+        }.isInstanceOf(UgyldigInput::class.java)
+            .hasMessage(DiagnoseRegler.YRKESSKADE_FORDELT_PÅ_FLERE_PERIODER)
             .hasMessageNotContaining(STØYSKADE)
+    }
+
+    @Test
+    fun `oppfylt yrkesskade og NEI-periode med samme kode godtas`() {
+        assertThatCode {
+            listOf(medlemskap("2020-01-01", "2020-12-31"))
+                .erOppfyltTidslinje(
+                    listOf(
+                        diagnose(STØYSKADE, "2020-01-01", "2020-12-31", erYrkesskade = true),
+                        diagnose(STØYSKADE, "2020-06-01", "2020-06-30", vurdering = Vurdering.NEI),
+                    ),
+                )
+        }.doesNotThrowAnyException()
     }
 
     @Test

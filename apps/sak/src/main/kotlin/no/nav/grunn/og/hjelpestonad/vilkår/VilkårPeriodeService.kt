@@ -24,17 +24,13 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
         request: R,
     ): VILKÅR_PERIODE
 
-    protected abstract fun oppdatertPeriode(
-        eksisterende: VILKÅR_PERIODE,
+    protected abstract fun VILKÅR_PERIODE.oppdaterMed(
         request: R,
     ): VILKÅR_PERIODE
 
-    protected open fun perioderSomIkkeKanOverlappe(
-        lagredePerioder: List<VILKÅR_PERIODE>,
-        request: R,
-    ): List<VILKÅR_PERIODE> = lagredePerioder
-
     protected open fun valider(request: R) = Unit
+
+    protected open fun validerTidslinje(perioder: List<VILKÅR_PERIODE>) = Unit
 
     open fun hentPerioder(behandlingId: UUID): List<VILKÅR_PERIODE> = repository.findByBehandlingId(behandlingId)
 
@@ -57,19 +53,20 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
     ): VILKÅR_PERIODE {
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
-        valider(request)
-        forkortOverlappendePerioder(behandlingId, request)
 
-        val periodeId = request.id
-        return if (periodeId == null) {
-            repository.insert(nyPeriode(behandlingId, request)).also {
-                registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_OPPRETTET, it)
-            }
-        } else {
-            repository.update(oppdatertPeriode(hentPeriodePåBehandling(behandlingId, periodeId), request)).also {
-                registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_OPPDATERT, it)
-            }
-        }
+        val eksisterendePeriode = request.id?.let { hentPeriodePåBehandling(behandlingId, it) }
+        valider(request)
+        val periode = eksisterendePeriode?.oppdaterMed(request) ?: nyPeriode(behandlingId, request)
+
+        val perioder = repository.findByBehandlingId(behandlingId).medNyPeriode(periode)
+        validerTidslinje(perioder)
+
+        repository.deleteByBehandlingId(behandlingId)
+        repository.insertAll(perioder)
+
+        val endringType = if (eksisterendePeriode == null) EndringType.VILKÅR_VURDERING_OPPRETTET else EndringType.VILKÅR_VURDERING_OPPDATERT
+        registrerEndring(behandlingId, endringType, periode)
+        return periode
     }
 
     @Transactional
@@ -84,42 +81,6 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
         repository.deleteById(periode.id)
 
         registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_SLETTET, periode)
-    }
-
-    /**
-     * Den nye eller endrede perioden vinner ved overlapp. Lagrede perioder som overlapper blir
-     * forkortet, splittet i to hvis den nye perioden ligger midt inni dem, eller slettet hvis de
-     * blir dekket i sin helhet.
-     */
-    private fun forkortOverlappendePerioder(
-        behandlingId: UUID,
-        request: R,
-    ) {
-        val lagredePerioder =
-            perioderSomIkkeKanOverlappe(repository.findByBehandlingId(behandlingId), request)
-                .filterNot { it.id == request.id }
-        val gjenværendeTidsrom = lagredePerioder.forkortetAv(request).groupBy { it.verdi.id }
-
-        lagredePerioder.forEach { lagret ->
-            val tidsrom = gjenværendeTidsrom[lagret.id].orEmpty()
-
-            if (
-                tidsrom.isEmpty() ||
-                tidsrom.any { it.fom != lagret.fraOgMedDato } ||
-                tidsrom.any { it.tom != lagret.tilOgMedDato }
-            ) {
-                repository.deleteById(lagret.id)
-                tidsrom.forEach {
-                    repository.insert(
-                        it.verdi.kopierMedTidsrom(
-                            id = UUID.randomUUID(),
-                            fraOgMedDato = it.fom,
-                            tilOgMedDato = it.tom,
-                        ),
-                    )
-                }
-            }
-        }
     }
 
     /**

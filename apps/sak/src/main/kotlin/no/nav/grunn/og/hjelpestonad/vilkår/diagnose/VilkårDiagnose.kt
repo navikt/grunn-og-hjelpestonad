@@ -24,6 +24,12 @@ data class VilkårDiagnose(
     val tekst: String,
     val erYrkesskade: Boolean = false,
 ) : VilkårPeriode<VilkårDiagnose> {
+    /**
+     * Én tidslinje per diagnose. Søker kan ha flere diagnoser samtidig, men hver diagnose har én
+     * vurdering per dag. Dette er definisjonen av «samme diagnose», også for vilkårssteget.
+     */
+    override fun tidslinjenøkkel() = kode
+
     override fun kopierMedTidsrom(
         id: UUID,
         fraOgMedDato: LocalDate?,

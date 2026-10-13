@@ -38,11 +38,10 @@ class VilkårDiagnoseService(
         )
     }
 
-    override fun oppdatertPeriode(
-        eksisterende: VilkårDiagnose,
+    override fun VilkårDiagnose.oppdaterMed(
         request: VilkårDiagnoseRequest,
     ) = request.diagnosekode().let { diagnosekode ->
-        eksisterende.copy(
+        copy(
             kode = diagnosekode.kode,
             tekst = diagnosekode.tekst,
             erYrkesskade = request.erYrkesskade,
@@ -53,12 +52,9 @@ class VilkårDiagnoseService(
         )
     }
 
-    override fun perioderSomIkkeKanOverlappe(
-        lagredePerioder: List<VilkårDiagnose>,
-        request: VilkårDiagnoseRequest,
-    ) = DiagnoseRegler.perioderMedSammeDiagnose(lagredePerioder, request.diagnosekode())
-
     override fun valider(request: VilkårDiagnoseRequest) = DiagnoseRegler.valider(request)
+
+    override fun validerTidslinje(perioder: List<VilkårDiagnose>) = DiagnoseRegler.validerMaksEnYrkesskadePeriode(perioder)
 
     /** Kalles etter [valider], så koden finnes. */
     private fun VilkårDiagnoseRequest.diagnosekode() = checkNotNull(Icd10.finn(kode))

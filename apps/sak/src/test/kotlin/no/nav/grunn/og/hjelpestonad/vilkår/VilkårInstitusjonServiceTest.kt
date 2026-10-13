@@ -28,8 +28,7 @@ class VilkårInstitusjonServiceTest {
     private val behandlingId = UUID.randomUUID()
 
     init {
-        every { repository.insert(any()) } answers { firstArg() }
-        every { repository.update(any()) } answers { firstArg() }
+        every { repository.insertAll(any()) } answers { firstArg() }
         every { repository.findByBehandlingId(any()) } returns emptyList()
     }
 
@@ -99,7 +98,8 @@ class VilkårInstitusjonServiceTest {
             .extracting { (it as Feil).httpStatus }
             .isEqualTo(HttpStatus.BAD_REQUEST)
 
-        verify(exactly = 0) { repository.insert(any()) }
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
     }
 
     @Test
