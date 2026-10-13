@@ -26,6 +26,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.UUID
 
@@ -69,6 +70,34 @@ class VilkårRepositoryTest(
         val diagnoser = vilkårDiagnoseRepository.findByBehandlingId(behandlingId)
         assertThat(diagnoser).hasSize(2)
         assertThat(diagnoser.single { it.erYrkesskade }.fraOgMedDato).isEqualTo(LocalDate.of(2025, 1, 1))
+    }
+
+    @Test
+    fun `deleteByBehandlingId sletter bare diagnosene til den aktuelle behandlingen`() {
+        val behandlingId = opprettBehandling()
+        val annenBehandlingId = opprettBehandling()
+        vilkårDiagnoseRepository.insert(diagnose(behandlingId, "E109"))
+        vilkårDiagnoseRepository.insert(diagnose(annenBehandlingId, "H833"))
+
+        vilkårDiagnoseRepository.deleteByBehandlingId(behandlingId)
+
+        assertThat(vilkårDiagnoseRepository.findByBehandlingId(behandlingId)).isEmpty()
+        assertThat(vilkårDiagnoseRepository.findByBehandlingId(annenBehandlingId)).hasSize(1)
+    }
+
+    @Test
+    @Transactional
+    fun `kan sette inn periode med samme id etter sletting i samme transaksjon`() {
+        val behandlingId = opprettBehandling()
+        val lagret = diagnose(behandlingId, "H833")
+        vilkårDiagnoseRepository.insert(lagret)
+
+        assertThatCode {
+            vilkårDiagnoseRepository.deleteByBehandlingId(behandlingId)
+            vilkårDiagnoseRepository.insert(lagret)
+        }.doesNotThrowAnyException()
+
+        assertThat(vilkårDiagnoseRepository.findByBehandlingId(behandlingId)).containsExactly(lagret)
     }
 
     @Test

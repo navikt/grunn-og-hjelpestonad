@@ -34,10 +34,9 @@ class VilkårMedlemskapService(
         tilOgMedDato = request.tilOgMedDato,
     )
 
-    override fun oppdatertPeriode(
-        eksisterende: VilkårMedlemskap,
+    override fun VilkårMedlemskap.oppdaterMed(
         request: VilkårMedlemskapRequest,
-    ) = eksisterende.copy(
+    ) = copy(
         regelverk = request.regelverk,
         vurdering = request.vurdering,
         begrunnelse = request.begrunnelse,

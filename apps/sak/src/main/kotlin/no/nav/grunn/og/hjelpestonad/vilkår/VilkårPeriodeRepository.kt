@@ -10,4 +10,6 @@ interface VilkårPeriodeRepository<T : VilkårPeriode<T>> :
     RepositoryInterface<T, UUID>,
     InsertUpdateRepository<T> {
     fun findByBehandlingId(behandlingId: UUID): List<T>
+
+    fun deleteByBehandlingId(behandlingId: UUID)
 }

@@ -38,10 +38,9 @@ class VilkårInstitusjonService(
         tilOgMedDato = request.tilOgMedDato,
     )
 
-    override fun oppdatertPeriode(
-        eksisterende: VilkårInstitusjon,
+    override fun VilkårInstitusjon.oppdaterMed(
         request: VilkårInstitusjonRequest,
-    ) = eksisterende.copy(
+    ) = copy(
         oppholdstype = request.oppholdstype.takeIf { request.vurdering == Vurdering.NEI },
         unntakshjemmel = request.unntakshjemmel.takeIf { request.vurdering == Vurdering.NEI },
         vurdering = request.vurdering,

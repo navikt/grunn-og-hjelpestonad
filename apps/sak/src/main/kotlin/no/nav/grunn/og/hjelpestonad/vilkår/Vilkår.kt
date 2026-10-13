@@ -50,6 +50,12 @@ interface VilkårPeriode<SELV : VilkårPeriode<SELV>> : Periodisert {
 
     fun erVilkårOppfylt(): Boolean = vurdering == Vurdering.JA
 
+    /**
+     * Perioder med samme nøkkel ligger på samme tidslinje og forkorter hverandre ved overlapp.
+     * Standard er én tidslinje for hele vilkåret. Per diagnosekode for diagnosevilkåret.
+     */
+    fun tidslinjenøkkel(): Any = Unit
+
     fun kopierMedTidsrom(
         id: UUID,
         fraOgMedDato: LocalDate?,

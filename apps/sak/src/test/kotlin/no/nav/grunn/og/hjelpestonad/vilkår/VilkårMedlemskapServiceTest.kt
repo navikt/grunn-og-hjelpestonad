@@ -37,8 +37,7 @@ class VilkårMedlemskapServiceTest {
     private val behandlingId = UUID.randomUUID()
 
     init {
-        every { repository.insert(any()) } answers { firstArg() }
-        every { repository.update(any()) } answers { firstArg() }
+        every { repository.insertAll(any()) } answers { firstArg() }
         every { repository.findByBehandlingId(any()) } returns emptyList()
     }
 
@@ -79,6 +78,9 @@ class VilkårMedlemskapServiceTest {
         assertThatThrownBy { service.lagrePeriode(behandlingId, request()) }
             .isInstanceOf(Feil::class.java)
             .hasMessageContaining("Behandlingen er ikke redigerbar")
+
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
     }
 
     @Test
@@ -89,10 +91,15 @@ class VilkårMedlemskapServiceTest {
         assertThatThrownBy { service.lagrePeriode(behandlingId, request()) }
             .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
+
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
     }
 
     @Test
     fun `lagrePeriode uten id oppretter ny periode`() {
+        val innlagtePerioder = slot<List<VilkårMedlemskap>>()
+        every { repository.insertAll(capture(innlagtePerioder)) } answers { firstArg() }
         val resultat =
             service.lagrePeriode(
                 behandlingId,
@@ -102,8 +109,8 @@ class VilkårMedlemskapServiceTest {
         assertThat(resultat.behandlingId).isEqualTo(behandlingId)
         assertThat(resultat.fraOgMedDato).isEqualTo(LocalDate.of(2025, 1, 1))
         assertThat(resultat.tilOgMedDato).isEqualTo(LocalDate.of(2025, 6, 30))
-        verify(exactly = 1) { repository.insert(any()) }
-        verify(exactly = 0) { repository.update(any()) }
+        assertThat(innlagtePerioder.captured).contains(resultat)
+        verify(exactly = 1) { repository.deleteByBehandlingId(behandlingId) }
         verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_OPPRETTET, any()) }
     }
 
@@ -112,6 +119,8 @@ class VilkårMedlemskapServiceTest {
         val eksisterende = periode(fraOgMedDato = LocalDate.of(2025, 1, 1), tilOgMedDato = LocalDate.of(2025, 6, 30))
         every { repository.findById(eksisterende.id) } returns Optional.of(eksisterende)
         every { repository.findByBehandlingId(any()) } returns listOf(eksisterende)
+        val innlagtePerioder = slot<List<VilkårMedlemskap>>()
+        every { repository.insertAll(capture(innlagtePerioder)) } answers { firstArg() }
 
         val resultat =
             service.lagrePeriode(
@@ -128,8 +137,8 @@ class VilkårMedlemskapServiceTest {
         assertThat(resultat.regelverk).isEqualTo(Regelverk.EØS_FORORDNINGEN)
         assertThat(resultat.vurdering).isEqualTo(Vurdering.NEI)
         assertThat(resultat.fraOgMedDato).isEqualTo(LocalDate.of(2025, 2, 1))
-        verify(exactly = 1) { repository.update(any()) }
-        verify(exactly = 0) { repository.insert(any()) }
+        assertThat(innlagtePerioder.captured).contains(resultat)
+        verify(exactly = 1) { repository.deleteByBehandlingId(behandlingId) }
         verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_OPPDATERT, any()) }
     }
 
@@ -137,6 +146,8 @@ class VilkårMedlemskapServiceTest {
     fun `lagrePeriode tillater flere perioder for samme vilkår`() {
         val eksisterende = periode(fraOgMedDato = LocalDate.of(2025, 1, 1), tilOgMedDato = LocalDate.of(2025, 6, 30))
         every { repository.findByBehandlingId(any()) } returns listOf(eksisterende)
+        val innlagtePerioder = slot<List<VilkårMedlemskap>>()
+        every { repository.insertAll(capture(innlagtePerioder)) } answers { firstArg() }
 
         val resultat =
             service.lagrePeriode(
@@ -145,7 +156,8 @@ class VilkårMedlemskapServiceTest {
             )
 
         assertThat(resultat.id).isNotEqualTo(eksisterende.id)
-        verify(exactly = 1) { repository.insert(any()) }
+        assertThat(innlagtePerioder.captured).containsExactly(eksisterende, resultat)
+        verify(exactly = 1) { repository.deleteByBehandlingId(behandlingId) }
     }
 
     @Test
@@ -171,6 +183,9 @@ class VilkårMedlemskapServiceTest {
                 request(fraOgMedDato = LocalDate.of(2025, 6, 1), tilOgMedDato = LocalDate.of(2025, 1, 1)),
             )
         }.isInstanceOfAny(IllegalArgumentException::class.java, IllegalStateException::class.java)
+
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
     }
 
     @Test
@@ -182,7 +197,8 @@ class VilkårMedlemskapServiceTest {
             .isInstanceOf(Feil::class.java)
             .hasMessageContaining("Fant ikke vilkårsvurdering")
 
-        verify(exactly = 0) { repository.update(any()) }
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
     }
 
     @Test
