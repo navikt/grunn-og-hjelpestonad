@@ -2,16 +2,25 @@ package no.nav.grunn.og.hjelpestonad.beslutter
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import io.mockk.verify
 import no.nav.familie.prosessering.internal.TaskService
+import no.nav.grunn.og.hjelpestonad.behandling.Behandling
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.LagBehandleSakOppgaveTask
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
+import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
+import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
+import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
 import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
 import no.nav.grunn.og.hjelpestonad.vedtak.AktivitetstypeBarnetilsyn
 import no.nav.grunn.og.hjelpestonad.vedtak.GrunnstønadPeriode
@@ -19,7 +28,9 @@ import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.springframework.http.HttpStatus
 import tools.jackson.databind.ObjectMapper
 import java.time.YearMonth
 import java.util.UUID
@@ -92,6 +103,8 @@ class BeslutterServiceTest {
     fun `godkjent innvilget vedtak sender vedtak til Infotrygd-feed`() {
         // Arrange
         val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
+            behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
         every { vedtakService.hentVedtak(behandlingId) } returns
             Vedtak(
                 behandlingId = behandlingId,
@@ -124,4 +137,93 @@ class BeslutterServiceTest {
             )
         }
     }
+
+    @Test
+    fun `angreSendTilBeslutter avvises når behandlingen ikke venter på beslutning`() {
+        listOf(
+            BehandlingStatus.UTREDES to OppgavetypeEYO.BEH_SAK,
+            // Etter godkjenning er siste oppgave fortsatt GOD_VED
+            BehandlingStatus.FERDIGSTILT to OppgavetypeEYO.GOD_VED,
+            // Sendt til beslutter, men GOD_VED-oppgaven er ikke opprettet ennå
+            BehandlingStatus.FATTER_VEDTAK to OppgavetypeEYO.BEH_SAK,
+        ).forEach { (status, oppgavetype) ->
+            val behandlingId = UUID.randomUUID()
+            every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, status)
+            every { oppgaveService.hentAktivOppgavetype(behandlingId) } returns oppgavetype
+
+            assertThatThrownBy { beslutterService.angreSendTilBeslutter(behandlingId) }
+                .isInstanceOfSatisfying(Feil::class.java) {
+                    assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
+                    assertThat(it.melding)
+                        .isEqualTo("Kan ikke angre send til beslutter fordi behandlingen ikke venter på beslutning.")
+                }
+
+            verifyIngenEndringer()
+        }
+    }
+
+    @Test
+    fun `angreSendTilBeslutter setter behandlingen tilbake til UTREDES når den venter på beslutning`() {
+        val behandlingId = UUID.randomUUID()
+        val behandling = behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling
+        every { oppgaveService.hentAktivOppgavetype(behandlingId) } returns OppgavetypeEYO.GOD_VED
+        mockkObject(SikkerhetContext)
+        every { SikkerhetContext.hentSaksbehandler() } returns "Z123456"
+
+        try {
+            beslutterService.angreSendTilBeslutter(behandlingId)
+        } finally {
+            unmockkObject(SikkerhetContext)
+        }
+
+        verify { taskService.save(any()) }
+        verify { lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(behandling, "Z123456") }
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.UTREDES) }
+        verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.ANGRET_SEND_TIL_BESLUTTER) }
+    }
+
+    @Test
+    fun `besluttVedtak avvises når behandlingen ikke venter på beslutning`() {
+        (BehandlingStatus.entries - BehandlingStatus.FATTER_VEDTAK).forEach { status ->
+            listOf(true, false).forEach { godkjent ->
+                val behandlingId = UUID.randomUUID()
+                every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, status)
+                val request =
+                    BeslutteVedtakRequest(
+                        godkjent = godkjent,
+                        årsakUnderkjent = ÅrsakUnderkjent.VILKÅR,
+                        begrunnelse = "Vilkår må vurderes på nytt",
+                    )
+
+                assertThatThrownBy { beslutterService.besluttVedtak(behandlingId, request) }
+                    .isInstanceOfSatisfying(Feil::class.java) {
+                        assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
+                        assertThat(it.melding).contains("Status: $status")
+                    }
+
+                verify(exactly = 0) { totrinnskontrollService.validerAtBeslutterIkkeErSammeSomSaksbehandler(behandlingId) }
+                verify(exactly = 0) { behandlingService.oppdaterBehandlingResultat(any(), any()) }
+                verify(exactly = 0) { endringshistorikkService.registrerUnderkjennelse(any(), any(), any()) }
+                verifyIngenEndringer()
+            }
+        }
+    }
+
+    private fun verifyIngenEndringer() {
+        verify(exactly = 0) { taskService.save(any()) }
+        verify(exactly = 0) { lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(any(), any()) }
+        verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(any(), any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any()) }
+    }
+
+    private fun behandling(
+        id: UUID,
+        status: BehandlingStatus,
+    ) = Behandling(
+        id = id,
+        fagsakId = UUID.randomUUID(),
+        status = status,
+        resultat = BehandlingResultat.IKKE_SATT,
+    )
 }
