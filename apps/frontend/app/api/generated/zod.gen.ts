@@ -66,47 +66,6 @@ export const zBeløpsperioderResponse = z.object({
     periodetype: z.enum(['ORDINÆR', 'INGEN_STØNAD'])
 });
 
-export const zPersonidentRequest = z.object({
-    personident: z.string()
-});
-
-export const zTrygdetidOgSatsResponse = z.object({
-    tidspunktRegistrert: z.iso.datetime({ local: true }),
-    trygdetid: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    brukerId: z.string(),
-    satsGs: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).nullish(),
-    satsHs: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).nullish()
-});
-
-export const zPeriodeResponse = z.object({
-    personident: z.string(),
-    stønadstype: z.enum(['GRUNNSTØNAD', 'HJELPESTØNAD']),
-    sakstype: z.string(),
-    kode: z.string(),
-    brukerId: z.string(),
-    stønadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    vedtakId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    vedtakstidspunkt: z.iso.datetime({ local: true }),
-    vedtakKodeResultat: z.string(),
-    startDato: z.iso.date(),
-    innvilgetFom: z.iso.date(),
-    typeDelytelse: z.string(),
-    typeSats: z.string(),
-    typeUtbetaling: z.string(),
-    stønadFom: z.iso.date(),
-    beløp: z.number(),
-    trygdetidOgSats: z.array(zTrygdetidOgSatsResponse),
-    innvilgetTom: z.iso.date().nullish(),
-    opphørsdato: z.iso.date().nullish(),
-    oppdragId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).nullish(),
-    stønadTom: z.iso.date().nullish()
-});
-
-export const zPerioderResponse = z.object({
-    grunnstønad: z.array(zPeriodeResponse),
-    hjelpestønad: z.array(zPeriodeResponse)
-});
-
 export const zSøkRequest = z.object({
     personident: z.string()
 });
@@ -205,6 +164,63 @@ export const zAnsvarligSaksbehandlerResponse = z.object({
         'ANNEN_SAKSBEHANDLER',
         'IKKE_SATT'
     ])
+});
+
+export const zPersonidentRequest = z.object({
+    personident: z.string()
+});
+
+export const zTrygdetidOgSatsResponse = z.object({
+    tidspunktRegistrert: z.iso.datetime({ local: true }),
+    trygdetid: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
+    brukerId: z.string(),
+    satsGs: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).nullish(),
+    satsHs: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).nullish()
+});
+
+export const zPeriodeResponse = z.object({
+    personident: z.string(),
+    stønadstype: z.enum(['GRUNNSTØNAD', 'HJELPESTØNAD']),
+    sakstype: z.string(),
+    kode: z.string(),
+    brukerId: z.string(),
+    stønadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
+    vedtakId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
+    vedtakstidspunkt: z.iso.datetime({ local: true }),
+    vedtakKodeResultat: z.string(),
+    startDato: z.iso.date(),
+    innvilgetFom: z.iso.date(),
+    typeDelytelse: z.string(),
+    typeSats: z.string(),
+    typeUtbetaling: z.string(),
+    stønadFom: z.iso.date(),
+    beløp: z.number(),
+    trygdetidOgSats: z.array(zTrygdetidOgSatsResponse),
+    innvilgetTom: z.iso.date().nullish(),
+    opphørsdato: z.iso.date().nullish(),
+    oppdragId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).nullish(),
+    stønadTom: z.iso.date().nullish()
+});
+
+export const zPerioderResponse = z.object({
+    grunnstønad: z.array(zPeriodeResponse),
+    hjelpestønad: z.array(zPeriodeResponse)
+});
+
+export const zInfotrygdDiagnoseRequest = z.object({
+    personident: z.string(),
+    stønadstyper: z.array(z.enum(['GRUNNSTØNAD', 'HJELPESTØNAD']))
+});
+
+export const zInfotrygdDiagnoseResponse = z.object({
+    stønadstype: z.enum(['GRUNNSTØNAD', 'HJELPESTØNAD']),
+    månedNotert: z.string(),
+    diagnosekode: z.string(),
+    icd10Tekst: z.string().nullish()
+});
+
+export const zInfotrygdDiagnoserResponse = z.object({
+    diagnoser: z.array(zInfotrygdDiagnoseResponse)
 });
 
 export const zFagsakRequest = z.object({
@@ -568,13 +584,6 @@ export const zBeregnPath = z.object({
  */
 export const zBeregnResponse = z.array(zBeløpsperioderResponse);
 
-export const zHentPerioderForPersonBody = zPersonidentRequest;
-
-/**
- * OK
- */
-export const zHentPerioderForPersonResponse = zPerioderResponse;
-
 export const zSøkPersonBody = zSøkRequest;
 
 /**
@@ -636,6 +645,20 @@ export const zDistribuerVedtaksbrevPath = z.object({
  * OK
  */
 export const zDistribuerVedtaksbrevResponse = z.string();
+
+export const zHentPerioderForPersonBody = zPersonidentRequest;
+
+/**
+ * OK
+ */
+export const zHentPerioderForPersonResponse = zPerioderResponse;
+
+export const zHentDiagnoserForPersonBody = zInfotrygdDiagnoseRequest;
+
+/**
+ * OK
+ */
+export const zHentDiagnoserForPersonResponse = zInfotrygdDiagnoserResponse;
 
 export const zOpprettFagsakBody = zFagsakRequest;
 

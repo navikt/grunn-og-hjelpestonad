@@ -11,6 +11,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.config.testRestClientBuilder
+import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.DiagnoseRequest
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.PeriodeResponse
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.texas.TexasClient
@@ -198,6 +199,99 @@ class InfotrygdClientTest {
             assertThrows(ResourceAccessException::class.java) {
                 timeoutClient.hentPerioderForPerson("12345678901")
             }
+        }
+    }
+
+    @Nested
+    inner class HentDiagnoser {
+        @Test
+        fun `returnerer diagnoser og sender personident, stønadstyper og OBO-token`() {
+            wireMockServer.stubFor(
+                post(urlEqualTo("/api/infotrygd/diagnose"))
+                    .withRequestBody(
+                        equalToJson(
+                            """{"personidenter": ["12345678901"], "stønadstyper": ["GRUNNSTØNAD"]}""",
+                        ),
+                    ).withHeader("Authorization", equalTo("Bearer gyldig-token"))
+                    .willReturn(
+                        aResponse()
+                            .withHeader("Content-Type", "application/json")
+                            .withBody(
+                                """
+                                {
+                                    "diagnoser": [
+                                        {
+                                            "personident": "12345678901",
+                                            "stønadstype": "GRUNNSTØNAD",
+                                            "månedDiagnoseNotertIInfotrygd": "2020-01",
+                                            "diagnosekode": "D1",
+                                            "datoEndretIKilde": "2020-01-01T12:00:00"
+                                        }
+                                    ]
+                                }
+                                """.trimIndent(),
+                            ),
+                    ),
+            )
+
+            val resultat =
+                client.hentDiagnoser(
+                    personident = "12345678901",
+                    stønadstyper = setOf(DiagnoseRequest.Stønadstyper.GRUNNSTØNAD),
+                )
+
+            assertEquals(1, resultat.diagnoser.size)
+            assertEquals("12345678901", resultat.diagnoser.single().personident)
+            assertEquals("D1", resultat.diagnoser.single().diagnosekode)
+            verify(exactly = 1) { texasClient.hentOboToken(AUDIENCE) }
+        }
+
+        @Test
+        fun `returnerer tom liste når svaret ikke inneholder diagnoser`() {
+            wireMockServer.stubFor(
+                post(urlEqualTo("/api/infotrygd/diagnose"))
+                    .willReturn(
+                        aResponse()
+                            .withHeader("Content-Type", "application/json")
+                            .withBody("""{"diagnoser": []}"""),
+                    ),
+            )
+
+            val resultat = client.hentDiagnoser("12345678901")
+
+            assertEquals(0, resultat.diagnoser.size)
+        }
+
+        @Test
+        fun `kaster videre exception ved serverfeil`() {
+            wireMockServer.stubFor(
+                post(urlEqualTo("/api/infotrygd/diagnose"))
+                    .willReturn(aResponse().withStatus(500).withBody("Internal Server Error")),
+            )
+
+            assertThrows(Exception::class.java) {
+                client.hentDiagnoser("12345678901")
+            }
+        }
+
+        @Test
+        fun `ugyldig JSON gir Feil uten cause og med generell melding`() {
+            wireMockServer.stubFor(
+                post(urlEqualTo("/api/infotrygd/diagnose"))
+                    .willReturn(
+                        aResponse()
+                            .withHeader("Content-Type", "application/json")
+                            .withBody("""{"diagnoser": [{"diagnosekode": "sensitive-value"}]}"""),
+                    ),
+            )
+
+            val feil =
+                assertThrows(Feil::class.java) {
+                    client.hentDiagnoser("12345678901")
+                }
+
+            assertEquals("Kunne ikke hente diagnoser fra Infotrygd", feil.message)
+            assertNull(feil.cause)
         }
     }
 }

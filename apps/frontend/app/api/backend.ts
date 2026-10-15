@@ -7,6 +7,10 @@ export interface ApiResponse<T = unknown> {
   melding?: string;
 }
 
+/**
+ * @deprecated Bruk den genererte klienten i `~/api/generated/sdk.gen`.
+ * Den genererte klienten gir typer fra backendens OpenAPI og validerer svaret med zod.
+ */
 export async function apiCall<T = unknown>(
   endpoint: string,
   options?: RequestInit

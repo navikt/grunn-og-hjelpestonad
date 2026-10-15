@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { apiCall, type ApiResponse } from "~/api/backend";
+import { hentPerioderForPerson } from "~/api/generated/sdk.gen";
+import type { PerioderResponse } from "~/api/generated/types.gen";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 interface HistorikkState {
-  data: unknown | null;
+  data: PerioderResponse | null;
   melding: string | null;
   laster: boolean;
 }
@@ -15,49 +17,36 @@ export const useHentInfotrygdHistorikk = (personident: string | undefined) => {
   });
 
   useEffect(() => {
-    const hentHistorikkForPerson = async (personident: string): Promise<ApiResponse<unknown>> => {
-      return apiCall(`/test/infotrygd/perioder`, {
-        method: "POST",
-        body: JSON.stringify({ personident: personident }),
-      });
-    };
-
-    let avbrutt = false;
+    const controller = new AbortController();
+    const { signal } = controller;
 
     const hentHistorikk = async () => {
       if (!personident) {
-        settState({
-          data: null,
-          melding: null,
-          laster: false,
-        });
+        settState({ data: null, melding: null, laster: false });
         return;
       }
 
-      const response = await hentHistorikkForPerson(personident);
-
-      if (avbrutt) return;
-
-      if (response.data) {
-        settState({
-          data: response.data,
-          melding: null,
-          laster: false,
+      try {
+        const { data } = await hentPerioderForPerson({
+          body: { personident },
+          signal,
+          throwOnError: true,
         });
-      } else {
+        if (signal.aborted) return;
+        settState({ data, melding: null, laster: false });
+      } catch (feil: unknown) {
+        if (signal.aborted) return;
         settState({
           data: null,
-          melding: response.melding || null,
+          melding: feilmeldingFra(feil, "Vi kunne ikke hente perioder fra Infotrygd. Prøv igjen senere."),
           laster: false,
         });
       }
     };
 
-    hentHistorikk();
+    void hentHistorikk();
 
-    return () => {
-      avbrutt = true;
-    };
+    return () => controller.abort();
   }, [personident]);
 
   return state;
