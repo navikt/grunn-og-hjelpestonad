@@ -171,6 +171,11 @@ beslutninger. Forkastet fordi appen ikke er i prod og ikke har egen tilgangslogi
   adresse, eller er skjermet. Avslag logges med NAV-ident, men ingen varsles.
 - Ingen auditlogg ennå. Teamet har valgt å vente med auditlogg og godtar risikoen
   til den er på plass.
+- Diagnosekoder fra Infotrygd (`POST /api/infotrygd/diagnose` og
+  `/api/test/infotrygd/diagnose` i sak) er helseopplysninger etter GDPR art. 9.
+  Oppslagene auditlogges ikke. `AuditLogger` i sak finnes, men ingen kode kaller
+  den. Kjerneregelsettet gjelder også for diagnosekodene, fordi reglene vi har
+  valgt bort (geografi og avdød), ikke handler om hvor sensitive dataene er.
 
 ## Aksjonspunkter
 
@@ -182,3 +187,5 @@ beslutninger. Forkastet fordi appen ikke er i prod og ikke har egen tilgangslogi
 - [ ] Sjekk barn når barn blir en del av saken.
 - [ ] Vurder regelsettet på nytt når Nav stiller krav om å sjekke avdøde brukere.
 - [ ] Auditlogg: database for økonominære handlinger og ArcSight via `AuditLogger`.
+      Oppslag av diagnosekoder fra Infotrygd må auditlogges før de vises for
+      saksbehandler i prod.

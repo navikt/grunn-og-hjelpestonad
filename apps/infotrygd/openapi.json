@@ -104,6 +104,35 @@
         }
       }
     },
+    "/api/infotrygd/diagnose" : {
+      "post" : {
+        "tags" : [ "diagnose-controller" ],
+        "summary" : "Henter diagnosene registrert i siste måned per person og stønadstype fra Infotrygd",
+        "operationId" : "hentDiagnoser",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DiagnoseRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DiagnoserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/infotrygd/tabeller/kolonner" : {
       "get" : {
         "tags" : [ "tabell-controller" ],
@@ -152,7 +181,6 @@
       "get" : {
         "tags" : [ "st-ønad-controller" ],
         "summary" : "Henter personer med løpende grunn- eller hjelpestønad fra neste måned, som kan migreres",
-        "description" : "Med brukertoken fjernes personer saksbehandleren ikke har tilgang til, så svaret kan inneholde færre enn antall personer.",
         "operationId" : "hentPersonerForMigrering",
         "parameters" : [ {
           "name" : "antall",
@@ -468,6 +496,62 @@
           }
         },
         "required" : [ "brukerId", "tidspunktRegistrert", "trygdetid" ]
+      },
+      "DiagnoseRequest" : {
+        "type" : "object",
+        "properties" : {
+          "personidenter" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "uniqueItems" : true
+          },
+          "stønadstyper" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "GRUNNSTØNAD", "HJELPESTØNAD" ]
+            },
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "personidenter", "stønadstyper" ]
+      },
+      "DiagnoserResponse" : {
+        "type" : "object",
+        "properties" : {
+          "diagnoser" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/InfotrygdDiagnose"
+            }
+          }
+        },
+        "required" : [ "diagnoser" ]
+      },
+      "InfotrygdDiagnose" : {
+        "type" : "object",
+        "properties" : {
+          "personident" : {
+            "type" : "string"
+          },
+          "stønadstype" : {
+            "type" : "string",
+            "enum" : [ "GRUNNSTØNAD", "HJELPESTØNAD" ]
+          },
+          "månedDiagnoseNotertIInfotrygd" : {
+            "type" : "string"
+          },
+          "diagnosekode" : {
+            "type" : "string"
+          },
+          "datoEndretIKilde" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "datoEndretIKilde", "diagnosekode", "månedDiagnoseNotertIInfotrygd", "personident", "stønadstype" ]
       },
       "TabellKolonnerResponse" : {
         "type" : "object",

@@ -29,7 +29,7 @@ private val SA_DATO = DateTimeFormatter.ofPattern("ddMMyyyy")
  * - DDMMÅÅÅÅ: s10_*dato i sa_sak_10, s20_dato_dannet i sa_hendelse_20 og ev10_mottatt_dato i ev_data_10
  * - ÅÅÅÅMMDD: s15_status_dato i sa_status_15
  * - 99999999 − ÅÅÅÅMMDD (synkende, for sortering): s20_aksjonsdato_seq i sa_hendelse_20
- * - 999999 − ÅÅÅÅMM (synkende, for sortering): ev05_aar_mnd_seq i ev_data_10
+ * - 999999 − ÅÅÅÅMM (synkende, for sortering): ev05_aar_mnd_seq i ev_valg_05 og ev_data_10
  */
 fun datoFraSaTabell(verdi: Int): LocalDate? {
     if (verdi == 0) return null

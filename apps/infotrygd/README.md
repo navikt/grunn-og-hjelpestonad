@@ -62,6 +62,9 @@ og skjemaet står i
 - **Datoer:** Tabellene med prefiks `t_` har vanlige datoer. I `sa_*` og `ev_*`
   er datoer lagret som tall, og formatet varierer per kolonne. Se KDoc i
   [`InfotrygdFormat.kt`](src/main/kotlin/no/nav/grunn/og/hjelpestonad/infotrygd/util/InfotrygdFormat.kt).
+- **Måned i `ev_*`:** `ev05_aar_mnd_seq` i `ev_valg_05` og `ev_data_10` er
+  `999999 − ÅÅÅÅMM`, lagret som tekst. Oktober 2025 er `797489`. Høyeste verdi er
+  eldste måned, så `max` gir første registrering og `min` gir siste.
 - **Løpende vedtak:** Et vedtak uten `dato_opphor` og `dato_innv_tom` regnes som
   løpende, siden stønaden ofte varer livet ut. Dette er et bevisst avvik fra
   EF-appen.
@@ -74,6 +77,7 @@ og skjemaet står i
 | `POST /api/infotrygd/stonad/eksisterer` | Om personene har vedtak eller saker, og om vedtakene er løpende |
 | `GET /api/infotrygd/stonad/migreringspersoner` | Personer med løpende stønad fra neste måned |
 | `POST /api/infotrygd/saker/finn` | Saker fra `sa_sak_10` |
+| `POST /api/infotrygd/diagnose` | Diagnosene registrert i siste måned per person og stønadstype |
 | `GET /api/infotrygd/tabeller/*` | Kolonner og antall rader i replikatabellene |
 
 ### Kontrakt mot sak
@@ -104,3 +108,18 @@ Dette er annerledes:
 
 Som i EF-appen gir et vedtak med flere endringskoder én periode per kode, og
 perioder uten `oppdrag_id` filtreres bort, med mindre beløpet er 0 kr.
+
+### Diagnose
+
+`/diagnose` gir diagnosene fra den siste måneden med diagnose i `ev_valg_05`
+(`ev05_kap = 'GH'`, `ev05_tekst_kode = 'EVGH'`), per person og stønadstype.
+Diagnosekoden er de fire første tegnene i `ev10_text`. Resten av teksten sendes
+ikke ut, fordi diagnosen er en helseopplysning etter GDPR art. 9.
+
+- Personen må ha et vedtak på stønaden som har en delytelse, ikke er annullert
+  eller ugyldig (`UA`, `AN`) og hører til en GH-sak i `sa_sak_10`.
+- `s10_saksnr` sammenlignes som tall med `t_vedtak.saksnr`, så `0123` treffer
+  `123`. Et saksnummer som ikke er et tall, gir feil for hele kallet.
+- `ev_data_10` kan ha flere rader per person og måned. Vi vet ikke ennå hvilke
+  som er diagnoser, så alle tas med, og like koder slås sammen.
+- Oppslagene auditlogges ikke ennå, se ADR-0009.

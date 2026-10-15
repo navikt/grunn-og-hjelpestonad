@@ -74,7 +74,7 @@ class TilgangskontrollIntegrasjonTest {
     fun `alle personendepunkter sjekker tilgang`() {
         tilgangsmaskin.svar = { identer -> identer.map { Tilgangsvurdering(it, false, null) } }
 
-        listOf("/api/infotrygd/stonad/eksisterer", "/api/infotrygd/saker/finn").forEach { sti ->
+        listOf("/api/infotrygd/stonad/eksisterer", "/api/infotrygd/saker/finn", "/api/infotrygd/diagnose").forEach { sti ->
             mockMvc
                 .post(sti) {
                     header(HttpHeaders.AUTHORIZATION, "Bearer $SAKSBEHANDLER")
