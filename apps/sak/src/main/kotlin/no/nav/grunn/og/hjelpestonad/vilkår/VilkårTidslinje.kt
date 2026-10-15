@@ -14,23 +14,22 @@ fun <T : VilkårPeriode<T>> List<T>.erOppfyltTidslinje(): Tidslinje<Boolean> = m
 
 fun <T> tomTidslinje(): Tidslinje<T> = emptyList<Periode<T>>().tilTidslinje()
 
-fun <T : VilkårPeriode<T>> List<T>.medNyPeriode(periode: T): List<T> {
-    val tidslinjer = filterNot { it.id == periode.id }.groupBy { it.tidslinjenøkkel() }
+fun <T : VilkårPeriode<T>> List<T>.medNyPeriode(nyEllerEndretPeriode: T): List<T> {
+    val nyTidslinje = nyEllerEndretPeriode.tilPeriode().tilTidslinje()
+
+    val tidslinjer = filterNot { it.id == nyEllerEndretPeriode.id }.groupBy { it.tidslinjenøkkel() }
     val tidslinjeMedNyPeriode =
-        tidslinjer[periode.tidslinjenøkkel()]?.forkortetAv(periode)?.map {
+        tidslinjer[nyEllerEndretPeriode.tidslinjenøkkel()]?.forkortetAv(nyTidslinje)?.map {
             val urørt = it.fom == it.verdi.fraOgMedDato && it.tom == it.verdi.tilOgMedDato
             it.verdi.kopierMedTidsrom(id = if (urørt) it.verdi.id else UUID.randomUUID(), fraOgMedDato = it.fom, tilOgMedDato = it.tom)
         } ?: emptyList()
 
-    val uendredeTidslinjer = tidslinjer.filterKeys { it != periode.tidslinjenøkkel() }
-    return uendredeTidslinjer.values.flatten() + tidslinjeMedNyPeriode + periode
+    val uendredeTidslinjer = tidslinjer.filterKeys { it != nyEllerEndretPeriode.tidslinjenøkkel() }
+    return uendredeTidslinjer.values.flatten() + tidslinjeMedNyPeriode + nyEllerEndretPeriode
 }
 
-fun <T : VilkårPeriode<T>> List<T>.forkortetAv(nyEllerEndretPeriode: Periodisert): List<Periode<T>> {
-    val nyTidslinje = nyEllerEndretPeriode.tilPeriode().tilTidslinje()
-
-    return nyTidslinje
+fun <T : VilkårPeriode<T>, N> List<T>.forkortetAv(nyTidslinje: Tidslinje<N>): List<Periode<T>> =
+    nyTidslinje
         .kombinerMed(tilTidslinje()) { ny, lagret -> if (ny != null) null else lagret }
         .tilPerioder()
         .filtrerIkkeNull()
-}

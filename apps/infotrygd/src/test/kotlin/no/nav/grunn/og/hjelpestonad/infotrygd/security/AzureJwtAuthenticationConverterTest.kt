@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 
 class AzureJwtAuthenticationConverterTest {
@@ -161,5 +162,11 @@ class AzureJwtAuthenticationConverterTest {
         assertEquals(2, authorities.size)
         assertTrue(authorities.contains("ROLE_SAKSBEHANDLER"))
         assertTrue(authorities.contains("ROLE_BESLUTTER"))
+    }
+
+    @Test
+    fun `avvisninger er AuthenticationException slik at de gir 401`() {
+        assertThrows<AuthenticationException> { converter.convert(JwtTestHelper.opprettTokenUtenNavIdent()) }
+        assertThrows<AuthenticationException> { converter.convert(JwtTestHelper.opprettTokenMedUgyldigeGrupper()) }
     }
 }

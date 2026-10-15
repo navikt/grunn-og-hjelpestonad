@@ -2,6 +2,7 @@ package no.nav.grunn.og.hjelpestonad.infotrygd.periode
 
 import io.swagger.v3.oas.annotations.Operation
 import no.nav.grunn.og.hjelpestonad.infotrygd.stønad.Stønadstype
+import no.nav.grunn.og.hjelpestonad.infotrygd.tilgangskontroll.TilgangService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/infotrygd/perioder")
 class PeriodeController(
     private val periodeService: PeriodeService,
+    private val tilgangService: TilgangService,
 ) {
     @Operation(summary = "Henter perioder (delytelser) for grunnstønad og hjelpestønad fra Infotrygd")
     @PostMapping
@@ -18,6 +20,7 @@ class PeriodeController(
         @RequestBody request: PeriodeRequest,
     ): PerioderResponse {
         request.valider()
+        tilgangService.validerTilgangTilPersoner(request.personidenter)
         val perioder = periodeService.hentPerioder(request)
         return PerioderResponse(
             grunnstønad = perioder.getOrDefault(Stønadstype.GRUNNSTØNAD, emptyList()),
