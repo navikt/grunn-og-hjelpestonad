@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Outlet, useParams, useMatch } from "react-router";
-import { Alert, Loader, VStack } from "@navikt/ds-react";
+import { Alert, Box, Loader, VStack } from "@navikt/ds-react";
 import { Navbar } from "~/komponenter/navbar/Navbar";
 import { Side } from "~/komponenter/layout/Side";
 import Personheader from "~/komponenter/personheader/Personheader";
@@ -55,9 +55,11 @@ export default function PersonLayout() {
         {!erPåBehandling ? (
           <>
             <Navbar />
-            <Side>
-              <Outlet />
-            </Side>
+            <Box flexGrow="1" minHeight="0" overflowY="auto">
+              <Side>
+                <Outlet />
+              </Side>
+            </Box>
           </>
         ) : (
           <Outlet />
