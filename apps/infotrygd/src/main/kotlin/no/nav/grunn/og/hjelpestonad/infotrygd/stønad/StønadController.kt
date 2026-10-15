@@ -31,12 +31,18 @@ class StønadController(
         )
     }
 
-    @Operation(summary = "Henter personer med løpende grunn- eller hjelpestønad fra neste måned, som kan migreres")
+    @Operation(
+        summary = "Henter personer med løpende grunn- eller hjelpestønad fra neste måned, som kan migreres",
+        description =
+            "Med brukertoken fjernes personer saksbehandleren ikke har tilgang til, " +
+                "så svaret kan inneholde færre enn antall personer.",
+    )
     @GetMapping("/migreringspersoner")
     fun hentPersonerForMigrering(
         @RequestParam antall: Int,
     ): PersonerForMigreringResponse {
         require(antall > 0) { "antall må være større enn 0" }
+        require(antall <= TilgangService.MAKS_ANTALL_PERSONER) { "antall kan ikke være større enn ${TilgangService.MAKS_ANTALL_PERSONER}" }
         val personer = stønadRepository.finnPersonerForMigrering(antall)
         return PersonerForMigreringResponse(tilgangService.filtrerPersonerMedTilgang(personer))
     }
