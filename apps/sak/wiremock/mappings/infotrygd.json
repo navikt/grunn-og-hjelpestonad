@@ -10,7 +10,103 @@
       "Content-Type": "application/json"
     },
     "jsonBody": {
-      "perioder": []
+      "grunnstønad": [
+        {
+          "personident": "{{jsonPath request.body '$.personidenter[0]'}}",
+          "stønadstype": "GRUNNSTØNAD",
+          "sakstype": "S",
+          "kode": "E",
+          "brukerId": "Z999999",
+          "stønadId": 1001,
+          "vedtakId": 2002,
+          "vedtakstidspunkt": "2024-01-10T09:30:00",
+          "vedtakKodeResultat": "I",
+          "startDato": "2023-01-01",
+          "innvilgetFom": "2024-01-01",
+          "innvilgetTom": null,
+          "opphørsdato": null,
+          "oppdragId": 3001,
+          "typeDelytelse": "GS",
+          "typeSats": "M",
+          "typeUtbetaling": "J",
+          "stønadFom": "2024-01-01",
+          "stønadTom": null,
+          "beløp": 868,
+          "trygdetidOgSats": [
+            {
+              "tidspunktRegistrert": "2024-01-10T09:30:00",
+              "trygdetid": 40,
+              "satsGs": 2,
+              "satsHs": null,
+              "brukerId": "Z999999"
+            }
+          ]
+        },
+        {
+          "personident": "{{jsonPath request.body '$.personidenter[0]'}}",
+          "stønadstype": "GRUNNSTØNAD",
+          "sakstype": "S",
+          "kode": "F",
+          "brukerId": "Z999999",
+          "stønadId": 1001,
+          "vedtakId": 2001,
+          "vedtakstidspunkt": "2023-01-15T10:00:00",
+          "vedtakKodeResultat": "I",
+          "startDato": "2023-01-01",
+          "innvilgetFom": "2023-01-01",
+          "innvilgetTom": "2023-12-31",
+          "opphørsdato": null,
+          "oppdragId": 3001,
+          "typeDelytelse": "GS",
+          "typeSats": "M",
+          "typeUtbetaling": "J",
+          "stønadFom": "2023-01-01",
+          "stønadTom": "2023-12-31",
+          "beløp": 830,
+          "trygdetidOgSats": [
+            {
+              "tidspunktRegistrert": "2023-01-15T10:00:00",
+              "trygdetid": 40,
+              "satsGs": 2,
+              "satsHs": null,
+              "brukerId": "Z999999"
+            }
+          ]
+        }
+      ],
+      "hjelpestønad": [
+        {
+          "personident": "{{jsonPath request.body '$.personidenter[0]'}}",
+          "stønadstype": "HJELPESTØNAD",
+          "sakstype": "S",
+          "kode": "F",
+          "brukerId": "Z999999",
+          "stønadId": 1002,
+          "vedtakId": 2101,
+          "vedtakstidspunkt": "2022-03-01T12:00:00",
+          "vedtakKodeResultat": "I",
+          "startDato": "2022-03-01",
+          "innvilgetFom": "2022-03-01",
+          "innvilgetTom": "2024-02-29",
+          "opphørsdato": "2024-03-01",
+          "oppdragId": 3002,
+          "typeDelytelse": "HS",
+          "typeSats": "M",
+          "typeUtbetaling": "J",
+          "stønadFom": "2022-03-01",
+          "stønadTom": "2024-02-29",
+          "beløp": 1465,
+          "trygdetidOgSats": [
+            {
+              "tidspunktRegistrert": "2022-03-01T12:00:00",
+              "trygdetid": 40,
+              "satsGs": null,
+              "satsHs": 1,
+              "brukerId": "Z999999"
+            }
+          ]
+        }
+      ]
     }
   },
   "priority": 10

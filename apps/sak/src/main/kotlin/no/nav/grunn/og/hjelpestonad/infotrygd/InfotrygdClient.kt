@@ -1,5 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd
 
+import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.DiagnoseRequest
+import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.DiagnoserResponse
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.PeriodeRequest
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.PerioderResponse
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestClient
 
 @Service
@@ -50,6 +53,37 @@ class InfotrygdClient(
         } catch (e: Exception) {
             logger.error("Feilet å hente perioder for person", e)
             throw e
+        }
+    }
+
+    fun hentDiagnoser(
+        personident: String,
+        stønadstyper: Set<DiagnoseRequest.Stønadstyper> = emptySet(),
+    ): DiagnoserResponse {
+        val oboToken =
+            texasClient.hentOboToken(
+                targetAudience = grunnOgHjelpestonadInfotrygdAudience,
+            )
+
+        return try {
+            restClient
+                .post()
+                .uri("$API_BASE_URL/diagnose")
+                .headers { it.setBearerAuth(oboToken) }
+                .body(DiagnoseRequest(personidenter = setOf(personident), stønadstyper = stønadstyper))
+                .retrieve()
+                .body(DiagnoserResponse::class.java)
+                ?.also { response ->
+                    logger.info("Hentet {} diagnoser fra Infotrygd", response.diagnoser.size)
+                } ?: throw Feil("Fikk tomt svar fra Infotrygd ved henting av diagnoser", HttpStatus.INTERNAL_SERVER_ERROR)
+        } catch (e: HttpStatusCodeException) {
+            logger.error("Feilet å hente diagnoser fra Infotrygd, status={}", e.statusCode.value())
+            throw e
+        } catch (e: Feil) {
+            throw e
+        } catch (e: Exception) {
+            logger.error("Feilet å hente diagnoser fra Infotrygd, type={}", e.javaClass.simpleName)
+            throw Feil("Kunne ikke hente diagnoser fra Infotrygd")
         }
     }
 

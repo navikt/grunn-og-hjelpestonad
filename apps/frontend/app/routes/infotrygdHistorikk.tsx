@@ -2,7 +2,9 @@ import React from "react";
 import { Alert, Heading, Loader, VStack } from "@navikt/ds-react";
 import type { Route } from "./+types/infotrygdHistorikk";
 import { useHentInfotrygdHistorikk } from "~/hooks/useHentInfotrygdHistorikk";
+import { useHentInfotrygdDiagnoser } from "~/hooks/useHentInfotrygdDiagnoser";
 import { usePersonContext } from "~/fellesContext/PersonContext";
+import { InfotrygdDiagnosetabell } from "~/komponenter/infotrygd/InfotrygdDiagnosetabell";
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -16,17 +18,8 @@ export function meta(_: Route.MetaArgs) {
 
 export default function InfotrygdHistorikk(_: Route.ComponentProps) {
   const { personident } = usePersonContext();
-  const state = useHentInfotrygdHistorikk(personident);
-  const { data: historikk, melding, laster } = state;
-
-  if (laster) {
-    return (
-      <div>
-        Laster historikk fra Infotrygd...
-        <Loader title="Laster..." />
-      </div>
-    );
-  }
+  const diagnoserState = useHentInfotrygdDiagnoser(personident);
+  const historikkState = useHentInfotrygdHistorikk(personident);
 
   return (
     <VStack gap="space-4">
@@ -34,9 +27,25 @@ export default function InfotrygdHistorikk(_: Route.ComponentProps) {
         Historikk i infotrygd for personident: {personident}
       </Heading>
 
-      {melding && <Alert variant="warning">{melding}</Alert>}
+      <Heading level="2" size="small">
+        Diagnoser
+      </Heading>
+      {diagnoserState.laster ? (
+        <Loader title="Henter diagnoser fra Infotrygd…" />
+      ) : diagnoserState.melding ? (
+        <Alert variant="warning">{diagnoserState.melding}</Alert>
+      ) : (
+        <InfotrygdDiagnosetabell diagnoser={diagnoserState.data?.diagnoser ?? []} />
+      )}
 
-      {historikk != null && (
+      <Heading level="2" size="small">
+        Perioder
+      </Heading>
+      {historikkState.laster ? (
+        <Loader title="Henter perioder fra Infotrygd…" />
+      ) : historikkState.melding ? (
+        <Alert variant="warning">{historikkState.melding}</Alert>
+      ) : historikkState.data != null ? (
         <pre
           style={{
             backgroundColor: "#f5f5f5",
@@ -45,9 +54,9 @@ export default function InfotrygdHistorikk(_: Route.ComponentProps) {
             overflow: "auto",
           }}
         >
-          {JSON.stringify(historikk, null, 2)}
+          {JSON.stringify(historikkState.data, null, 2)}
         </pre>
-      )}
+      ) : null}
     </VStack>
   );
 }

@@ -55,47 +55,6 @@ export type BeløpsperioderResponse = {
     periodetype: 'ORDINÆR' | 'INGEN_STØNAD';
 };
 
-export type PersonidentRequest = {
-    personident: string;
-};
-
-export type PeriodeResponse = {
-    personident: string;
-    stønadstype: 'GRUNNSTØNAD' | 'HJELPESTØNAD';
-    sakstype: string;
-    kode: string;
-    brukerId: string;
-    stønadId: number;
-    vedtakId: number;
-    vedtakstidspunkt: string;
-    vedtakKodeResultat: string;
-    startDato: string;
-    innvilgetFom: string;
-    typeDelytelse: string;
-    typeSats: string;
-    typeUtbetaling: string;
-    stønadFom: string;
-    beløp: number;
-    trygdetidOgSats: Array<TrygdetidOgSatsResponse>;
-    innvilgetTom?: string | null;
-    opphørsdato?: string | null;
-    oppdragId?: number | null;
-    stønadTom?: string | null;
-};
-
-export type PerioderResponse = {
-    grunnstønad: Array<PeriodeResponse>;
-    hjelpestønad: Array<PeriodeResponse>;
-};
-
-export type TrygdetidOgSatsResponse = {
-    tidspunktRegistrert: string;
-    trygdetid: number;
-    brukerId: string;
-    satsGs?: number | null;
-    satsHs?: number | null;
-};
-
 export type SøkRequest = {
     personident: string;
 };
@@ -166,6 +125,63 @@ export type AnsvarligSaksbehandlerResponse = {
     fornavn: string;
     etternavn: string;
     rolle: 'INNLOGGET_SAKSBEHANDLER' | 'ANNEN_SAKSBEHANDLER' | 'IKKE_SATT';
+};
+
+export type PersonidentRequest = {
+    personident: string;
+};
+
+export type PeriodeResponse = {
+    personident: string;
+    stønadstype: 'GRUNNSTØNAD' | 'HJELPESTØNAD';
+    sakstype: string;
+    kode: string;
+    brukerId: string;
+    stønadId: number;
+    vedtakId: number;
+    vedtakstidspunkt: string;
+    vedtakKodeResultat: string;
+    startDato: string;
+    innvilgetFom: string;
+    typeDelytelse: string;
+    typeSats: string;
+    typeUtbetaling: string;
+    stønadFom: string;
+    beløp: number;
+    trygdetidOgSats: Array<TrygdetidOgSatsResponse>;
+    innvilgetTom?: string | null;
+    opphørsdato?: string | null;
+    oppdragId?: number | null;
+    stønadTom?: string | null;
+};
+
+export type PerioderResponse = {
+    grunnstønad: Array<PeriodeResponse>;
+    hjelpestønad: Array<PeriodeResponse>;
+};
+
+export type TrygdetidOgSatsResponse = {
+    tidspunktRegistrert: string;
+    trygdetid: number;
+    brukerId: string;
+    satsGs?: number | null;
+    satsHs?: number | null;
+};
+
+export type InfotrygdDiagnoseRequest = {
+    personident: string;
+    stønadstyper: Array<'GRUNNSTØNAD' | 'HJELPESTØNAD'>;
+};
+
+export type InfotrygdDiagnoseResponse = {
+    stønadstype: 'GRUNNSTØNAD' | 'HJELPESTØNAD';
+    månedNotert: string;
+    diagnosekode: string;
+    icd10Tekst?: string | null;
+};
+
+export type InfotrygdDiagnoserResponse = {
+    diagnoser: Array<InfotrygdDiagnoseResponse>;
 };
 
 export type FagsakRequest = {
@@ -453,19 +469,6 @@ export type BeregnResponses = {
 
 export type BeregnResponse = BeregnResponses[keyof BeregnResponses];
 
-export type HentPerioderForPersonData = {
-    body: PersonidentRequest;
-    path?: never;
-    query?: never;
-    url: '/api/test/infotrygd/perioder';
-};
-
-export type HentPerioderForPersonResponses = {
-    200: PerioderResponse;
-};
-
-export type HentPerioderForPersonResponse = HentPerioderForPersonResponses[keyof HentPerioderForPersonResponses];
-
 export type SøkPersonData = {
     body: SøkRequest;
     path?: never;
@@ -575,6 +578,32 @@ export type DistribuerVedtaksbrevResponses = {
 };
 
 export type DistribuerVedtaksbrevResponse = DistribuerVedtaksbrevResponses[keyof DistribuerVedtaksbrevResponses];
+
+export type HentPerioderForPersonData = {
+    body: PersonidentRequest;
+    path?: never;
+    query?: never;
+    url: '/api/infotrygd/perioder';
+};
+
+export type HentPerioderForPersonResponses = {
+    200: PerioderResponse;
+};
+
+export type HentPerioderForPersonResponse = HentPerioderForPersonResponses[keyof HentPerioderForPersonResponses];
+
+export type HentDiagnoserForPersonData = {
+    body: InfotrygdDiagnoseRequest;
+    path?: never;
+    query?: never;
+    url: '/api/infotrygd/diagnose';
+};
+
+export type HentDiagnoserForPersonResponses = {
+    200: InfotrygdDiagnoserResponse;
+};
+
+export type HentDiagnoserForPersonResponse = HentDiagnoserForPersonResponses[keyof HentDiagnoserForPersonResponses];
 
 export type OpprettFagsakData = {
     body: FagsakRequest;

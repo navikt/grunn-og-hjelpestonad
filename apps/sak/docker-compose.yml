@@ -5,7 +5,7 @@ services:
         container_name: grunn-og-hjelpestonad-postgres-1
         profiles: ["mock"]
         ports:
-            - "5432:5432"
+            - "5442:5432"
         environment:
             POSTGRES_DB: grunn-og-hjelpestonad
             POSTGRES_USER: postgres
