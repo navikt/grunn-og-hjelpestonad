@@ -181,6 +181,7 @@
       "get" : {
         "tags" : [ "st-ønad-controller" ],
         "summary" : "Henter personer med løpende grunn- eller hjelpestønad fra neste måned, som kan migreres",
+        "description" : "Med brukertoken fjernes personer saksbehandleren ikke har tilgang til, så svaret kan inneholde færre enn antall personer.",
         "operationId" : "hentPersonerForMigrering",
         "parameters" : [ {
           "name" : "antall",
