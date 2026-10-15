@@ -30,6 +30,12 @@ spring:
 nais:
   texas:
     token-endpoint: ${NAIS_TOKEN_ENDPOINT}
+    token-exchange-endpoint: ${NAIS_TOKEN_EXCHANGE_ENDPOINT}
+
+integrasjoner:
+  tilgangsmaskin:
+    url: http://populasjonstilgangskontroll.tilgangsmaskin
+    scope: api://${NAIS_CLUSTER_NAME}.tilgangsmaskin.populasjonstilgangskontroll/.default
 
 exodus:
   base-url: ${EXODUS_BASE_URL}

@@ -1,5 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.infrastruktur.exception
 
+import no.nav.grunn.og.hjelpestonad.infotrygd.tilgangskontroll.ManglerTilgangTilPersonFeil
+import no.nav.grunn.og.hjelpestonad.infotrygd.tilgangskontroll.TilgangsmaskinException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -27,6 +29,27 @@ class ApiExceptionHandler {
             .body(FeilResponse(e.message ?: "Ugyldig forespørsel", HttpStatus.BAD_REQUEST.value()))
     }
 
+    @ExceptionHandler(ManglerTilgangTilPersonFeil::class)
+    fun handleManglerTilgang(e: ManglerTilgangTilPersonFeil): ResponseEntity<ManglerTilgangResponse> {
+        logger.info("Mangler tilgang til person")
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(ManglerTilgangResponse(melding = e.melding))
+    }
+
+    @ExceptionHandler(TilgangsmaskinException::class)
+    fun handleTilgangsmaskinException(e: TilgangsmaskinException): ResponseEntity<FeilResponse> {
+        logger.warn("Kunne ikke sjekke tilgang mot tilgangsmaskinen: {} (httpStatus={})", e.message, e.httpStatus)
+        return ResponseEntity
+            .status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(
+                FeilResponse(
+                    melding = "Vi kunne ikke sjekke om du har tilgang. Prøv igjen om litt.",
+                    status = HttpStatus.SERVICE_UNAVAILABLE.value(),
+                ),
+            )
+    }
+
     @ExceptionHandler(NoResourceFoundException::class)
     fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<FeilResponse> {
         // Re-throw sånn at Spring kan håndtere sin egne resource not found exceptions
@@ -52,4 +75,8 @@ class ApiExceptionHandler {
 data class FeilResponse(
     val melding: String,
     val status: Int,
+)
+
+data class ManglerTilgangResponse(
+    val melding: String,
 )

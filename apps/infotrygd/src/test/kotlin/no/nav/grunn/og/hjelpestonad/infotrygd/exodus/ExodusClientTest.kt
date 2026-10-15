@@ -23,7 +23,7 @@ class ExodusClientTest {
     private val server = MockRestServiceServer.bindTo(restClientBuilder).build()
 
     private val texasClient =
-        object : TexasClient("http://texas", RestClient.builder()) {
+        object : TexasClient("http://texas", "http://texas/exchange", RestClient.builder()) {
             override fun hentMaskinToken(scope: String) = "token-for-$scope"
         }
 

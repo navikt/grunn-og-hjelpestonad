@@ -50,6 +50,9 @@ spec:
                 -   application: grunn-og-hjelp-exodus
                     namespace: grunn-og-hjelp
                     cluster: dev-gcp
+                -   application: populasjonstilgangskontroll
+                    namespace: tilgangsmaskin
+                    cluster: dev-gcp
 
                     # Team logs
                 -   application: logging

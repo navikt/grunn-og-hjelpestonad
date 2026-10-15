@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.infotrygd.security
 import org.slf4j.LoggerFactory
 import org.springframework.core.convert.converter.Converter
 import org.springframework.security.authentication.AbstractAuthenticationToken
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
@@ -44,8 +45,8 @@ class AzureJwtAuthenticationConverter : Converter<Jwt, AbstractAuthenticationTok
 
 class ManglendeClaimException(
     message: String,
-) : RuntimeException(message)
+) : AuthenticationException(message)
 
 class UtilstrekkeligTilgangException(
     message: String,
-) : RuntimeException(message)
+) : AuthenticationException(message)

@@ -22,6 +22,12 @@ azure:
 nais:
     texas:
         token-endpoint: http://localhost:7575/api/v1/token
+        token-exchange-endpoint: http://localhost:7575/api/v1/token/exchange
+
+integrasjoner:
+    tilgangsmaskin:
+        url: http://localhost:9998
+        scope: api://test.tilgangsmaskin.populasjonstilgangskontroll/.default
 
 exodus:
     base-url: http://localhost:9999
