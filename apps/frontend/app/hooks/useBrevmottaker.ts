@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
-import { apiCall, type ApiResponse } from "~/api/backend";
+import {
+  hentBrevmottakere as hentBrevmottakereKall,
+  oppdaterBrevmottakere,
+} from "~/api/generated/sdk.gen";
+import type { BrevmottakerRequest, BrevmottakerResponse } from "~/api/generated/types.gen";
 import { usePersonContext } from "~/fellesContext/PersonContext";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 export enum BrevmottakerRolle {
   BRUKER = "BRUKER",
@@ -14,13 +19,9 @@ export enum MottakerType {
   ORGANISASJON = "ORGANISASJON",
 }
 
-export interface Brevmottaker {
-  personRolle?: BrevmottakerRolle;
-  mottakerType: MottakerType;
-  personident?: string;
-  orgnr?: string;
-  navnHosOrganisasjon?: string;
-}
+export type Brevmottaker = Omit<BrevmottakerResponse, "personRolle"> & {
+  personRolle?: BrevmottakerRolle | BrevmottakerResponse["personRolle"];
+};
 
 export const useBrevmottaker = (behandlingId?: string) => {
   const { personident } = usePersonContext();
@@ -29,33 +30,53 @@ export const useBrevmottaker = (behandlingId?: string) => {
   const sendMottakereTilSak = async (
     behandlingId: string,
     brevmottakere: Brevmottaker[]
-  ): Promise<ApiResponse<unknown>> => {
-    return apiCall(`/brevmottaker/settMottakere/${behandlingId}`, {
-      method: "POST",
-      body: JSON.stringify(brevmottakere),
-    });
+  ): Promise<{ data?: unknown; feilmelding?: string }> => {
+    try {
+      const { data } = await oppdaterBrevmottakere({
+        path: { behandlingId },
+        body: brevmottakere as BrevmottakerRequest[],
+        throwOnError: true,
+      });
+      return { data };
+    } catch (feil: unknown) {
+      return { feilmelding: feilmeldingFra(feil, "Kunne ikke lagre brevmottakere.") };
+    }
   };
 
   useEffect(() => {
     if (!behandlingId) return;
 
-    const hentBrevmottakere = async () => {
-      const response = await apiCall<Brevmottaker[]>(`/brevmottaker/${behandlingId}`);
+    const controller = new AbortController();
+    const { signal } = controller;
 
-      if (response.data && response.data.length > 0) {
-        settMottakere(response.data);
-      } else {
-        const søker: Brevmottaker = {
-          mottakerType: MottakerType.PERSON,
-          personRolle: BrevmottakerRolle.BRUKER,
-          personident: personident,
-        };
-        settMottakere([søker]);
-        await sendMottakereTilSak(behandlingId, [søker]);
+    const hentBrevmottakere = async () => {
+      try {
+        const { data }: { data: BrevmottakerResponse[] } = await hentBrevmottakereKall({
+          path: { behandlingId },
+          signal,
+          throwOnError: true,
+        });
+        if (signal.aborted) return;
+
+        if (data.length > 0) {
+          settMottakere(data);
+        } else {
+          const søker: Brevmottaker = {
+            mottakerType: MottakerType.PERSON,
+            personRolle: BrevmottakerRolle.BRUKER,
+            personident: personident,
+          };
+          settMottakere([søker]);
+          await sendMottakereTilSak(behandlingId, [søker]);
+        }
+      } catch {
+        if (signal.aborted) return;
+        return;
       }
     };
 
-    hentBrevmottakere();
+    void hentBrevmottakere();
+    return () => controller.abort();
   }, [behandlingId, personident]);
 
   const leggTilMottaker = (mottaker: Brevmottaker) => {

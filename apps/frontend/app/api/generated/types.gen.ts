@@ -962,6 +962,21 @@ export type HentVedtakResponses = {
 
 export type HentVedtakResponse = HentVedtakResponses[keyof HentVedtakResponses];
 
+export type HentFeatureTogglesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/unleash/toggles';
+};
+
+export type HentFeatureTogglesResponses = {
+    200: {
+        [key: string]: boolean;
+    };
+};
+
+export type HentFeatureTogglesResponse = HentFeatureTogglesResponses[keyof HentFeatureTogglesResponses];
+
 export type HentTestDataData = {
     body?: never;
     path?: never;

@@ -13,9 +13,6 @@ import type { Oppsett } from "./types.js";
 
 const PORT_NUMMER = process.env.PORT;
 const KLIENT_MAPPE = path.resolve("build/client");
-const GRUNN_OG_HJELP_BEHANDLING_URL_DEV = "http://grunn-og-hjelpestonad";
-const GRUNN_OG_HJELP_BEHANDLING_AUDIENCE_DEV =
-  "api://dev-gcp.grunn-og-hjelp.grunn-og-hjelpestonad/.default";
 
 const hentBackendUrl = (): string => {
   if (MILJØ.env === "lokalt") {
@@ -65,14 +62,6 @@ app.get("/metrics", exposeMetrics);
 
 app.use(express.json());
 
-app.use(
-  "/api/etterlatte-behandling",
-  lagApiProxy(
-    GRUNN_OG_HJELP_BEHANDLING_URL_DEV,
-    erLokaltMiljø,
-    erLokaltMiljø ? undefined : GRUNN_OG_HJELP_BEHANDLING_AUDIENCE_DEV
-  )
-);
 app.use("/api", lagApiProxy(BACKEND_URL, erLokaltMiljø));
 
 if (erLokaltMiljø) {

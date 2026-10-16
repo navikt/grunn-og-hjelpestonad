@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiCall } from "~/api/backend";
-import type { AnsvarligSaksbehandlerResponse } from "~/types/saksbehandler";
+import { hentAnsvarligSaksbehandler as hentAnsvarligSaksbehandlerApi } from "~/api/generated/sdk.gen";
+import type { AnsvarligSaksbehandlerResponse } from "~/api/generated/types.gen";
 
 export function useHentAnsvarligSaksbehandler(behandlingId: string | undefined) {
   const [ansvarligSaksbehandler, settAnsvarligSaksbehandler] =
@@ -14,21 +14,29 @@ export function useHentAnsvarligSaksbehandler(behandlingId: string | undefined) 
   useEffect(() => {
     if (!behandlingId) return;
 
-    let avbrutt = false;
+    const controller = new AbortController();
+    const { signal } = controller;
 
-    void apiCall<AnsvarligSaksbehandlerResponse>(`/oppgave/ansvarlig-saksbehandler`, {
-      method: "POST",
-      body: JSON.stringify({ behandlingId }),
-    }).then((respons) => {
-      if (avbrutt) return;
+    const hent = async () => {
+      try {
+        const { data } = await hentAnsvarligSaksbehandlerApi({
+          body: { behandlingId },
+          signal,
+          throwOnError: true,
+        });
+        if (signal.aborted) return;
 
-      settAnsvarligSaksbehandler(respons.data ?? null);
-      settFullførtHenting(gjeldendeHenting);
-    });
-
-    return () => {
-      avbrutt = true;
+        settAnsvarligSaksbehandler(data);
+      } catch {
+        if (signal.aborted) return;
+        settAnsvarligSaksbehandler(null);
+      } finally {
+        if (!signal.aborted) settFullførtHenting(gjeldendeHenting);
+      }
     };
+
+    void hent();
+    return () => controller.abort();
   }, [behandlingId, gjeldendeHenting]);
 
   const hentPåNytt = useCallback(() => settHentIndeks((indeks) => indeks + 1), []);

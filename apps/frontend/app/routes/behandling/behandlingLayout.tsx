@@ -9,9 +9,9 @@ import {
 } from "~/komponenter/navbar/BehandlingFaner";
 import { Side } from "~/komponenter/layout/Side";
 import { HøyreMeny } from "~/komponenter/behandling/høyremeny/HøyreMeny";
-import { apiCall, type ApiResponse } from "~/api/backend";
-import type { ÅrsakBehandlingResponse } from "~/hooks/useÅrsakBehandling";
-import type { Behandling } from "~/types/behandling";
+import { hentBehandling, hentÅrsakBehandling } from "~/api/generated/sdk.gen";
+import type { BehandlingResponse } from "~/api/generated/types.gen";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 import { useLesevisningsContext } from "~/fellesContext/LesevisningsContext";
 import { Box, Button } from "@navikt/ds-react";
 import { AnsvarligSaksbehandler } from "~/komponenter/behandling/høyremeny/AnsvarligSaksbehandler";
@@ -57,7 +57,7 @@ export default function BehandlingLayout() {
   }>();
   const [ferdigeSteg, settFerdigeSteg] = useState<Steg[]>([]);
   const [årsakState, settÅrsakState] = useState<ÅrsakState | undefined>(undefined);
-  const [behandling, settBehandling] = useState<Behandling | undefined>(undefined);
+  const [behandling, settBehandling] = useState<BehandlingResponse | undefined>(undefined);
   const [årsakDataHentet, settÅrsakDataHentet] = useState(false);
   const { settErLesevisning } = useLesevisningsContext();
   const revalidator = useRevalidator();
@@ -81,32 +81,37 @@ export default function BehandlingLayout() {
   useEffect(() => {
     if (!behandlingId || årsakDataHentet) return;
 
+    const controller = new AbortController();
+    const { signal } = controller;
+
     const hentData = async () => {
       try {
-        const behandlingResponse: ApiResponse<Behandling> = await apiCall(`/behandling/hent`, {
-          method: "POST",
-          body: JSON.stringify({ behandlingId }),
+        const { data: behandlingData } = await hentBehandling({
+          body: { behandlingId },
+          signal,
+          throwOnError: true,
         });
+        if (signal.aborted) return;
 
-        if (behandlingResponse.data) {
-          settBehandling(behandlingResponse.data);
-        }
+        settBehandling(behandlingData);
 
-        const årsakResponse: ApiResponse<ÅrsakBehandlingResponse> = await apiCall(
-          `/arsak/${behandlingId}`
-        );
+        const { data: årsakData, response } = await hentÅrsakBehandling({
+          path: { behandlingId },
+          signal,
+          throwOnError: true,
+        });
+        if (signal.aborted) return;
 
         const initialFerdigeSteg: Steg[] = [];
 
-        if (årsakResponse.data) {
-          const data = årsakResponse.data;
+        if (response.status !== 204) {
           settÅrsakState({
-            kravdato: new Date(data.kravdato),
-            årsak: data.årsak || "",
-            beskrivelse: data.beskrivelse,
+            kravdato: new Date(årsakData.kravdato),
+            årsak: årsakData.årsak || "",
+            beskrivelse: årsakData.beskrivelse,
           });
 
-          const erÅrsakFerdig = data.kravdato && data.årsak;
+          const erÅrsakFerdig = årsakData.kravdato && årsakData.årsak;
           if (erÅrsakFerdig) {
             initialFerdigeSteg.push("Årsak behandling");
           }
@@ -114,13 +119,19 @@ export default function BehandlingLayout() {
 
         settFerdigeSteg(initialFerdigeSteg);
         settÅrsakDataHentet(true);
-      } catch (error) {
-        console.error("Kunne ikke hente behandlingsdata:", error);
+      } catch (feil: unknown) {
+        if (signal.aborted) return;
+        console.error(
+          "Kunne ikke hente behandlingsdata:",
+          feilmeldingFra(feil, "Kunne ikke hente behandlingsdata")
+        );
         settÅrsakDataHentet(true);
       }
     };
 
     hentData();
+
+    return () => controller.abort();
   }, [behandlingId, årsakDataHentet]);
 
   useEffect(() => {
@@ -146,16 +157,17 @@ export default function BehandlingLayout() {
     if (!behandlingId) return;
 
     try {
-      const response: ApiResponse<Behandling> = await apiCall(`/behandling/hent`, {
-        method: "POST",
-        body: JSON.stringify({ behandlingId }),
+      const { data } = await hentBehandling({
+        body: { behandlingId },
+        throwOnError: true,
       });
 
-      if (response.data) {
-        settBehandling(response.data);
-      }
-    } catch (error) {
-      console.error("Kunne ikke hente behandling:", error);
+      settBehandling(data);
+    } catch (feil: unknown) {
+      console.error(
+        "Kunne ikke hente behandling:",
+        feilmeldingFra(feil, "Kunne ikke hente behandling")
+      );
     }
   }, [behandlingId]);
 
@@ -168,19 +180,23 @@ export default function BehandlingLayout() {
     if (!behandlingId) return;
 
     try {
-      const response: ApiResponse<ÅrsakBehandlingResponse> = await apiCall(
-        `/arsak/${behandlingId}`
-      );
+      const { data, response } = await hentÅrsakBehandling({
+        path: { behandlingId },
+        throwOnError: true,
+      });
 
-      if (response.data) {
-        settÅrsakState({
-          kravdato: new Date(response.data.kravdato),
-          årsak: response.data.årsak || "",
-          beskrivelse: response.data.beskrivelse,
-        });
-      }
-    } catch (error) {
-      console.error("Kunne ikke hente årsak data:", error);
+      if (response.status === 204) return;
+
+      settÅrsakState({
+        kravdato: new Date(data.kravdato),
+        årsak: data.årsak || "",
+        beskrivelse: data.beskrivelse,
+      });
+    } catch (feil: unknown) {
+      console.error(
+        "Kunne ikke hente årsak data:",
+        feilmeldingFra(feil, "Kunne ikke hente årsak data")
+      );
     }
   }, [behandlingId]);
 

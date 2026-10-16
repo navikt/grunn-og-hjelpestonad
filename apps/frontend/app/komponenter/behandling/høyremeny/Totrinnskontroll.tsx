@@ -88,7 +88,9 @@ export const Totrinnskontroll = () => {
 
 const SendtTilBeslutter: React.FC<{
   behandlingId: string;
-  angreSendTilBeslutter: (behandlingId: string) => Promise<{ data?: unknown }>;
+  angreSendTilBeslutter: (
+    behandlingId: string
+  ) => Promise<{ data?: unknown; feilmelding?: string }>;
   revaliderBehandling: () => void;
   hentTotrinnskontrollStatusPåNytt: () => void;
   hentAnsvarligSaksbehandlerPåNytt: () => void;

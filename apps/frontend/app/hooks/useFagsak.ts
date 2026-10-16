@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import type { ApiResponse } from "~/api/backend";
 import { hentFagsak as hentFagsakApi } from "~/api/generated/sdk.gen";
 import type { FagsakRequest, FagsakResponse } from "~/api/generated/types.gen";
 import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
@@ -14,8 +13,13 @@ interface FagsakState {
   laster: boolean;
 }
 
+interface FagsakResultat {
+  data?: FagsakResponse;
+  melding?: string;
+}
+
 // Bare lesing. Fagsaken opprettes eksplisitt fra søket, se useOpprettFagsak.
-async function hentFagsakForPerson(fagsakPersonId: string): Promise<ApiResponse<FagsakResponse>> {
+async function hentFagsakForPerson(fagsakPersonId: string): Promise<FagsakResultat> {
   if (!erGyldigFagsakPersonId(fagsakPersonId)) {
     return { melding: "Ugyldig fagsakPersonId" };
   }
