@@ -107,7 +107,7 @@ class DiagnoseRepositoryTest {
     }
 
     @Test
-    fun `vedtak med endringskode UA eller AN gir ingen rad`() {
+    fun `vedtak med bare endringskode UA eller AN gir ingen rad`() {
         listOf("UA", "AN").forEachIndexed { index, kode ->
             val fnr = if (index == 0) "01017012345" else "02027012345"
             val reversertFnr = if (index == 0) "70010112345" else "70020212345"
@@ -119,6 +119,18 @@ class DiagnoseRepositoryTest {
             emptyList(),
             diagnoseRepository.hentSisteDiagnoser(setOf("01017012345", "02027012345"), setOf(Stønadstype.GRUNNSTØNAD)),
         )
+    }
+
+    @Test
+    fun `vedtak med UA og en gyldig endringskode gir rad`() {
+        val fnr = "01017012345"
+        lagreVedtak(fnr, "70010112345", endringskode = "F")
+        testdata.lagreTEndring("100", "UA")
+        lagreDiagnose("1", "100", "70010112345", YearMonth.of(2025, 10), "G400 diagnose")
+
+        val diagnoser = diagnoseRepository.hentSisteDiagnoser(setOf(fnr), setOf(Stønadstype.GRUNNSTØNAD))
+
+        assertEquals(listOf("G400"), diagnoser.map { it.diagnosekode })
     }
 
     @Test
@@ -136,6 +148,25 @@ class DiagnoseRepositoryTest {
         lagreVedtak(fnr, "70010112345", saksblokk = "A", saksnummer = "123", lagreTilhørendeSak = false)
         testdata.lagreSaSak10("1", "70010112345", "B", "123")
         testdata.lagreSaSak10("2", "70010112345", "A", "456")
+        lagreDiagnose("1", "100", "70010112345", YearMonth.of(2025, 10), "G400 diagnose")
+
+        assertEquals(emptyList(), diagnoseRepository.hentSisteDiagnoser(setOf(fnr), setOf(Stønadstype.GRUNNSTØNAD)))
+    }
+
+    @Test
+    fun `vedtak uten endringskode gir ingen rad`() {
+        val fnr = "01017012345"
+        lagreVedtak(fnr, "70010112345", endringskode = null)
+        lagreDiagnose("1", "100", "70010112345", YearMonth.of(2025, 10), "G400 diagnose")
+
+        assertEquals(emptyList(), diagnoseRepository.hentSisteDiagnoser(setOf(fnr), setOf(Stønadstype.GRUNNSTØNAD)))
+    }
+
+    @Test
+    fun `vedtak som hører til GH-sak med annen stønadstype gir ingen rad`() {
+        val fnr = "01017012345"
+        lagreVedtak(fnr, "70010112345", lagreTilhørendeSak = false)
+        testdata.lagreSaSak10("1", "70010112345", "A", "123", valg = Stønadstype.HJELPESTØNAD.kodeRutine)
         lagreDiagnose("1", "100", "70010112345", YearMonth.of(2025, 10), "G400 diagnose")
 
         assertEquals(emptyList(), diagnoseRepository.hentSisteDiagnoser(setOf(fnr), setOf(Stønadstype.GRUNNSTØNAD)))
@@ -203,15 +234,17 @@ class DiagnoseRepositoryTest {
         vedtakId: String = "100",
         saksblokk: String = "A",
         saksnummer: String = "123",
-        endringskode: String = "F",
+        endringskode: String? = "F",
         harDelytelse: Boolean = true,
         lagreTilhørendeSak: Boolean = true,
     ) {
         testdata.lagreTLopenrFnr(personLøpenr, fnr)
         testdata.lagreTStonad(stønadId, personLøpenr, stønadstype.kodeRutine)
         testdata.lagreTVedtak(vedtakId, stønadId, personLøpenr, stønadstype.kodeRutine, saksblokk, saksnummer)
-        testdata.lagreTEndring(vedtakId, endringskode)
+        if (endringskode != null) testdata.lagreTEndring(vedtakId, endringskode)
         if (harDelytelse) testdata.lagreTDelytelse(vedtakId)
-        if (lagreTilhørendeSak) testdata.lagreSaSak10("$vedtakId", reversertFnr, saksblokk, saksnummer)
+        if (lagreTilhørendeSak) {
+            testdata.lagreSaSak10(vedtakId, reversertFnr, saksblokk, saksnummer, valg = stønadstype.kodeRutine)
+        }
     }
 }

@@ -52,22 +52,23 @@ class DiagnoseRepository(
                                             on vedt.person_lopenr = ston.person_lopenr
                                                 and vedt.stonad_id = ston.stonad_id
                               where fnr.personnr = rp.fnr_ddmmåå
-                                -- GH/HS-sak som vedtaket hører til
+                                -- GH-sak med samme stønadstype som vedtaket hører til
                                 and exists (select 1
                                             from sa_sak_10 s10
                                             where s10.f_nr = ev05.f_nr
                                               and s10.s10_kapittelnr = 'GH'
+                                              and s10.s10_valg = ev05.ev05_valg
                                               and s10.s05_saksblokk = vedt.saksblokk
                                               and s10.s10_saksnr::bigint = vedt.saksnr)
                                 -- Vedtaket har minst én delytelse
                                 and exists (select 1
                                             from t_delytelse dely
                                             where dely.vedtak_id = vedt.vedtak_id)
-                                -- Ikke annullert eller ugyldig
-                                and not exists (select 1
-                                                from t_endring endr
-                                                where endr.vedtak_id = vedt.vedtak_id
-                                                  and endr.kode in ('UA', 'AN')))
+                                -- Minst én endringskode som ikke er annullert eller ugyldig
+                                and exists (select 1
+                                            from t_endring endr
+                                            where endr.vedtak_id = vedt.vedtak_id
+                                              and endr.kode not in ('UA', 'AN')))
                 order by rp.fnr_ddmmåå, ev05.ev05_valg, diagnose_ååååmm, diagnosekode
                 """.trimIndent(),
             ).param("fnr", personidenter.toList())

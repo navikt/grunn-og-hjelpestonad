@@ -115,6 +115,7 @@ class ReplikaTestdata(
         saksblokk: String,
         saksnummer: String,
         kapittelnr: String = "GH",
+        valg: String = "GS",
     ) = lagre(
         ExodusTabell.SA_SAK_10,
         "id_sak" to id,
@@ -122,6 +123,7 @@ class ReplikaTestdata(
         "s05_saksblokk" to saksblokk,
         "s10_saksnr" to saksnummer,
         "s10_kapittelnr" to kapittelnr,
+        "s10_valg" to valg,
     )
 
     companion object {

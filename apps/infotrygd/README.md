@@ -116,8 +116,9 @@ perioder uten `oppdrag_id` filtreres bort, med mindre beløpet er 0 kr.
 Diagnosekoden er de fire første tegnene i `ev10_text`. Resten av teksten sendes
 ikke ut, fordi diagnosen er en helseopplysning etter GDPR art. 9.
 
-- Personen må ha et vedtak på stønaden som har en delytelse, ikke er annullert
-  eller ugyldig (`UA`, `AN`) og hører til en GH-sak i `sa_sak_10`.
+- Personen må ha et vedtak på stønaden som har en delytelse og minst én
+  endringskode som ikke er annullert eller ugyldig (`AN`, `UA`), og som hører
+  til en GH-sak i `sa_sak_10` med samme `s10_valg` som stønadstypen.
 - `s10_saksnr` sammenlignes som tall med `t_vedtak.saksnr`, så `0123` treffer
   `123`. Et saksnummer som ikke er et tall, gir feil for hele kallet.
 - `ev_data_10` kan ha flere rader per person og måned. Vi vet ikke ennå hvilke
