@@ -869,6 +869,11 @@ export const zHentVedtakPath = z.object({
  */
 export const zHentVedtakResponse = zVedtakResponse;
 
+/**
+ * OK
+ */
+export const zHentFeatureTogglesResponse = z.record(z.string(), z.boolean());
+
 export const zHentTestDataQuery = z.object({
     testId: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
 });

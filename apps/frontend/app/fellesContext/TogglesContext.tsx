@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from "react";
-import { client } from "~/api/generated/client.gen";
+import { hentFeatureToggles } from "~/api/generated/sdk.gen";
 import { type Toggles } from "~/types/toggles";
 
 export interface ToggleContext {
@@ -21,12 +21,7 @@ export const TogglesProvider: React.FC<{
 
     const hentToggles = async () => {
       try {
-        // UnleashController mangler i OpenAPI-spesifikasjonen som brukes til å generere SDK-en.
-        const { data } = await client.get<{ 200: Record<string, boolean> }, unknown, true>({
-          url: "/api/unleash/toggles",
-          throwOnError: true,
-          signal,
-        });
+        const { data } = await hentFeatureToggles({ throwOnError: true, signal });
         if (signal.aborted) return;
         settToggles(data || {});
       } catch {
