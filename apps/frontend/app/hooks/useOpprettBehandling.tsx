@@ -1,9 +1,6 @@
 import { useState } from "react";
-import { apiCall, type ApiResponse } from "~/api/backend";
-
-interface OpprettBehandlingResponse {
-  behandlingId: string;
-}
+import { opprettBehandling as opprettBehandlingApi } from "~/api/generated/sdk.gen";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 interface OpprettBehandling {
   opprettBehandling: (fagsakId: string) => Promise<string | undefined>;
@@ -16,28 +13,23 @@ export const useOpprettBehandling = (): OpprettBehandling => {
   const [opprettFeilmelding, settOpprettFeilmelding] = useState<string | null>(null);
 
   const opprettBehandling = async (fagsakId: string): Promise<string | undefined> => {
-    const opprettBehandlingApi = (
-      fagsakId: string
-    ): Promise<ApiResponse<OpprettBehandlingResponse>> => {
-      return apiCall(`/behandling/opprett`, {
-        method: "POST",
-        body: JSON.stringify({ fagsakId }),
-      });
-    };
-
     settOppretter(true);
     settOpprettFeilmelding(null);
 
-    const response = await opprettBehandlingApi(fagsakId);
-
-    if (!response.data && response.melding) {
-      settOpprettFeilmelding(response.melding);
-      settOppretter(false);
+    try {
+      const { data } = await opprettBehandlingApi({
+        body: { fagsakId },
+        throwOnError: true,
+      });
+      return data.behandlingId;
+    } catch (feil: unknown) {
+      settOpprettFeilmelding(
+        feilmeldingFra(feil, "Vi kunne ikke opprette behandlingen. Prøv igjen senere.")
+      );
       return undefined;
+    } finally {
+      settOppretter(false);
     }
-
-    settOppretter(false);
-    return response.data?.behandlingId;
   };
 
   return {

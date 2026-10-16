@@ -1,10 +1,11 @@
 import React from "react";
-import type { Dokumentinfo } from "~/api/dokument";
+import type { DokumentinfoResponse } from "~/api/generated/types.gen";
 import { BodyShort, Detail, Tag, Tooltip } from "@navikt/ds-react";
 import { InboxDownIcon, PaperplaneIcon, DocPencilIcon, PaperclipIcon } from "@navikt/aksel-icons";
-import type { Journalposttype } from "~/api/journalføring";
 import type { TagFarge } from "~/types/farge";
 import styles from "./Dokumentliste.module.css";
+
+type Journalposttype = DokumentinfoResponse["journalposttype"];
 
 interface JournalposttypeMeta {
   tekst: string;
@@ -45,7 +46,7 @@ function formaterDato(datoStreng?: string): string {
 }
 
 export interface Props {
-  dokument: Dokumentinfo;
+  dokument: DokumentinfoResponse;
   fagsakPersonId: string;
 }
 
@@ -103,8 +104,8 @@ export const DokumentListeElement: React.FC<Props> = ({ dokument, fagsakPersonId
         )}
         {dokument.logiskeVedlegg.length > 0 && (
           <div className={styles.vedleggListe}>
-            {dokument.logiskeVedlegg.map((vedlegg) => (
-              <div key={vedlegg.logiskVedleggId} className={styles.vedleggRad}>
+            {dokument.logiskeVedlegg.map((vedlegg, index) => (
+              <div key={`${vedlegg.tittel}-${index}`} className={styles.vedleggRad}>
                 <PaperclipIcon className={styles.vedleggIkon} aria-hidden />
                 <Detail textColor="subtle">{vedlegg.tittel}</Detail>
               </div>

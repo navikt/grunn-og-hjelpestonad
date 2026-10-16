@@ -1,12 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import type { ÅrsakType } from "~/types/årsak";
-import type {
-  ÅrsakBehandlingRequest,
-  ÅrsakBehandlingResponse,
-} from "~/api/generated/types.gen";
+import type { ÅrsakBehandlingResponse } from "~/api/generated/types.gen";
+import { lagreÅrsakBehandling } from "~/api/generated/sdk.gen";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
-import { apiCall, type ApiResponse } from "~/api/backend";
 import { oppdaterEndringshistorikk } from "~/utils/endringshistorikkEvent";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 export type { ÅrsakBehandlingResponse };
 
@@ -97,16 +95,6 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
   }, [oppdaterÅrsakState]);
 
   const lagre = useCallback(async (): Promise<boolean> => {
-    const lagreÅrsakBehandling = (
-      behandlingId: string,
-      request: ÅrsakBehandlingRequest
-    ): Promise<ApiResponse<ÅrsakBehandlingResponse>> => {
-      return apiCall(`/arsak/${behandlingId}`, {
-        method: "POST",
-        body: JSON.stringify(request),
-      });
-    };
-
     if (!behandlingId || !årsakState?.kravdato || !årsakState?.årsak) {
       return false;
     }
@@ -115,23 +103,22 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
     settFeilmelding("");
 
     try {
-      const response = await lagreÅrsakBehandling(behandlingId, {
-        kravdato: tilLocalDateString(årsakState.kravdato),
-        årsak: årsakState.årsak,
-        beskrivelse: årsakState.beskrivelse,
+      await lagreÅrsakBehandling({
+        path: { behandlingId },
+        body: {
+          kravdato: tilLocalDateString(årsakState.kravdato),
+          årsak: årsakState.årsak,
+          beskrivelse: årsakState.beskrivelse,
+        },
+        throwOnError: true,
       });
 
-      if (response.data) {
-        settErLagretOverstyring(true);
-        oppdaterEndringshistorikk();
-        hentBehandlingPåNytt();
-        return true;
-      }
-
-      settFeilmelding(response.melding || "Kunne ikke lagre årsak for behandling");
-      return false;
-    } catch {
-      settFeilmelding("En uventet feil oppstod ved lagring");
+      settErLagretOverstyring(true);
+      oppdaterEndringshistorikk();
+      hentBehandlingPåNytt();
+      return true;
+    } catch (feil: unknown) {
+      settFeilmelding(feilmeldingFra(feil, "En uventet feil oppstod ved lagring"));
       return false;
     } finally {
       settLaster(false);

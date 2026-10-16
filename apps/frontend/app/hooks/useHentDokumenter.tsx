@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { apiCall, type ApiResponse } from "~/api/backend";
-import type { Dokumentinfo } from "~/api/dokument";
+import { hentJournalPostForBrukerId } from "~/api/generated/sdk.gen";
+import type { DokumentinfoResponse } from "~/api/generated/types.gen";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 interface DokumenterState {
-  dokumenter: [Dokumentinfo] | null;
+  dokumenter: DokumentinfoResponse[] | null;
   melding: string | null;
   laster: boolean;
 }
@@ -16,20 +17,10 @@ export function useHentDokumenter(fagsakPersonId: string | undefined) {
   });
 
   useEffect(() => {
-    const hentDokumenterForPerson = async (
-      fagsakPersonId: string
-    ): Promise<ApiResponse<[Dokumentinfo]>> => {
-      return apiCall(`/saf/dokumenter`, {
-        method: "POST",
-        body: JSON.stringify({ fagsakPersonId }),
-      });
-    };
-
-    let avbrutt = false;
+    const controller = new AbortController();
+    const { signal } = controller;
 
     const hentDokumenter = async () => {
-      if (avbrutt) return;
-
       if (!fagsakPersonId) {
         settState((prev) => ({
           ...prev,
@@ -41,24 +32,33 @@ export function useHentDokumenter(fagsakPersonId: string | undefined) {
 
       settState((prev) => ({ ...prev, melding: null, laster: true }));
 
-      const response = await hentDokumenterForPerson(fagsakPersonId);
-
-      if (avbrutt) return;
-
-      if (response.data) {
+      try {
+        const { data } = await hentJournalPostForBrukerId({
+          body: { fagsakPersonId },
+          signal,
+          throwOnError: true,
+        });
+        if (signal.aborted) return;
         settState((prev) => ({
           ...prev,
-          dokumenter: response.data ?? null,
+          dokumenter: data,
+          melding: null,
+          laster: false,
+        }));
+      } catch (feil: unknown) {
+        if (signal.aborted) return;
+        settState((prev) => ({
+          ...prev,
+          dokumenter: null,
+          melding: feilmeldingFra(feil, "Vi kunne ikke hente dokumenter. Prøv igjen senere."),
           laster: false,
         }));
       }
     };
 
-    hentDokumenter();
+    void hentDokumenter();
 
-    return () => {
-      avbrutt = true;
-    };
+    return () => controller.abort();
   }, [fagsakPersonId]);
 
   return state;

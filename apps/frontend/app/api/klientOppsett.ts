@@ -4,7 +4,7 @@ import { varsleManglerTilgang } from "~/utils/manglerTilgangEvent";
 /**
  * Registrerer 403-interceptoren på den genererte klienten. Fetch-klienten tar ikke
  * interceptors gjennom `createClientConfig`, så de må settes på klientinstansen etter at
- * den er opprettet. Speiler oppførselen i `apiCall` i `app/api/backend.ts`.
+ * den er opprettet. Interceptoren varsler når brukeren mangler tilgang.
  *
  * Kjører kun i nettleseren. Klienten er bevisst nettleser-only: `baseUrl` er relativ
  * (`/api`), og express-proxyen veksler token basert på brukerens innkommende request.

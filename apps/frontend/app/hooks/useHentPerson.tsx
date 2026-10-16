@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
-import { apiCall, type ApiResponse } from "~/api/backend";
-import type { Navn, Person } from "~/fellesContext/PersonContext";
+import { hentPerson } from "~/api/generated/sdk.gen";
+import type { PersonResponse } from "~/api/generated/types.gen";
+import type { Person } from "~/fellesContext/PersonContext";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 interface PersonState {
   person: Person | null;
   melding: string | null;
   laster: boolean;
-}
-
-interface PdlPersonResponse {
-  navn: Navn;
-  foedselsdato: string;
 }
 
 export function useHentPdlNavn(fagsakPersonId: string | undefined) {
@@ -21,20 +18,10 @@ export function useHentPdlNavn(fagsakPersonId: string | undefined) {
   });
 
   useEffect(() => {
-    const hentPersonFraPdl = async (
-      fagsakPersonId: string
-    ): Promise<ApiResponse<PdlPersonResponse>> => {
-      return apiCall(`/pdl/person`, {
-        method: "POST",
-        body: JSON.stringify({ fagsakPersonId }),
-      });
-    };
+    const controller = new AbortController();
+    const { signal } = controller;
 
-    let avbrutt = false;
-
-    const hentPerson = async () => {
-      if (avbrutt) return;
-
+    const hentPersonFraPdl = async () => {
       if (!fagsakPersonId) {
         settState((prev) => ({
           ...prev,
@@ -47,36 +34,39 @@ export function useHentPdlNavn(fagsakPersonId: string | undefined) {
 
       settState((prev) => ({ ...prev, melding: null, laster: true }));
 
-      const response = await hentPersonFraPdl(fagsakPersonId);
-
-      if (avbrutt) return;
-
-      if (response.data) {
-        const pdlPerson = response.data;
-
+      try {
+        const { data }: { data: PersonResponse } = await hentPerson({
+          body: { fagsakPersonId },
+          signal,
+          throwOnError: true,
+        });
+        if (signal.aborted) return;
         settState((prev) => ({
           ...prev,
           person: {
-            navn: pdlPerson.navn,
-            fødselsdato: pdlPerson.foedselsdato,
+            navn: {
+              ...data.navn,
+              mellomnavn: data.navn.mellomnavn ?? undefined,
+            },
+            fødselsdato: data.foedselsdato,
           },
+          melding: null,
           laster: false,
         }));
-      } else {
+      } catch (feil: unknown) {
+        if (signal.aborted) return;
         settState((prev) => ({
           ...prev,
           person: null,
-          melding: response.melding ?? "Fant ikke navn i PDL",
+          melding: feilmeldingFra(feil, "Fant ikke navn i PDL"),
           laster: false,
         }));
       }
     };
 
-    hentPerson();
+    void hentPersonFraPdl();
 
-    return () => {
-      avbrutt = true;
-    };
+    return () => controller.abort();
   }, [fagsakPersonId]);
 
   return state;

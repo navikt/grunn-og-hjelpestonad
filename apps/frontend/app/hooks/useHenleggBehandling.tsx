@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { apiCall } from "~/api/backend";
+import { henleggBehandling as henleggBehandlingApi } from "~/api/generated/sdk.gen";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 interface HenleggBehandling {
   henleggBehandling: (behandlingId: string) => Promise<boolean>;
@@ -16,17 +17,15 @@ export const useHenleggBehandling = (): HenleggBehandling => {
     settHenleggFeilmelding(null);
 
     try {
-      const response = await apiCall(`/behandling/henlegg`, {
-        method: "POST",
-        body: JSON.stringify({ behandlingId }),
+      await henleggBehandlingApi({
+        body: { behandlingId },
+        throwOnError: true,
       });
 
-      if (response.melding) {
-        settHenleggFeilmelding(response.melding);
-        return false;
-      }
-
       return true;
+    } catch (feil: unknown) {
+      settHenleggFeilmelding(feilmeldingFra(feil, "Kunne ikke henlegge behandling"));
+      return false;
     } finally {
       settLaster(false);
     }

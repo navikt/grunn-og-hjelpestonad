@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from "react";
-import { apiCall } from "~/api/backend";
+import { client } from "~/api/generated/client.gen";
 import { type Toggles } from "~/types/toggles";
 
 export interface ToggleContext {
@@ -16,14 +16,29 @@ export const TogglesProvider: React.FC<{
   const [laster, settLaster] = useState(true);
 
   useEffect(() => {
-    void apiCall<Record<string, boolean>>("/unleash/toggles").then((response) => {
-      if (response.status) {
-        console.error("Feil ved henting av toggles:", response.status);
-      } else {
-        settToggles(response.data || {});
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    const hentToggles = async () => {
+      try {
+        // UnleashController mangler i OpenAPI-spesifikasjonen som brukes til å generere SDK-en.
+        const { data } = await client.get<{ 200: Record<string, boolean> }, unknown, true>({
+          url: "/api/unleash/toggles",
+          throwOnError: true,
+          signal,
+        });
+        if (signal.aborted) return;
+        settToggles(data || {});
+      } catch {
+        if (signal.aborted) return;
+        console.error("Feil ved henting av toggles");
+      } finally {
+        if (!signal.aborted) settLaster(false);
       }
-      settLaster(false);
-    });
+    };
+
+    void hentToggles();
+    return () => controller.abort();
   }, []);
 
   const value: ToggleContext = {

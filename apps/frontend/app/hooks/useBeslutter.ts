@@ -1,34 +1,60 @@
 import { useState } from "react";
-import { apiCall, type ApiResponse } from "~/api/backend";
+import {
+  angreSendTilBeslutter as angreSendTilBeslutterKall,
+  besluttVedtak as besluttVedtakKall,
+  sendTilBeslutter as sendTilBeslutterKall,
+} from "~/api/generated/sdk.gen";
 import type { BeslutteVedtakRequest } from "~/api/generated/types.gen";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 export const useBeslutter = () => {
   const [sender, settSender] = useState(false);
 
-  const kallBeslutterEndepunkt = async (
-    endpoint: string,
-    behandlingId: string,
-    body?: unknown
-  ): Promise<ApiResponse> => {
+  const sendTilBeslutter = async (behandlingId: string) => {
     settSender(true);
     try {
-      return await apiCall(`/beslutter/${endpoint}/${behandlingId}`, {
-        method: "POST",
-        body: body ? JSON.stringify(body) : undefined,
+      const { data } = await sendTilBeslutterKall({
+        path: { behandlingId },
+        throwOnError: true,
       });
+      return { data };
+    } catch (feil: unknown) {
+      return { feilmelding: feilmeldingFra(feil, "Kunne ikke sende vedtak til beslutter.") };
     } finally {
       settSender(false);
     }
   };
 
-  const sendTilBeslutter = (behandlingId: string) =>
-    kallBeslutterEndepunkt("send-til-beslutter", behandlingId);
+  const angreSendTilBeslutter = async (behandlingId: string) => {
+    settSender(true);
+    try {
+      const { data } = await angreSendTilBeslutterKall({
+        path: { behandlingId },
+        throwOnError: true,
+      });
+      return { data };
+    } catch (feil: unknown) {
+      return { feilmelding: feilmeldingFra(feil, "Kunne ikke angre sending til beslutter.") };
+    } finally {
+      settSender(false);
+    }
+  };
 
-  const angreSendTilBeslutter = (behandlingId: string) =>
-    kallBeslutterEndepunkt("angre-send-til-beslutter", behandlingId);
-
-  const besluttVedtak = (behandlingId: string, beslutteVedtakRequest: BeslutteVedtakRequest) =>
-    kallBeslutterEndepunkt("beslutt-vedtak", behandlingId, beslutteVedtakRequest);
+  const besluttVedtak = async (behandlingId: string, body: BeslutteVedtakRequest) => {
+    settSender(true);
+    try {
+      const { data } = await besluttVedtakKall({
+        path: { behandlingId },
+        body,
+        throwOnError: true,
+      });
+      return { data };
+    } catch (feil: unknown) {
+      return { feilmelding: feilmeldingFra(feil, "Kunne ikke beslutte vedtak.") };
+    } finally {
+      settSender(false);
+    }
+  };
 
   return {
     sender,

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { apiCall, type ApiResponse } from "~/api/backend";
-import type { Behandling } from "~/types/behandling";
+import { hentBehandlinger as hentBehandlingerApi } from "~/api/generated/sdk.gen";
+import type { BehandlingResponse } from "~/api/generated/types.gen";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 interface BehandlingerState {
-  behandlinger: [Behandling] | null;
+  behandlinger: BehandlingResponse[] | null;
   melding: string | null;
   laster: boolean;
 }
@@ -16,14 +17,8 @@ export function useHentBehandlinger(fagsakId: string | undefined) {
   });
 
   useEffect(() => {
-    const hentBehandlingerForFagsak = async (
-      fagsakId: string
-    ): Promise<ApiResponse<[Behandling]>> => {
-      return apiCall(`/behandling/hentBehandlinger`, {
-        method: "POST",
-        body: JSON.stringify({ fagsakId }),
-      });
-    };
+    const controller = new AbortController();
+    const { signal } = controller;
 
     const hentBehandlinger = async () => {
       if (!fagsakId) {
@@ -37,18 +32,31 @@ export function useHentBehandlinger(fagsakId: string | undefined) {
 
       settState((prev) => ({ ...prev, melding: null, laster: true }));
 
-      const response = await hentBehandlingerForFagsak(fagsakId);
-
-      if (response.data) {
+      try {
+        const { data } = await hentBehandlingerApi({
+          body: { fagsakId },
+          signal,
+          throwOnError: true,
+        });
+        if (signal.aborted) return;
         settState((prev) => ({
           ...prev,
-          behandlinger: response.data ?? null,
+          behandlinger: data,
+          melding: null,
+          laster: false,
+        }));
+      } catch (feil: unknown) {
+        if (signal.aborted) return;
+        settState((prev) => ({
+          ...prev,
+          melding: feilmeldingFra(feil, "Vi kunne ikke hente behandlingene. Prøv igjen senere."),
           laster: false,
         }));
       }
     };
 
-    hentBehandlinger();
+    void hentBehandlinger();
+    return () => controller.abort();
   }, [fagsakId]);
 
   return state;

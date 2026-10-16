@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { apiCall } from "~/api/backend";
+import { fordelOppgave } from "~/api/generated/sdk.gen";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 interface TildelOppgaveState {
   laster: boolean;
@@ -15,21 +16,23 @@ export const useTildelOppgave = () => {
   const tildelOppgave = async (behandlingId: string, saksbehandler: string): Promise<boolean> => {
     settState({ laster: true, feilmelding: null });
 
-    const response = await apiCall<number>("/oppgave/fordel", {
-      method: "POST",
-      body: JSON.stringify({ behandlingId, saksbehandler }),
-    });
-
-    if (response.status === "404") {
+    try {
+      await fordelOppgave({
+        body: { behandlingId, saksbehandler },
+        throwOnError: true,
+      });
+    } catch (feil: unknown) {
+      const erIkkeFunnet =
+        feil !== null &&
+        typeof feil === "object" &&
+        "status" in feil &&
+        (feil.status === "404" || feil.status === 404);
       settState({
         laster: false,
-        feilmelding: "Ingen oppgave funnet for denne behandlingen. Oppgaven kan ikke tildeles.",
+        feilmelding: erIkkeFunnet
+          ? "Ingen oppgave funnet for denne behandlingen. Oppgaven kan ikke tildeles."
+          : feilmeldingFra(feil, "Kunne ikke tildele oppgaven. Prøv igjen senere."),
       });
-      return false;
-    }
-
-    if (response.melding) {
-      settState({ laster: false, feilmelding: response.melding });
       return false;
     }
 

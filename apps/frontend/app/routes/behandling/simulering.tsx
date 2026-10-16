@@ -3,7 +3,9 @@ import React, { useCallback, useEffect, useState } from "react";
 import type { Route } from "./+types/simulering";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 import { useStegNavigering } from "~/hooks/useStegNavigering";
-import { apiCall, type ApiResponse } from "~/api/backend";
+import { hentSimuleringsresultat } from "~/api/generated/sdk.gen";
+import type { SimuleringResultatResponse } from "~/api/generated/types.gen";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { SimuleringTabell } from "~/komponenter/simulering/SimuleringTabell";
 import { SimuleringOppsummering } from "~/komponenter/simulering/SimuleringOppsummering";
@@ -21,69 +23,62 @@ export function meta(_args: Route.MetaArgs) {
 
 const STEG_PATH: StegPath = "simulering";
 
-export interface SimuleringResultat {
-  perioder: SimuleringPeriode[];
-  fom: string;
-  tomSisteUtbetaling: string;
-  fomDatoNestePeriode: string | null;
-  etterbetaling: number;
-  feilutbetaling: number;
-}
-
-export interface SimuleringPeriode {
-  fom: string;
-  tom: string;
-  nyttBeløp: number;
-  tidligereUtbetalt: number;
-  resultat: number;
-  feilutbetaling: number;
-}
-
-const hentSimulertResultat = async (
-  behandlingId: string
-): Promise<ApiResponse<SimuleringResultat>> => {
-  return await apiCall(`/simulering/${behandlingId}/resultat`, {
-    method: "GET",
-  });
-};
+export type SimuleringResultat = SimuleringResultatResponse;
+export type SimuleringPeriode = SimuleringResultatResponse["perioder"][number];
 
 export default function Simulering() {
   const { behandlingId } = useBehandlingContext();
   const { harForrigeSteg, navigerTilNeste } = useStegNavigering(STEG_PATH);
-  const [simuleringResultat, settSimuleringResultat] = useState<SimuleringResultat | null>(null);
+  const [simuleringResultat, settSimuleringResultat] = useState<SimuleringResultatResponse | null>(
+    null
+  );
   const [statusMelding, settStatusMelding] = useState<string>("");
   const [laster, settLaster] = useState(true);
 
-  const handleHentResultat = useCallback(async () => {
-    const resultat = await hentSimulertResultat(behandlingId);
-    if (resultat.data) {
-      settSimuleringResultat(resultat.data);
-      settStatusMelding("Simulering fullført");
-      settLaster(false);
-      return true;
-    }
-    return false;
-  }, [behandlingId]);
+  const handleHentResultat = useCallback(
+    async (signal?: AbortSignal): Promise<"funnet" | "feil" | "mangler" | "avbrutt"> => {
+      try {
+        const { data, response } = await hentSimuleringsresultat({
+          path: { behandlingId },
+          signal,
+          throwOnError: true,
+        });
+        if (signal?.aborted) return "avbrutt";
+        if (response.status === 204) return "mangler";
+        settSimuleringResultat(data);
+        settStatusMelding("Simulering fullført");
+        settLaster(false);
+        return "funnet";
+      } catch (feil: unknown) {
+        if (signal?.aborted) return "avbrutt";
+        settStatusMelding(
+          feilmeldingFra(feil, "Vi kunne ikke hente simuleringsresultatet. Prøv igjen senere.")
+        );
+        settLaster(false);
+        return "feil";
+      }
+    },
+    [behandlingId]
+  );
 
   useEffect(() => {
-    let avbrutt = false;
+    const controller = new AbortController();
+    const { signal } = controller;
 
     const hentVedInnlasting = async () => {
-      const fantSimuleringResultat = await handleHentResultat();
-      if (fantSimuleringResultat || avbrutt) return;
+      const resultat = await handleHentResultat(signal);
+      if (resultat !== "mangler" || signal.aborted) return;
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      if (!avbrutt) {
+      if (!signal.aborted) {
         settLaster(false);
         settStatusMelding("Simulering er ikke ferdig. Prøv igjen om litt");
       }
     };
 
-    hentVedInnlasting();
-    return () => {
-      avbrutt = true;
-    };
-  }, [behandlingId, handleHentResultat]);
+    void hentVedInnlasting();
+    return () => controller.abort();
+  }, [handleHentResultat]);
 
   if (laster) {
     return <Loader size="medium" title="Henter simuleringsresultat..." />;
@@ -93,7 +88,7 @@ export default function Simulering() {
     <VStack gap={"space-24"}>
       <Box>
         {!simuleringResultat && (
-          <Button variant="secondary" onClick={handleHentResultat}>
+          <Button variant="secondary" onClick={() => void handleHentResultat()}>
             Hent simuleringsresultat
           </Button>
         )}

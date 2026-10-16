@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiCall, type ApiResponse } from "~/api/backend";
+import {
+  hentMellomlagretBrev as hentMellomlagretBrevKall,
+  lagBrevTask,
+  mellomlagreBrev as mellomlagreBrevKall,
+} from "~/api/generated/sdk.gen";
+import type { BrevResponse } from "~/api/generated/types.gen";
 import { brevmaler } from "~/komponenter/brev/brevmaler";
-import type { Brevmal, MellomlagretBrev, Tekstbolk } from "~/komponenter/brev/typer";
+import type { Brevmal, Tekstbolk } from "~/komponenter/brev/typer";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 export const useBrev = (behandlingId?: string) => {
   const [brevMal, settBrevmal] = useState<Brevmal | null>(null);
@@ -53,21 +59,18 @@ export const useBrev = (behandlingId?: string) => {
 
   const sendPdfTilSak = async (
     behandlingId: string,
-    brevmal: Brevmal,
-    fritekstbolker: Tekstbolk[]
-  ): Promise<ApiResponse<unknown>> => {
+    _brevmal: Brevmal,
+    _fritekstbolker: Tekstbolk[]
+  ): Promise<{ data?: unknown; feilmelding?: string }> => {
     settSender(true);
     try {
-      return apiCall(`/brev/lag-task/${behandlingId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          brevmal,
-          fritekstbolker,
-        }),
+      const { data } = await lagBrevTask({
+        path: { behandlingId },
+        throwOnError: true,
       });
+      return { data };
+    } catch (feil: unknown) {
+      return { feilmelding: feilmeldingFra(feil, "Kunne ikke sende brev til sak.") };
     } finally {
       settSender(false);
     }
@@ -78,40 +81,70 @@ export const useBrev = (behandlingId?: string) => {
       behandlingId: string,
       brevmal: Brevmal,
       fritekstbolker: Tekstbolk[]
-    ): Promise<ApiResponse> => {
+    ): Promise<{ data?: unknown }> => {
       try {
-        return apiCall(`/brev/mellomlagre/${behandlingId}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+        const { data } = await mellomlagreBrevKall({
+          path: { behandlingId },
+          body: {
             brevmal,
             fritekstbolker,
-          }),
+          },
+          throwOnError: true,
         });
-      } catch (error) {
-        throw new Error("Feil ved mellomlagring av brev: " + error);
+        return { data };
+      } catch (feil: unknown) {
+        throw new Error(
+          "Feil ved mellomlagring av brev: " +
+            feilmeldingFra(feil, "Feil ved mellomlagring av brev.")
+        );
       }
     },
     []
   );
 
-  const hentMellomlagretBrev = useCallback(() => {
-    if (!behandlingId) return;
+  const hentMellomlagretBrev = useCallback(
+    async (signal: AbortSignal) => {
+      if (!behandlingId) return;
 
-    return apiCall<MellomlagretBrev>(`/brev/hentMellomlagretBrev/${behandlingId}`, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-    }).then((res) => {
-      if (!res.data) return;
-      settBrevmal(res.data.brevmal ?? null);
-      settFritekstbolker(res.data.fritekstbolker ?? []);
-    });
-  }, [behandlingId]);
+      try {
+        const { data, response }: { data: BrevResponse; response: Response } =
+          await hentMellomlagretBrevKall({
+            path: { behandlingId },
+            signal,
+            throwOnError: true,
+          });
+        if (signal.aborted) return;
+        if (response.status === 204) return;
+        settBrevmal({
+          ...data.brevmal,
+          fastTekstAvslutning: data.brevmal.fastTekstAvslutning.map(
+            ({ underoverskrift, ...bolk }) => ({
+              ...bolk,
+              underoverskrift: underoverskrift ?? undefined,
+            })
+          ),
+        });
+        settFritekstbolker(
+          data.fritekstbolker.map(({ underoverskrift, ...bolk }) => ({
+            ...bolk,
+            underoverskrift: underoverskrift ?? undefined,
+          }))
+        );
+      } catch {
+        if (signal.aborted) return;
+        console.error("Kunne ikke hente mellomlagret brev.");
+      }
+    },
+    [behandlingId]
+  );
 
   useEffect(() => {
-    hentMellomlagretBrev();
+    const controller = new AbortController();
+    const timer = setTimeout(() => void hentMellomlagretBrev(controller.signal), 0);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [hentMellomlagretBrev]);
 
   return {

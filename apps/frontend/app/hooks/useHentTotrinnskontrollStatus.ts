@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiCall } from "~/api/backend";
+import { hentTotrinnskontrollStatus as hentTotrinnskontrollStatusApi } from "~/api/generated/sdk.gen";
+import type { TotrinnskontrollStatusResponse } from "~/api/generated/types.gen";
 import type { TotrinnskontrollResponse } from "~/types/totrinnskontroll";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 export const useHentTotrinnskontrollStatus = (behandlingId: string | undefined) => {
   const [totrinnskontrollStatus, settTotrinnskontrollStatus] =
-    useState<TotrinnskontrollResponse | null>(null);
+    useState<TotrinnskontrollStatusResponse | null>(null);
   const [hentIndeks, settHentIndeks] = useState(0);
   const [fullførtHenting, settFullførtHenting] = useState<string | null>(null);
 
@@ -14,28 +16,39 @@ export const useHentTotrinnskontrollStatus = (behandlingId: string | undefined) 
   useEffect(() => {
     if (!behandlingId) return;
 
-    let avbrutt = false;
+    const controller = new AbortController();
+    const { signal } = controller;
 
-    void apiCall<TotrinnskontrollResponse>(
-      `/beslutter/totrinnskontroll-status/${behandlingId}`
-    ).then((respons) => {
-      if (avbrutt) return;
+    const hentStatus = async () => {
+      try {
+        const { data } = await hentTotrinnskontrollStatusApi({
+          path: { behandlingId },
+          signal,
+          throwOnError: true,
+        });
+        if (signal.aborted) return;
 
-      if (respons.data) {
-        settTotrinnskontrollStatus(respons.data);
+        settTotrinnskontrollStatus(data);
+        settFullførtHenting(gjeldendeHenting);
+      } catch (feil: unknown) {
+        if (signal.aborted) return;
+        console.error(
+          "Kunne ikke hente totrinnskontrollstatus:",
+          feilmeldingFra(feil, "Kunne ikke hente totrinnskontrollstatus")
+        );
+        settFullførtHenting(gjeldendeHenting);
       }
-      settFullførtHenting(gjeldendeHenting);
-    });
-
-    return () => {
-      avbrutt = true;
     };
+
+    void hentStatus();
+
+    return () => controller.abort();
   }, [behandlingId, gjeldendeHenting]);
 
   const hentPåNytt = useCallback(() => settHentIndeks((indeks) => indeks + 1), []);
 
   return {
-    totrinnskontrollStatus,
+    totrinnskontrollStatus: totrinnskontrollStatus as TotrinnskontrollResponse | null,
     laster,
     hentPåNytt,
   };
