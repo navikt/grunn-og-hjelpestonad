@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.periode
 
+import no.nav.grunn.og.hjelpestonad.infotrygd.evaluering.InfotrygdEvaluering
 import no.nav.grunn.og.hjelpestonad.infotrygd.stønad.Stønadstype
 import no.nav.grunn.og.hjelpestonad.infotrygd.util.PersonidentValidator
 import java.math.BigDecimal
@@ -34,6 +35,8 @@ data class PerioderResponse(
  * @param stønadFom fom på delytelsen
  * @param stønadTom tom på delytelsen
  * @param trygdetidOgSats alle registreringer i t_gh for vedtaket, nyeste først
+ * @param evaluering siste evaluering (EV05/EV10) for saken vedtaket hører til. Null når saken ikke har evaluering.
+ * Gjelder alle periodene i vedtaket. Inneholder helseopplysninger (GDPR art. 9).
  */
 data class PeriodeResponse(
     val personident: String,
@@ -57,6 +60,7 @@ data class PeriodeResponse(
     val stønadTom: LocalDate?,
     val beløp: BigDecimal,
     val trygdetidOgSats: List<TrygdetidOgSatsResponse> = emptyList(),
+    val evaluering: InfotrygdEvaluering? = null,
 )
 
 /**

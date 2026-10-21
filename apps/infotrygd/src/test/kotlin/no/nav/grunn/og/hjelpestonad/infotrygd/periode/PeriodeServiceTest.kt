@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.YearMonth
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -32,6 +33,7 @@ class PeriodeServiceTest {
     private val testdata by lazy { ReplikaTestdata(jdbcTemplate, upsertRepository) }
 
     private val personident = "01017012345"
+    private val reversertPersonident = "70010112345"
 
     @BeforeEach
     fun tømTabeller() {
@@ -48,6 +50,8 @@ class PeriodeServiceTest {
         endringskode: String = "F",
         oppdragId: String? = "1",
         personLøpenr: String = "1",
+        saksblokk: String = "A",
+        saksnr: String = "123",
     ) {
         testdata.lagre(
             ExodusTabell.T_STONAD,
@@ -67,6 +71,8 @@ class PeriodeServiceTest {
             "kode_resultat" to "I ",
             "dato_innv_fom" to fom,
             "dato_innv_tom" to tom,
+            "saksblokk" to saksblokk,
+            "saksnr" to saksnr,
         )
         testdata.lagre(ExodusTabell.T_ENDRING, "vedtak_id" to vedtakId, "kode" to endringskode)
     }
@@ -191,5 +197,28 @@ class PeriodeServiceTest {
         val perioder = periodeService.hentPerioder(PeriodeRequest(setOf(personident), setOf(Stønadstype.HJELPESTØNAD)))
 
         assertEquals(setOf(Stønadstype.HJELPESTØNAD), perioder.keys)
+    }
+
+    @Test
+    fun `periode får evalueringen fra vedtakets sak`() {
+        val måned = YearMonth.of(2025, 10)
+        lagreVedtak(stønadId = "10", vedtakId = "100", kodeRutine = "GS", saksblokk = "A", saksnr = "123")
+        lagreDelytelse("100", fom = "2020-01-01", tom = null)
+        testdata.lagreSaSak10("1", reversertPersonident, "A", "123")
+        testdata.lagreEvValg05("1", "100", ReplikaTestdata.ev05Sekvens(måned), "GS", reversertPersonident, sak = "A123")
+        testdata.lagreEvData10("1", "100", ReplikaTestdata.ev05Sekvens(måned), "G400 diagnose", posisjon = "055")
+
+        val evaluering = hentPerioder().getValue(Stønadstype.GRUNNSTØNAD).single().evaluering
+
+        assertEquals("G400", evaluering?.diagnose1)
+        assertEquals(måned, evaluering?.månedNotertIInfotrygd)
+    }
+
+    @Test
+    fun `periode uten evaluering har evaluering lik null`() {
+        lagreVedtak(stønadId = "10", vedtakId = "100", kodeRutine = "GS")
+        lagreDelytelse("100", fom = "2020-01-01", tom = null)
+
+        assertNull(hentPerioder().getValue(Stønadstype.GRUNNSTØNAD).single().evaluering)
     }
 }

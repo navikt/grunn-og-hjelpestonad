@@ -54,7 +54,6 @@ class EndepunktRegisterTest {
     companion object {
         private val MED_PERSONSJEKK =
             setOf(
-                "DiagnoseController#hentDiagnoser",
                 "PeriodeController#hentPerioder",
                 "SakController#finnSaker",
                 "StønadController#eksisterer",
