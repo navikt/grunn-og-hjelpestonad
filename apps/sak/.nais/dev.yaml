@@ -109,9 +109,9 @@ spec:
             tenant: trygdeetaten.no
             claims:
                 groups:
-                    - id: 7ce9d1d2-d149-4324-832b-8d459762a102 # Saksbehandler
-                    - id: 84c4a287-abd6-46c1-bf93-dbf90f1a326d # Beslutter
-                    - id: a181921e-2a55-4198-896b-0086cc805278 # Lesetilgang
+                    - id: 7ce9d1d2-d149-4324-832b-8d459762a102 # Saksbehandler (0000-CA-grunn-og-hjelp-saksbehandler)
+                    - id: 84c4a287-abd6-46c1-bf93-dbf90f1a326d # Beslutter (0000-CA-grunn-og-hjelp-beslutter)
+                    - id: a181921e-2a55-4198-896b-0086cc805278 # Lesetilgang (0000-CA-grunn-og-hjelp-lesetilgang)
                 extra:
                     - "NAVident"
                     - "azp_name"
