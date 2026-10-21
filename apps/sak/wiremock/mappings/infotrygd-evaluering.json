@@ -1,0 +1,84 @@
+{
+  "name": "Infotrygd - perioder",
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/infotrygd/perioder"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "grunnstønad": [
+        {
+          "personident": "{{jsonPath request.body '$.personidenter[0]'}}",
+          "stønadstype": "GRUNNSTØNAD",
+          "sakstype": "S",
+          "kode": "F",
+          "brukerId": "Z123456",
+          "stønadId": 1,
+          "vedtakId": 2,
+          "vedtakstidspunkt": "2026-08-10T09:30:00",
+          "vedtakKodeResultat": "I",
+          "startDato": "2026-08-01",
+          "innvilgetFom": "2026-08-01",
+          "innvilgetTom": null,
+          "opphørsdato": null,
+          "oppdragId": null,
+          "typeDelytelse": "E",
+          "typeSats": "M",
+          "typeUtbetaling": "M",
+          "stønadFom": "2026-08-01",
+          "stønadTom": null,
+          "beløp": 1234.50,
+          "trygdetidOgSats": [],
+          "evaluering": {
+            "månedNotertIInfotrygd": "2026-08",
+            "diagnose1": "K900",
+            "diagnose2": "L130",
+            "sats": "0123",
+            "hjemmelbokstav": "B",
+            "virkningstidspunkt": "2026-08",
+            "motstridendeFelt": []
+          }
+        }
+      ],
+      "hjelpestønad": [
+        {
+          "personident": "{{jsonPath request.body '$.personidenter[0]'}}",
+          "stønadstype": "HJELPESTØNAD",
+          "sakstype": "S",
+          "kode": "F",
+          "brukerId": "Z123456",
+          "stønadId": 3,
+          "vedtakId": 4,
+          "vedtakstidspunkt": "2026-08-12T12:00:00",
+          "vedtakKodeResultat": "I",
+          "startDato": "2026-08-01",
+          "innvilgetFom": "2026-08-01",
+          "innvilgetTom": null,
+          "opphørsdato": null,
+          "oppdragId": null,
+          "typeDelytelse": "H",
+          "typeSats": "M",
+          "typeUtbetaling": "M",
+          "stønadFom": "2026-08-01",
+          "stønadTom": null,
+          "beløp": 987.00,
+          "trygdetidOgSats": [],
+          "evaluering": {
+            "månedNotertIInfotrygd": "2026-08",
+            "diagnose1": "K900",
+            "diagnose2": null,
+            "sats": null,
+            "hjemmelbokstav": null,
+            "virkningstidspunkt": null,
+            "motstridendeFelt": ["DIAGNOSE_2"]
+          }
+        }
+      ]
+    }
+  },
+  "priority": 10
+}

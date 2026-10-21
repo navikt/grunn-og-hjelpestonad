@@ -3,7 +3,6 @@ package no.nav.grunn.og.hjelpestonad.infotrygd
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.PerioderResponse
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import no.nav.grunn.og.hjelpestonad.util.PersonidentValidator
 import org.slf4j.LoggerFactory
@@ -31,53 +30,26 @@ class InfotrygdController(
     @PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('BESLUTTER') or hasRole('LESETILGANG')")
     @Operation(
         summary = "Hent vedtaksperioder for person fra Infotrygd",
-        description = "Henter alle vedtaksperioder for en gitt person basert på personident.",
+        description = "Henter alle vedtaksperioder for personen, med siste evaluering for saken per vedtak og ICD-10-tekst for diagnosene. Inneholder helseopplysninger.",
         security = [SecurityRequirement(name = "oauth2")],
     )
     fun hentPerioderForPerson(
         @RequestBody request: PersonidentRequest,
-    ): ResponseEntity<PerioderResponse> {
+    ): ResponseEntity<InfotrygdPerioderResponse> {
         logger.info("Henter perioder for person fra grunn-og-hjelpestonad-infotrygd")
 
-        return try {
-            PersonidentValidator.validerPersonident(request.personident)
-            tilgangService.validerTilgangTilPerson(request.personident)
-
-            val response =
-                infotrygdClient.hentPerioderForPerson(
-                    personident = request.personident,
-                )
-
-            logger.info("Hentet perioder fra Infotrygd: ${response.grunnstønad.size} grunnstønad, ${response.hjelpestønad.size} hjelpestønad")
-            ResponseEntity.ok(response)
-        } catch (exception: Exception) {
-            logger.error("Feil ved henting av perioder fra grunn-og-hjelpestonad-infotrygd: ${exception.message}", exception)
-            throw exception
-        }
-    }
-
-    @PostMapping("/diagnose")
-    @PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('BESLUTTER') or hasRole('LESETILGANG')")
-    @Operation(
-        summary = "Hent diagnoser for person fra Infotrygd",
-        description = "Henter diagnosene registrert i siste måned per stønadstype. Tom liste med stønadstyper gir begge.",
-        security = [SecurityRequirement(name = "oauth2")],
-    )
-    fun hentDiagnoserForPerson(
-        @RequestBody request: InfotrygdDiagnoseRequest,
-    ): ResponseEntity<InfotrygdDiagnoserResponse> {
         PersonidentValidator.validerPersonident(request.personident)
         tilgangService.validerTilgangTilPerson(request.personident)
-        // Diagnosekoder er helseopplysninger (GDPR art. 9). InfotrygdClient logger bare antall og status.
+
+        val response =
+            infotrygdClient
+                .hentPerioderForPerson(personident = request.personident)
+                .tilInfotrygdPerioderResponse()
+
+        logger.info("Hentet perioder fra Infotrygd: ${response.grunnstønad.size} grunnstønad, ${response.hjelpestønad.size} hjelpestønad")
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noStore())
-            .body(
-                infotrygdClient
-                    .hentDiagnoser(
-                        personident = request.personident,
-                        stønadstyper = request.stønadstyper,
-                    ).tilInfotrygdDiagnoserResponse(),
-            )
+            .body(response)
     }
 }
