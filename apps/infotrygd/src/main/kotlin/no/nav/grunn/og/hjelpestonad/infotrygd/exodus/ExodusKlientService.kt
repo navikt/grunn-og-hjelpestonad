@@ -21,6 +21,7 @@ open class ExodusKlientService(
     private val properties: ExodusProperties,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
 
     open fun replikerNesteSide(tabell: ExodusTabell): SideResultat {
         val iterator = statusRepository.finn(tabell.tabellnavn)?.iterator
@@ -29,7 +30,8 @@ open class ExodusKlientService(
             try {
                 exodusClient.hentUttrekk(tabell, iterator, properties.batchStorrelse)
             } catch (e: NyBaselineException) {
-                logger.warn("Ny baseline i Exodus (oppdaget på ${tabell.tabellnavn}). Tømmer alle tabeller og starter på nytt.", e)
+                logger.warn("Ny baseline i Exodus (oppdaget på ${tabell.tabellnavn}). Tømmer alle tabeller og starter på nytt.")
+                secureLogger.warn("Ny baseline i Exodus (oppdaget på ${tabell.tabellnavn})", e)
                 skrivService.nullstillAlleTabeller()
                 return SideResultat.NY_BASELINE
             }

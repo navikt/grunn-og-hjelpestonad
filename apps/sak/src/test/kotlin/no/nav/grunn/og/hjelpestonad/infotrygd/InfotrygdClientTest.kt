@@ -18,6 +18,7 @@ import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeAll
@@ -25,7 +26,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.match.MockRestRequestMatchers
+import org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 import org.springframework.web.client.ResourceAccessException
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientException
 import java.time.Duration
 import java.time.LocalDate
 
@@ -275,15 +282,19 @@ class InfotrygdClientTest {
         }
 
         @Test
-        fun `ugyldig JSON gir Feil uten cause og med generell melding`() {
-            wireMockServer.stubFor(
-                post(urlEqualTo("/api/infotrygd/diagnose"))
-                    .willReturn(
-                        aResponse()
-                            .withHeader("Content-Type", "application/json")
-                            .withBody("""{"diagnoser": [{"diagnosekode": "sensitive-value"}]}"""),
-                    ),
-            )
+        fun `ugyldig JSON gir generell melding og beholder cause for Team Logs`() {
+            val builder = RestClient.builder()
+            val server = MockRestServiceServer.bindTo(builder).build()
+            val client =
+                InfotrygdClient(
+                    texasClient = texasClient,
+                    restClientBuilder = builder,
+                    infotrygdUrl = "http://infotrygd",
+                    grunnOgHjelpestonadInfotrygdAudience = AUDIENCE,
+                )
+            server
+                .expect(MockRestRequestMatchers.requestTo("http://infotrygd/api/infotrygd/diagnose"))
+                .andRespond(withSuccess("""{"diagnoser": [{"diagnosekode": "sensitive-value"}]}""", MediaType.APPLICATION_JSON))
 
             val feil =
                 assertThrows(Feil::class.java) {
@@ -291,7 +302,8 @@ class InfotrygdClientTest {
                 }
 
             assertEquals("Kunne ikke hente diagnoser fra Infotrygd", feil.message)
-            assertNull(feil.cause)
+            assertInstanceOf(RestClientException::class.java, feil.cause)
+            server.verify()
         }
     }
 }

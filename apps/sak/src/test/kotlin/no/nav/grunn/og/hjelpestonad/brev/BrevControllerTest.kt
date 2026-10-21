@@ -19,8 +19,10 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import tools.jackson.databind.ObjectMapper
 import java.util.UUID
+import kotlin.test.assertIs
 
 @WebMvcTest(BrevController::class)
 @ContextConfiguration(classes = [ApplicationLocalSetup::class])
@@ -101,6 +103,23 @@ open class BrevControllerTest {
                 status { isBadRequest() }
             }
 
+        verify(exactly = 0) {
+            brevService.mellomlagreBrev(any(), any())
+        }
+    }
+
+    @Test
+    fun `returnerer 400 ved ugyldig behandlingId i stien`() {
+        val resultat =
+            mockMvc
+                .post("/api/brev/mellomlagre/ikke-en-uuid") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = "{}"
+                }.andExpect {
+                    status { isBadRequest() }
+                }.andReturn()
+
+        assertIs<MethodArgumentTypeMismatchException>(resultat.resolvedException)
         verify(exactly = 0) {
             brevService.mellomlagreBrev(any(), any())
         }

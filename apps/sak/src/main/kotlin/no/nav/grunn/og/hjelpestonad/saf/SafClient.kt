@@ -16,6 +16,7 @@ class SafClient(
     restClientBuilder: RestClient.Builder,
 ) {
     private val logger = LoggerFactory.getLogger(SafClient::class.java)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
     private val safGraphqlClient = restClientBuilder.clone().baseUrl(safConfig.safUri.toString()).build()
     private val safDocumentClient = restClientBuilder.clone().baseUrl(safConfig.safBaseUri.toString()).build()
 
@@ -47,7 +48,8 @@ class SafClient(
         } catch (e: SafException) {
             throw e
         } catch (e: Exception) {
-            logger.error("Teknisk feil ved SAF-operasjon: hentSafJournalpostBrukerData", e)
+            logger.error("Teknisk feil ved SAF-operasjon: hentSafJournalpostBrukerData")
+            secureLogger.error("Teknisk feil ved SAF-operasjon: hentSafJournalpostBrukerData", e)
             throw SafException("Teknisk feil ved hentSafJournalpostBrukerData", e)
         }
     }
@@ -68,7 +70,8 @@ class SafClient(
                 ?.also { logger.info("Hentet dokument fra SAF") }
                 ?: throw NoSuchElementException("Tomt svar fra SAF")
         } catch (e: Exception) {
-            logger.error("Feil ved henting av dokument fra SAF", e)
+            logger.error("Feil ved henting av dokument fra SAF")
+            secureLogger.error("Feil ved henting av dokument fra SAF", e)
             throw e
         }
     }
@@ -78,10 +81,13 @@ class SafClient(
         operasjon: String,
     ) {
         if (!errors.isNullOrEmpty()) {
-            logger.error("SAF returnerte {} feil ved {}", errors.size, operasjon)
-            throw SafException(
-                "Feil ved $operasjon: ${errors.first().message ?: "Ukjent feil"}",
-            )
+            val feil =
+                SafException(
+                    "Feil ved $operasjon: ${errors.first().message ?: "Ukjent feil"}",
+                )
+            logger.warn("SAF returnerte {} feil ved {}", errors.size, operasjon)
+            secureLogger.warn("SAF returnerte feil ved {}: {}", operasjon, errors, feil)
+            throw feil
         }
     }
 

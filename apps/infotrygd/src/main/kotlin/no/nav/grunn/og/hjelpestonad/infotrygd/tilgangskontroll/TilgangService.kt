@@ -9,6 +9,7 @@ class TilgangService(
     private val tilgangsmaskinClient: TilgangsmaskinClient,
 ) {
     private val logger = LoggerFactory.getLogger(TilgangService::class.java)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
 
     fun filtrerPersonerMedTilgang(personidenter: Set<String>): Set<String> {
         validerAntall(personidenter.size)
@@ -19,7 +20,8 @@ class TilgangService(
 
         val bortfiltrert = personidenter.size - medTilgang.size
         if (bortfiltrert > 0) {
-            logger.info(
+            logger.info("Filtrerte bort {} av {} personer uten tilgang", bortfiltrert, personidenter.size)
+            secureLogger.info(
                 "Filtrerte bort {} av {} personer uten tilgang, saksbehandler={}",
                 bortfiltrert,
                 personidenter.size,
@@ -44,7 +46,8 @@ class TilgangService(
     ) {
         val avslag = personidenter.flatMap { getValue(it) }.filterNot { it.harTilgang }
         if (avslag.isNotEmpty()) {
-            logger.info(
+            logger.info("Mangler tilgang til én eller flere personer")
+            secureLogger.info(
                 "Mangler tilgang til {} av {} personer, avvisningskoder={}, traceIder={}, saksbehandler={}",
                 avslag.map { it.personident }.distinct().size,
                 personidenter.size,
@@ -62,7 +65,8 @@ class TilgangService(
     ) {
         val utenSvar = personidenter.count { this[it].isNullOrEmpty() }
         if (utenSvar > 0) {
-            logger.warn(
+            logger.warn("Tilgangsmaskinen svarte ikke for {} av {} personer", utenSvar, personidenter.size)
+            secureLogger.warn(
                 "Tilgangsmaskinen svarte ikke for {} av {} personer, saksbehandler={}",
                 utenSvar,
                 personidenter.size,
