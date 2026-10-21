@@ -50,19 +50,18 @@ open class TilgangsmaskinClient(
         return tolkSvar(respons)
     }
 
-    // Tar ikke med cause: meldingen i en RestClientResponseException inneholder responsbodyen,
-    // som kan inneholde fødselsnumre.
     private fun tilTilgangsmaskinException(e: Exception): TilgangsmaskinException =
         when (e) {
             is RestClientResponseException -> {
                 TilgangsmaskinException(
                     message = "Feil ved kall mot tilgangsmaskinen: HTTP ${e.statusCode.value()}",
                     httpStatus = e.statusCode.value(),
+                    cause = e,
                 )
             }
 
             else -> {
-                TilgangsmaskinException("Feil ved kall mot tilgangsmaskinen: ${e.javaClass.simpleName}")
+                TilgangsmaskinException("Feil ved kall mot tilgangsmaskinen: ${e.javaClass.simpleName}", cause = e)
             }
         }
 
@@ -88,4 +87,5 @@ open class TilgangsmaskinClient(
 class TilgangsmaskinException(
     message: String,
     val httpStatus: Int? = null,
-) : RuntimeException(message)
+    cause: Throwable? = null,
+) : RuntimeException(message, cause)

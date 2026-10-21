@@ -101,6 +101,42 @@ er tydelig hvilken app som berøres.
 Alle kjører ukentlig mandag kl. 06:00 (Europe/Oslo) med fem dagers cooldown.
 npm-oppdateringer henter `@navikt`-pakker via `READER_TOKEN`.
 
+## Feillogging i Kotlin-tjenestene
+
+Sak og infotrygd skiller mellom vanlig logg (stdout, videresendt til Loki/Elastic)
+og Team Logs (tilgangsbegrenset logg i teamets GCP-prosjekt).
+
+Mønsteret følger [familie-ef-sak](https://github.com/navikt/familie-ef-sak):
+vanlige logger går til både stdout og Team Logs, mens loggeren `secureLogger`
+har `additivity="false"` og bare skriver til Team Logs.
+
+Ved feil skrives en melding uten sensitive opplysninger i vanlig logg og feildetaljene med exception
+til `secureLogger`:
+
+```kotlin
+private val logger = LoggerFactory.getLogger(javaClass)
+private val secureLogger = LoggerFactory.getLogger("secureLogger")
+
+logger.warn("Kall til ekstern tjeneste feilet")
+secureLogger.warn("Kall til ekstern tjeneste feilet", e)
+```
+
+Exception-handlerne bruker samme mønster for håndterte og uventede feil.
+Behold `cause` når en exception pakkes inn, og send exceptionen som siste
+loggargument, slik at stacktrace og årsakskjede kommer med.
+Springs `DefaultHandlerExceptionResolver` logger detaljer om ugyldige requests,
+inkludert inputverdier. Denne loggeren skriver derfor bare til Team Logs;
+HTTP-feilene beholder Springs standardhåndtering.
+
+Det er ingen automatisk maskering: ikke skriv exception-meldinger, responsbodyer,
+personopplysninger eller stacktrace til vanlig logger. Ikke logg tokens, passord
+eller andre hemmeligheter, heller ikke i Team Logs.
+MDC deles mellom loggerne og må heller ikke inneholde sensitive opplysninger.
+
+Oppsettet ligger i `logback-spring.xml` i hver tjeneste. Testkonfigurasjonen
+`logback-test.xml` bruker konsoll for lokal feilsøking. Endringene må deployes
+før de gjelder i preprod; lokal testing verifiserer ikke levering til GCP.
+
 ## Lisens
 
 [MIT](LICENSE)

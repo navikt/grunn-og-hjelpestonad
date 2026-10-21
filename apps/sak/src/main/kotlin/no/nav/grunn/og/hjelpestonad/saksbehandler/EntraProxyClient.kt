@@ -17,6 +17,7 @@ class EntraProxyClient(
     restClientBuilder: RestClient.Builder,
 ) {
     private val logger = LoggerFactory.getLogger(EntraProxyClient::class.java)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
     private val restClient = restClientBuilder.clone().baseUrl(entraProxyUrl).build()
 
     fun hentSaksbehandlerInfo(navIdent: String): SaksbehandlerResponse {
@@ -38,7 +39,8 @@ class EntraProxyClient(
                     logger.info("Hentet saksbehandlerinfo for navIdent: {}", response.navIdent)
                 } ?: throw RuntimeException("Klarte ikke å hente saksbehandlerinfo fra entra-proxy")
         } catch (e: Exception) {
-            logger.error("Feilet å hente saksbehandlerinfo", e)
+            logger.error("Feilet å hente saksbehandlerinfo")
+            secureLogger.error("Feilet å hente saksbehandlerinfo", e)
             throw e
         }
     }

@@ -20,6 +20,7 @@ class OppgaveClient(
     restClientBuilder: RestClient.Builder,
 ) {
     private val logger = LoggerFactory.getLogger(OppgaveClient::class.java)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
     private val restClient = restClientBuilder.clone().baseUrl(oppgaveUrl).build()
 
     fun opprettOppgaveM2M(oppgaveRequest: LagOppgaveRequest): OppgaveDto {
@@ -141,7 +142,8 @@ class OppgaveClient(
         try {
             kall() ?: throw NoSuchElementException("Tom respons fra oppgave")
         } catch (e: Exception) {
-            logger.error("Feil: klarte ikke {}", operasjon, e)
+            logger.error("Kall til Oppgave feilet")
+            secureLogger.error("Feil: klarte ikke {}", operasjon, e)
             throw e
         }
 

@@ -14,6 +14,7 @@ class UtbetalingProducer(
     private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
     private val topic = properties.utbetalingTopic
 
     fun sendUtbetaling(
@@ -23,7 +24,8 @@ class UtbetalingProducer(
         log.info("Sender utbetaling til topic=$topic behandlingId=${melding.behandlingId} dryrun=${melding.dryrun}")
         kafkaTemplate.send(topic, behandlingIdAsKey, objectMapper.writeValueAsString(melding)).whenComplete { result, ex ->
             if (ex != null) {
-                log.error("Feil ved sending av utbetaling behandlingId=${melding.behandlingId}", ex)
+                log.error("Feil ved sending av utbetaling")
+                secureLogger.error("Feil ved sending av utbetaling behandlingId=${melding.behandlingId}", ex)
             } else {
                 log.info("Utbetaling sendt behandlingId=${melding.behandlingId} offset=${result.recordMetadata.offset()}")
             }
@@ -38,7 +40,8 @@ class UtbetalingProducer(
         log.info("Sender simulering til topic=$simuleringTopic simuleringId=$behandlingId")
         kafkaTemplate.send(simuleringTopic, behandlingId.toString(), objectMapper.writeValueAsString(melding)).whenComplete { result, ex ->
             if (ex != null) {
-                log.error("Feil ved sending av simulering simuleringId=$behandlingId", ex)
+                log.error("Feil ved sending av simulering")
+                secureLogger.error("Feil ved sending av simulering simuleringId=$behandlingId", ex)
             } else {
                 log.info("Simulering sendt simuleringId=$behandlingId offset=${result.recordMetadata.offset()}")
             }

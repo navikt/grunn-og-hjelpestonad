@@ -22,6 +22,7 @@ class LogFilter
         @Value("\${spring.application.name}") private val applicationName: String = "grunn-og-hjelp-infotrygd",
     ) : GenericFilterBean() {
         private val log = LoggerFactory.getLogger(javaClass)
+        private val secureLogger = LoggerFactory.getLogger("secureLogger")
         private val consumerIdHeader = "Nav-Consumer-Id"
         private val callIdHeader = "Nav-Call-Id"
 
@@ -58,7 +59,8 @@ class LogFilter
                 toMDC(consumerIdHeader, request.getHeader(consumerIdHeader) ?: applicationName)
                 toMDC(callIdHeader, request.getHeader(callIdHeader) ?: UUID.randomUUID().toString())
             } catch (e: Exception) {
-                log.warn("Noe gikk galt ved setting av MDC-verdier for request {}, MDC-verdier er inkomplette", request.requestURI, e)
+                log.warn("Noe gikk galt ved setting av MDC-verdier. MDC-verdier er inkomplette.")
+                secureLogger.warn("Noe gikk galt ved setting av MDC-verdier for request {}", request.requestURI, e)
             }
         }
 

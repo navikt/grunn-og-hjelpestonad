@@ -24,6 +24,7 @@ class InfotrygdClient(
     private val grunnOgHjelpestonadInfotrygdAudience: String,
 ) {
     private val logger = LoggerFactory.getLogger(InfotrygdClient::class.java)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
     private val restClient = restClientBuilder.clone().baseUrl(infotrygdUrl).build()
 
     fun hentPerioderForPerson(personident: String): PerioderResponse {
@@ -49,9 +50,10 @@ class InfotrygdClient(
                 } ?: throw Feil("Person ikke funnet i Infotrygd", HttpStatus.NOT_FOUND)
         } catch (e: HttpClientErrorException.NotFound) {
             logger.info("Person ikke funnet i Infotrygd")
-            throw Feil("Person ikke funnet i Infotrygd", HttpStatus.NOT_FOUND)
+            throw Feil("Person ikke funnet i Infotrygd", HttpStatus.NOT_FOUND, e)
         } catch (e: Exception) {
-            logger.error("Feilet å hente perioder for person", e)
+            logger.error("Feilet å hente perioder for person")
+            secureLogger.error("Feilet å hente perioder for person", e)
             throw e
         }
     }
@@ -78,12 +80,14 @@ class InfotrygdClient(
                 } ?: throw Feil("Fikk tomt svar fra Infotrygd ved henting av diagnoser", HttpStatus.INTERNAL_SERVER_ERROR)
         } catch (e: HttpStatusCodeException) {
             logger.error("Feilet å hente diagnoser fra Infotrygd, status={}", e.statusCode.value())
+            secureLogger.error("Feilet å hente diagnoser fra Infotrygd", e)
             throw e
         } catch (e: Feil) {
             throw e
         } catch (e: Exception) {
-            logger.error("Feilet å hente diagnoser fra Infotrygd, type={}", e.javaClass.simpleName)
-            throw Feil("Kunne ikke hente diagnoser fra Infotrygd")
+            logger.error("Feilet å hente diagnoser fra Infotrygd")
+            secureLogger.error("Feilet å hente diagnoser fra Infotrygd", e)
+            throw Feil("Kunne ikke hente diagnoser fra Infotrygd", throwable = e)
         }
     }
 

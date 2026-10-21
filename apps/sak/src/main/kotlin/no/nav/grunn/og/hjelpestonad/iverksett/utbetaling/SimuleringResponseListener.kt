@@ -13,6 +13,7 @@ class SimuleringResponseListener(
     private val simuleringRepository: SimuleringRepository,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
 
     /*
     @KafkaListener(
@@ -23,7 +24,8 @@ class SimuleringResponseListener(
     fun mottaSimuleringsresultat(record: ConsumerRecord<String, String>) {
         val simuleringId =
             runCatching { UUID.fromString(record.key()) }.getOrElse {
-                log.error("Ugyldig simuleringId i Kafka-key: ${record.key()}")
+                log.error("Ugyldig simuleringId i Kafka-key")
+                secureLogger.error("Ugyldig simuleringId i Kafka-key: ${record.key()}", it)
                 return
             }
 
@@ -38,7 +40,8 @@ class SimuleringResponseListener(
             simuleringRepository.update(simulering.copy(status = SimuleringStatus.FERDIG, respons = respons))
             log.info("Simuleringssvar mottatt og lagret for simuleringId=$simuleringId")
         }.onFailure { ex ->
-            log.error("Feil ved parsing av simuleringssvar for simuleringId=$simuleringId", ex)
+            log.error("Feil ved parsing av simuleringssvar")
+            secureLogger.error("Feil ved parsing av simuleringssvar for simuleringId=$simuleringId", ex)
             simuleringRepository.update(simulering.copy(status = SimuleringStatus.FEILET))
         }
     }

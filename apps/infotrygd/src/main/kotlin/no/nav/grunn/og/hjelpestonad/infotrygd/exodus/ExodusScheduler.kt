@@ -12,6 +12,7 @@ open class ExodusScheduler(
     private val properties: ExodusProperties,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
 
     /**
      * Med virtuelle tråder bruker Spring SimpleAsyncTaskScheduler, som starter cron-jobber på nytt selv om
@@ -55,7 +56,8 @@ open class ExodusScheduler(
             logger.info("Tabell ${tabell.tabellnavn}: ${resultater.size} sider hentet, status ${resultater.lastOrNull()}")
             resultater.lastOrNull()
         } catch (e: Exception) {
-            logger.error("Replikering av tabell ${tabell.tabellnavn} feilet. Prøver igjen neste kjøring.", e)
+            logger.error("Replikering av tabell ${tabell.tabellnavn} feilet. Prøver igjen neste kjøring.")
+            secureLogger.error("Replikering av tabell ${tabell.tabellnavn} feilet", e)
             null
         }
 }

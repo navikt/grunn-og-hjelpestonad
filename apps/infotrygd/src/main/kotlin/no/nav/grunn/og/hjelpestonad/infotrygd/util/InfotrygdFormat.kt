@@ -5,6 +5,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 private val logger = LoggerFactory.getLogger("no.nav.grunn.og.hjelpestonad.infotrygd.util.InfotrygdFormat")
+private val secureLogger = LoggerFactory.getLogger("secureLogger")
 
 private val REVERSERT_FNR = """(\d\d)(\d\d)(\d\d)(\d{5})""".toRegex()
 
@@ -36,7 +37,8 @@ fun datoFraSaTabell(verdi: Int): LocalDate? {
     return try {
         LocalDate.parse("%08d".format(verdi), SA_DATO)
     } catch (e: Exception) {
-        logger.warn("Kunne ikke lese dato fra Infotrygd: '$verdi'")
+        logger.warn("Kunne ikke lese dato fra Infotrygd")
+        secureLogger.warn("Kunne ikke lese dato fra Infotrygd: '$verdi'", e)
         null
     }
 }

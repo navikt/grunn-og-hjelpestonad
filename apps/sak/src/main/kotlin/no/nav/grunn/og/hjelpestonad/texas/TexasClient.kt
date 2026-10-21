@@ -21,6 +21,7 @@ open class TexasClient(
     restClientBuilder: RestClient.Builder,
 ) {
     private val logger = LoggerFactory.getLogger(TexasClient::class.java)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
 
     private val restClient = restClientBuilder.clone().build()
 
@@ -44,10 +45,12 @@ open class TexasClient(
                     .retrieve()
                     .body<TexasTokenResponse>()
             } catch (e: RestClientResponseException) {
-                logger.error("Texas API feilet med status {}", e.statusCode)
+                logger.error("Texas API feilet med status {}", e.statusCode.value())
+                secureLogger.error("Texas API feilet", e)
                 throw RuntimeException("Kunne ikke bytte token via Texas OBO: HTTP ${e.statusCode}", e)
             } catch (e: Exception) {
-                logger.error("Uventet feil ved henting av OBO token fra Texas", e)
+                logger.error("Uventet feil ved henting av OBO token fra Texas")
+                secureLogger.error("Uventet feil ved henting av OBO token fra Texas", e)
                 throw RuntimeException("Kunne ikke bytte token via Texas OBO", e)
             }
 
@@ -77,10 +80,12 @@ open class TexasClient(
                     .retrieve()
                     .body<TexasTokenResponse>()
             } catch (e: RestClientResponseException) {
-                logger.error("Texas API feilet med status {}", e.statusCode)
+                logger.error("Texas API feilet med status {}", e.statusCode.value())
+                secureLogger.error("Texas API feilet", e)
                 throw RuntimeException("Kunne ikke hente maskintoken via Texas: HTTP ${e.statusCode}", e)
             } catch (e: Exception) {
-                logger.error("Uventet feil ved henting av maskintoken fra Texas", e)
+                logger.error("Uventet feil ved henting av maskintoken fra Texas")
+                secureLogger.error("Uventet feil ved henting av maskintoken fra Texas", e)
                 throw RuntimeException("Kunne ikke hente maskintoken via Texas", e)
             }
 

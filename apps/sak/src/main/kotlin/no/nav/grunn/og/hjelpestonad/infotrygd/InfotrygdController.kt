@@ -39,21 +39,16 @@ class InfotrygdController(
     ): ResponseEntity<PerioderResponse> {
         logger.info("Henter perioder for person fra grunn-og-hjelpestonad-infotrygd")
 
-        return try {
-            PersonidentValidator.validerPersonident(request.personident)
-            tilgangService.validerTilgangTilPerson(request.personident)
+        PersonidentValidator.validerPersonident(request.personident)
+        tilgangService.validerTilgangTilPerson(request.personident)
 
-            val response =
-                infotrygdClient.hentPerioderForPerson(
-                    personident = request.personident,
-                )
+        val response =
+            infotrygdClient.hentPerioderForPerson(
+                personident = request.personident,
+            )
 
-            logger.info("Hentet perioder fra Infotrygd: ${response.grunnstønad.size} grunnstønad, ${response.hjelpestønad.size} hjelpestønad")
-            ResponseEntity.ok(response)
-        } catch (exception: Exception) {
-            logger.error("Feil ved henting av perioder fra grunn-og-hjelpestonad-infotrygd: ${exception.message}", exception)
-            throw exception
-        }
+        logger.info("Hentet perioder fra Infotrygd: ${response.grunnstønad.size} grunnstønad, ${response.hjelpestønad.size} hjelpestønad")
+        return ResponseEntity.ok(response)
     }
 
     @PostMapping("/diagnose")
@@ -68,7 +63,7 @@ class InfotrygdController(
     ): ResponseEntity<InfotrygdDiagnoserResponse> {
         PersonidentValidator.validerPersonident(request.personident)
         tilgangService.validerTilgangTilPerson(request.personident)
-        // Diagnosekoder er helseopplysninger (GDPR art. 9). InfotrygdClient logger bare antall og status.
+        // Diagnosekoder er helseopplysninger (GDPR art. 9). Feildetaljer logges bare i Team Logs.
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noStore())

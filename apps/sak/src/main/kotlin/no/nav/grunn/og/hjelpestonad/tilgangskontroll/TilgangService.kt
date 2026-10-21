@@ -17,6 +17,7 @@ class TilgangService(
     private val behandlingService: BehandlingService,
 ) {
     val logger = LoggerFactory.getLogger(TilgangService::class.java)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
 
     fun validerTilgangTilPerson(personident: String) {
         if (SikkerhetContext.erMaskinTilMaskinToken()) {
@@ -28,12 +29,14 @@ class TilgangService(
 
         val tilgangPåPerson = tilaganger.find { it.personident == personident }
         if (tilgangPåPerson == null) {
-            logger.warn("Tilgangsmaskinen svarte ikke for identen, saksbehandler=${SikkerhetContext.hentSaksbehandler()}")
+            logger.warn("Tilgangsmaskinen svarte ikke for identen")
+            secureLogger.warn("Tilgangsmaskinen svarte ikke for identen, saksbehandler=${SikkerhetContext.hentSaksbehandler()}")
             throw ManglerTilgangTilPersonFeil(avvisningskode = null)
         }
 
         if (!tilgangPåPerson.harTilgang) {
-            logger.info(
+            logger.info("Mangler tilgang til person")
+            secureLogger.info(
                 "Mangler tilgang til person, avvisningskode=${tilgangPåPerson.avvisningskode}, " +
                     "traceId=${tilgangPåPerson.traceId}, saksbehandler=${SikkerhetContext.hentSaksbehandler()}",
             )

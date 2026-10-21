@@ -111,7 +111,7 @@ class TilgangsmaskinClientTest {
     }
 
     @Test
-    fun `HTTP 500 gir TilgangsmaskinException uten fnr eller cause`() {
+    fun `HTTP 500 gir melding uten sensitive opplysninger og beholder cause for Team Logs`() {
         val ident = "12345678910"
         server
             .expect(requestTo("http://tilgangsmaskin/api/v1/bulk/obo"))
@@ -127,7 +127,7 @@ class TilgangsmaskinClientTest {
             }
 
         assertFalse(feil.message!!.contains(ident))
-        assertNull(feil.cause)
+        assertTrue(feil.cause!!.message!!.contains(ident))
         assertEquals(500, feil.httpStatus)
         server.verify()
     }

@@ -19,6 +19,7 @@ open class LederVelger(
     restClientBuilder: RestClient.Builder,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
     private val restClient = restClientBuilder.clone().build()
 
     open fun erLeder(): Boolean {
@@ -31,7 +32,8 @@ open class LederVelger(
                 .body<ElectorRespons>()
                 ?.name == podnavn
         } catch (e: RestClientException) {
-            logger.warn("Klarte ikke å avgjøre leder via elector. Antar at denne poden ikke er leder.", e)
+            logger.warn("Klarte ikke å avgjøre leder via elector. Antar at denne poden ikke er leder.")
+            secureLogger.warn("Klarte ikke å avgjøre leder via elector", e)
             false
         }
     }
