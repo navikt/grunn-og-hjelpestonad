@@ -44,7 +44,7 @@ export default function Behandlingsoversikt() {
   const { behandlinger, laster } = useHentBehandlinger(fagsakId);
 
   const behandlingerSortert = behandlinger
-    ? [...behandlinger].sort(
+    ? behandlinger.toSorted(
         (a, b) => new Date(b.opprettet).getTime() - new Date(a.opprettet).getTime()
       )
     : [];

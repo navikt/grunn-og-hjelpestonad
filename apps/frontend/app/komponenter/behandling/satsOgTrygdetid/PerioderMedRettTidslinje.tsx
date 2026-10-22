@@ -94,7 +94,7 @@ function utledSegmenter(perioder: PeriodeMedRettResponse[]): Segment[] {
       start: tilDato(periode.fraOgMedDato, vindu.start),
       slutt: tilDato(periode.tilOgMedDato, vindu.slutt),
     }))
-    .sort((a, b) => a.start.getTime() - b.start.getTime());
+    .toSorted((a, b) => a.start.getTime() - b.start.getTime());
 
   return tidsrom.flatMap(({ periode, start, slutt }, indeks) => {
     const forrigePeriode = tidsrom[indeks - 1];

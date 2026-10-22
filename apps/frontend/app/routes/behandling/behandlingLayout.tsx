@@ -102,22 +102,19 @@ export default function BehandlingLayout() {
         });
         if (signal.aborted) return;
 
-        const initialFerdigeSteg: Steg[] = [];
+        const harÅrsak = response.status !== 204;
 
-        if (response.status !== 204) {
+        if (harÅrsak) {
           settÅrsakState({
             kravdato: new Date(årsakData.kravdato),
             årsak: årsakData.årsak || "",
             beskrivelse: årsakData.beskrivelse,
           });
-
-          const erÅrsakFerdig = årsakData.kravdato && årsakData.årsak;
-          if (erÅrsakFerdig) {
-            initialFerdigeSteg.push("Årsak behandling");
-          }
         }
 
-        settFerdigeSteg(initialFerdigeSteg);
+        // 204 betyr at årsak mangler. Da er årsakData tom og skal ikke leses.
+        const erÅrsakFerdig = harÅrsak && Boolean(årsakData.kravdato && årsakData.årsak);
+        settFerdigeSteg(erÅrsakFerdig ? ["Årsak behandling"] : []);
         settÅrsakDataHentet(true);
       } catch (feil: unknown) {
         if (signal.aborted) return;

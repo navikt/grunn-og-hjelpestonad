@@ -79,12 +79,11 @@ export function beregnAlder(fødselsdato: string | null | undefined): number | n
   const fødselsDate = new Date(fødselsdato);
   if (isNaN(fødselsDate.getTime())) return null;
   const idag = new Date();
-  let alder = idag.getFullYear() - fødselsDate.getFullYear();
+  const årsdiff = idag.getFullYear() - fødselsDate.getFullYear();
   const månedDiff = idag.getMonth() - fødselsDate.getMonth();
-  if (månedDiff < 0 || (månedDiff === 0 && idag.getDate() < fødselsDate.getDate())) {
-    alder--;
-  }
-  return alder;
+  const harHattBursdagIÅr =
+    månedDiff > 0 || (månedDiff === 0 && idag.getDate() >= fødselsDate.getDate());
+  return harHattBursdagIÅr ? årsdiff : årsdiff - 1;
 }
 
 export const formaterBelop = (beløp: number): string =>
