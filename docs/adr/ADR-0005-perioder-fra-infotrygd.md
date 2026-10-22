@@ -1,7 +1,7 @@
 # ADR-0005: Perioder fra Infotrygd
 
 **Dato:** 2026-09-29
-**Status:** Godkjent
+**Status:** Erstattet. `/perioder` er fjernet. `POST /api/infotrygd/stonader` gir dataene som et tre uten filtrering, se [README for infotrygd](../../apps/infotrygd/README.md#stønader).
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 
 ## Kontekst
