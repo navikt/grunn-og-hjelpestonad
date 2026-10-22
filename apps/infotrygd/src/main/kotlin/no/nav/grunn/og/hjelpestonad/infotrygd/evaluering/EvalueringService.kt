@@ -1,8 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.evaluering
 
 import org.slf4j.LoggerFactory
-import org.slf4j.Marker
-import org.slf4j.MarkerFactory
 import org.springframework.stereotype.Service
 
 @Service
@@ -35,8 +33,7 @@ class EvalueringService(
                 it.posisjon == Ev10Posisjon.VIRKNINGSTIDSPUNKT.kode &&
                     lesVirkningstidspunkt(it.tekst) == LestVirkningstidspunkt.Ugyldig
             }.forEach { rad ->
-                teamLogs.warn(
-                    TEAM_LOGS,
+                secureLogger.warn(
                     "Ugyldig virkningstidspunkt i ev_data_10. personident={} vedtakId={} måned={} ev10_text={}",
                     rad.personident,
                     rad.vedtakId,
@@ -48,7 +45,6 @@ class EvalueringService(
     }
 
     companion object {
-        private val TEAM_LOGS: Marker = MarkerFactory.getMarker("TEAM_LOGS")
-        private val teamLogs = LoggerFactory.getLogger("team-logs-logger")
+        private val secureLogger = LoggerFactory.getLogger("secureLogger")
     }
 }

@@ -16,14 +16,11 @@
         <appender-ref ref="team-logs" />
     </root>
 
-    <springProfile name="dev">
-        <include resource="org/springframework/boot/logging/logback/base.xml"/>
-        <include resource="org/springframework/boot/logging/logback/defaults.xml" />
-        <root level="info">
-            <appender-ref ref="team-logs" />
-        </root>
-    </springProfile>
-    <logger name="team-logs-logger" level="INFO" additivity="false">
+    <logger name="secureLogger" level="INFO" additivity="false">
+        <appender-ref ref="team-logs" />
+    </logger>
+
+    <logger name="org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver" additivity="false">
         <appender-ref ref="team-logs" />
     </logger>
 </configuration>
