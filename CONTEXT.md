@@ -47,10 +47,31 @@ En periode der både medlemskap og diagnose er oppfylt.
 **Trygdetidsbrøk**:
 Brøken x/40 fra søkers alderspensjon eller uføretrygd. Er 40/40 når søker ikke har noen av dem. Kan ikke skjønnsvurderes.
 
+## Behandling
+
+**Migrering**:
+At en løpende sak flyttes fra Infotrygd til ny løsning, slik at Infotrygd slutter å utbetale og ny løsning overtar utbetalingen.
+_Avoid_: Konvertering, overføring
+
+**Migrert fra og med**:
+Den første måneden ny løsning eier utbetalingen for en migrert sak. Kan være tidligere enn tidspunktet saken faktisk ble migrert. Infotrygd utbetaler til og med måneden før. Kan bare flyttes bakover i tid.
+_Avoid_: Migreringsdato, opphørsdato i Infotrygd
+
 ## Utfall
 
 **Sats**:
 Ett av seks faste beløp for grunnstønad, bestemt av de nødvendige ekstrautgiftene i en periode. Ekstrautgifter under laveste sats gir ikke rett.
 
 **Tilkjent ytelse**:
-Beløpet søker får per periode: satsen redusert med trygdetidsbrøken.
+Beløpet søker har rett til per periode: satsen redusert med trygdetidsbrøken, uten avrunding.
+_Avoid_: Utbetalt beløp (det er beløpet etter avrunding)
+
+## Utbetaling
+
+**Utbetalingsbeløp**:
+Tilkjent ytelse avrundet til det beløpet som faktisk utbetales.
+_Avoid_: Tilkjent ytelse, sats
+
+**Utbetalingsandel**:
+En periode med samme utbetalingsbeløp, slik den sendes til Oppdrag.
+_Avoid_: Andel tilkjent ytelse, utbetalingsperiode

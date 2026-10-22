@@ -43,7 +43,7 @@ internal class VedtakRepositoryTest : SpringContextTest() {
 
         val fagsak = fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.BARNETILSYN))
 
-        val behandling = behandlingRepository.insert(Behandling(UUID.randomUUID(), fagsak.id, null, BehandlingStatus.UTREDES, BehandlingResultat.IKKE_SATT))
+        val behandling = behandlingRepository.insert(Behandling(fagsakId = fagsak.id, status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT))
 
         val vedtak =
             Vedtak(
