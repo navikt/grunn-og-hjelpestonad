@@ -90,6 +90,7 @@ class InfotrygdClientTest {
                                             "stønadId": 1,
                                             "vedtakId": 2,
                                             "vedtakstidspunkt": "2020-01-01T12:00:00",
+                                            "datoMottattSak": "2019-12-15",
                                             "vedtakKodeResultat": "I",
                                             "startDato": "2020-01-01",
                                             "innvilgetFom": "2020-01-01",

@@ -103,6 +103,7 @@ class InfotrygdPerioderResponseTest {
         stønadId = 1L,
         vedtakId = 2L,
         vedtakstidspunkt = LocalDateTime.parse("2020-01-01T12:00:00"),
+        datoMottattSak = LocalDate.parse("2019-12-15"),
         vedtakKodeResultat = "I",
         startDato = LocalDate.parse("2020-01-01"),
         innvilgetFom = LocalDate.parse("2020-01-01"),

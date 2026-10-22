@@ -1,0 +1,47 @@
+-- Utplukk av antall HS/GS-saker 2025/2026 til Riksrevisjon
+--select *å hen
+select GH.SATS_HS, DI01.DI01_DIAG_KODE, DI01.DI01_DIAG_TEXT, Count (*) as ANTALL
+from SA_SAK_10 S10, T_STONAD STON, T_VEDTAK VEDT, T_DELYTELSE DELY, T_ENDRING ENDR, T_GH GH,
+     T_LOPENR_FNR FNR, EV_VALG_05 EV05, EV_DATA_10 EV10, DI_KODER_01 DI01
+where S10.S10_KAPITTELNR    = 'GH'
+  and S10.S10_VALG          = 'HS'
+--  and S10.S10_UNDERVALG    IN ('EU','FU')
+  and FNR.PERSONNR          = substr(S10.f_nr,5,2)||substr(S10.f_nr,3,2)||substr(S10.f_nr,1,2)||substr(S10.f_nr,7,5)
+  and STON.PERSON_LOPENR    = FNR.PERSON_LOPENR
+  and STON.KODE_RUTINE      = 'HS'
+  and  (STON.DATO_OPPHOR   IS NULL
+   or   STON.DATO_OPPHOR    > '31-12-2024')
+  and  VEDT.PERSON_LOPENR   = STON.PERSON_LOPENR
+  and  VEDT.STONAD_ID       = STON.STONAD_ID
+  and  VEDT.SAKSBLOKK       = S10.S05_SAKSBLOKK
+  and  VEDT.SAKSNR          = S10.S10_SAKSNR
+  and  (VEDT.DATO_INNV_TOM   IS NULL
+   or   VEDT.DATO_INNV_TOM   > '31-12-2024')
+  and  DELY.VEDTAK_ID        = VEDT.VEDTAK_ID
+  and  (DELY.TOM             IS NULL
+   or   DELY.TOM             > '31-12-2024')
+  and  ENDR.VEDTAK_ID        = VEDT.VEDTAK_ID
+  and  ENDR.KODE             <> 'UA'
+  and  ENDR.KODE             <> 'AN'
+  and  GH.VEDTAK_ID          = VEDT.VEDTAK_ID
+  and  GH.SATS_HS           > '0'
+  and FNR.PERSON_LOPENR      = STON.PERSON_LOPENR
+  and substr(EV05.f_nr,5,2)||substr(EV05.f_nr,3,2)||substr(EV05.f_nr,1,2)||substr(EV05.f_nr,7,5) = FNR.PERSONNR
+  and EV05.EV05_KAP          = 'GH'
+  and EV05.EV05_VALG         = STON.KODE_RUTINE
+  and EV05.EV05_TEKST_KODE              = 'EVGH'
+  and EV10.EV01_PERSONKEY               = EV05.EV01_PERSONKEY
+  and EV10.EV05_AAR_MND_SEQ             = EV05.EV05_AAR_MND_SEQ
+  and DI01.DI01_DIAG_KODE               = substr(EV10.EV10_TEXT,1,4)
+  and DI01.DI01_DIAG_TYPE               <> ' '
+  and 999999 - EV10.EV05_AAR_MND_SEQ    < substr(DI01.DI01_DIAG_TOM,1,6)
+  and substr(DI01.DI01_DIAG_TEXT,1,15)  = substr(EV10.EV10_TEXT,6,15)
+  and EV10.EV05_AAR_MND_SEQ =
+     (select MIN(EV051.EV05_AAR_MND_SEQ)
+      from EV_VALG_05 EV051
+      where EV051.EV01_PERSONKEY      = EV05.EV01_PERSONKEY
+        and EV051.EV05_VALG           = 'HS'
+        and EV051.EV05_TEKST_KODE     = 'EVGH')
+--order by FNR.PERSONNR, EV10.EV05_AAR_MND_SEQ asc
+group by GH.SATS_HS, DI01.DI01_DIAG_KODE, DI01.DI01_DIAG_TEXT
+order by  GH.SATS_HS, ANTALL desc, DI01.DI01_DIAG_KODE

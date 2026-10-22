@@ -47,6 +47,8 @@ data class PeriodeResponse(
     val stønadId: Long,
     val vedtakId: Long,
     val vedtakstidspunkt: LocalDateTime,
+    // t_vedtak.dato_mottatt_sak
+    val datoMottattSak: LocalDate,
     val vedtakKodeResultat: String,
     val startDato: LocalDate,
     val innvilgetFom: LocalDate,

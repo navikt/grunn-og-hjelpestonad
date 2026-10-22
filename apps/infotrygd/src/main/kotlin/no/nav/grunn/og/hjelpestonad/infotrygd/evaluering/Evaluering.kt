@@ -14,7 +14,7 @@ data class InfotrygdEvaluering(
     val sats: String?,
     /** Posisjon 160, hele ev10_text. */
     val hjemmelbokstav: String?,
-    /** Posisjon 165, MMÅÅ i ev10_text. ÅÅ 36–99 er 1936–1999, 00–35 er 2000–2035. */
+    /** Posisjon 165, MMÅÅ i ev10_text. ÅÅ 51–99 er 1951–1999, 00–50 er 2000–2050. */
     val virkningstidspunkt: YearMonth?,
     /**
      * Posisjoner vi ikke kan vise én sikker verdi for: ulike verdier i måneden, ugyldig virkningstidspunkt, eller færre
@@ -97,7 +97,7 @@ fun tilEvalueringer(rader: List<Ev10Rad>): Map<Long, InfotrygdEvaluering> =
         .mapValues { (_, gruppe) -> tilEvaluering(gruppe.distinctBy { it.ev10Id }) }
 
 private fun tilEvaluering(gruppe: List<Ev10Rad>): InfotrygdEvaluering {
-    val månedNotertIInfotrygd = gruppe.map { it.månedNotertIInfotrygd }.single()
+    val månedNotertIInfotrygd = gruppe.map { it.månedNotertIInfotrygd }.distinct().single()
     val antallSaker = gruppe.maxOf { it.antallSakerIMåned }
     val raderPerPosisjon =
         gruppe

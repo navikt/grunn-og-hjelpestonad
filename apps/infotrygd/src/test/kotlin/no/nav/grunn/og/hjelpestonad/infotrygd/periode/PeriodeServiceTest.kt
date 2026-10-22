@@ -52,6 +52,7 @@ class PeriodeServiceTest {
         personLøpenr: String = "1",
         saksblokk: String = "A",
         saksnr: String = "123",
+        datoMottattSak: String = "2020-01-01",
     ) {
         testdata.lagre(
             ExodusTabell.T_STONAD,
@@ -71,6 +72,7 @@ class PeriodeServiceTest {
             "kode_resultat" to "I ",
             "dato_innv_fom" to fom,
             "dato_innv_tom" to tom,
+            "dato_mottatt_sak" to datoMottattSak,
             "saksblokk" to saksblokk,
             "saksnr" to saksnr,
         )
@@ -98,7 +100,7 @@ class PeriodeServiceTest {
 
     @Test
     fun `grupperer delytelser per stønadstype`() {
-        lagreVedtak(stønadId = "10", vedtakId = "100", kodeRutine = "GS")
+        lagreVedtak(stønadId = "10", vedtakId = "100", kodeRutine = "GS", datoMottattSak = "2019-12-15")
         lagreDelytelse("100", fom = "2020-01-01", tom = null)
         lagreVedtak(stønadId = "11", vedtakId = "110", kodeRutine = "HS", tom = "2021-12-31")
         lagreDelytelse("110", fom = "2020-01-01", tom = "2021-12-31", type = "HS")
@@ -110,6 +112,7 @@ class PeriodeServiceTest {
         assertEquals(100L, grunnstønad.vedtakId)
         assertEquals("S", grunnstønad.sakstype)
         assertEquals("I", grunnstønad.vedtakKodeResultat)
+        assertEquals(LocalDate.of(2019, 12, 15), grunnstønad.datoMottattSak)
         assertEquals("F", grunnstønad.kode)
         assertEquals(BigDecimal("1000.50"), grunnstønad.beløp)
         assertNull(grunnstønad.stønadTom)

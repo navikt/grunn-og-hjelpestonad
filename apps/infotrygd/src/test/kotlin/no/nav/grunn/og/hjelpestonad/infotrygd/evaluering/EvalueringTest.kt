@@ -316,7 +316,9 @@ class EvalueringTest {
             listOf(
                 Arguments.of("0826", YearMonth.of(2026, 8)),
                 Arguments.of("0170", YearMonth.of(1970, 1)),
-                Arguments.of("0136", YearMonth.of(1936, 1)),
+                Arguments.of("0136", YearMonth.of(2036, 1)),
+                Arguments.of("0150", YearMonth.of(2050, 1)),
+                Arguments.of("0151", YearMonth.of(1951, 1)),
                 Arguments.of("1235", YearMonth.of(2035, 12)),
                 Arguments.of("1269", YearMonth.of(1969, 12)),
                 Arguments.of("1299", YearMonth.of(1999, 12)),

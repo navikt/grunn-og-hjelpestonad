@@ -406,6 +406,10 @@
             "type" : "string",
             "format" : "date-time"
           },
+          "datoMottattSak" : {
+            "type" : "string",
+            "format" : "date"
+          },
           "vedtakKodeResultat" : {
             "type" : "string"
           },
@@ -463,7 +467,7 @@
             } ]
           }
         },
-        "required" : [ "beløp", "brukerId", "innvilgetFom", "kode", "personident", "sakstype", "startDato", "stønadFom", "stønadId", "stønadstype", "trygdetidOgSats", "typeDelytelse", "typeSats", "typeUtbetaling", "vedtakId", "vedtakKodeResultat", "vedtakstidspunkt" ]
+        "required" : [ "beløp", "brukerId", "datoMottattSak", "innvilgetFom", "kode", "personident", "sakstype", "startDato", "stønadFom", "stønadId", "stønadstype", "trygdetidOgSats", "typeDelytelse", "typeSats", "typeUtbetaling", "vedtakId", "vedtakKodeResultat", "vedtakstidspunkt" ]
       },
       "PerioderResponse" : {
         "type" : "object",

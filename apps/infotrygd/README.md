@@ -114,7 +114,7 @@ Bakgrunnen står i [ADR-0005](../../docs/adr/ADR-0005-perioder-fra-infotrygd.md)
 Dette er annerledes:
 
 - Én periode per rad i `t_delytelse`. `stønadFom`, `stønadTom` og `beløp` kommer
-  fra delytelsen, og `innvilgetFom` og `innvilgetTom` fra vedtaket.
+  fra delytelsen, og `innvilgetFom`, `innvilgetTom` og `datoMottattSak` fra vedtaket.
 - `trygdetidOgSats` inneholder alle registreringer i `t_gh` for vedtaket, nyeste
   først. Det er ikke avklart hvilken som gjelder for en delytelse, så det
   avgjør konsumenten.
@@ -149,7 +149,7 @@ Verdien står i `ev10_text`. `ev10_belop` brukes ikke. Spørringen henter bare p
 | `160` | `hjemmelbokstav` | Hele teksten. |
 | `165` | `virkningstidspunkt` | MMÅÅ, se under. |
 
-Virkningstidspunkt står på formatet MMÅÅ. ÅÅ fra 36 til 99 betyr 1936 til 1999, og ÅÅ fra 00 til 35 betyr 2000 til 2035. Tom tekst og `0000` gir ingen verdi.
+Virkningstidspunkt står på formatet MMÅÅ. ÅÅ fra 51 til 99 betyr 1951 til 1999, og ÅÅ fra 00 til 50 betyr 2000 til 2050. Tom tekst og `0000` gir ingen verdi.
 
 #### Motstridende felt
 
@@ -176,3 +176,13 @@ Målt i dev 2026-10-20. Tallene gjelder personmåneder med `EVGH`, og 162 160 av
 Ugyldige virkningstidspunkt logges med verdi til team logs. Vanlig logg får bare antall evalueringer med motstridende felt per posisjon.
 
 Diagnosene og hjemmelbokstaven er helseopplysninger (GDPR art. 9). Oppslagene auditlogges ikke ennå, se ADR-0009.
+
+#### Kjente tilfeller uten evaluering
+
+Målt i dev 2026-10-21 for én syntetisk person med en revurdering.
+
+- Én stønad (`stonad_id`) kan spenne over flere saker. Vedtak 1 på sak A01 og vedtak 2 på sak A02 hadde samme `stonad_id`.
+- Maskinvedtak kan mangle EVGH. Vedtak 2 hadde `brukerid` AUTO, `type_sak` MS, `kode_resultat` FI og endringskode S. Saken hadde tom `s10_eval_kode`. Saken med EVGH hadde `s10_eval_kode` lik `EVGH`.
+- `s10_knyttet_til_sak` var `00` på begge sakene, og `t_vedtak.nokkel_dl1` var tom. Ingen av dem lenker til forrige sak.
+- `ev10_vedtaks_dag` (06) samsvarte med vedtaksdagen for vedtaket med evalueringen. Virkningstidspunkt `0626` samsvarte med innvilget fom 2026-06-01.
+- API-et returnerer evaluering bare for vedtakets egen sak. Frontend viser evalueringen fra nærmeste tidligere vedtak på samme stønad, merket som hentet fra et tidligere vedtak.
