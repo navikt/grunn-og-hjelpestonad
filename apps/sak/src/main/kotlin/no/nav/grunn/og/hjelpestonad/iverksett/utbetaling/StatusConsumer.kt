@@ -11,6 +11,7 @@ class StatusConsumer(
     properties: UtbetalingConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
 
     init {
         log.info("Starter status consumer for topic: ${properties.statusTopic}")
@@ -28,10 +29,12 @@ class StatusConsumer(
             val status = objectMapper.readValue(record.value(), UtbetalingStatusMelding::class.java)
             log.info("Mottatt status fra helved: key=${record.key()} status=${status.status}")
             if (status.status == StatusType.FEILET) {
-                log.error("Utbetaling feilet: key=${record.key()} error=${status.error}")
+                log.error("Utbetaling feilet")
+                secureLogger.error("Utbetaling feilet: key=${record.key()} error=${status.error}")
             }
         } catch (e: Exception) {
-            log.error("Feil ved parsing av statusmelding: key=${record.key()}", e)
+            log.error("Feil ved parsing av statusmelding")
+            secureLogger.error("Feil ved parsing av statusmelding: key=${record.key()}", e)
         }
     }
 }

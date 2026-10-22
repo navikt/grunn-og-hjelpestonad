@@ -25,12 +25,12 @@ class ÅrsakBehandlingService(
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         val eksisterendeÅrsak = hentÅrsakBehandling(behandlingId)
 
-        if (eksisterendeÅrsak == null) {
-            behandlingService.oppdaterBehandlingStatus(
-                behandlingId = behandlingId,
-                status = BehandlingStatus.UTREDES,
-            )
+        behandlingService.oppdaterBehandlingStatus(
+            behandlingId = behandlingId,
+            status = BehandlingStatus.UTREDES,
+        )
 
+        if (eksisterendeÅrsak == null) {
             val årsak =
                 årsakBehandlingRepository.insert(
                     ÅrsakBehandling(

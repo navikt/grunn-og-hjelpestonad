@@ -22,6 +22,7 @@ class InfotrygdClient(
     private val grunnOgHjelpestonadInfotrygdAudience: String,
 ) {
     private val logger = LoggerFactory.getLogger(InfotrygdClient::class.java)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
     private val restClient = restClientBuilder.clone().baseUrl(infotrygdUrl).build()
 
     /** Stønadene for personen og stønadstypen, som et tre fra t_stonad til vedtak, delytelser, gh og evaluering. */

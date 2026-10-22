@@ -25,6 +25,7 @@ class VilkårVurderingStegController(
     private val tilgangService: TilgangService,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
 
     @PostMapping("/fullfor")
     fun fullførSteg(
@@ -47,6 +48,7 @@ class VilkårVurderingStegController(
     @ExceptionHandler(VilkårValideringFeil::class)
     fun handleVilkårValideringFeil(e: VilkårValideringFeil): ResponseEntity<VilkårValideringFeilResponse> {
         logger.warn("Vilkårsvurderingen er ikke komplett: {} feil", e.feil.size)
+        secureLogger.warn("Vilkårsvurderingen er ikke komplett: {}", e.feil, e)
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .body(

@@ -19,6 +19,7 @@ class PdlClient(
     restClientBuilder: RestClient.Builder,
 ) {
     private val logger = LoggerFactory.getLogger(PdlClient::class.java)
+    private val secureLogger = LoggerFactory.getLogger("secureLogger")
     private val pdlRestClient = restClientBuilder.clone().baseUrl(pdlUrl).build()
 
     fun hentPersonDataOBOToken(
@@ -45,7 +46,8 @@ class PdlClient(
                 }
 
                 else -> {
-                    logger.error("Feil ved kall til PDL", e)
+                    logger.error("Feil ved kall til PDL")
+                    secureLogger.error("Feil ved kall til PDL", e)
                     throw PdlException("Teknisk feil ved henting av navn fra PDL", e)
                 }
             }
@@ -76,7 +78,8 @@ class PdlClient(
                 }
 
                 else -> {
-                    logger.error("Feil ved kall til PDL", e)
+                    logger.error("Feil ved kall til PDL")
+                    secureLogger.error("Feil ved kall til PDL", e)
                     throw PdlException("Teknisk feil ved henting av navn fra PDL", e)
                 }
             }
@@ -104,7 +107,8 @@ class PdlClient(
                 }
 
                 else -> {
-                    logger.error("Feil ved kall til PDL", e)
+                    logger.error("Feil ved kall til PDL")
+                    secureLogger.error("Feil ved kall til PDL", e)
                     throw PdlException("Teknisk feil ved henting av navn fra PDL", e)
                 }
             }
@@ -132,7 +136,8 @@ class PdlClient(
                 }
 
                 else -> {
-                    logger.error("Feil ved kall til PDL", e)
+                    logger.error("Feil ved kall til PDL")
+                    secureLogger.error("Feil ved kall til PDL", e)
                     throw PdlException("Teknisk feil ved henting av faktagrunnlag fra PDL", e)
                 }
             }
@@ -162,13 +167,15 @@ class PdlClient(
     ) {
         if (errors.isNullOrEmpty()) return
 
-        logger.error("PDL returnerte {} feil ved {}", errors.size, operasjon)
-
-        if (errors.any { it.extensions?.code == "unauthorized" }) {
-            throw ManglerTilgangIPdlException(melding = "Mangler tilgang til opplysningene for denne personen")
-        }
-
-        throw PdlException("Feil ved $operasjon: ${errors.first().message}")
+        val feil =
+            if (errors.any { it.extensions?.code == "unauthorized" }) {
+                ManglerTilgangIPdlException(melding = "Mangler tilgang til opplysningene for denne personen")
+            } else {
+                PdlException("Feil ved $operasjon: ${errors.first().message}")
+            }
+        logger.warn("PDL returnerte {} feil ved {}", errors.size, operasjon)
+        secureLogger.warn("PDL returnerte feil ved {}: {}", operasjon, errors, feil)
+        throw feil
     }
 }
 

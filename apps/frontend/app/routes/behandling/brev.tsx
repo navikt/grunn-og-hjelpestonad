@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Box, HGrid, VStack } from "@navikt/ds-react";
 import type { Route } from "./+types/brev";
 import { useBrev } from "~/komponenter/brev/useBrev";
@@ -13,6 +13,7 @@ import { BrevForhåndsvisning } from "~/komponenter/brev/BrevForhåndsvisning";
 import { BrevHandlinger } from "~/komponenter/brev/BrevHandlinger";
 import { SendTilBeslutterModal } from "~/komponenter/brev/SendTilBeslutterModal";
 import { useErLesevisning } from "~/hooks/useErLesevisning";
+import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 import styles from "./brev.module.css";
 
 export function meta(_args: Route.MetaArgs) {
@@ -28,7 +29,13 @@ export function meta(_args: Route.MetaArgs) {
 const STEG_PATH: StegPath = "brev";
 
 export default function Brev() {
-  const { behandlingId, revaliderBehandling, behandling } = useBehandlingContext();
+  const {
+    behandlingId,
+    revaliderBehandling,
+    behandling,
+    hentTotrinnskontrollStatusPåNytt,
+    hentAnsvarligSaksbehandlerPåNytt,
+  } = useBehandlingContext();
   const { mottakere, settMottakere, utledBrevmottakere, sendMottakereTilSak } =
     useBrevmottaker(behandlingId);
 
@@ -47,29 +54,60 @@ export default function Brev() {
   } = useBrev(behandlingId);
 
   const erSendtTilBeslutter = behandling?.status === "FATTER_VEDTAK";
-  const { sender: senderTilBeslutter, sendTilBeslutter } = useBeslutter();
+  const { sendTilBeslutter } = useBeslutter();
+  const [senderTilBeslutter, settSenderTilBeslutter] = useState(false);
+  const [sendTilBeslutterFeil, settSendTilBeslutterFeil] = useState<string | null>(null);
   const { navigerTilForrige, harForrigeSteg } = useStegNavigering(STEG_PATH);
   const bekreftModalRef = useRef<HTMLDialogElement>(null);
   const erLesevisning = useErLesevisning();
 
   useEffect(() => {
-    if (!brevMal || erLesevisning) return;
+    if (!brevMal || erLesevisning || senderTilBeslutter) return;
     const timer = setTimeout(() => {
       mellomlagreBrev(behandlingId, brevMal, fritekstbolker);
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [behandlingId, brevMal, fritekstbolker, mellomlagreBrev, erLesevisning]);
+  }, [behandlingId, brevMal, fritekstbolker, mellomlagreBrev, erLesevisning, senderTilBeslutter]);
 
   const handleSendTilBeslutter = async () => {
-    const respons = await sendTilBeslutter(behandlingId);
-    if (respons.data) {
+    if (senderTilBeslutter) return;
+    settSendTilBeslutterFeil(null);
+    if (!brevMal) {
+      settSendTilBeslutterFeil("Velg en brevmal før du sender til beslutter.");
+      return;
+    }
+
+    settSenderTilBeslutter(true);
+    try {
+      await mellomlagreBrev(behandlingId, brevMal, fritekstbolker);
+
+      const respons = await sendTilBeslutter(behandlingId);
+      if (!respons.data) {
+        settSendTilBeslutterFeil(
+          respons.feilmelding ?? "Kunne ikke sende behandlingen til beslutter. Prøv igjen."
+        );
+        return;
+      }
+
+      bekreftModalRef.current?.close();
       oppdaterEndringshistorikk();
       revaliderBehandling();
+      hentTotrinnskontrollStatusPåNytt();
+      hentAnsvarligSaksbehandlerPåNytt();
+    } catch (feil: unknown) {
+      settSendTilBeslutterFeil(
+        feil instanceof Error
+          ? feil.message
+          : feilmeldingFra(feil, "Kunne ikke sende behandlingen til beslutter. Prøv igjen.")
+      );
+    } finally {
+      settSenderTilBeslutter(false);
     }
   };
 
   const handleSendTilBeslutterKlikk = () => {
+    settSendTilBeslutterFeil(null);
     bekreftModalRef.current?.showModal();
   };
 
@@ -125,6 +163,7 @@ export default function Brev() {
       <SendTilBeslutterModal
         modalRef={bekreftModalRef}
         laster={senderTilBeslutter}
+        feilmelding={sendTilBeslutterFeil}
         onSendTilBeslutter={handleSendTilBeslutter}
       />
     </VStack>
