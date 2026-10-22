@@ -1,8 +1,11 @@
 {
-  "name": "Infotrygd - perioder",
+  "name": "Infotrygd - stønader (grunnstønad)",
   "request": {
     "method": "POST",
-    "urlPath": "/api/infotrygd/perioder"
+    "urlPath": "/api/infotrygd/stonader",
+    "bodyPatterns": [
+      { "matchesJsonPath": "$[?(@.stønadstype == 'GRUNNSTØNAD')]" }
+    ]
   },
   "response": {
     "status": 200,
@@ -10,99 +13,104 @@
       "Content-Type": "application/json"
     },
     "jsonBody": {
-      "grunnstønad": [
+      "stonader": [
         {
-          "personident": "{{jsonPath request.body '$.personidenter[0]'}}",
-          "stønadstype": "GRUNNSTØNAD",
-          "sakstype": "S",
-          "kode": "E",
-          "brukerId": "Z999999",
-          "stønadId": 1001,
-          "vedtakId": 2002,
-          "vedtakstidspunkt": "2024-01-10T09:30:00",
-          "vedtakKodeResultat": "I",
-          "startDato": "2023-01-01",
-          "innvilgetFom": "2024-01-01",
-          "innvilgetTom": null,
-          "opphørsdato": null,
-          "oppdragId": 3001,
-          "typeDelytelse": "GS",
-          "typeSats": "M",
-          "typeUtbetaling": "J",
-          "stønadFom": "2024-01-01",
-          "stønadTom": null,
-          "beløp": 868,
-          "trygdetidOgSats": [
+          "stonadId": 17620970,
+          "personnr": "{{jsonPath request.body '$.personidenter[0]'}}",
+          "kodeRutine": "GS",
+          "datoStart": "2026-06-01",
+          "kodeOpphor": null,
+          "datoOpphor": null,
+          "oppdragId": 88924378,
+          "tidspunktOpphort": null,
+          "tidspunktReg": "2026-10-06T14:26:04.166415",
+          "brukerid": "SBH1234",
+          "vedtak": [
             {
-              "tidspunktRegistrert": "2024-01-10T09:30:00",
-              "trygdetid": 40,
-              "satsGs": 2,
-              "satsHs": null,
-              "brukerId": "Z999999"
-            }
-          ]
-        },
-        {
-          "personident": "{{jsonPath request.body '$.personidenter[0]'}}",
-          "stønadstype": "GRUNNSTØNAD",
-          "sakstype": "S",
-          "kode": "F",
-          "brukerId": "Z999999",
-          "stønadId": 1001,
-          "vedtakId": 2001,
-          "vedtakstidspunkt": "2023-01-15T10:00:00",
-          "vedtakKodeResultat": "I",
-          "startDato": "2023-01-01",
-          "innvilgetFom": "2023-01-01",
-          "innvilgetTom": "2023-12-31",
-          "opphørsdato": null,
-          "oppdragId": 3001,
-          "typeDelytelse": "GS",
-          "typeSats": "M",
-          "typeUtbetaling": "J",
-          "stønadFom": "2023-01-01",
-          "stønadTom": "2023-12-31",
-          "beløp": 830,
-          "trygdetidOgSats": [
+              "vedtakId": 27714711,
+              "tknr": "0315",
+              "saksblokk": "A",
+              "saksnr": 1,
+              "typeSak": "S",
+              "kodeResultat": "I",
+              "datoInnvFom": "2026-06-01",
+              "datoInnvTom": "2026-08-31",
+              "datoMottattSak": "2026-10-06",
+              "kodeVedtaksnivaa": "TK",
+              "typeBeregning": "O",
+              "tidspunktReg": "2026-10-06T14:26:04.175062",
+              "brukerid": "SBH1234",
+              "endringer": ["F"],
+              "delytelser": [
+                {
+                  "typeDelytelse": "MG",
+                  "tidspunktReg": "2026-10-06T14:26:04.202979",
+                  "fom": "2026-06-01",
+                  "tom": "2026-08-31",
+                  "belop": 752.00,
+                  "typeSats": "M",
+                  "typeUtbetaling": "L",
+                  "brukerid": "SBH1234",
+                  "linjeId": 1
+                }
+              ],
+              "gh": [
+                {
+                  "tidspunktReg": "2026-10-06T14:26:04.218552",
+                  "trygdetid": 40,
+                  "satsGs": 1,
+                  "satsHs": null,
+                  "brukerid": "SBH1234"
+                }
+              ],
+              "evaluering": {
+                "månedNotertIInfotrygd": "2026-10",
+                "diagnose1": "F90 ",
+                "diagnose2": "",
+                "sats": "1",
+                "hjemmelbokstav": "A",
+                "virkningstidspunkt": "2026-06",
+                "motstridendeFelt": []
+              }
+            },
             {
-              "tidspunktRegistrert": "2023-01-15T10:00:00",
-              "trygdetid": 40,
-              "satsGs": 2,
-              "satsHs": null,
-              "brukerId": "Z999999"
-            }
-          ]
-        }
-      ],
-      "hjelpestønad": [
-        {
-          "personident": "{{jsonPath request.body '$.personidenter[0]'}}",
-          "stønadstype": "HJELPESTØNAD",
-          "sakstype": "S",
-          "kode": "F",
-          "brukerId": "Z999999",
-          "stønadId": 1002,
-          "vedtakId": 2101,
-          "vedtakstidspunkt": "2022-03-01T12:00:00",
-          "vedtakKodeResultat": "I",
-          "startDato": "2022-03-01",
-          "innvilgetFom": "2022-03-01",
-          "innvilgetTom": "2024-02-29",
-          "opphørsdato": "2024-03-01",
-          "oppdragId": 3002,
-          "typeDelytelse": "HS",
-          "typeSats": "M",
-          "typeUtbetaling": "J",
-          "stønadFom": "2022-03-01",
-          "stønadTom": "2024-02-29",
-          "beløp": 1465,
-          "trygdetidOgSats": [
-            {
-              "tidspunktRegistrert": "2022-03-01T12:00:00",
-              "trygdetid": 40,
-              "satsGs": null,
-              "satsHs": 1,
-              "brukerId": "Z999999"
+              "vedtakId": 27714722,
+              "tknr": "0315",
+              "saksblokk": "A",
+              "saksnr": 2,
+              "typeSak": "MS",
+              "kodeResultat": "FI",
+              "datoInnvFom": "2026-09-01",
+              "datoInnvTom": null,
+              "datoMottattSak": "2026-10-12",
+              "kodeVedtaksnivaa": "TK",
+              "typeBeregning": "O",
+              "tidspunktReg": "2026-10-12T21:35:46.606325",
+              "brukerid": "AUTO",
+              "endringer": ["S"],
+              "delytelser": [
+                {
+                  "typeDelytelse": "MG",
+                  "tidspunktReg": "2026-10-12T21:35:46.606639",
+                  "fom": "2026-09-01",
+                  "tom": null,
+                  "belop": 775.00,
+                  "typeSats": "M",
+                  "typeUtbetaling": "L",
+                  "brukerid": "AUTO",
+                  "linjeId": 2
+                }
+              ],
+              "gh": [
+                {
+                  "tidspunktReg": "2026-10-12T21:35:46.606814",
+                  "trygdetid": 40,
+                  "satsGs": 1,
+                  "satsHs": null,
+                  "brukerid": "AUTO"
+                }
+              ],
+              "evaluering": null
             }
           ]
         }

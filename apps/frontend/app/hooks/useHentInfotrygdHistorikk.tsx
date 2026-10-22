@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { hentPerioderForPerson } from "~/api/generated/sdk.gen";
-import type { PerioderResponse } from "~/api/generated/types.gen";
+import { hentStønaderForPerson } from "~/api/generated/sdk.gen";
+import type { InfotrygdStonaderResponse } from "~/api/generated/types.gen";
 import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 
 interface HistorikkState {
-  data: PerioderResponse | null;
+  data: InfotrygdStonaderResponse | null;
   melding: string | null;
   laster: boolean;
 }
@@ -27,8 +27,8 @@ export const useHentInfotrygdHistorikk = (personident: string | undefined) => {
       }
 
       try {
-        const { data } = await hentPerioderForPerson({
-          body: { personident },
+        const { data } = await hentStønaderForPerson({
+          body: { personident, stønadstype: "GRUNNSTØNAD" },
           signal,
           throwOnError: true,
         });
@@ -38,7 +38,10 @@ export const useHentInfotrygdHistorikk = (personident: string | undefined) => {
         if (signal.aborted) return;
         settState({
           data: null,
-          melding: feilmeldingFra(feil, "Vi kunne ikke hente perioder fra Infotrygd. Prøv igjen senere."),
+          melding: feilmeldingFra(
+            feil,
+            "Vi kunne ikke hente vedtak fra Infotrygd. Prøv igjen senere."
+          ),
           laster: false,
         });
       }

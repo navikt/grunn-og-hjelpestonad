@@ -24,7 +24,7 @@ type HentPerioder<T extends PeriodeMedFraOgMedDato> = (
 ) => Promise<T[]>;
 
 function sorterPerioderEtterFraOgMedDato<T extends PeriodeMedFraOgMedDato>(perioder: T[]): T[] {
-  return [...perioder].sort((a, b) => {
+  return perioder.toSorted((a, b) => {
     const fraA = a.fraOgMedDato ?? "";
     const fraB = b.fraOgMedDato ?? "";
 

@@ -56,17 +56,17 @@ class TilgangskontrollIntegrasjonTest {
     fun `saksbehandler med tilgang får svar`() {
         tilgangsmaskin.svar = { identer -> identer.map { Tilgangsvurdering(it, true, null) } }
 
-        hentPerioder(SAKSBEHANDLER).andExpect { status { isOk() } }
+        hentStønader(SAKSBEHANDLER).andExpect { status { isOk() } }
     }
 
     @Test
     fun `saksbehandler uten tilgang til én person får 403 uten data`() {
         tilgangsmaskin.svar = { listOf(Tilgangsvurdering(PERSON_1, true, null), Tilgangsvurdering(PERSON_2, false, null)) }
 
-        hentPerioder(SAKSBEHANDLER, PERSON_1, PERSON_2).andExpect {
+        hentStønader(SAKSBEHANDLER, PERSON_1, PERSON_2).andExpect {
             status { isForbidden() }
             jsonPath("$.melding") { value(TilgangService.MANGLER_TILGANG_FLERE_MELDING) }
-            jsonPath("$.grunnstønad") { doesNotExist() }
+            jsonPath("$.stonader") { doesNotExist() }
         }
     }
 
@@ -74,7 +74,7 @@ class TilgangskontrollIntegrasjonTest {
     fun `alle personendepunkter sjekker tilgang`() {
         tilgangsmaskin.svar = { identer -> identer.map { Tilgangsvurdering(it, false, null) } }
 
-        listOf("/api/infotrygd/stonad/eksisterer", "/api/infotrygd/saker/finn", "/api/infotrygd/diagnose").forEach { sti ->
+        listOf("/api/infotrygd/stonad/eksisterer", "/api/infotrygd/saker/finn").forEach { sti ->
             mockMvc
                 .post(sti) {
                     header(HttpHeaders.AUTHORIZATION, "Bearer $SAKSBEHANDLER")
@@ -85,10 +85,26 @@ class TilgangskontrollIntegrasjonTest {
     }
 
     @Test
+    fun `stonader sjekker tilgang før data hentes`() {
+        tilgangsmaskin.svar = { identer -> identer.map { Tilgangsvurdering(it, false, null) } }
+
+        mockMvc
+            .post("/api/infotrygd/stonader") {
+                header(HttpHeaders.AUTHORIZATION, "Bearer $SAKSBEHANDLER")
+                contentType = MediaType.APPLICATION_JSON
+                content = """{"personidenter":["$PERSON_1"],"stønadstype":"GRUNNSTØNAD"}"""
+            }.andExpect {
+                status { isForbidden() }
+                jsonPath("$.stonader") { doesNotExist() }
+            }
+        assertTrue(tilgangsmaskin.kall.single() == setOf(PERSON_1))
+    }
+
+    @Test
     fun `feil i tilgangsmaskinen gir 503`() {
         tilgangsmaskin.svar = { throw TilgangsmaskinException("Feil ved kall mot tilgangsmaskinen: HTTP 500", 500) }
 
-        hentPerioder(SAKSBEHANDLER).andExpect { status { isServiceUnavailable() } }
+        hentStønader(SAKSBEHANDLER).andExpect { status { isServiceUnavailable() } }
     }
 
     @Test
@@ -101,31 +117,31 @@ class TilgangskontrollIntegrasjonTest {
 
     @Test
     fun `ugyldig token gir 401`() {
-        hentPerioder("ukjent-token").andExpect { status { isUnauthorized() } }
+        hentStønader("ukjent-token").andExpect { status { isUnauthorized() } }
     }
 
     @Test
     fun `token uten NAVident, som maskintokens, gir 401`() {
-        hentPerioder(UTEN_NAVIDENT).andExpect { status { isUnauthorized() } }
+        hentStønader(UTEN_NAVIDENT).andExpect { status { isUnauthorized() } }
     }
 
     @Test
     fun `kall uten token gir 401`() {
         mockMvc
-            .post("/api/infotrygd/perioder") {
+            .post("/api/infotrygd/stonader") {
                 contentType = MediaType.APPLICATION_JSON
-                content = """{"personidenter":["$PERSON_1"]}"""
+                content = """{"personidenter":["$PERSON_1"],"stønadstype":"GRUNNSTØNAD"}"""
             }.andExpect { status { isUnauthorized() } }
     }
 
-    private fun hentPerioder(
+    private fun hentStønader(
         token: String,
         vararg personidenter: String = arrayOf(PERSON_1),
     ): ResultActionsDsl =
-        mockMvc.post("/api/infotrygd/perioder") {
+        mockMvc.post("/api/infotrygd/stonader") {
             header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             contentType = MediaType.APPLICATION_JSON
-            content = """{"personidenter":[${personidenter.joinToString(",") { "\"$it\"" }}]}"""
+            content = """{"personidenter":[${personidenter.joinToString(",") { "\"$it\"" }}],"stønadstype":"GRUNNSTØNAD"}"""
         }
 
     class FalskTilgangsmaskin :

@@ -22,24 +22,11 @@ const ID_PREFIKS = "diagnose";
 function grupperDiagnoser(
   perioder: VilkårDiagnoseResponse[] | undefined
 ): VilkårPeriodeGruppe<VilkårDiagnoseResponse>[] {
-  const grupper = new Map<string, VilkårPeriodeGruppe<VilkårDiagnoseResponse>>();
-
-  for (const periode of perioder ?? []) {
-    const nøkkel = periode.diagnose.kode;
-    const gruppe = grupper.get(nøkkel);
-
-    if (gruppe) {
-      gruppe.perioder.push(periode);
-    } else {
-      grupper.set(nøkkel, {
-        nøkkel,
-        tittel: visningAvDiagnosekode(periode.diagnose),
-        perioder: [periode],
-      });
-    }
-  }
-
-  return Array.from(grupper.values());
+  return [...Map.groupBy(perioder ?? [], (p) => p.diagnose.kode)].map(([nøkkel, gruppe]) => ({
+    nøkkel,
+    tittel: visningAvDiagnosekode(gruppe[0].diagnose),
+    perioder: gruppe,
+  }));
 }
 
 export const DiagnoseVilkår: React.FC = () => {

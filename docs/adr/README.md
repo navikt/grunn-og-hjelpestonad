@@ -20,8 +20,9 @@ utover å oppdatere status og lenke til den nye ADR-en.
 | [ADR-0002](ADR-0002-openapi-basert-generering-av-frontend-typer.md) | OpenAPI-basert generering av frontend-typer | Godkjent |
 | [ADR-0003](ADR-0003-vilkaarsmodell-for-grunnstoenad.md) | Vilkårsmodell for grunnstønad | Delvis erstattet av ADR-0006 |
 | [ADR-0004](ADR-0004-vilkaarssteg-utleder-perioder-med-rett.md) | Vilkårssteget fullføres i backend og utleder perioder med rett | Delvis erstattet av ADR-0006 |
-| [ADR-0005](ADR-0005-perioder-fra-infotrygd.md) | Perioder fra Infotrygd | Godkjent |
+| [ADR-0005](ADR-0005-perioder-fra-infotrygd.md) | Perioder fra Infotrygd | Erstattet av `/stonader` |
 | [ADR-0006](ADR-0006-fem-vilkaar-med-inngangsvilkaar-som-foerste-steg.md) | Fem vilkår, med inngangsvilkår som første steg | Foreslått |
 | [ADR-0007](ADR-0007-faktagrunnlag-per-kilde-med-minst-mulig-endring.md) | Faktagrunnlag per kilde, med minst mulig endring | Foreslått |
 | [ADR-0008](ADR-0008-deterministisk-logikk-utenfor-spring.md) | Deterministisk logikk utenfor Spring | Foreslått |
 | [ADR-0009](ADR-0009-tilgangskontroll-mot-person.md) | Tilgangskontroll mot person via tilgangsmaskinen | Akseptert |
+| [ADR-0010](ADR-0010-historiske-evalueringsdata-fra-infotrygd.md) | Historiske evalueringsdata fra Infotrygd kobles på person og måned | Foreslått |
