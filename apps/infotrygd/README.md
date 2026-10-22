@@ -59,6 +59,9 @@ stønad står i [docs/gh-i-infotrygd.md](docs/gh-i-infotrygd.md).
 
 ### Koblinger mellom tabellene
 
+Et diagram over tabellene og koblingene står i
+[docs/gh-i-infotrygd.md](docs/gh-i-infotrygd.md#tabellene-vi-replikerer).
+
 - **Vedtak og sak:** `t_vedtak.saksblokk` og `t_vedtak.saksnr` tilsvarer
   `sa_sak_10.s05_saksblokk` og `sa_sak_10.s10_saksnr`. `s10_saksnr` er tekst og
   kan ha ledende null, mens `t_vedtak.saksnr` er tall.
@@ -91,7 +94,7 @@ stønad står i [docs/gh-i-infotrygd.md](docs/gh-i-infotrygd.md).
 
 | Endepunkt | Beskrivelse |
 |-----------|-------------|
-| `POST /api/infotrygd/perioder` | Perioder gruppert i `grunnstønad` og `hjelpestønad`, med siste evaluering for saken per vedtak |
+| `POST /api/infotrygd/stonader` | Stønadene for én stønadstype, som et tre fra `t_stonad` til vedtak, endringer, delytelser, `t_gh` og evaluering |
 | `POST /api/infotrygd/stonad/eksisterer` | Om personene har vedtak eller saker, og om vedtakene er løpende |
 | `GET /api/infotrygd/stonad/migreringspersoner` | Personer med løpende stønad fra neste måned |
 | `POST /api/infotrygd/saker/finn` | Saker fra `sa_sak_10` |
@@ -106,29 +109,41 @@ genererer klientmodellene sine fra filen (pakken
 `/v3/api-docs` og feiler når den var utdatert. Endrer du API-et, kjør testene og
 commit den oppdaterte filen.
 
-### Perioder
+### Stønader
 
-`/perioder` har samme lagdeling (`PeriodeController`, `PeriodeService` og
-`PeriodeRepository`), forespørsel, joins, filtre og sortering som i EF-appen.
-Bakgrunnen står i [ADR-0005](../../docs/adr/ADR-0005-perioder-fra-infotrygd.md).
-Dette er annerledes:
+`/stonader` erstattet `/perioder`, som fulgte `/api/perioder` i EF-appen
+([ADR-0005](../../docs/adr/ADR-0005-perioder-fra-infotrygd.md)). `/perioder`
+filtrerte bort vedtak og ga én rad per delytelse og endringskode. `/stonader`
+ligger ikke nær EF-appen. Svaret følger tabellene i stedet:
 
-- Én periode per rad i `t_delytelse`. `stønadFom`, `stønadTom` og `beløp` kommer
-  fra delytelsen, og `innvilgetFom`, `innvilgetTom` og `datoMottattSak` fra vedtaket.
-- `trygdetidOgSats` inneholder alle registreringer i `t_gh` for vedtaket, nyeste
-  først. Det er ikke avklart hvilken som gjelder for en delytelse, så det
-  avgjør konsumenten.
-- Vedtak uten `dato_innv_tom` er løpende og tas med.
-- Koder returneres som tekst, ikke enum, så ukjente koder ikke gir feil.
-- Perioder slås ikke sammen. EF-appen har `/perioder/sammenslatte`, men det har
-  ikke vi.
+- Forespørselen har én påkrevd `stønadstype`. Konsumenten kaller én gang per
+  stønadstype.
+- Svaret er et tre langs fremmednøklene: `t_stonad` → `t_vedtak` → `t_endring`,
+  `t_delytelse` og `t_gh`. Klassene heter som tabellene og feltene som kolonnene,
+  i camelCase. `personnr` kommer fra `t_lopenr_fnr`.
+- Bare kolonnene vi trenger er med. Metadata fra replikeringen (`opprettet`,
+  `oppdatert`, `db_splitt`) og løpenumre for andre personer er utelatt.
+- Ingen rader filtreres bort, bortsett fra på person og `kode_rutine`. Vedtak
+  uten endringer eller delytelser, vedtak med `dato_innv_tom` før eller lik
+  `dato_innv_fom` og stønader uten `oppdrag_id` er med. Konsumenten bestemmer
+  hva som vises.
+- Et vedtak tas bare med når `t_vedtak.person_lopenr` hører til en av identene
+  i forespørselen, ikke bare når stønaden gjør det. Tilgangen er bare sjekket for
+  disse identene. Replikaen har ingen fremmednøkler, og i dev hadde fire vedtak
+  et annet løpenummer enn stønaden sin, der det ene løpenummeret manglet i
+  `t_lopenr_fnr`. Slike vedtak er ikke med.
+- `evaluering` på vedtaket er det eneste avledede feltet, se
+  [Evaluering](#evaluering).
+- Tekst er trimmet, og listene er sortert på primærnøkkelen.
 
-Som i EF-appen gir et vedtak med flere endringskoder én periode per kode, og
-perioder uten `oppdrag_id` filtreres bort, med mindre beløpet er 0 kr.
+Hver tabell hentes i én spørring med `IN` på nøklene fra forelderen, så antall
+spørringer er fast. Spørringene kjøres i én `REPEATABLE_READ`-transaksjon, slik
+at de ser samme øyeblikksbilde. Replikaen er likevel ikke konsistent på tvers av
+tabeller mens replikeringen pågår, så et vedtak kan mangle delytelser en stund.
 
 ### Evaluering
 
-Evalueringen er feltet `evaluering` på hver periode i `/perioder`. Alle periodene i et vedtak får samme evaluering. Vedtak uten evaluering får `null`.
+Evalueringen er feltet `evaluering` på hvert vedtak i `/stonader`. Vedtak uten evaluering får `null`.
 
 Vedtaket kobles til evalueringen i fire steg:
 
@@ -171,7 +186,7 @@ Målt i dev 2026-10-20. Tallene gjelder personmåneder med `EVGH`, og 162 160 av
 - Med flere saker (13 181 personmåneder) har posisjonene like mange rader som saker i 13 177 til 13 180 av dem. Én personmåned har færre rader enn saker, og fem har flere.
 - Samme måned kan ha evalueringer med andre tekstkoder i GH, for eksempel `EVBE` (86 481 personmåneder), `EVZ1`, `EVGS` og `EVOM`. Disse skriver også til `055`, `100`, `150` og `160` i måneder uten `EVGH`. I måneder med `EVGH` gir de ingen ekstra rader i våre posisjoner, se tallene over. `165` brukes bare av `EVGH`.
 
-`ev_data_10` har rundt 100 andre posisjoner, de fleste fra andre tekstkoder. Disse har innhold og kan være aktuelle senere: `265`, `300` og `332` (cirka 6 700 personmåneder, ingen tom tekst), `062` (7 065) og `060` (4 377). Vi vet ikke hva de betyr. Les [ADR-0011](../../docs/adr/ADR-0011-historiske-evalueringsdata-fra-infotrygd.md) før du legger til en posisjon, og mål på nytt.
+`ev_data_10` har rundt 100 andre posisjoner, de fleste fra andre tekstkoder. Disse har innhold og kan være aktuelle senere: `265`, `300` og `332` (cirka 6 700 personmåneder, ingen tom tekst), `062` (7 065) og `060` (4 377). Vi vet ikke hva de betyr. Les [ADR-0010](../../docs/adr/ADR-0010-historiske-evalueringsdata-fra-infotrygd.md) før du legger til en posisjon, og mål på nytt.
 
 Ugyldige virkningstidspunkt logges med verdi til team logs. Vanlig logg får bare antall evalueringer med motstridende felt per posisjon.
 

@@ -75,7 +75,7 @@ class EndepunktRegisterTest {
                 "SøkController#søkPersonMedFagsakPersonId",
                 "PdlFaktagrunnlagController#hentMedlemskapFaktagrunnlag",
                 "PdlFaktagrunnlagController#innhentFaktagrunnlagFraPdl",
-                "InfotrygdController#hentPerioderForPerson",
+                "InfotrygdController#hentStønaderForPerson",
                 "IverksettVedtaksbrevController#lagIverksettVedtaksbrevTask",
                 "IverksettVedtaksbrevController#distribuerVedtaksbrev",
                 "SimuleringController#simulerForBehandling",

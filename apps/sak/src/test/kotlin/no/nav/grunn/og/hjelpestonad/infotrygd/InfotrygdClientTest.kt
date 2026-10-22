@@ -11,7 +11,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.config.testRestClientBuilder
-import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.PeriodeResponse
+import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.StonaderRequest
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import org.junit.jupiter.api.AfterAll
@@ -67,12 +67,14 @@ class InfotrygdClientTest {
     }
 
     @Nested
-    inner class HentPerioderForPerson {
+    inner class HentStønader {
+        private fun hentGrunnstønad(klient: InfotrygdClient = client) = klient.hentStønader("12345678901", StonaderRequest.Stønadstype.GRUNNSTØNAD)
+
         @Test
-        fun `returnerer perioder og sender OBO-token ved vellykket kall`() {
+        fun `returnerer stønadstreet og sender OBO-token ved vellykket kall`() {
             wireMockServer.stubFor(
-                post(urlEqualTo("/api/infotrygd/perioder"))
-                    .withRequestBody(equalToJson("""{"personidenter": ["12345678901"], "stønadstyper": []}"""))
+                post(urlEqualTo("/api/infotrygd/stonader"))
+                    .withRequestBody(equalToJson("""{"personidenter": ["12345678901"], "stønadstype": "GRUNNSTØNAD"}"""))
                     .withHeader("Authorization", equalTo("Bearer gyldig-token"))
                     .willReturn(
                         aResponse()
@@ -80,60 +82,95 @@ class InfotrygdClientTest {
                             .withBody(
                                 """
                                 {
-                                    "grunnstønad": [
+                                    "stonader": [
                                         {
-                                            "personident": "12345678901",
-                                            "stønadstype": "GRUNNSTØNAD",
-                                            "sakstype": "S",
-                                            "kode": "F",
-                                            "brukerId": "Z123456",
-                                            "stønadId": 1,
-                                            "vedtakId": 2,
-                                            "vedtakstidspunkt": "2020-01-01T12:00:00",
-                                            "datoMottattSak": "2019-12-15",
-                                            "vedtakKodeResultat": "I",
-                                            "startDato": "2020-01-01",
-                                            "innvilgetFom": "2020-01-01",
-                                            "innvilgetTom": null,
-                                            "opphørsdato": null,
-                                            "oppdragId": null,
-                                            "typeDelytelse": "E",
-                                            "typeSats": "M",
-                                            "typeUtbetaling": "M",
-                                            "stønadFom": "2020-01-01",
-                                            "stønadTom": null,
-                                            "beløp": 1234.50,
-                                            "trygdetidOgSats": []
+                                            "stonadId": 1,
+                                            "personnr": "12345678901",
+                                            "kodeRutine": "GS",
+                                            "datoStart": "2020-01-01",
+                                            "kodeOpphor": null,
+                                            "datoOpphor": null,
+                                            "oppdragId": 10,
+                                            "tidspunktOpphort": null,
+                                            "tidspunktReg": "2020-01-01T12:00:00",
+                                            "brukerid": "Z123456",
+                                            "vedtak": [
+                                                {
+                                                    "vedtakId": 2,
+                                                    "tknr": "0301",
+                                                    "saksblokk": "A",
+                                                    "saksnr": 1,
+                                                    "typeSak": "S",
+                                                    "kodeResultat": "I",
+                                                    "datoInnvFom": "2020-01-01",
+                                                    "datoInnvTom": null,
+                                                    "datoMottattSak": "2019-12-15",
+                                                    "kodeVedtaksnivaa": "L",
+                                                    "typeBeregning": "M",
+                                                    "tidspunktReg": "2020-01-01T12:00:00",
+                                                    "brukerid": "Z123456",
+                                                    "endringer": ["F"],
+                                                    "delytelser": [
+                                                        {
+                                                            "typeDelytelse": "GS",
+                                                            "tidspunktReg": "2020-01-01T12:00:00",
+                                                            "fom": "2020-01-01",
+                                                            "tom": null,
+                                                            "belop": 1234.50,
+                                                            "typeSats": "M",
+                                                            "typeUtbetaling": "J",
+                                                            "brukerid": "Z123456",
+                                                            "linjeId": null
+                                                        }
+                                                    ],
+                                                    "gh": [],
+                                                    "evaluering": null
+                                                }
+                                            ]
                                         }
-                                    ],
-                                    "hjelpestønad": []
+                                    ]
                                 }
                                 """.trimIndent(),
                             ),
                     ),
             )
 
-            val resultat = client.hentPerioderForPerson("12345678901")
+            val resultat = hentGrunnstønad()
 
-            assertEquals(1, resultat.grunnstønad.size)
-            assertEquals(PeriodeResponse.Stønadstype.GRUNNSTØNAD, resultat.grunnstønad.single().stønadstype)
-            assertEquals(LocalDate.of(2020, 1, 1), resultat.grunnstønad.single().stønadFom)
-            assertNull(resultat.grunnstønad.single().stønadTom)
-            assertEquals(0, resultat.hjelpestønad.size)
+            val vedtak =
+                resultat.stonader
+                    .single()
+                    .vedtak
+                    .single()
+            assertEquals(LocalDate.of(2020, 1, 1), vedtak.datoInnvFom)
+            assertNull(vedtak.datoInnvTom)
+            assertEquals(listOf("F"), vedtak.endringer)
+            assertEquals(1, vedtak.delytelser.size)
             verify(exactly = 1) { texasClient.hentOboToken(AUDIENCE) }
+        }
+
+        @Test
+        fun `tom liste er et gyldig svar`() {
+            wireMockServer.stubFor(
+                post(urlEqualTo("/api/infotrygd/stonader"))
+                    .willReturn(
+                        aResponse()
+                            .withHeader("Content-Type", "application/json")
+                            .withBody("""{"stonader": []}"""),
+                    ),
+            )
+
+            assertEquals(emptyList<Any>(), hentGrunnstønad().stonader)
         }
 
         @Test
         fun `kaster Feil med not found ved 404`() {
             wireMockServer.stubFor(
-                post(urlEqualTo("/api/infotrygd/perioder"))
+                post(urlEqualTo("/api/infotrygd/stonader"))
                     .willReturn(aResponse().withStatus(404)),
             )
 
-            val feil =
-                assertThrows(Feil::class.java) {
-                    client.hentPerioderForPerson("12345678901")
-                }
+            val feil = assertThrows(Feil::class.java) { hentGrunnstønad() }
 
             assertEquals(HttpStatus.NOT_FOUND, feil.httpStatus)
         }
@@ -141,14 +178,11 @@ class InfotrygdClientTest {
         @Test
         fun `kaster Feil med not found ved tom respons`() {
             wireMockServer.stubFor(
-                post(urlEqualTo("/api/infotrygd/perioder"))
+                post(urlEqualTo("/api/infotrygd/stonader"))
                     .willReturn(aResponse().withStatus(204)),
             )
 
-            val feil =
-                assertThrows(Feil::class.java) {
-                    client.hentPerioderForPerson("12345678901")
-                }
+            val feil = assertThrows(Feil::class.java) { hentGrunnstønad() }
 
             assertEquals(HttpStatus.NOT_FOUND, feil.httpStatus)
         }
@@ -156,7 +190,7 @@ class InfotrygdClientTest {
         @Test
         fun `kaster exception ved serverfeil`() {
             wireMockServer.stubFor(
-                post(urlEqualTo("/api/infotrygd/perioder"))
+                post(urlEqualTo("/api/infotrygd/stonader"))
                     .willReturn(
                         aResponse()
                             .withStatus(500)
@@ -164,27 +198,18 @@ class InfotrygdClientTest {
                     ),
             )
 
-            assertThrows(Exception::class.java) {
-                client.hentPerioderForPerson("12345678901")
-            }
+            assertThrows(Exception::class.java) { hentGrunnstønad() }
         }
 
         @Test
         fun `kaster Feil ved responstimeout`() {
             wireMockServer.stubFor(
-                post(urlEqualTo("/api/infotrygd/perioder"))
+                post(urlEqualTo("/api/infotrygd/stonader"))
                     .willReturn(
                         aResponse()
                             .withFixedDelay(500)
                             .withHeader("Content-Type", "application/json")
-                            .withBody(
-                                """
-                                {
-                                    "grunnstønad": [],
-                                    "hjelpestønad": []
-                                }
-                                """.trimIndent(),
-                            ),
+                            .withBody("""{"stonader": []}"""),
                     ),
             )
             val timeoutClient =
@@ -195,31 +220,25 @@ class InfotrygdClientTest {
                     grunnOgHjelpestonadInfotrygdAudience = AUDIENCE,
                 )
 
-            val feil =
-                assertThrows(Feil::class.java) {
-                    timeoutClient.hentPerioderForPerson("12345678901")
-                }
+            val feil = assertThrows(Feil::class.java) { hentGrunnstønad(timeoutClient) }
 
-            assertEquals("Kunne ikke hente perioder fra Infotrygd", feil.message)
+            assertEquals("Kunne ikke hente stønader fra Infotrygd", feil.message)
         }
 
         @Test
         fun `ugyldig JSON gir Feil uten cause og med generell melding`() {
             wireMockServer.stubFor(
-                post(urlEqualTo("/api/infotrygd/perioder"))
+                post(urlEqualTo("/api/infotrygd/stonader"))
                     .willReturn(
                         aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBody("""{"grunnstønad": [{"diagnose1": "sensitive-value"}]}"""),
+                            .withBody("""{"stonader": [{"diagnose1": "sensitive-value"}]}"""),
                     ),
             )
 
-            val feil =
-                assertThrows(Feil::class.java) {
-                    client.hentPerioderForPerson("12345678901")
-                }
+            val feil = assertThrows(Feil::class.java) { hentGrunnstønad() }
 
-            assertEquals("Kunne ikke hente perioder fra Infotrygd", feil.message)
+            assertEquals("Kunne ikke hente stønader fra Infotrygd", feil.message)
             assertNull(feil.cause)
         }
     }

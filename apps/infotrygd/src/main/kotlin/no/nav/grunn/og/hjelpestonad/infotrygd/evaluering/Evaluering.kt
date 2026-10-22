@@ -41,7 +41,7 @@ data class Ev10Rad(
  *
  * Målt i dev 2026-10-20: EVGH skriver alle fem i hver evalueringsmåned, og hver GH-sak gir én rad per posisjon.
  * Andre evalueringer (EVBE, EVZ1 osv.) kan bruke de samme posisjonene, men i måneder med EVGH gir de ingen ekstra rader.
- * Se ADR-0011 før du legger til en posisjon.
+ * Se ADR-0010 før du legger til en posisjon.
  */
 enum class Ev10Posisjon(
     val kode: String,

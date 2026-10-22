@@ -2,7 +2,6 @@ package no.nav.grunn.og.hjelpestonad.infotrygd.evaluering
 
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 import java.time.YearMonth
 
 @Repository
@@ -61,7 +60,7 @@ select s.vedtak_id,
        n.antall_evalueringer_i_måneden_på_sak
   from siste_evaluering_for_vedtak s
            join antall_evalueringer_i_måned n on n.vedtak_id = s.vedtak_id
-           -- Vi henter bare posisjonene i Ev10Posisjon. Andre evalueringer (EVBE, EVZ1 …) kan bruke de samme posisjonene, se Ev10Posisjon i Evaluering.kt og ADR-0011.
+           -- Vi henter bare posisjonene i Ev10Posisjon. Andre evalueringer (EVBE, EVZ1 …) kan bruke de samme posisjonene, se Ev10Posisjon i Evaluering.kt og ADR-0010.
            join ev_data_10 ev10
                on ev10.ev01_personkey = s.ev01_personkey
                    and ev10.ev05_aar_mnd_seq = s.ev05_aar_mnd_seq

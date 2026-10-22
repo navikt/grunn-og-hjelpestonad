@@ -26,27 +26,25 @@ class InfotrygdController(
 ) {
     private val logger = LoggerFactory.getLogger(InfotrygdController::class.java)
 
-    @PostMapping("/perioder")
+    @PostMapping("/stonader")
     @PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('BESLUTTER') or hasRole('LESETILGANG')")
     @Operation(
-        summary = "Hent vedtaksperioder for person fra Infotrygd",
-        description = "Henter alle vedtaksperioder for personen, med siste evaluering for saken per vedtak og ICD-10-tekst for diagnosene. Inneholder helseopplysninger.",
+        summary = "Hent stønader for person fra Infotrygd",
+        description = "Henter stønadene for én stønadstype som et tre fra t_stonad til vedtak, endringer, delytelser, trygdetid og sats og evaluering, med ICD-10-tekst for diagnosene. Inneholder helseopplysninger.",
         security = [SecurityRequirement(name = "oauth2")],
     )
-    fun hentPerioderForPerson(
-        @RequestBody request: PersonidentRequest,
-    ): ResponseEntity<InfotrygdPerioderResponse> {
-        logger.info("Henter perioder for person fra grunn-og-hjelpestonad-infotrygd")
-
+    fun hentStønaderForPerson(
+        @RequestBody request: InfotrygdStonaderRequest,
+    ): ResponseEntity<InfotrygdStonaderResponse> {
         PersonidentValidator.validerPersonident(request.personident)
         tilgangService.validerTilgangTilPerson(request.personident)
 
         val response =
             infotrygdClient
-                .hentPerioderForPerson(personident = request.personident)
-                .tilInfotrygdPerioderResponse()
+                .hentStønader(personident = request.personident, stønadstype = request.stønadstype)
+                .tilInfotrygdStonaderResponse()
 
-        logger.info("Hentet perioder fra Infotrygd: ${response.grunnstønad.size} grunnstønad, ${response.hjelpestønad.size} hjelpestønad")
+        logger.info("Hentet {} stønader fra Infotrygd, stønadstype={}", response.stonader.size, request.stønadstype)
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noStore())
