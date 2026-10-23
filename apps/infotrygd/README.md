@@ -104,7 +104,8 @@ Et diagram over tabellene og koblingene står i
 
 `stonader`, `stonad/eksisterer` og `saker/finn` skriver én linje per kall til
 loggeren `auditLogger`, som bare går til team logs:
-`Z123456 ba om tilgang til fnr: 12345678901, 10987654321. Svar: ja`.
+`Z123456 ba om tilgang til fnr: 12345678901. Svar: ja`. De tre endepunktene tar
+én personident per kall. Flere gir `400`.
 `Nav-Call-Id` følger med som eget felt. Svaret er `nei` både ved avslag og når
 tilgangsmaskinen ikke svarer. `stonad/migreringspersoner` logges ikke.
 
