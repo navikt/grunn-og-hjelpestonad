@@ -90,7 +90,8 @@ Endepunkter uten personsjekk: `DiagnosekodeController`, `UnleashController`,
 - Alle avslag som gir `403` arver fra `ManglerTilgang`: `ManglerTilgangTilPersonFeil`,
   `IkkeAnsvarligSaksbehandlerFeil` og `ManglerTilgangIPdlException`. Én handler i
   `ApiExceptionHandler` svarer for alle tre.
-- Vi logger NAV-ident, avvisningskode og `traceId`, aldri fødselsnummer.
+- Vi logger NAV-ident, avvisningskode og `traceId`, aldri fødselsnummer. Unntaket
+  er auditloggen i infotrygd, se under Risiko.
   `TilgangsmaskinException` har bare statuskode eller exception-type i meldingen,
   og ingen `cause`, fordi responsbodyen kan inneholde fødselsnumre.
 
@@ -169,8 +170,15 @@ beslutninger. Forkastet fordi appen ikke er i prod og ikke har egen tilgangslogi
 - Avslagsmeldingen viser hvilken kjerneregel som avviste. En saksbehandler kan
   dermed finne ut om et fødselsnummer har strengt fortrolig eller fortrolig
   adresse, eller er skjermet. Avslag logges med NAV-ident, men ingen varsles.
-- Ingen auditlogg ennå. Teamet har valgt å vente med auditlogg og godtar risikoen
-  til den er på plass.
+- Sak har ingen auditlogg ennå. Teamet har valgt å vente og godtar risikoen til
+  den er på plass.
+- Infotrygd auditlogger til team logs, ikke til ArcSight. `TilgangService` skriver
+  én linje per kall til `stonader`, `stonad/eksisterer` og `saker/finn` med
+  NAV-ident, fødselsnumrene og utfallet (tilgang, avslag eller feil). Bare teamet kan lese team
+  logs, men loggen beviser ikke at den er uendret, og linjer forsvinner når
+  team logs er nede. Det er godt nok i dev, ikke i prod.
+- `stonad/migreringspersoner` auditlogges ikke. Saksbehandleren sender ingen
+  fødselsnumre, men får opptil 1000 tilbake.
 - Evalueringen fra Infotrygd (`POST /api/infotrygd/evaluering` i infotrygd og i
   sak) inneholder helseopplysninger etter GDPR art. 9: diagnose 1 og 2,
   hjemmelbokstav og trolig felt 200 og 210, som ser ut som ICD-10-koder.
@@ -200,6 +208,10 @@ beslutninger. Forkastet fordi appen ikke er i prod og ikke har egen tilgangslogi
 - [ ] Auditlogg: database for økonominære handlinger og ArcSight via `AuditLogger`.
       Oppslag av evalueringen fra Infotrygd må auditlogges før den vises for
       saksbehandler i prod. Det blokkerer prod-manifestet for sak.
+- [ ] Infotrygd: bytt `Auditlogg` fra team logs til ArcSight (CEF) før prod, og
+      fjern team logs-linjen. Avgjør da om `stonad/migreringspersoner` skal
+      auditlogges. Det blokkerer prod-manifestet for infotrygd.
+- [ ] Skriv ned hvor lenge team logs lagrer auditlinjene i dev.
 - [ ] Avgjør om `LESETILGANG` skal se evalueringen, eller om
       `/api/infotrygd/evaluering` i sak skal begrenses til `SAKSBEHANDLER` og
       `BESLUTTER`.

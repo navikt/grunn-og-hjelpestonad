@@ -60,14 +60,35 @@ class TilgangskontrollIntegrasjonTest {
     }
 
     @Test
-    fun `saksbehandler uten tilgang til én person får 403 uten data`() {
-        tilgangsmaskin.svar = { listOf(Tilgangsvurdering(PERSON_1, true, null), Tilgangsvurdering(PERSON_2, false, null)) }
+    fun `saksbehandler uten tilgang til personen får 403 uten data`() {
+        tilgangsmaskin.svar = { listOf(Tilgangsvurdering(PERSON_1, false, null)) }
 
-        hentStønader(SAKSBEHANDLER, PERSON_1, PERSON_2).andExpect {
+        hentStønader(SAKSBEHANDLER, PERSON_1).andExpect {
             status { isForbidden() }
-            jsonPath("$.melding") { value(TilgangService.MANGLER_TILGANG_FLERE_MELDING) }
+            jsonPath("$.melding") { value(TilgangService.MANGLER_TILGANG_MELDING) }
             jsonPath("$.stonader") { doesNotExist() }
         }
+    }
+
+    @Test
+    fun `flere personidenter gir 400 uten kall til tilgangsmaskinen`() {
+        val personidenter = """["$PERSON_1","$PERSON_2"]"""
+        mapOf(
+            "/api/infotrygd/stonader" to """{"personidenter":$personidenter,"stønadstype":"GRUNNSTØNAD"}""",
+            "/api/infotrygd/stonad/eksisterer" to """{"personidenter":$personidenter}""",
+            "/api/infotrygd/saker/finn" to """{"personidenter":$personidenter}""",
+        ).forEach { (sti, body) ->
+            mockMvc
+                .post(sti) {
+                    header(HttpHeaders.AUTHORIZATION, "Bearer $SAKSBEHANDLER")
+                    contentType = MediaType.APPLICATION_JSON
+                    content = body
+                }.andExpect {
+                    status { isBadRequest() }
+                    jsonPath("$.melding") { value("Kan bare slå opp én personident om gangen") }
+                }
+        }
+        assertTrue(tilgangsmaskin.kall.isEmpty())
     }
 
     @Test

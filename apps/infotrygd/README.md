@@ -100,6 +100,20 @@ Et diagram over tabellene og koblingene står i
 | `POST /api/infotrygd/saker/finn` | Saker fra `sa_sak_10` |
 | `GET /api/infotrygd/tabeller/*` | Kolonner og antall rader i replikatabellene |
 
+### Auditlogg
+
+`stonader`, `stonad/eksisterer` og `saker/finn` skriver én linje per kall til
+loggeren `auditLogger`, som bare går til team logs:
+`Z123456 ba om tilgang til fnr: 12345678901. Utfall: tilgang`. De tre endepunktene tar
+én personident per kall. Flere gir `400`.
+`Nav-Call-Id` følger med som eget felt. Utfallet er `tilgang`, `avslag` eller
+`feil`. `avslag` betyr at tilgangsmaskinen avviste eller ikke svarte for
+personen, og `feil` at kallet til tilgangsmaskinen feilet.
+`stonad/migreringspersoner` logges ikke.
+
+Søk etter `logger_name:auditLogger` i team logs. Team logs er ikke en gyldig
+auditlogg for prod, se [ADR-0009](../../docs/adr/ADR-0009-tilgangskontroll-mot-person.md).
+
 ### Kontrakt mot sak
 
 [`openapi.json`](openapi.json) er kontrakten mellom infotrygd og sak. Sak
@@ -190,7 +204,7 @@ Målt i dev 2026-10-20. Tallene gjelder personmåneder med `EVGH`, og 162 160 av
 
 Ugyldige virkningstidspunkt logges med verdi til team logs. Vanlig logg får bare antall evalueringer med motstridende felt per posisjon.
 
-Diagnosene og hjemmelbokstaven er helseopplysninger (GDPR art. 9). Oppslagene auditlogges ikke ennå, se ADR-0009.
+Diagnosene og hjemmelbokstaven er helseopplysninger (GDPR art. 9). Oppslagene logges til team logs, se [Auditlogg](#auditlogg).
 
 #### Kjente tilfeller uten evaluering
 

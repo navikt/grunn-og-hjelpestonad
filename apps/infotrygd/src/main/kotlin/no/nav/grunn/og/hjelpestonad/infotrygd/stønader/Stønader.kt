@@ -13,6 +13,7 @@ data class StonaderRequest(
 ) {
     fun valider() {
         require(personidenter.isNotEmpty()) { "Må oppgi minst én personident" }
+        require(personidenter.size == 1) { "Kan bare slå opp én personident om gangen" }
         personidenter.forEach(PersonidentValidator::validerPersonident)
     }
 }
