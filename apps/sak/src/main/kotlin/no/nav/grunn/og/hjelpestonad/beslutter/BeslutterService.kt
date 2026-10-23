@@ -213,8 +213,6 @@ class BeslutterService(
             throw IllegalStateException("Behandling må være i status UTREDES for å kunne sendes til beslutter")
         }
 
-        årsakBehandlingService.hentÅrsakBehandling(behandlingId) ?: throw IllegalStateException("Årsak må være fylt ut før behandlingen kan sendes til beslutter")
-
         val oppgave =
             oppgaveService.hentOppgaveForBehandling(behandlingId)
                 ?: throw IllegalStateException("Fant ikke oppgave for behandling med id $behandlingId")
