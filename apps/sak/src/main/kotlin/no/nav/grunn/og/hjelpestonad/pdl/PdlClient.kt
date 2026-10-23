@@ -147,6 +147,7 @@ class PdlClient(
     private fun lagPdlOnBehalfOfHeaders(): HttpHeaders =
         pdlHeaders().apply {
             setBearerAuth(texasClient.hentOboToken(pdlScope))
+
         }
 
     private fun lagPdlMaskinTilMaskinToken(): HttpHeaders =
@@ -159,6 +160,7 @@ class PdlClient(
             contentType = MediaType.APPLICATION_JSON
             set("Tema", "EYO")
             set("behandlingsnummer", "B373")
+            set("Permissive-Mode", "true") // Dropper validering av behandlingskatalog. Fjernes når app skal ut i prod
         }
 
     private fun håndterPdlErrors(
