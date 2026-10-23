@@ -2,7 +2,9 @@ package no.nav.grunn.og.hjelpestonad.pdl
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.serverError
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
@@ -101,6 +103,17 @@ class PdlClientWiremockTest {
 
         assertThat(result).isNotNull
         assertEquals(listOf("pdlScope"), texasClient.requestedMaskinAudiences)
+    }
+
+    @Test
+    fun `kall mot PDL sender Permissive-Mode-header`() {
+        stubForGraphql(lagPdlResponseHentPersonData())
+
+        pdlClient.hentPersonDataOBOToken(PdlRequest(query = "query {}", variables = mapOf("ident" to "123")))
+
+        wireMockServer.verify(
+            postRequestedFor(urlEqualTo("/graphql")).withHeader("Permissive-Mode", equalTo("true")),
+        )
     }
 
     private fun stubForGraphql(response: String) {
