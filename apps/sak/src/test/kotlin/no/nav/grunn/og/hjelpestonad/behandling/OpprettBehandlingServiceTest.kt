@@ -46,14 +46,14 @@ class OpprettBehandlingServiceTest {
     }
 
     @Test
-    fun `opprettBehandling oppretter behandling med standardstatus og resultat`() {
+    fun `opprettBehandling oppretter behandling med status UTREDES og resultat IKKE_SATT`() {
         every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
 
         val fagsakId = UUID.randomUUID()
         val behandling = opprettBehandlingService.opprettBehandling(fagsakId = fagsakId)
 
         assertEquals(fagsakId, behandling.fagsakId)
-        assertEquals(BehandlingStatus.OPPRETTET, behandling.status)
+        assertEquals(BehandlingStatus.UTREDES, behandling.status)
         assertEquals(BehandlingResultat.IKKE_SATT, behandling.resultat)
     }
 
