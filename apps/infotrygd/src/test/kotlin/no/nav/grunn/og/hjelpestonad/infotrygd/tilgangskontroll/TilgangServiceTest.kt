@@ -1,9 +1,14 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.tilgangskontroll
 
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import no.nav.grunn.og.hjelpestonad.infotrygd.security.JwtTestHelper
 import no.nav.grunn.og.hjelpestonad.infotrygd.texas.TexasClient
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
@@ -16,11 +21,21 @@ import kotlin.test.assertTrue
 
 class TilgangServiceTest {
     private val tilgangsmaskin = FalskTilgangsmaskinClient()
-    private val tilgangService = TilgangService(tilgangsmaskin)
+    private val tilgangService = TilgangService(tilgangsmaskin, Auditlogg())
+    private val auditAppender = ListAppender<ILoggingEvent>()
+    private val auditLogger = LoggerFactory.getLogger("auditLogger") as Logger
+    private val navIdent = JwtTestHelper.opprettSaksbehandlerToken().getClaimAsString("NAVident")
+
+    @BeforeEach
+    fun oppsett() {
+        auditAppender.start()
+        auditLogger.addAppender(auditAppender)
+    }
 
     @AfterEach
     fun ryddOpp() {
         SecurityContextHolder.clearContext()
+        auditLogger.detachAppender(auditAppender)
     }
 
     @Test
@@ -151,6 +166,58 @@ class TilgangServiceTest {
 
         assertEquals(listOf(Regeltype.KJERNE_REGELTYPE), tilgangsmaskin.regeltyper)
     }
+
+    @Test
+    fun `tilgang gir én auditlinje med NAV-ident, begge fnr og «Svar ja»`() {
+        loggInnSaksbehandler()
+        tilgangsmaskin.svar = { identer -> identer.map { tilgang(it) } }
+
+        tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2))
+
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1, $PERSON_2. Svar: ja"), auditLinjer())
+    }
+
+    @Test
+    fun `avslag gir én auditlinje med «Svar nei» og ManglerTilgangTilPersonFeil kastes fortsatt`() {
+        loggInnSaksbehandler()
+        tilgangsmaskin.svar = { listOf(tilgang(PERSON_1), avslag(PERSON_2, null)) }
+
+        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2)) }
+
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1, $PERSON_2. Svar: nei"), auditLinjer())
+    }
+
+    @Test
+    fun `feil fra tilgangsmaskinen gir én auditlinje med «Svar nei» og unntaket kastes videre`() {
+        loggInnSaksbehandler()
+        tilgangsmaskin.svar = { throw TilgangsmaskinException("Feil ved kall mot tilgangsmaskinen: HTTP 500", 500) }
+
+        assertFailsWith<TilgangsmaskinException> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1)) }
+
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1. Svar: nei"), auditLinjer())
+    }
+
+    @Test
+    fun `filtrering gir ingen auditlinje`() {
+        loggInnSaksbehandler()
+        tilgangsmaskin.svar = { listOf(tilgang(PERSON_1), avslag(PERSON_2, null)) }
+
+        tilgangService.filtrerPersonerMedTilgang(setOf(PERSON_1, PERSON_2))
+
+        assertTrue(auditLinjer().isEmpty())
+    }
+
+    @Test
+    fun `mer enn maks antall personer gir ingen auditlinje`() {
+        loggInnSaksbehandler()
+        val identer = (1..TilgangService.MAKS_ANTALL_PERSONER + 1).map { it.toString().padStart(11, '0') }.toSet()
+
+        assertFailsWith<IllegalArgumentException> { tilgangService.validerTilgangTilPersoner(identer) }
+
+        assertTrue(auditLinjer().isEmpty())
+    }
+
+    private fun auditLinjer(): List<String> = auditAppender.list.map { it.formattedMessage }
 
     private fun loggInnSaksbehandler() {
         SecurityContextHolder.getContext().authentication =

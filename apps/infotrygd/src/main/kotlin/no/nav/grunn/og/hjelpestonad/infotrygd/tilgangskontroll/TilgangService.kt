@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 @Service
 class TilgangService(
     private val tilgangsmaskinClient: TilgangsmaskinClient,
+    private val auditlogg: Auditlogg,
 ) {
     private val logger = LoggerFactory.getLogger(TilgangService::class.java)
     private val secureLogger = LoggerFactory.getLogger("secureLogger")
@@ -35,10 +36,17 @@ class TilgangService(
         require(personidenter.isNotEmpty()) { "Må oppgi minst én personident" }
         validerAntall(personidenter.size)
 
-        val vurderingerFraTilgangsmaskin = vurderMotTilgangsmaskin(personidenter)
+        val saksbehandler = SikkerhetContext.hentSaksbehandler()
+        var fikkTilgang = false
+        try {
+            val vurderingerFraTilgangsmaskin = vurderMotTilgangsmaskin(personidenter)
 
-        vurderingerFraTilgangsmaskin.validerIngenUtenSvar(personidenter)
-        vurderingerFraTilgangsmaskin.validerIngenAvslag(personidenter)
+            vurderingerFraTilgangsmaskin.validerIngenUtenSvar(personidenter)
+            vurderingerFraTilgangsmaskin.validerIngenAvslag(personidenter)
+            fikkTilgang = true
+        } finally {
+            auditlogg.forespørselOmTilgang(saksbehandler, personidenter, fikkTilgang)
+        }
     }
 
     private fun Map<String, List<Tilgangsvurdering>>.validerIngenAvslag(
