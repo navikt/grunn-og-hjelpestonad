@@ -25,6 +25,13 @@ query ($ident: ID!) {
             metadata { historisk master }
             folkeregistermetadata { gyldighetstidspunkt opphoerstidspunkt }
         }
+        opphold(historikk: true) {
+            type
+            oppholdFra
+            oppholdTil
+            metadata { historisk master }
+            folkeregistermetadata { gyldighetstidspunkt opphoerstidspunkt }
+        }
         innflyttingTilNorge {
             fraflyttingsland
             fraflyttingsstedIUtlandet
@@ -35,6 +42,13 @@ query ($ident: ID!) {
             tilflyttingsland
             tilflyttingsstedIUtlandet
             utflyttingsdato
+            metadata { historisk master }
+            folkeregistermetadata { gyldighetstidspunkt opphoerstidspunkt }
+        }
+        oppholdsadresse(historikk: true) {
+            gyldigFraOgMed
+            gyldigTilOgMed
+            utenlandskAdresse { landkode }
             metadata { historisk master }
             folkeregistermetadata { gyldighetstidspunkt opphoerstidspunkt }
         }
