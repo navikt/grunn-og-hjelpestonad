@@ -147,7 +147,6 @@ class PdlClient(
     private fun lagPdlOnBehalfOfHeaders(): HttpHeaders =
         pdlHeaders().apply {
             setBearerAuth(texasClient.hentOboToken(pdlScope))
-
         }
 
     private fun lagPdlMaskinTilMaskinToken(): HttpHeaders =
