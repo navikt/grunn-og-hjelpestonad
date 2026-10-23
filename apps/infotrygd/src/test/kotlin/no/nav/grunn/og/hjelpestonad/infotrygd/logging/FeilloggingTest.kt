@@ -123,12 +123,12 @@ class FeilloggingTest {
     @Test
     fun `auditlogg med personidenter finnes bare i Team Logs`() {
         val sensitiv = "sensitiv-testverdi"
-        context.getLogger("auditLogger").info("{} ba om tilgang til fnr: {}. Svar: {}", "A123456", sensitiv, "ja")
+        context.getLogger("auditLogger").info("{} ba om tilgang til fnr: {}. Utfall: {}", "A123456", sensitiv, "tilgang")
 
         val vanlig = vanligLogg.toString(Charsets.UTF_8)
         val team = teamLogg.loggutskrift.toString(Charsets.UTF_8)
         assertFalse(vanlig.contains(sensitiv))
         assertFalse(vanlig.contains("ba om tilgang"))
-        assertTrue(team.contains("A123456 ba om tilgang til fnr: $sensitiv. Svar: ja"))
+        assertTrue(team.contains("A123456 ba om tilgang til fnr: $sensitiv. Utfall: tilgang"))
     }
 }

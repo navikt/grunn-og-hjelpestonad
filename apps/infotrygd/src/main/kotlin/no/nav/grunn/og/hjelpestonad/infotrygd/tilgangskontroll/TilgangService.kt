@@ -37,16 +37,21 @@ class TilgangService(
         validerAntall(personidenter.size)
 
         val saksbehandler = SikkerhetContext.hentSaksbehandler()
-        var fikkTilgang = false
-        try {
-            val vurderingerFraTilgangsmaskin = vurderMotTilgangsmaskin(personidenter)
+        val resultat = runCatching {
+                val vurderingerFraTilgangsmaskin = vurderMotTilgangsmaskin(personidenter)
 
-            vurderingerFraTilgangsmaskin.validerIngenUtenSvar(personidenter)
-            vurderingerFraTilgangsmaskin.validerIngenAvslag(personidenter)
-            fikkTilgang = true
-        } finally {
-            auditlogg.forespørselOmTilgang(saksbehandler, personidenter, fikkTilgang)
-        }
+                vurderingerFraTilgangsmaskin.validerIngenUtenSvar(personidenter)
+                vurderingerFraTilgangsmaskin.validerIngenAvslag(personidenter)
+            }
+        val utfall = when (resultat.exceptionOrNull()) {
+                null -> Tilgangsutfall.TILGANG
+                is ManglerTilgangTilPersonFeil -> Tilgangsutfall.AVSLAG
+                else -> Tilgangsutfall.FEIL
+            }
+        auditlogg.forespørselOmTilgang(saksbehandler, personidenter, utfall)
+
+        // Kaster avslag og feil videre. Uten denne linjen blir avslag til tilgang.
+        resultat.getOrThrow()
     }
 
     private fun Map<String, List<Tilgangsvurdering>>.validerIngenAvslag(

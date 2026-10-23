@@ -174,7 +174,7 @@ beslutninger. Forkastet fordi appen ikke er i prod og ikke har egen tilgangslogi
   den er på plass.
 - Infotrygd auditlogger til team logs, ikke til ArcSight. `TilgangService` skriver
   én linje per kall til `stonader`, `stonad/eksisterer` og `saker/finn` med
-  NAV-ident, fødselsnumrene og svaret (ja eller nei). Bare teamet kan lese team
+  NAV-ident, fødselsnumrene og utfallet (tilgang, avslag eller feil). Bare teamet kan lese team
   logs, men loggen beviser ikke at den er uendret, og linjer forsvinner når
   team logs er nede. Det er godt nok i dev, ikke i prod.
 - `stonad/migreringspersoner` auditlogges ikke. Saksbehandleren sender ingen

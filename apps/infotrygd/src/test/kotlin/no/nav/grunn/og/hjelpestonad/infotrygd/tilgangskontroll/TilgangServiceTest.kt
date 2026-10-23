@@ -168,33 +168,43 @@ class TilgangServiceTest {
     }
 
     @Test
-    fun `tilgang gir én auditlinje med NAV-ident, begge fnr og «Svar ja»`() {
+    fun `tilgang gir én auditlinje med NAV-ident, begge fnr og utfall tilgang`() {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { identer -> identer.map { tilgang(it) } }
 
         tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2))
 
-        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1, $PERSON_2. Svar: ja"), auditLinjer())
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1, $PERSON_2. Utfall: tilgang"), auditLinjer())
     }
 
     @Test
-    fun `avslag gir én auditlinje med «Svar nei» og ManglerTilgangTilPersonFeil kastes fortsatt`() {
+    fun `avslag gir én auditlinje med utfall avslag og ManglerTilgangTilPersonFeil kastes fortsatt`() {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { listOf(tilgang(PERSON_1), avslag(PERSON_2, null)) }
 
         assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2)) }
 
-        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1, $PERSON_2. Svar: nei"), auditLinjer())
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1, $PERSON_2. Utfall: avslag"), auditLinjer())
     }
 
     @Test
-    fun `feil fra tilgangsmaskinen gir én auditlinje med «Svar nei» og unntaket kastes videre`() {
+    fun `person som mangler i svaret gir utfall avslag`() {
+        loggInnSaksbehandler()
+        tilgangsmaskin.svar = { emptyList() }
+
+        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1)) }
+
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1. Utfall: avslag"), auditLinjer())
+    }
+
+    @Test
+    fun `feil fra tilgangsmaskinen gir én auditlinje med utfall feil og unntaket kastes videre`() {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { throw TilgangsmaskinException("Feil ved kall mot tilgangsmaskinen: HTTP 500", 500) }
 
         assertFailsWith<TilgangsmaskinException> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1)) }
 
-        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1. Svar: nei"), auditLinjer())
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1. Utfall: feil"), auditLinjer())
     }
 
     @Test

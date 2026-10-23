@@ -14,13 +14,23 @@ class Auditlogg {
     fun forespørselOmTilgang(
         saksbehandler: String,
         personidenter: Set<String>,
-        fikkTilgang: Boolean,
+        utfall: Tilgangsutfall,
     ) {
         logger.info(
-            "{} ba om tilgang til fnr: {}. Svar: {}",
+            "{} ba om tilgang til fnr: {}. Utfall: {}",
             saksbehandler,
             personidenter.joinToString(", "),
-            if (fikkTilgang) "ja" else "nei",
+            utfall.tekst,
         )
     }
+}
+
+/** [cef] er verdien i `flexString1` (Decision) når auditloggen flyttes til ArcSight. */
+enum class Tilgangsutfall(
+    val tekst: String,
+    val cef: String,
+) {
+    TILGANG("tilgang", "Permit"),
+    AVSLAG("avslag", "Deny"),
+    FEIL("feil", "Deny"),
 }

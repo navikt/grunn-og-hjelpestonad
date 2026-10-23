@@ -104,10 +104,12 @@ Et diagram over tabellene og koblingene står i
 
 `stonader`, `stonad/eksisterer` og `saker/finn` skriver én linje per kall til
 loggeren `auditLogger`, som bare går til team logs:
-`Z123456 ba om tilgang til fnr: 12345678901. Svar: ja`. De tre endepunktene tar
+`Z123456 ba om tilgang til fnr: 12345678901. Utfall: tilgang`. De tre endepunktene tar
 én personident per kall. Flere gir `400`.
-`Nav-Call-Id` følger med som eget felt. Svaret er `nei` både ved avslag og når
-tilgangsmaskinen ikke svarer. `stonad/migreringspersoner` logges ikke.
+`Nav-Call-Id` følger med som eget felt. Utfallet er `tilgang`, `avslag` eller
+`feil`. `avslag` betyr at tilgangsmaskinen avviste eller ikke svarte for
+personen, og `feil` at kallet til tilgangsmaskinen feilet.
+`stonad/migreringspersoner` logges ikke.
 
 Søk etter `logger_name:auditLogger` i team logs. Team logs er ikke en gyldig
 auditlogg for prod, se [ADR-0009](../../docs/adr/ADR-0009-tilgangskontroll-mot-person.md).
