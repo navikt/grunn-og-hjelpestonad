@@ -27,7 +27,7 @@ class OpprettBehandlingService(
     @Transactional
     fun opprettBehandling(
         fagsakId: UUID,
-        status: BehandlingStatus = BehandlingStatus.OPPRETTET,
+        status: BehandlingStatus = BehandlingStatus.UTREDES,
     ): Behandling {
         if (behandlingService.finnesÅpenBehandling(fagsakId)) {
             throw Feil("Finnes åpen behandling")

@@ -53,8 +53,10 @@ open class ExodusScheduler(
                     .take(properties.maksSiderPerKjoring)
                     .takeWhileInclusive { it == SideResultat.FLERE_SIDER }
                     .toList()
-            logger.info("Tabell ${tabell.tabellnavn}: ${resultater.size} sider hentet, status ${resultater.lastOrNull()}")
-            resultater.lastOrNull()
+            val status = resultater.lastOrNull()
+            val melding = "Tabell ${tabell.tabellnavn}: ${resultater.size} sider hentet, status $status"
+            if (resultater.size > 1 || status != SideResultat.AJOUR) logger.info(melding) else logger.debug(melding)
+            status
         } catch (e: Exception) {
             logger.error("Replikering av tabell ${tabell.tabellnavn} feilet. Prøver igjen neste kjøring.")
             secureLogger.error("Replikering av tabell ${tabell.tabellnavn} feilet", e)
