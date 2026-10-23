@@ -37,13 +37,15 @@ class TilgangService(
         validerAntall(personidenter.size)
 
         val saksbehandler = SikkerhetContext.hentSaksbehandler()
-        val resultat = runCatching {
+        val resultat =
+            runCatching {
                 val vurderingerFraTilgangsmaskin = vurderMotTilgangsmaskin(personidenter)
 
                 vurderingerFraTilgangsmaskin.validerIngenUtenSvar(personidenter)
                 vurderingerFraTilgangsmaskin.validerIngenAvslag(personidenter)
             }
-        val utfall = when (resultat.exceptionOrNull()) {
+        val utfall =
+            when (resultat.exceptionOrNull()) {
                 null -> Tilgangsutfall.TILGANG
                 is ManglerTilgangTilPersonFeil -> Tilgangsutfall.AVSLAG
                 else -> Tilgangsutfall.FEIL
