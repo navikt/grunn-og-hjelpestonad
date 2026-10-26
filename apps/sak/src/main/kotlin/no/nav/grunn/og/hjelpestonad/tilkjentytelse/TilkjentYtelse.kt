@@ -7,7 +7,6 @@ import org.springframework.data.relational.core.mapping.Embedded
 import org.springframework.data.relational.core.mapping.MappedCollection
 import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDate
-import java.time.YearMonth
 import java.util.UUID
 
 @Table("tilkjent_ytelse")
@@ -15,8 +14,6 @@ data class TilkjentYtelse(
     @Id
     val id: UUID = UUID.randomUUID(),
     val behandlingId: UUID,
-    @Column("startmaned")
-    val startmåned: YearMonth,
     @MappedCollection(idColumn = "tilkjent_ytelse_id")
     val andelerTilkjentYtelse: Set<AndelTilkjentYtelse>,
     @Embedded(onEmpty = Embedded.OnEmpty.USE_EMPTY)

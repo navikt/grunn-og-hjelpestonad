@@ -107,7 +107,7 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
     }
 
     @Test
-    fun `opphør av alle andeler skal gi tom andelliste og beholde startmåned fra forrige behandling`() {
+    fun `opphør av alle andeler skal gi tom andelliste`() {
         val fagsakId = opprettFagsak()
         val førstegangsbehandlingId = opprettBehandling(fagsakId)
         val innvilget =
@@ -137,7 +137,6 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
 
         val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(revurderingId)!!
         assertThat(tilkjentYtelse.andelerTilkjentYtelse).isEmpty()
-        assertThat(tilkjentYtelse.startmåned).isEqualTo(YearMonth.of(2025, 1))
     }
 
     @Test

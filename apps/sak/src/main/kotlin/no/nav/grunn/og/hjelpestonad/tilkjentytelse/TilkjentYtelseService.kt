@@ -1,6 +1,5 @@
 package no.nav.grunn.og.hjelpestonad.tilkjentytelse
 
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingRepository
 import no.nav.grunn.og.hjelpestonad.vedtak.BarnetilsynBeregning
 import no.nav.grunn.og.hjelpestonad.vedtak.BeløpsperioderResponse
 import no.nav.grunn.og.hjelpestonad.vedtak.BeregningUtils.beregnBarnetilsynperiode
@@ -13,7 +12,6 @@ import java.util.UUID
 @Service
 class TilkjentYtelseService(
     private val tilkjentYtelseRepository: TilkjentYtelseRepository,
-    private val behandlingRepository: BehandlingRepository,
 ) {
     fun opprettEllerOppdaterTilkjentYtelse(
         behandlingId: UUID,
@@ -27,19 +25,9 @@ class TilkjentYtelseService(
                 else -> emptySet() // OPPHØR
             }
 
-        val behandling =
-            behandlingRepository.findById(behandlingId).orElseThrow {
-                IllegalStateException("Fant ikke behandling $behandlingId")
-            }
-        val forrigeStartmåned =
-            behandling.forrigeBehandlingId?.let {
-                tilkjentYtelseRepository.findByBehandlingId(it)?.startmåned
-            }
-
         val tilkjentYtelse =
             TilkjentYtelse(
                 behandlingId = behandlingId,
-                startmåned = utledStartmåned(andeler = andeler, forrigeStartmåned = forrigeStartmåned),
                 andelerTilkjentYtelse = andeler,
             )
 

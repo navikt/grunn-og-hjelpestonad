@@ -15,7 +15,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
-import java.time.YearMonth
 
 internal class TilkjentYtelseRepositoryTest : SpringContextTest() {
     @Autowired
@@ -31,7 +30,7 @@ internal class TilkjentYtelseRepositoryTest : SpringContextTest() {
     private lateinit var fagsakPersonRepository: FagsakPersonRepository
 
     @Test
-    internal fun `skal lagre og lese startmaaned som YearMonth`() {
+    internal fun `skal lagre og lese tilkjent ytelse med andeler`() {
         val fagsakPerson = fagsakPersonRepository.insert(FagsakPerson(identer = setOf(Personident("01010199997"))))
         val fagsak = fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.BARNETILSYN))
         val behandling = behandlingRepository.insert(Behandling(fagsakId = fagsak.id, status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT))
@@ -39,7 +38,6 @@ internal class TilkjentYtelseRepositoryTest : SpringContextTest() {
         tilkjentYtelseRepository.insert(
             TilkjentYtelse(
                 behandlingId = behandling.id,
-                startmåned = YearMonth.of(2025, 2),
                 andelerTilkjentYtelse =
                     setOf(
                         AndelTilkjentYtelse(
@@ -52,8 +50,13 @@ internal class TilkjentYtelseRepositoryTest : SpringContextTest() {
             ),
         )
 
-        val lest = tilkjentYtelseRepository.findByBehandlingId(behandling.id)
+        val lest = tilkjentYtelseRepository.findByBehandlingId(behandling.id)!!
 
-        assertThat(lest?.startmåned).isEqualTo(YearMonth.of(2025, 2))
+        assertThat(lest.andelerTilkjentYtelse).hasSize(1)
+        val andel = lest.andelerTilkjentYtelse.single()
+        assertThat(andel.beløp).isEqualTo(1000)
+        assertThat(andel.fom).isEqualTo(LocalDate.of(2025, 2, 1))
+        assertThat(andel.tom).isEqualTo(LocalDate.of(2025, 4, 30))
+        assertThat(andel.kildeBehandlingId).isEqualTo(behandling.id)
     }
 }
