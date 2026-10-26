@@ -26,4 +26,4 @@ utover å oppdatere status og lenke til den nye ADR-en.
 | [ADR-0008](ADR-0008-deterministisk-logikk-utenfor-spring.md) | Deterministisk logikk utenfor Spring | Foreslått |
 | [ADR-0009](ADR-0009-tilgangskontroll-mot-person.md) | Tilgangskontroll mot person via tilgangsmaskinen | Akseptert |
 | [ADR-0010](ADR-0010-historiske-evalueringsdata-fra-infotrygd.md) | Historiske evalueringsdata fra Infotrygd kobles på person og måned | Foreslått |
-| [ADR-0011](ADR-0010-avrunding-og-utbetalingsgrunnlag-hoerer-til-oppdrag.md) | Avrunding og utbetalingsgrunnlag hører til oppdrag | Foreslått |
+| [ADR-0011](ADR-0011-avrunding-og-utbetalingsgrunnlag-hoerer-til-oppdrag.md) | Avrunding og utbetalingsgrunnlag hører til oppdrag | Foreslått |
