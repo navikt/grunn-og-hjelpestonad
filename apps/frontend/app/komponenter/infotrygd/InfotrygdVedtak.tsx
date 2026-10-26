@@ -62,14 +62,6 @@ function TomtFelt() {
 const visVerdi = (verdi: string | null | undefined): React.ReactNode =>
   verdi?.trim() ? verdi : <TomtFelt />;
 
-function UlikeVerdier() {
-  return (
-    <InlineMessage status="warning" size="small">
-      Ulike verdier. Les i Infotrygd.
-    </InlineMessage>
-  );
-}
-
 const ingenBryting: React.CSSProperties = { whiteSpace: "nowrap" };
 
 const hentetFraTekst = (kilde: Kildevedtak): string =>
@@ -87,6 +79,26 @@ function FraTidligereVedtak({ kilde }: { kilde: Kildevedtak | null }) {
         </span>
       </Tooltip>
     </>
+  );
+}
+
+const erMotstridende = (evaluering: InfotrygdEvaluering | null, felt: MotstridendeFelt): boolean =>
+  evaluering?.motstridendeFelt.includes(felt) ?? false;
+
+// Ikonet vises bare når evalueringen er arvet. Uten kilde står advarselen alene.
+function UlikeVerdier({ kilde }: { kilde?: Kildevedtak | null }) {
+  const advarsel = (
+    <InlineMessage status="warning" size="small">
+      Ulike verdier. Les i Infotrygd.
+    </InlineMessage>
+  );
+  if (!kilde) return advarsel;
+
+  return (
+    <HStack gap="space-4" align="center" wrap={false}>
+      {advarsel}
+      <FraTidligereVedtak kilde={kilde} />
+    </HStack>
   );
 }
 
@@ -300,12 +312,22 @@ function Detaljer({
           {evaluering && (
             <>
               <Felt tittel="Diagnose 1">
-                <Diagnose kode={evaluering.diagnose1} diagnosetekster={diagnosetekster} />
+                {erMotstridende(evaluering, "DIAGNOSE_1") ? (
+                  <UlikeVerdier />
+                ) : (
+                  <Diagnose kode={evaluering.diagnose1} diagnosetekster={diagnosetekster} />
+                )}
               </Felt>
               <Felt tittel="Diagnose 2">
-                <Diagnose kode={evaluering.diagnose2} diagnosetekster={diagnosetekster} />
+                {erMotstridende(evaluering, "DIAGNOSE_2") ? (
+                  <UlikeVerdier />
+                ) : (
+                  <Diagnose kode={evaluering.diagnose2} diagnosetekster={diagnosetekster} />
+                )}
               </Felt>
-              <Felt tittel="Sats i evalueringen">{visVerdi(evaluering.sats)}</Felt>
+              <Felt tittel="Sats i evalueringen">
+                {erMotstridende(evaluering, "SATS") ? <UlikeVerdier /> : visVerdi(evaluering.sats)}
+              </Felt>
               <Felt tittel="Måned notert i Infotrygd">
                 {formaterMaaned(evaluering.månedNotertIInfotrygd)}
               </Felt>
@@ -344,13 +366,18 @@ function Radvisning({
   diagnosetekster: Record<string, string>;
 }) {
   const { vedtak, evaluering } = rad;
-  const motstridende = (felt: MotstridendeFelt) => evaluering?.motstridendeFelt.includes(felt);
   const nyesteGh = rad.gh[0];
   const sats = nyesteGh?.satsGs;
   const ghKilde = rad.ghFraVedtak;
   const evalueringskilde = rad.evalueringFraVedtak;
   const virkningstidspunkt = evaluering?.virkningstidspunkt;
   const hjemmelbokstav = evaluering?.hjemmelbokstav?.trim();
+  const diagnosekoder = [evaluering?.diagnose1, evaluering?.diagnose2]
+    .map((kode) => kode?.trim())
+    .filter(Boolean)
+    .join(", ");
+  const ulikeDiagnoser =
+    erMotstridende(evaluering, "DIAGNOSE_1") || erMotstridende(evaluering, "DIAGNOSE_2");
 
   return (
     <Table.ExpandableRow
@@ -374,8 +401,17 @@ function Radvisning({
         )}
       </Table.DataCell>
       <Table.DataCell>
-        {motstridende("HJEMMELBOKSTAV") ? (
-          <UlikeVerdier />
+        {ulikeDiagnoser ? (
+          <UlikeVerdier kilde={evalueringskilde} />
+        ) : diagnosekoder ? (
+          <VerdiMedKilde kilde={evalueringskilde}>{diagnosekoder}</VerdiMedKilde>
+        ) : (
+          <TomtFelt />
+        )}
+      </Table.DataCell>
+      <Table.DataCell>
+        {erMotstridende(evaluering, "HJEMMELBOKSTAV") ? (
+          <UlikeVerdier kilde={evalueringskilde} />
         ) : hjemmelbokstav ? (
           <VerdiMedKilde kilde={evalueringskilde}>{hjemmelbokstav}</VerdiMedKilde>
         ) : (
@@ -383,8 +419,8 @@ function Radvisning({
         )}
       </Table.DataCell>
       <Table.DataCell>
-        {motstridende("VIRKNINGSTIDSPUNKT") ? (
-          <UlikeVerdier />
+        {erMotstridende(evaluering, "VIRKNINGSTIDSPUNKT") ? (
+          <UlikeVerdier kilde={evalueringskilde} />
         ) : virkningstidspunkt ? (
           <VerdiMedKilde kilde={evalueringskilde}>
             {formaterMaaned(virkningstidspunkt)}
@@ -405,6 +441,7 @@ const KOLONNER = [
   "Beløp",
   "Sats",
   "Trygdetid",
+  "Diagnose",
   "Bokstav i § 6-3",
   "Virkningstidspunkt",
   "Søknad mottatt",

@@ -113,6 +113,98 @@
               "evaluering": null
             }
           ]
+        },
+        {
+          "stonadId": 17620555,
+          "personnr": "{{jsonPath request.body '$.personidenter[0]'}}",
+          "kodeRutine": "GS",
+          "datoStart": "2025-02-01",
+          "kodeOpphor": "O",
+          "datoOpphor": "2026-01-31",
+          "oppdragId": 88924111,
+          "tidspunktOpphort": "2026-01-20T10:12:33.120044",
+          "tidspunktReg": "2025-03-04T09:15:21.330417",
+          "brukerid": "SBH5678",
+          "vedtak": [
+            {
+              "vedtakId": 27700101,
+              "tknr": "0315",
+              "saksblokk": "A",
+              "saksnr": 3,
+              "typeSak": "S",
+              "kodeResultat": "I",
+              "datoInnvFom": "2025-02-01",
+              "datoInnvTom": "2025-08-31",
+              "datoMottattSak": "2025-02-14",
+              "kodeVedtaksnivaa": "TK",
+              "typeBeregning": "O",
+              "tidspunktReg": "2025-03-04T09:15:21.341208",
+              "brukerid": "SBH5678",
+              "endringer": ["F"],
+              "delytelser": [
+                {
+                  "typeDelytelse": "MG",
+                  "tidspunktReg": "2025-03-04T09:15:21.352917",
+                  "fom": "2025-02-01",
+                  "tom": "2025-08-31",
+                  "belop": 720.00,
+                  "typeSats": "M",
+                  "typeUtbetaling": "L",
+                  "brukerid": "SBH5678",
+                  "linjeId": 3
+                }
+              ],
+              "gh": [
+                {
+                  "tidspunktReg": "2025-03-04T09:15:21.368104",
+                  "trygdetid": 40,
+                  "satsGs": 1,
+                  "satsHs": null,
+                  "brukerid": "SBH5678"
+                }
+              ],
+              "evaluering": {
+                "månedNotertIInfotrygd": "2025-03",
+                "diagnose1": null,
+                "diagnose2": "",
+                "sats": null,
+                "hjemmelbokstav": null,
+                "virkningstidspunkt": "2025-02",
+                "motstridendeFelt": ["DIAGNOSE_1", "SATS", "HJEMMELBOKSTAV"]
+              }
+            },
+            {
+              "vedtakId": 27700188,
+              "tknr": "0315",
+              "saksblokk": "A",
+              "saksnr": 4,
+              "typeSak": "MS",
+              "kodeResultat": "FI",
+              "datoInnvFom": "2025-09-01",
+              "datoInnvTom": null,
+              "datoMottattSak": "2025-09-10",
+              "kodeVedtaksnivaa": "TK",
+              "typeBeregning": "O",
+              "tidspunktReg": "2025-09-10T02:04:11.508123",
+              "brukerid": "AUTO",
+              "endringer": ["S"],
+              "delytelser": [
+                {
+                  "typeDelytelse": "MG",
+                  "tidspunktReg": "2025-09-10T02:04:11.512486",
+                  "fom": "2025-09-01",
+                  "tom": "2026-01-31",
+                  "belop": 744.00,
+                  "typeSats": "M",
+                  "typeUtbetaling": "L",
+                  "brukerid": "AUTO",
+                  "linjeId": 4
+                }
+              ],
+              "gh": [],
+              "evaluering": null
+            }
+          ]
         }
       ]
     }
