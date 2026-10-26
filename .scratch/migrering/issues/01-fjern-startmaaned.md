@@ -8,9 +8,13 @@
 
 Spec: [spec.md](../spec.md)
 
-- [ ] Migreringen som la til startmåned (V44), er slettet. Den er ikke deployet. Migreringen med ekstern behandlings-ID (V43) er beholdt.
-- [ ] Feltet på tilkjent ytelse og funksjonen som utleder startmåned, er fjernet.
-- [ ] Testene for startmåned er fjernet. Testen for opphør av alle andeler sjekker fortsatt at andelslisten blir tom.
-- [ ] Ingen kode eller dokumentasjon i `apps/sak` viser til startmåned.
-- [ ] Hele testsuiten i `apps/sak` er grønn.
-- [ ] Commit-meldingen sier at lokale databaser der V44 er kjørt, må settes opp på nytt.
+- [x] ~~Migreringen som la til startmåned (V44), er slettet.~~ V44 er beholdt, og V46 dropper kolonnen. Migreringen med ekstern behandlings-ID (V43) er beholdt. Se kommentar.
+- [x] Feltet på tilkjent ytelse og funksjonen som utleder startmåned, er fjernet.
+- [x] Testene for startmåned er fjernet. Testen for opphør av alle andeler sjekker fortsatt at andelslisten blir tom.
+- [x] Ingen kode eller dokumentasjon i `apps/sak` viser til startmåned, bortsett fra migreringene V44 og V46.
+- [x] Hele testsuiten i `apps/sak` er grønn.
+- [x] ~~Commit-meldingen sier at lokale databaser der V44 er kjørt, må settes opp på nytt.~~ Gjelder ikke lenger: V46 dropper kolonnen også lokalt.
+
+## Comments
+
+**2026-10-26:** V44 ble deployet til dev-gcp med «Oppdrag (#95)» før ticketen ble tatt. Å slette V44 ville stoppet Flyway-valideringen i dev, så V44 er beholdt og V46 kjører `DROP COLUMN startmaned`. Spec-linjen «Den slettes i stedet for å følges av en ny migrering» stemmer derfor ikke lenger.
