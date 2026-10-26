@@ -109,13 +109,12 @@ open class DatabaseConfig(
         conversions: JdbcCustomConversions,
         typeFactory: JdbcTypeFactory,
     ) : MappingJdbcConverter(mappingContext, relationResolver, conversions, typeFactory) {
-        override fun getColumnType(property: RelationalPersistentProperty): Class<*> {
-            return if (property.actualType == YearMonth::class.java) {
+        override fun getColumnType(property: RelationalPersistentProperty): Class<*> =
+            if (property.actualType == YearMonth::class.java) {
                 Date::class.java
             } else {
                 super.getColumnType(property)
             }
-        }
     }
 
     @WritingConverter
