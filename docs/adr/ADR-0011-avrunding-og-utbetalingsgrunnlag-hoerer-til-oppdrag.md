@@ -58,7 +58,7 @@ Løpende saker skal migreres fra Infotrygd. Referanseappene håndterer også det
 - Migreringsdatoen for saken er den tidligste datoen blant iverksatte
   migreringsbehandlinger. Henlagte og åpne behandlinger teller ikke.
 - Saker som ikke har vært i Infotrygd, har ingen migreringsdato. `startmåned` på
-  `tilkjent_ytelse` og `utledStartmåned` fjernes.
+  `tilkjent_ytelse` og `utledStartmåned` er fjernet.
 - Migreringsdatoen kan bare flyttes bakover, og bare i en behandling med årsak
   `ENDRE_MIGRERINGSDATO` («Endre migreringsdato»-behandling).
 - Saksbehandler velger migreringsdatoen, også i den første migreringen. Systemet
@@ -187,8 +187,8 @@ juridisk begrunnelse.
 - Ved avvik må saksbehandler henlegge migreringsbehandlingen og starte på nytt.
 - Backend stopper ikke en endret vilkårsvurdering i en migreringsbehandling så
   lenge utbetalingen er den samme. Bare beslutter ser den.
-- `startmåned` (V44), `utledStartmåned` og `StartmånedTest` må fjernes eller
-  skrives om.
+- V44 la til `startmaned` og ble kjørt i dev før forslaget ble forkastet. Den
+  blir derfor liggende, og V46 dropper kolonnen igjen.
 
 ### Risiko
 
