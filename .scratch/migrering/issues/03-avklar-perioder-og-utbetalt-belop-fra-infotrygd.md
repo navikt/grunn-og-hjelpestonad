@@ -1,0 +1,15 @@
+# 03: Avklar perioder og utbetalt beløp fra Infotrygd
+
+**What to build:** En beslutning om hvordan en migreringsbehandling får perioder og utbetalt beløp per måned fra Infotrygd. Ticket 05 bygger på svaret. Dette krever kunnskap om Infotrygd og fagsiden, og kan ikke avgjøres av en agent alene.
+
+**Blocked by:** None (can start immediately)
+
+**Status:** ready-for-human
+
+Spec: [spec.md](../spec.md). Bakgrunn: ADR-0005 (risiko og aksjonspunkter) og README for `apps/infotrygd`.
+
+- [ ] Det er bestemt hvilke delytelser som gir perioder for grunnstønad, og hvordan overlappende delytelser og flere endringskoder per vedtak tolkes.
+- [ ] Det er bestemt hvordan utbetalt beløp per måned regnes ut, som kontroll 1 sammenligner mot.
+- [ ] Det er bekreftet om regelen om `oppdrag_id` fra EF gjelder for grunnstønad.
+- [ ] Det er bestemt hvilken registrering i `t_gh` som gir sats og trygdetidsbrøk for en periode.
+- [ ] Svaret er skrevet under `## Answer` i denne fila, og README for `apps/infotrygd` er oppdatert hvis svaret endrer det som står der.

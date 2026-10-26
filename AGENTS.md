@@ -14,4 +14,18 @@
 - Les [`apps/infotrygd/README.md`](apps/infotrygd/README.md) før du endrer spørringer. Den beskriver tabellene, fnr- og datoformatene og hvordan `/perioder` avviker fra EF-appen.
 - Hold nye endepunkter så nær EF-appen som dataene tillater, og skriv avvikene i README-en.
 
+# Issues og ordliste
+
+### Issue tracker
+
+Issues og spesifikasjoner ligger som markdown-filer under `.scratch/<feature>/`. Se `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Standardrollene (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`), skrevet som `Status:`-linje i issue-filen. Se `docs/agents/triage-labels.md`.
+
+### Ordliste
+
+Ordlisten heter `CONTEXT.md` (på rot), ikke `GLOSSARY.md`. Les og oppdater den der en skill nevner `GLOSSARY.md`. ADR-er ligger i `docs/adr/`.
+
 

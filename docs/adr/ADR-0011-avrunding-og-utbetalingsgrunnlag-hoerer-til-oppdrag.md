@@ -1,6 +1,6 @@
-# ADR-0010: Avrunding og utbetalingsgrunnlag hører til oppdrag
+# ADR-0011: Avrunding og utbetalingsgrunnlag hører til oppdrag
 
-**Dato:** 2026-10-22
+**Dato:** 2026-10-26
 **Status:** Foreslått
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 
@@ -21,6 +21,14 @@ Generatoren krever `beløp: Int`. Tilkjent ytelse for grunnstønad er satsen red
 med trygdetidsbrøken, og brøken gir desimaler. Fagsiden har ikke bestemt
 avrundingsregelen.
 
+Løpende saker skal migreres fra Infotrygd. Referanseappene håndterer også dette ulikt:
+
+- **BA** lagrer migreringsdatoen bare på migreringsbehandlinger
+  (`BehandlingMigreringsinfo`). Datoen flyttes i egne behandlinger med årsak
+  `ENDRE_MIGRERINGSDATO`, og de stoppes hvis utbetalingen endres.
+- **EF** lagrer `startdato` på all tilkjent ytelse, og en vanlig revurdering kan
+  flytte den bakover.
+
 ## Beslutning
 
 ### Saken eier tilkjent ytelse, oppdrag eier utbetalingsbeløpet
@@ -40,16 +48,64 @@ avrundingsregelen.
   og klassekode. Den virker også når siste behandling opphørte alle andelene.
 - All kode for oppdrag ligger i pakken `no.nav.grunn.og.hjelpestonad.oppdrag`.
 
-### Startdato og migrert fra og med følger EF
+### Migreringsdatoen lagres på migreringsbehandlingen, som i BA
 
-- `tilkjent_ytelse` får `startmåned` på alle behandlinger, som `startdato` i EF.
-  Den lagres som `YearMonth`-tekst (`YYYY-MM`), som andre måneder i databasen.
-  I en migreringsbehandling er startmåneden lik migrert fra og med: den første
-  måneden ny løsning eier utbetalingen.
-- Når ny startmåned er tidligere enn forrige, setter oppdrag `opphørAlleKjederFra`
-  lik ny startmåned. Det gjelder også når behandlingen ikke har andeler.
-- Årsaken heter `ENDRE_MIGRERT_FRA_OG_MED`, ikke `ENDRE_MIGRERINGSDATO` som i BA.
-  Migrert fra og med kan bare flyttes bakover.
+- Migreringsdatoen er den første måneden ny løsning eier utbetalingen, og ikke
+  Infotrygd. I BA ligger datoen i måneden før, se
+  [alternativene](#migreringsdato-i-måneden-før-som-i-ba).
+- Bare migreringsbehandlinger har migreringsdato. Den lagres som `DATE` (første dag
+  i måneden) på behandlingen, som andre måneder i databasen etter V45.
+- Migreringsdatoen for saken er den tidligste datoen blant iverksatte
+  migreringsbehandlinger. Henlagte og åpne behandlinger teller ikke.
+- Saker som ikke har vært i Infotrygd, har ingen migreringsdato. `startmåned` på
+  `tilkjent_ytelse` og `utledStartmåned` fjernes.
+- Migreringsdatoen kan bare flyttes bakover, og bare i en behandling med årsak
+  `ENDRE_MIGRERINGSDATO` («Endre migreringsdato»-behandling).
+- Saksbehandler velger migreringsdatoen, også i den første migreringen. Systemet
+  foreslår ingen dato. Datoen kan være en måned Infotrygd allerede har utbetalt for.
+
+### Migreringsbehandlinger flytter saken uten å endre utbetalingen
+
+En migrering endrer ingenting for stønadsmottaker, og er derfor ikke en behandling
+i juridisk forstand. Endringer i saken gjøres i en revurdering etter migreringen.
+
+- Vilkår og perioder for månedene vi tar over, hentes fra Infotrygd. Saksbehandler
+  fyller bare inn det som mangler eller er motstridende, og må begrunne det.
+- I en «Endre migreringsdato»-behandling kopieres vilkår og perioder fra den gamle
+  migreringsdatoen og fremover uendret fra forrige behandling.
+- Skjermbildet låser feltene saksbehandler ikke skal endre. Backend validerer ikke
+  vilkårene.
+- Backend stopper behandlingen hvis en av disse kontrollene feiler. Saksbehandler
+  kan ikke overstyre dem:
+  1. For månedene vi tar over, er utbetalingsbeløpet per måned likt det Infotrygd
+     utbetalte.
+  2. Fra den gamle migreringsdatoen og fremover er utbetalingsbeløpet per måned
+     likt forrige behandling.
+  3. Simuleringen fra økonomi viser 0 kr i etterbetaling og feilutbetaling.
+- Ved avvik henlegges behandlingen. Saken rettes i Infotrygd, eller migreres med en
+  annen dato.
+- Migreringsbehandlinger har ikke vedtaksbrev, men beslutter må godkjenne dem.
+- «Endre migreringsdato»-behandlingen sender ingen ny `vedtaksmelding` til
+  Infotrygd. Infotrygd har allerede sluttet å utbetale fra den gamle datoen.
+
+Vi sammenligner utbetalingsbeløpet, ikke tilkjent ytelse. Infotrygd og OS ser bare
+hele kroner, så tilkjent ytelse med desimaler blir aldri helt lik.
+
+### Revurderinger kan ikke gå før migreringsdatoen
+
+- En revurdering i en migrert sak stoppes hvis en andel starter før
+  migreringsdatoen. Sjekken er en ren funksjon, se
+  [ADR-0008](ADR-0008-deterministisk-logikk-utenfor-spring.md).
+- Vilkårssteget stopper en vilkårsperiode som starter før migreringsdatoen, slik at
+  saksbehandler får beskjed tidlig.
+
+### Oppdrag opphører bare når migreringsdatoen flyttes
+
+- Oppdrag setter `opphørAlleKjederFra` lik ny migreringsdato bare i en «Endre
+  migreringsdato»-behandling.
+- I alle andre behandlinger er `opphørAlleKjederFra` `null`. Når en revurdering i en
+  sak som ikke er migrert gir en andel før den første, sender generatoren bare den
+  nye andelen.
 
 ## Alternativer vurdert
 
@@ -76,11 +132,40 @@ utbetalingsbeløpet, og saken blir avhengig av oppdragsbegreper.
 Forkastet. En egen app gir en kontrakt, en deploy og en database til, og vi har
 ingen behov for å skalere eller rulle ut iverksettingen for seg.
 
-### Migreringsdato med BA-semantikk
+### Startmåned på all tilkjent ytelse, som `startdato` i EF
+
+Dette var det første forslaget i denne ADR-en. Forkastet fordi en vanlig revurdering
+kunne flytte startmåneden bakover. Da kunne ny løsning ta over måneder Infotrygd
+har utbetalt for, uten at noen kontrollerte beløpene. Saker som aldri har vært i
+Infotrygd, fikk dessuten en startmåned uten mening.
+
+### Migreringsdato i måneden før, som i BA
 
 BA lagrer en dato og utbetaler fra måneden etter, så opphøret starter en måned
-etter migreringsdatoen. Forkastet fordi EF-semantikken lar startmåned, migrert fra
-og med og `datoStartNyGrunnstønad` i Infotrygd-feeden være samme måned.
+etter migreringsdatoen. Forkastet fordi vi vil at migreringsdatoen,
+`opphørAlleKjederFra` og `datoStartNyGrunnstønad` i Infotrygd-feeden skal være
+samme måned. Vi bruker likevel ordet migreringsdato, fordi saksbehandlere kjenner
+det fra BA.
+
+### Opphør utledet fra historikken, som i BA
+
+BA utleder opphøret fra migreringsdatoen og forrige behandlings andeler, ikke fra
+årsaken, og trenger ekstra regler for å unngå å sende samme opphør to ganger.
+Forkastet fordi en «Endre migreringsdato»-behandling hos oss ikke kan iverksettes
+uten at oppdraget er sendt. Da holder det å sette opphøret i selve behandlingen.
+
+### Forlenge den tidligste perioden bakover, som i BA
+
+BA kopierer vilkårene fra forrige behandling og forlenger det tidligste
+vilkårsresultatet bakover til ny migreringsdato. Forkastet fordi kontrollen mot
+Infotrygd da bare viser at Infotrygd hadde samme sats i de månedene. Den viser ikke
+at vi har flyttet saken riktig.
+
+### Overstyring av avvik
+
+Saksbehandler kunne fått godkjenne et avvik i beløp eller simulering. Forkastet
+fordi migreringen da blir en endring for stønadsmottaker, og en endring krever en
+juridisk begrunnelse.
 
 ## Konsekvenser
 
@@ -90,6 +175,8 @@ og med og `datoStartNyGrunnstønad` i Infotrygd-feeden være samme måned.
 - Konsistensavstemmingen leser det OS faktisk har fått, med avrundede beløp.
 - Saken har ingen avhengighet til generatoren eller kontraktene fra
   `familie-oppdrag`.
+- Ny løsning tar aldri over måneder Infotrygd har utbetalt for, uten at
+  utbetalingsbeløpene og simuleringen er kontrollert.
 
 ### Negative
 
@@ -97,20 +184,36 @@ og med og `datoStartNyGrunnstønad` i Infotrygd-feeden være samme måned.
   kan brukes.
 - Tilkjent ytelse og utbetalingsbeløp kan avvike med inntil 50 øre per måned.
   Skjermbilder som viser beløp, må si hvilket av dem de viser.
+- Ved avvik må saksbehandler henlegge migreringsbehandlingen og starte på nytt.
+- Backend stopper ikke en endret vilkårsvurdering i en migreringsbehandling så
+  lenge utbetalingen er den samme. Bare beslutter ser den.
+- `startmåned` (V44), `utledStartmåned` og `StartmånedTest` må fjernes eller
+  skrives om.
 
 ### Risiko
 
-- Hvis migrert fra og med egentlig skal tolkes som i BA, blir opphøret én måned
+- Hvis migreringsdatoen egentlig skal tolkes som i BA, blir opphøret én måned
   feil. Før prod er det en endring i én funksjon med tester. Etter første
   migrering i prod må lagrede datoer og kjeder i OS rettes for hver sak.
+- Vi bruker andre fagområder og klassekoder enn Infotrygd. Vi vet ikke om OS da
+  motregner det Infotrygd har utbetalt mot det vi sender for samme måned. Hvis OS
+  ikke motregner, viser simuleringen etterbetaling for hver måned vi tar over, og
+  kontrollen på 0 kr stopper alle migreringer med dato tilbake i tid. Ingenting blir
+  utbetalt to ganger, men «Endre migreringsdato» kan da ikke brukes.
 
 ## Aksjonspunkter
 
-- [ ] Fagsiden bekrefter at migrert fra og med er den første måneden ny løsning
+- [ ] Fagsiden bekrefter at migreringsdatoen er den første måneden ny løsning
       utbetaler (EF), ikke måneden før (BA). Må være avklart før første migrering
       i prod.
 - [ ] Fagsiden bestemmer avrundingsregelen før første utbetaling i prod.
 - [ ] Økonomi gir fagområde og klassekode for prod. Dev bruker `IT28` og
       `GHGSORMG`.
+- [ ] Økonomi bekrefter om OS motregner mellom Infotrygd og ny løsning når de
+      bruker ulike fagområder og klassekoder, og hva simuleringen viser for måneder
+      Infotrygd har utbetalt for. Må være avklart før vi bygger «Endre
+      migreringsdato» og migrering med dato tilbake i tid.
 - [ ] Infotrygd bekrefter at `vedtaksmelding` med `datoStartNyGrunnstønad` stopper
       utbetalingen i Infotrygd.
+- [ ] Infotrygd bekrefter at det ikke trengs en ny `vedtaksmelding` når
+      migreringsdatoen flyttes bakover.
