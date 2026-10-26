@@ -4,6 +4,12 @@ Bildene under er hentet fra Confluence-siden
 [IT34_GH - Databasetabeller](https://confluence.adeo.no/spaces/INFOTRYGD/pages/126681693/IT34_GH+-+Databasetabeller).
 Se [README](../README.md) for hvordan appen leser tabellene.
 
+## Historikk
+
+I 2009 konverterte Nav grunn- og hjelpestønad ut av pensjonsrutinen i
+Infotrygd, og GH ble en egen rutine. Vedtak fra før 2009 ble fattet i
+pensjonsrutinen.
+
 ## Tabellene vi replikerer
 
 Diagrammet viser tabellene appen leser, og hvordan de henger sammen. Det bygger
