@@ -35,6 +35,9 @@ jobs:
       - name: Kjør ESLint
         working-directory: apps/frontend
         run: npm run lint
+      - name: Kjør tester
+        working-directory: apps/frontend
+        run: npm test
       - name: Bygg applikasjon
         working-directory: apps/frontend
         run: |
