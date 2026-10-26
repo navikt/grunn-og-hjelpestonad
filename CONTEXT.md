@@ -47,10 +47,38 @@ En periode der både medlemskap og diagnose er oppfylt.
 **Trygdetidsbrøk**:
 Brøken x/40 fra søkers alderspensjon eller uføretrygd. Er 40/40 når søker ikke har noen av dem. Kan ikke skjønnsvurderes.
 
+## Behandling
+
+**Migrering**:
+At en løpende sak flyttes fra Infotrygd til ny løsning, slik at Infotrygd slutter å utbetale og ny løsning overtar utbetalingen. Vilkår og perioder flyttes over slik de er i Infotrygd. Endrer ikke hva stønadsmottaker får utbetalt, og er derfor ikke en behandling i juridisk forstand. Endringer i saken gjøres i en egen revurdering etterpå.
+_Avoid_: Konvertering, overføring
+
+**Migreringsbehandling**:
+Behandlingen i ny løsning som gjennomfører en migrering. Har ikke vedtaksbrev, men godkjennes av beslutter.
+
+**Migreringsdato**:
+Den første måneden ny løsning eier utbetalingen for en migrert sak, og ikke Infotrygd. Infotrygd utbetaler til og med måneden før. Kan være tidligere enn tidspunktet saken faktisk ble migrert. Finnes bare for saker som har vært i Infotrygd, og er den tidligste migreringsdatoen blant iverksatte migreringsbehandlinger. Kan bare flyttes bakover i tid, og bare i en «Endre migreringsdato»-behandling. Merk: I BA ligger migreringsdatoen i måneden før den første måneden BA utbetaler.
+_Avoid_: Migrert fra og med, opphørsdato i Infotrygd
+
+**«Endre migreringsdato»-behandling**:
+En migreringsbehandling for en sak som allerede er migrert, der migreringsdatoen flyttes bakover. Flytter flere måneder fra Infotrygd, og endrer ikke hva stønadsmottaker får utbetalt.
+_Avoid_: Endre migrert fra og med
+
 ## Utfall
 
 **Sats**:
 Ett av seks faste beløp for grunnstønad, bestemt av de nødvendige ekstrautgiftene i en periode. Ekstrautgifter under laveste sats gir ikke rett.
 
 **Tilkjent ytelse**:
-Beløpet søker får per periode: satsen redusert med trygdetidsbrøken.
+Beløpet søker har rett til per periode: satsen redusert med trygdetidsbrøken, uten avrunding.
+_Avoid_: Utbetalt beløp (det er beløpet etter avrunding)
+
+## Utbetaling
+
+**Utbetalingsbeløp**:
+Tilkjent ytelse avrundet til det beløpet som faktisk utbetales.
+_Avoid_: Tilkjent ytelse, sats
+
+**Utbetalingsandel**:
+En periode med samme utbetalingsbeløp, slik den sendes til Oppdrag.
+_Avoid_: Andel tilkjent ytelse, utbetalingsperiode

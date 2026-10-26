@@ -21,7 +21,7 @@ data class Vedtak(
     @MappedCollection(idColumn = "vedtak_id", keyColumn = "id")
     val grunnstønadPerioder: List<GrunnstønadPeriode>,
     val saksbehandlerIdent: String,
-    @Column("opphor_fom")
+    @Column("opphor_fom_maned")
     val opphørFom: YearMonth? = null,
     val beslutterIdent: String? = null,
     val opprettetTid: LocalDateTime = SporbarUtils.now(),
@@ -32,7 +32,9 @@ data class Vedtak(
 data class GrunnstønadPeriode(
     @Id
     val id: UUID = UUID.randomUUID(),
+    @Column("fra_maned")
     val datoFra: YearMonth,
+    @Column("til_maned")
     val datoTil: YearMonth,
     val utgifter: BigDecimal,
     val barn: List<UUID>,

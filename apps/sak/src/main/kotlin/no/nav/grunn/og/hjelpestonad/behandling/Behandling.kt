@@ -10,6 +10,7 @@ import java.util.UUID
 data class Behandling(
     @Id
     val id: UUID = UUID.randomUUID(),
+    val eksternId: Long = 0,
     val fagsakId: UUID,
     val forrigeBehandlingId: UUID? = null,
     val status: BehandlingStatus,

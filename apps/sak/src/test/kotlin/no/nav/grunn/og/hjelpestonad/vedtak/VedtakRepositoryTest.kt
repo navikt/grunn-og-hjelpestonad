@@ -43,7 +43,7 @@ internal class VedtakRepositoryTest : SpringContextTest() {
 
         val fagsak = fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.BARNETILSYN))
 
-        val behandling = behandlingRepository.insert(Behandling(UUID.randomUUID(), fagsak.id, null, BehandlingStatus.UTREDES, BehandlingResultat.IKKE_SATT))
+        val behandling = behandlingRepository.insert(Behandling(fagsakId = fagsak.id, status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT))
 
         val vedtak =
             Vedtak(
@@ -52,8 +52,8 @@ internal class VedtakRepositoryTest : SpringContextTest() {
                 grunnstønadPerioder =
                     listOf(
                         GrunnstønadPeriode(
-                            datoFra = YearMonth.now(),
-                            datoTil = YearMonth.now(),
+                            datoFra = YearMonth.of(2025, 1),
+                            datoTil = YearMonth.of(2025, 6),
                             utgifter = BigDecimal(1000),
                             barn = listOf(UUID.randomUUID()),
                             periodetype = PeriodetypeBarnetilsyn.ORDINÆR,
@@ -61,6 +61,7 @@ internal class VedtakRepositoryTest : SpringContextTest() {
                         ),
                     ),
                 saksbehandlerIdent = "VL",
+                opphørFom = YearMonth.of(2025, 3),
                 opprettetAv = "VL",
                 opprettetTid = LocalDateTime.now(),
             )

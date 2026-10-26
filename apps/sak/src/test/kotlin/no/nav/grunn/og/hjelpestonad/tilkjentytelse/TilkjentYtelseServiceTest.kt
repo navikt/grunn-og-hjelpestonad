@@ -107,21 +107,37 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
     }
 
     @Test
-    fun `opphørsvedtak skal gi tom andelliste`() {
-        val behandlingId = opprettBehandling()
-        val vedtak =
+    fun `opphør av alle andeler skal gi tom andelliste og beholde startmåned fra forrige behandling`() {
+        val fagsakId = opprettFagsak()
+        val førstegangsbehandlingId = opprettBehandling(fagsakId)
+        val innvilget =
+            lagInnvilgetVedtak(
+                behandlingId = førstegangsbehandlingId,
+                perioder =
+                    listOf(
+                        lagBarnetilsynperiode(
+                            datoFra = YearMonth.of(2025, 1),
+                            datoTil = YearMonth.of(2025, 6),
+                            utgifter = BigDecimal(5000),
+                        ),
+                    ),
+            )
+        tilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(førstegangsbehandlingId, innvilget)
+
+        val revurderingId = opprettBehandling(fagsakId, forrigeBehandlingId = førstegangsbehandlingId)
+        val opphør =
             Vedtak(
-                behandlingId = behandlingId,
+                behandlingId = revurderingId,
                 resultatType = ResultatType.OPPHØR,
                 grunnstønadPerioder = emptyList(),
                 saksbehandlerIdent = "VL",
-                opphørFom = YearMonth.of(2025, 3),
+                opphørFom = YearMonth.of(2025, 1),
             )
+        tilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(revurderingId, opphør)
 
-        tilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtak)
-
-        val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(behandlingId)!!
+        val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(revurderingId)!!
         assertThat(tilkjentYtelse.andelerTilkjentYtelse).isEmpty()
+        assertThat(tilkjentYtelse.startmåned).isEqualTo(YearMonth.of(2025, 1))
     }
 
     @Test
@@ -163,13 +179,24 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
         )
     }
 
-    private fun opprettBehandling(): UUID {
+    private fun opprettFagsak(): UUID {
         val fagsakPerson = fagsakPersonRepository.insert(FagsakPerson(identer = setOf(Personident("01010199998"))))
-        val fagsak = fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.BARNETILSYN))
-        return behandlingRepository
-            .insert(Behandling(fagsakId = fagsak.id, status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT))
-            .id
+        return fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.BARNETILSYN)).id
     }
+
+    private fun opprettBehandling(
+        fagsakId: UUID = opprettFagsak(),
+        forrigeBehandlingId: UUID? = null,
+    ): UUID =
+        behandlingRepository
+            .insert(
+                Behandling(
+                    fagsakId = fagsakId,
+                    status = BehandlingStatus.UTREDES,
+                    resultat = BehandlingResultat.IKKE_SATT,
+                    forrigeBehandlingId = forrigeBehandlingId,
+                ),
+            ).id
 
     private fun lagInnvilgetVedtak(
         behandlingId: UUID,
