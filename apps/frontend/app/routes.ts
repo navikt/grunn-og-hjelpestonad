@@ -2,6 +2,7 @@ import { index, route, type RouteConfig } from "@react-router/dev/routes";
 
 export default [
   index("routes/landingsside.tsx"),
+  route("infotrygd-oppslag", "routes/infotrygdOppslag.tsx"),
   route("/person/:fagsakPersonId", "routes/personLayout.tsx", [
     route("behandlingsoversikt", "routes/behandlingsoversikt.tsx"),
     route("behandling/:behandlingId", "routes/behandling/behandlingLayout.tsx", [

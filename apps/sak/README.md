@@ -5,6 +5,13 @@ Saksbehandler-app for grunn- og hjelpestønad.
 Denne appen er én av tre i monorepoet — se [rot-README](../../README.md) for oversikt.
 **Alle kommandoer under kjøres fra `apps/sak`.**
 
+## Opphav og referanser
+
+`apps/sak` er forket fra [navikt/gjenlevende-bs-sak](https://github.com/navikt/gjenlevende-bs-sak), og bruker
+[navikt/familie-ef-sak](https://github.com/navikt/familie-ef-sak) og
+[navikt/familie-ba-sak](https://github.com/navikt/familie-ba-sak) som referanser. Vi velger det vi mener er best
+fra hver. EF skal eie løsningen, så kode som ligner EF er et pluss, men kodekvalitet og arkitektur veier tyngst.
+
 ## Forutsetninger
 
 - **Colima** må være installert og kjøre

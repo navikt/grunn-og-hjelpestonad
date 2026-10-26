@@ -11,6 +11,9 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.LagBehandleSakOppgaveTask
+import no.nav.grunn.og.hjelpestonad.behandling.årsak.Årsak
+import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandling
+import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandlingService
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
@@ -19,6 +22,7 @@ import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.oppgave.Oppgave
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
 import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
@@ -32,6 +36,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.springframework.http.HttpStatus
 import tools.jackson.databind.ObjectMapper
+import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 import kotlin.test.Test
@@ -47,6 +52,7 @@ class BeslutterServiceTest {
     private val lagBehandleSakOppgaveTask = mockk<LagBehandleSakOppgaveTask>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val vedtakService = mockk<VedtakService>(relaxed = true)
+    private val årsakBehandlingService = mockk<ÅrsakBehandlingService>(relaxed = true)
 
     private val beslutterService =
         BeslutterService(
@@ -60,7 +66,33 @@ class BeslutterServiceTest {
             lagBehandleSakOppgaveTask = lagBehandleSakOppgaveTask,
             ansvarligSaksbehandlerService = ansvarligSaksbehandlerService,
             vedtakService = vedtakService,
+            årsakBehandlingService = årsakBehandlingService,
         )
+
+    @Test
+    fun `sendTilBeslutter sender behandling med årsak til beslutter`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
+        every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
+        every { årsakBehandlingService.hentÅrsakBehandling(behandlingId) } returns
+            ÅrsakBehandling(behandlingId = behandlingId, kravdato = LocalDate.of(2026, 10, 1), årsak = Årsak.SØKNAD)
+
+        beslutterService.sendTilBeslutter(behandlingId)
+
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
+        verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.SENDT_TIL_BESLUTTER) }
+    }
+
+    @Test
+    fun `sendTilBeslutter avvises når behandlingen har status OPPRETTET`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.OPPRETTET)
+
+        assertThatThrownBy { beslutterService.sendTilBeslutter(behandlingId) }
+            .hasMessage("Behandling må være i status UTREDES for å kunne sendes til beslutter")
+
+        verifyIngenEndringer()
+    }
 
     @Test
     fun `sendTilBeslutter kaster ManglerTilgang når bruker ikke er ansvarlig saksbehandler`() {
@@ -226,4 +258,11 @@ class BeslutterServiceTest {
         status = status,
         resultat = BehandlingResultat.IKKE_SATT,
     )
+
+    private fun behandleSakOppgave(behandlingId: UUID) =
+        Oppgave(
+            behandlingId = behandlingId,
+            gsakOppgaveId = 1L,
+            type = OppgavetypeEYO.BEH_SAK.name,
+        )
 }

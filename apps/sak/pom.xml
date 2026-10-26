@@ -245,6 +245,10 @@
                             <generateModelDocumentation>false</generateModelDocumentation>
                             <generateModelTests>false</generateModelTests>
                             <generateSupportingFiles>false</generateSupportingFiles>
+                            <!-- springdoc navngir skjemaer etter klassenavnet uten pakke. Modeller som
+                                 eksponeres videre til frontend og kan kollidere med klasser i sak, får prefikset
+                                 Infotrygd. -->
+                            <modelNameMappings>StonadResponse=InfotrygdStonadResponse,VedtakResponse=InfotrygdVedtakResponse,DelytelseResponse=InfotrygdDelytelseResponse,GhResponse=InfotrygdGhResponse</modelNameMappings>
                             <configOptions>
                                 <sourceFolder>src/main/kotlin</sourceFolder>
                                 <serializationLibrary>jackson</serializationLibrary>

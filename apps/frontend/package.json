@@ -15,6 +15,7 @@
     "lint": "eslint . --max-warnings=0",
     "start": "node dist/server.js",
     "start:dev": "npm run build && npm run build:server && node dist/server.js",
+    "test": "tsx --test \"app/**/*.test.ts\"",
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {

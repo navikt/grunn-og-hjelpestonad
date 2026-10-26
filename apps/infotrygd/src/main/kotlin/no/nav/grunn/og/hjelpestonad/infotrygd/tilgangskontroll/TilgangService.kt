@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 @Service
 class TilgangService(
     private val tilgangsmaskinClient: TilgangsmaskinClient,
+    private val auditlogg: Auditlogg,
 ) {
     private val logger = LoggerFactory.getLogger(TilgangService::class.java)
     private val secureLogger = LoggerFactory.getLogger("secureLogger")
@@ -35,10 +36,24 @@ class TilgangService(
         require(personidenter.isNotEmpty()) { "Må oppgi minst én personident" }
         validerAntall(personidenter.size)
 
-        val vurderingerFraTilgangsmaskin = vurderMotTilgangsmaskin(personidenter)
+        val saksbehandler = SikkerhetContext.hentSaksbehandler()
+        val resultat =
+            runCatching {
+                val vurderingerFraTilgangsmaskin = vurderMotTilgangsmaskin(personidenter)
 
-        vurderingerFraTilgangsmaskin.validerIngenUtenSvar(personidenter)
-        vurderingerFraTilgangsmaskin.validerIngenAvslag(personidenter)
+                vurderingerFraTilgangsmaskin.validerIngenUtenSvar(personidenter)
+                vurderingerFraTilgangsmaskin.validerIngenAvslag(personidenter)
+            }
+        val utfall =
+            when (resultat.exceptionOrNull()) {
+                null -> Tilgangsutfall.TILGANG
+                is ManglerTilgangTilPersonFeil -> Tilgangsutfall.AVSLAG
+                else -> Tilgangsutfall.FEIL
+            }
+        auditlogg.forespørselOmTilgang(saksbehandler, personidenter, utfall)
+
+        // Kaster avslag og feil videre. Uten denne linjen blir avslag til tilgang.
+        resultat.getOrThrow()
     }
 
     private fun Map<String, List<Tilgangsvurdering>>.validerIngenAvslag(

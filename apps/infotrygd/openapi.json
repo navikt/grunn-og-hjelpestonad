@@ -17,6 +17,36 @@
     "oauth2" : [ "api://test-client/.default" ]
   } ],
   "paths" : {
+    "/api/infotrygd/stonader" : {
+      "post" : {
+        "tags" : [ "st-ønader-controller" ],
+        "summary" : "Henter stønadene for én stønadstype, med vedtak, endringer, delytelser, trygdetid og sats og evaluering",
+        "description" : "Svaret følger tabellene i Infotrygd (t_stonad → t_vedtak → t_endring, t_delytelse og t_gh) uten å tolke dataene. Evaluering er avledet. Inneholder helseopplysninger.",
+        "operationId" : "hentStønader",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StonaderRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StonaderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/infotrygd/stonad/eksisterer" : {
       "post" : {
         "tags" : [ "st-ønad-controller" ],
@@ -68,64 +98,6 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/InfotrygdSakerResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/infotrygd/perioder" : {
-      "post" : {
-        "tags" : [ "periode-controller" ],
-        "summary" : "Henter perioder (delytelser) for grunnstønad og hjelpestønad fra Infotrygd",
-        "operationId" : "hentPerioder",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/PeriodeRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/PerioderResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/infotrygd/diagnose" : {
-      "post" : {
-        "tags" : [ "diagnose-controller" ],
-        "summary" : "Henter diagnosene registrert i siste måned per person og stønadstype fra Infotrygd",
-        "operationId" : "hentDiagnoser",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/DiagnoseRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/DiagnoserResponse"
                 }
               }
             }
@@ -209,6 +181,253 @@
   },
   "components" : {
     "schemas" : {
+      "StonaderRequest" : {
+        "type" : "object",
+        "properties" : {
+          "personidenter" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "uniqueItems" : true
+          },
+          "stønadstype" : {
+            "type" : "string",
+            "enum" : [ "GRUNNSTØNAD", "HJELPESTØNAD" ]
+          }
+        },
+        "required" : [ "personidenter", "stønadstype" ]
+      },
+      "DelytelseResponse" : {
+        "type" : "object",
+        "properties" : {
+          "typeDelytelse" : {
+            "type" : "string"
+          },
+          "tidspunktReg" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "fom" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "tom" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "belop" : {
+            "type" : "number"
+          },
+          "typeSats" : {
+            "type" : "string"
+          },
+          "typeUtbetaling" : {
+            "type" : "string"
+          },
+          "brukerid" : {
+            "type" : "string"
+          },
+          "linjeId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "belop", "brukerid", "fom", "tidspunktReg", "typeDelytelse", "typeSats", "typeUtbetaling" ]
+      },
+      "GhResponse" : {
+        "type" : "object",
+        "properties" : {
+          "tidspunktReg" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "trygdetid" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "satsGs" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "satsHs" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "brukerid" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "brukerid", "tidspunktReg", "trygdetid" ]
+      },
+      "InfotrygdEvaluering" : {
+        "type" : "object",
+        "properties" : {
+          "månedNotertIInfotrygd" : {
+            "type" : "string"
+          },
+          "diagnose1" : {
+            "type" : [ "string", "null" ]
+          },
+          "diagnose2" : {
+            "type" : [ "string", "null" ]
+          },
+          "sats" : {
+            "type" : [ "string", "null" ]
+          },
+          "hjemmelbokstav" : {
+            "type" : [ "string", "null" ]
+          },
+          "virkningstidspunkt" : {
+            "type" : [ "string", "null" ]
+          },
+          "motstridendeFelt" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "DIAGNOSE_1", "DIAGNOSE_2", "SATS", "HJEMMELBOKSTAV", "VIRKNINGSTIDSPUNKT" ]
+            },
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "motstridendeFelt", "månedNotertIInfotrygd" ]
+      },
+      "StonadResponse" : {
+        "type" : "object",
+        "properties" : {
+          "stonadId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "personnr" : {
+            "type" : "string"
+          },
+          "kodeRutine" : {
+            "type" : "string"
+          },
+          "datoStart" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "kodeOpphor" : {
+            "type" : [ "string", "null" ]
+          },
+          "datoOpphor" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "oppdragId" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "tidspunktOpphort" : {
+            "type" : [ "string", "null" ],
+            "format" : "date-time"
+          },
+          "tidspunktReg" : {
+            "type" : [ "string", "null" ],
+            "format" : "date-time"
+          },
+          "brukerid" : {
+            "type" : [ "string", "null" ]
+          },
+          "vedtak" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/VedtakResponse"
+            }
+          }
+        },
+        "required" : [ "datoStart", "kodeRutine", "personnr", "stonadId", "vedtak" ]
+      },
+      "StonaderResponse" : {
+        "type" : "object",
+        "properties" : {
+          "stonader" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StonadResponse"
+            }
+          }
+        },
+        "required" : [ "stonader" ]
+      },
+      "VedtakResponse" : {
+        "type" : "object",
+        "properties" : {
+          "vedtakId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "tknr" : {
+            "type" : "string"
+          },
+          "saksblokk" : {
+            "type" : "string"
+          },
+          "saksnr" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "typeSak" : {
+            "type" : "string"
+          },
+          "kodeResultat" : {
+            "type" : "string"
+          },
+          "datoInnvFom" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "datoInnvTom" : {
+            "type" : [ "string", "null" ],
+            "format" : "date"
+          },
+          "datoMottattSak" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "kodeVedtaksnivaa" : {
+            "type" : "string"
+          },
+          "typeBeregning" : {
+            "type" : "string"
+          },
+          "tidspunktReg" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "brukerid" : {
+            "type" : "string"
+          },
+          "endringer" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "delytelser" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DelytelseResponse"
+            }
+          },
+          "gh" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GhResponse"
+            }
+          },
+          "evaluering" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/InfotrygdEvaluering"
+            }, {
+              "type" : "null"
+            } ]
+          }
+        },
+        "required" : [ "brukerid", "datoInnvFom", "datoMottattSak", "delytelser", "endringer", "gh", "kodeResultat", "kodeVedtaksnivaa", "saksblokk", "saksnr", "tidspunktReg", "tknr", "typeBeregning", "typeSak", "vedtakId" ]
+      },
       "PersonidenterRequest" : {
         "type" : "object",
         "properties" : {
@@ -350,209 +569,6 @@
           }
         },
         "required" : [ "saker" ]
-      },
-      "PeriodeRequest" : {
-        "type" : "object",
-        "properties" : {
-          "personidenter" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            },
-            "uniqueItems" : true
-          },
-          "stønadstyper" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string",
-              "enum" : [ "GRUNNSTØNAD", "HJELPESTØNAD" ]
-            },
-            "uniqueItems" : true
-          }
-        },
-        "required" : [ "personidenter", "stønadstyper" ]
-      },
-      "PeriodeResponse" : {
-        "type" : "object",
-        "properties" : {
-          "personident" : {
-            "type" : "string"
-          },
-          "stønadstype" : {
-            "type" : "string",
-            "enum" : [ "GRUNNSTØNAD", "HJELPESTØNAD" ]
-          },
-          "sakstype" : {
-            "type" : "string"
-          },
-          "kode" : {
-            "type" : "string"
-          },
-          "brukerId" : {
-            "type" : "string"
-          },
-          "stønadId" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "vedtakId" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "vedtakstidspunkt" : {
-            "type" : "string",
-            "format" : "date-time"
-          },
-          "vedtakKodeResultat" : {
-            "type" : "string"
-          },
-          "startDato" : {
-            "type" : "string",
-            "format" : "date"
-          },
-          "innvilgetFom" : {
-            "type" : "string",
-            "format" : "date"
-          },
-          "innvilgetTom" : {
-            "type" : [ "string", "null" ],
-            "format" : "date"
-          },
-          "opphørsdato" : {
-            "type" : [ "string", "null" ],
-            "format" : "date"
-          },
-          "oppdragId" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
-          },
-          "typeDelytelse" : {
-            "type" : "string"
-          },
-          "typeSats" : {
-            "type" : "string"
-          },
-          "typeUtbetaling" : {
-            "type" : "string"
-          },
-          "stønadFom" : {
-            "type" : "string",
-            "format" : "date"
-          },
-          "stønadTom" : {
-            "type" : [ "string", "null" ],
-            "format" : "date"
-          },
-          "beløp" : {
-            "type" : "number"
-          },
-          "trygdetidOgSats" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/TrygdetidOgSatsResponse"
-            }
-          }
-        },
-        "required" : [ "beløp", "brukerId", "innvilgetFom", "kode", "personident", "sakstype", "startDato", "stønadFom", "stønadId", "stønadstype", "trygdetidOgSats", "typeDelytelse", "typeSats", "typeUtbetaling", "vedtakId", "vedtakKodeResultat", "vedtakstidspunkt" ]
-      },
-      "PerioderResponse" : {
-        "type" : "object",
-        "properties" : {
-          "grunnstønad" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/PeriodeResponse"
-            }
-          },
-          "hjelpestønad" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/PeriodeResponse"
-            }
-          }
-        },
-        "required" : [ "grunnstønad", "hjelpestønad" ]
-      },
-      "TrygdetidOgSatsResponse" : {
-        "type" : "object",
-        "properties" : {
-          "tidspunktRegistrert" : {
-            "type" : "string",
-            "format" : "date-time"
-          },
-          "trygdetid" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "satsGs" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
-          },
-          "satsHs" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int64"
-          },
-          "brukerId" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "brukerId", "tidspunktRegistrert", "trygdetid" ]
-      },
-      "DiagnoseRequest" : {
-        "type" : "object",
-        "properties" : {
-          "personidenter" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            },
-            "uniqueItems" : true
-          },
-          "stønadstyper" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string",
-              "enum" : [ "GRUNNSTØNAD", "HJELPESTØNAD" ]
-            },
-            "uniqueItems" : true
-          }
-        },
-        "required" : [ "personidenter", "stønadstyper" ]
-      },
-      "DiagnoserResponse" : {
-        "type" : "object",
-        "properties" : {
-          "diagnoser" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/InfotrygdDiagnose"
-            }
-          }
-        },
-        "required" : [ "diagnoser" ]
-      },
-      "InfotrygdDiagnose" : {
-        "type" : "object",
-        "properties" : {
-          "personident" : {
-            "type" : "string"
-          },
-          "stønadstype" : {
-            "type" : "string",
-            "enum" : [ "GRUNNSTØNAD", "HJELPESTØNAD" ]
-          },
-          "månedDiagnoseNotertIInfotrygd" : {
-            "type" : "string"
-          },
-          "diagnosekode" : {
-            "type" : "string"
-          },
-          "datoEndretIKilde" : {
-            "type" : "string",
-            "format" : "date-time"
-          }
-        },
-        "required" : [ "datoEndretIKilde", "diagnosekode", "månedDiagnoseNotertIInfotrygd", "personident", "stønadstype" ]
       },
       "TabellKolonnerResponse" : {
         "type" : "object",

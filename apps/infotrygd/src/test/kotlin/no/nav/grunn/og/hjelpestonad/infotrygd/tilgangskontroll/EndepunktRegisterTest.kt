@@ -54,11 +54,10 @@ class EndepunktRegisterTest {
     companion object {
         private val MED_PERSONSJEKK =
             setOf(
-                "DiagnoseController#hentDiagnoser",
-                "PeriodeController#hentPerioder",
                 "SakController#finnSaker",
                 "StønadController#eksisterer",
                 "StønadController#hentPersonerForMigrering",
+                "StønaderController#hentStønader",
             )
 
         // Returnerer bare metadata om tabellene, ingen persondata.

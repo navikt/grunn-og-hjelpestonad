@@ -39,6 +39,7 @@ class ReplikaTestdata(
         reversertFnr: String,
         kapittel: String = "GH",
         tekstKode: String = "EVGH",
+        sak: String = "",
     ) = lagre(
         ExodusTabell.EV_VALG_05,
         "id_ev_05" to id,
@@ -48,6 +49,7 @@ class ReplikaTestdata(
         "f_nr" to reversertFnr,
         "ev05_kap" to kapittel,
         "ev05_tekst_kode" to tekstKode,
+        "ev05_sak" to sak,
     )
 
     fun lagreEvData10(
@@ -55,12 +57,14 @@ class ReplikaTestdata(
         personkey: String,
         årMånedSekvens: String,
         tekst: String,
+        posisjon: String = "055",
     ) = lagre(
         ExodusTabell.EV_DATA_10,
         "id_ev_10" to id,
         "ev01_personkey" to personkey,
         "ev05_aar_mnd_seq" to årMånedSekvens,
         "ev10_text" to tekst,
+        "ev10_posisjon" to posisjon,
     )
 
     fun lagreTLopenrFnr(

@@ -20,6 +20,10 @@
         <appender-ref ref="team-logs" />
     </logger>
 
+    <logger name="auditLogger" level="INFO" additivity="false">
+        <appender-ref ref="team-logs" />
+    </logger>
+
     <logger name="org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver" additivity="false">
         <appender-ref ref="team-logs" />
     </logger>

@@ -29,12 +29,11 @@ export const BehandlingFaner: React.FC<BehandlingFanerProps> = ({ steg, ferdigeS
             <NavLink
               key={steg.path}
               to={steg.path}
-              className={({ isActive }) => {
-                let className = styles.link;
-                if (isActive) className += ` ${styles.aktiv}`;
-                if (!kanStarte) className += ` ${styles.disabled}`;
-                return className;
-              }}
+              className={({ isActive }) =>
+                [styles.link, isActive && styles.aktiv, !kanStarte && styles.disabled]
+                  .filter(Boolean)
+                  .join(" ")
+              }
               onClick={(e) => {
                 if (!kanStarte) {
                   e.preventDefault();
