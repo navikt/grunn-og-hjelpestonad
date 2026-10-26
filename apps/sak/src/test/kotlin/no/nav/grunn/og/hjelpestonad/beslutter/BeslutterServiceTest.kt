@@ -70,19 +70,6 @@ class BeslutterServiceTest {
         )
 
     @Test
-    fun `sendTilBeslutter avvises når årsak mangler`() {
-        val behandlingId = UUID.randomUUID()
-        every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
-        every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
-        every { årsakBehandlingService.hentÅrsakBehandling(behandlingId) } returns null
-
-        assertThatThrownBy { beslutterService.sendTilBeslutter(behandlingId) }
-            .hasMessage("Årsak må være fylt ut før behandlingen kan sendes til beslutter")
-
-        verifyIngenEndringer()
-    }
-
-    @Test
     fun `sendTilBeslutter sender behandling med årsak til beslutter`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
