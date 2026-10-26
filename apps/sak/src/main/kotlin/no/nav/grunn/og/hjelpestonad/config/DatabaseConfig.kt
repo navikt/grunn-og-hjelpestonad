@@ -10,14 +10,27 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.flyway.autoconfigure.FlywayConfigurationCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Lazy
 import org.springframework.core.convert.converter.Converter
 import org.springframework.core.env.Environment
 import org.springframework.data.convert.ReadingConverter
 import org.springframework.data.convert.WritingConverter
+import org.springframework.data.jdbc.core.convert.DefaultJdbcTypeFactory
+import org.springframework.data.jdbc.core.convert.JdbcConverter
+import org.springframework.data.jdbc.core.convert.JdbcCustomConversions
+import org.springframework.data.jdbc.core.convert.JdbcTypeFactory
+import org.springframework.data.jdbc.core.convert.MappingJdbcConverter
+import org.springframework.data.jdbc.core.convert.RelationResolver
+import org.springframework.data.jdbc.core.dialect.JdbcDialect
+import org.springframework.data.jdbc.core.mapping.JdbcMappingContext
 import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories
+import org.springframework.data.relational.core.mapping.RelationalPersistentProperty
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import tools.jackson.databind.ObjectMapper
+import java.sql.Date
 import java.time.YearMonth
 import javax.sql.DataSource
 
@@ -37,7 +50,8 @@ open class DatabaseConfig(
             JsonbTilBrevRequestConverter(objectMapper),
             SimuleringResponseTilJsonbConverter(objectMapper),
             JsonbTilSimuleringResponseConverter(objectMapper),
-            StringTilYearMonthConverter(),
+            YearMonthTilDateConverter(),
+            DateTilYearMonthConverter(),
         )
 
     @Bean
@@ -75,9 +89,43 @@ open class DatabaseConfig(
         override fun convert(source: PGobject): BrevRequest = objectMapper.readValue(source.value, BrevRequest::class.java)
     }
 
+    @Bean
+    override fun jdbcConverter(
+        mappingContext: JdbcMappingContext,
+        operations: NamedParameterJdbcOperations,
+        @Lazy relationResolver: RelationResolver,
+        conversions: JdbcCustomConversions,
+        dialect: JdbcDialect,
+    ): JdbcConverter {
+        val typeFactory = DefaultJdbcTypeFactory(operations.jdbcOperations, JdbcDialect.getArraySupport(dialect))
+        return YearMonthSomDateJdbcConverter(mappingContext, relationResolver, conversions, typeFactory).apply {
+            (operations.jdbcOperations as? JdbcTemplate)?.let { setExceptionTranslator(it.exceptionTranslator) }
+        }
+    }
+
+    class YearMonthSomDateJdbcConverter(
+        mappingContext: JdbcMappingContext,
+        relationResolver: RelationResolver,
+        conversions: JdbcCustomConversions,
+        typeFactory: JdbcTypeFactory,
+    ) : MappingJdbcConverter(mappingContext, relationResolver, conversions, typeFactory) {
+        override fun getColumnType(property: RelationalPersistentProperty): Class<*> {
+            return if (property.actualType == YearMonth::class.java) {
+                Date::class.java
+            } else {
+                super.getColumnType(property)
+            }
+        }
+    }
+
+    @WritingConverter
+    class YearMonthTilDateConverter : Converter<YearMonth, Date> {
+        override fun convert(source: YearMonth): Date = Date.valueOf(source.atDay(1))
+    }
+
     @ReadingConverter
-    class StringTilYearMonthConverter : Converter<String, YearMonth> {
-        override fun convert(source: String): YearMonth = YearMonth.parse(source)
+    class DateTilYearMonthConverter : Converter<Date, YearMonth> {
+        override fun convert(source: Date): YearMonth = YearMonth.from(source.toLocalDate())
     }
 
     @WritingConverter

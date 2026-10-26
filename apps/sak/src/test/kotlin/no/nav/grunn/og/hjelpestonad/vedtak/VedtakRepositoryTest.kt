@@ -52,8 +52,8 @@ internal class VedtakRepositoryTest : SpringContextTest() {
                 grunnstønadPerioder =
                     listOf(
                         GrunnstønadPeriode(
-                            datoFra = YearMonth.now(),
-                            datoTil = YearMonth.now(),
+                            datoFra = YearMonth.of(2025, 1),
+                            datoTil = YearMonth.of(2025, 6),
                             utgifter = BigDecimal(1000),
                             barn = listOf(UUID.randomUUID()),
                             periodetype = PeriodetypeBarnetilsyn.ORDINÆR,
@@ -61,6 +61,7 @@ internal class VedtakRepositoryTest : SpringContextTest() {
                         ),
                     ),
                 saksbehandlerIdent = "VL",
+                opphørFom = YearMonth.of(2025, 3),
                 opprettetAv = "VL",
                 opprettetTid = LocalDateTime.now(),
             )
