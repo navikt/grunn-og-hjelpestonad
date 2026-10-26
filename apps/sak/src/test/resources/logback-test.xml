@@ -1,7 +1,10 @@
 <configuration>
+    <!-- Stacktracer uten dybdegrense, men uten rammer fra testrammeverk, reflection og filterkjeden. -->
+    <conversionRule conversionWord="stack"
+                    class="net.logstash.logback.stacktrace.ShortenedThrowableConverter" />
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%ex{10}</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%stack{full,full,full,omitCommonFrames,^org\.junit\.,^org\.springframework\.test\.,^org\.apache\.maven\.surefire\.,^jdk\.internal\.reflect\.,^java\.lang\.reflect\.,^org\.springframework\.security\.web\.,^jakarta\.servlet\.}</pattern>
         </encoder>
     </appender>
     <logger name="org.flywaydb" level="warn" />
