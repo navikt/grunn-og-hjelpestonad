@@ -72,10 +72,15 @@ Disse henger på `VEDTAK` og kan være aktuelle for GH:
 
 | Tabell | Innhold |
 |--------|---------|
-| `DIAGNOSE` | Hoved- og bidiagnose per vedtak (`type_hoved`, `kode_hoved`, `type_bi`, `kode_bi`), med én rad per registrering |
 | `BESLUT` | Saksbehandler, godkjenning og enhet for vedtaket |
 | `ROLLE` | Personer med en rolle i vedtaket, med periode og trygdetid |
 | `GRAD` | Grad per type og periode |
+
+Ingen har bekreftet at `BESLUT`, `ROLLE` og `GRAD` er i bruk for GH.
+
+`DIAGNOSE` er ikke i bruk for GH, ifølge en Infotrygd-ekspert. Den ble bare
+brukt for tidsbegrenset uførestønad, som ikke finnes lenger. GH-diagnosene
+ligger i evalueringen (`ev_data_10`, posisjon `055` og `100`).
 
 Kodetabellene gir tekst til kodene: `ENDRINGSAARSAK` for `ENDRING.kode`,
 `DELYTELSESTYPE`, `SATSTYPE` og `UTBETALINGSTYPE` for `DELYTELSE`,
