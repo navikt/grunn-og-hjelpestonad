@@ -86,3 +86,34 @@ Kodetabellene gir tekst til kodene: `ENDRINGSAARSAK` for `ENDRING.kode`,
 `DELYTELSESTYPE`, `SATSTYPE` og `UTBETALINGSTYPE` for `DELYTELSE`,
 `OPPHORSGRUNN` for `STONAD.kode_opphor`, `RUTINE` for `kode_rutine`,
 `VEDTAKSNIVAA` og `BEREGNINGSTYPE` for `VEDTAK`.
+
+### Endringskoder
+
+Kodene i `t_endring.kode`, med teksten fra `ENDRINGSAARSAK`. Tekstene står slik de er i Infotrygd. Frontend viser
+teksten fra
+[`endringskoder.ts`](../../frontend/app/komponenter/infotrygd/endringskoder.ts),
+så oppdater begge stedene.
+
+| Kode | Tekst |
+|------|-------|
+| `AN` | Annullert |
+| `AS` | Avgang småbarnstillegg |
+| `B` | Barnetillegg |
+| `BB` | Barn 18 år |
+| `E` | Endring i beregningsgrunnlag |
+| `F` | Førstegangsvedtak |
+| `G` | G-regulering |
+| `H` | Barn etterlatte.3 måneder |
+| `I` | Institusjonsopphold |
+| `IN` | Ny inntektsgr. |
+| `KB` | Barn 3 år |
+| `NB` | Nytt barn |
+| `NY` | Ny |
+| `O` | Opphørt |
+| `S` | Satsendring |
+| `TS` | Tilgang småbarnstillegg |
+| `U` | Uføregrad |
+| `UA` | Uaktuell |
+| `P` | Passivt |
+| `AV` | Avslag |
+| `OO` | Overf ny løsning |

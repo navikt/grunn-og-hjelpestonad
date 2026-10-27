@@ -2,6 +2,7 @@ import React from "react";
 import { BodyShort, Box, HGrid, Label, Table, VStack } from "@navikt/ds-react";
 import { formaterBelop, formaterIsoDatoTid } from "~/utils/utils";
 import { formaterDato, formaterMaaned } from "./formatering";
+import { formaterEndringskode } from "./endringskoder";
 import { erMotstridende, ingenBryting, TomtFelt, UlikeVerdier, visVerdi } from "./celler";
 import type { Kildevedtak, Vedtaksrad } from "./vedtaksrader";
 
@@ -183,7 +184,11 @@ export function Detaljer({
             </>
           )}
           <Felt tittel="Endringskoder">
-            {vedtak.endringer.length > 0 ? vedtak.endringer.join(", ") : <TomtFelt />}
+            {vedtak.endringer.length > 0 ? (
+              vedtak.endringer.map((kode) => <div key={kode}>{formaterEndringskode(kode)}</div>)
+            ) : (
+              <TomtFelt />
+            )}
           </Felt>
           <Felt tittel="Innvilget">
             {formaterDato(vedtak.datoInnvFom)} –{" "}
