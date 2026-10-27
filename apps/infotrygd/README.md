@@ -137,10 +137,13 @@ ligger ikke nær EF-appen. Svaret følger tabellene i stedet:
   i camelCase. `personnr` kommer fra `t_lopenr_fnr`.
 - Bare kolonnene vi trenger er med. Metadata fra replikeringen (`opprettet`,
   `oppdatert`, `db_splitt`) og løpenumre for andre personer er utelatt.
-- Ingen rader filtreres bort, bortsett fra på person og `kode_rutine`. Vedtak
-  uten endringer eller delytelser, vedtak med `dato_innv_tom` før eller lik
-  `dato_innv_fom` og stønader uten `oppdrag_id` er med. Konsumenten bestemmer
-  hva som vises.
+- Rader filtreres bare bort på person, `kode_rutine` og endringskode. Vedtak
+  uten delytelser, vedtak med `dato_innv_tom` før eller lik `dato_innv_fom` og
+  stønader uten `oppdrag_id` er med. Konsumenten bestemmer hva som vises.
+- Et vedtak tas bare med når det har minst én endringskode som ikke er `AN`
+  (Annullert) eller `UA` (Uaktuell). Et vedtak med `F` og `AN` er med, og
+  `endringer` viser begge kodene. Vedtak med bare `AN` og `UA`, eller uten
+  endringskoder, er ikke med.
 - Et vedtak tas bare med når `t_vedtak.person_lopenr` hører til en av identene
   i forespørselen, ikke bare når stønaden gjør det. Tilgangen er bare sjekket for
   disse identene. Replikaen har ingen fremmednøkler, og i dev hadde fire vedtak

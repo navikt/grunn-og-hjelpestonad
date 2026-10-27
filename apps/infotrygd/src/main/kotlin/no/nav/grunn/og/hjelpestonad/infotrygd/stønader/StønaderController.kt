@@ -17,7 +17,8 @@ class StønaderController(
         summary = "Henter stønadene for én stønadstype, med vedtak, endringer, delytelser, trygdetid og sats og evaluering",
         description =
             "Svaret følger tabellene i Infotrygd (t_stonad → t_vedtak → t_endring, t_delytelse og t_gh) uten å " +
-                "tolke dataene. Evaluering er avledet. Inneholder helseopplysninger.",
+                "tolke dataene. Vedtak uten minst én endringskode utenom AN og UA er ikke med. Evaluering er avledet. " +
+                "Inneholder helseopplysninger.",
     )
     @PostMapping
     fun hentStønader(
