@@ -28,6 +28,23 @@ const resultater: Record<string, string> = {
   Ø: "Økning",
 };
 
+// Ekstrautgiftene i folketrygdloven § 6-3 første ledd, forkortet. Bokstav d og e ble opphevet
+// fra 1. januar 2020 (lov 20. desember 2019 nr. 84), men finnes i eldre vedtak. Teksten for d er
+// fra lov 15. juni 2001 nr. 90, og e er fra lov 20. desember 2018 nr. 98.
+const hjemmelbokstaver: Record<string, string> = {
+  A: "Drift av tekniske hjelpemidler",
+  B: "Transport, herunder drift av medlemmets bil",
+  C: "Hold av førerhund",
+  D: "Teksttelefon og i særlige tilfeller vanlig telefon",
+  E: "Bruk av proteser, støttebandasje o.l.",
+  F: "Fordyret kosthold ved nødvendig spesialdiett",
+  G: "Slitasje på klær og sengetøy",
+  H: "Hold av servicehund",
+};
+
 export const formaterSakstype = (kode: string): string => formaterKode(sakstyper, kode);
+
+export const formaterHjemmelbokstav = (kode: string): string =>
+  formaterKode(hjemmelbokstaver, kode);
 
 export const formaterResultat = (kode: string): string => formaterKode(resultater, kode);

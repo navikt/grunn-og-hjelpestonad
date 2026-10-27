@@ -3,7 +3,7 @@ import { BodyShort, Box, HGrid, Label, Table, VStack } from "@navikt/ds-react";
 import { formaterBelop, formaterIsoDatoTid } from "~/utils/utils";
 import { formaterDato, formaterMaaned } from "./formatering";
 import { formaterEndringskode } from "./endringskoder";
-import { formaterResultat, formaterSakstype } from "./vedtakskoder";
+import { formaterHjemmelbokstav, formaterResultat, formaterSakstype } from "./vedtakskoder";
 import { erMotstridende, ingenBryting, TomtFelt, UlikeVerdier, visVerdi } from "./celler";
 import type { Kildevedtak, Vedtaksrad } from "./vedtaksrader";
 
@@ -163,6 +163,15 @@ export function Detaljer({
                   <UlikeVerdier />
                 ) : (
                   <Diagnose kode={evaluering.diagnose2} diagnosetekster={diagnosetekster} />
+                )}
+              </Felt>
+              <Felt tittel="Ekstrautgift">
+                {erMotstridende(evaluering, "HJEMMELBOKSTAV") ? (
+                  <UlikeVerdier />
+                ) : evaluering.hjemmelbokstav?.trim() ? (
+                  formaterHjemmelbokstav(evaluering.hjemmelbokstav)
+                ) : (
+                  <TomtFelt />
                 )}
               </Felt>
               <Felt tittel="Sats i evalueringen">
