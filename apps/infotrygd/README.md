@@ -214,4 +214,4 @@ Målt i dev 2026-10-21 for én syntetisk person med en revurdering.
 - Maskinvedtak kan mangle EVGH. Vedtak 2 hadde `brukerid` AUTO, `type_sak` MS, `kode_resultat` FI og endringskode S. Saken hadde tom `s10_eval_kode`. Saken med EVGH hadde `s10_eval_kode` lik `EVGH`.
 - `s10_knyttet_til_sak` var `00` på begge sakene, og `t_vedtak.nokkel_dl1` var tom. Ingen av dem lenker til forrige sak.
 - `ev10_vedtaks_dag` (06) samsvarte med vedtaksdagen for vedtaket med evalueringen. Virkningstidspunkt `0626` samsvarte med innvilget fom 2026-06-01.
-- API-et returnerer evaluering bare for vedtakets egen sak. Frontend viser evalueringen fra nærmeste tidligere vedtak på samme stønad, merket som hentet fra et tidligere vedtak.
+- API-et returnerer evaluering bare for vedtakets egen sak. `sak` fyller inn evalueringen fra vedtaket med nærmeste lavere `vedtakId` og merker den med `arvetFraVedtak`, se [ADR-0012](../../docs/adr/ADR-0012-arv-og-gjeldende-perioder-fra-infotrygd.md).
