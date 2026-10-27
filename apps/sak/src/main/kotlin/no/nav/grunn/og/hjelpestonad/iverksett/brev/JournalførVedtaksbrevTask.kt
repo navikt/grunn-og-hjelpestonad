@@ -3,27 +3,23 @@ package no.nav.grunn.og.hjelpestonad.iverksett.brev
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
 import efterlatte.prosessering.TaskType
-import efterlatte.prosessering.strengType
+import no.nav.grunn.og.hjelpestonad.task.lagTaskType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 @Service
 class JournalførVedtaksbrevTask(
     private val dokarkivClient: DokarkivClient,
-    private val objectMapper: ObjectMapper,
     private val journalføringService: JournalføringService,
     private val journalpostForBehandlingService: JournalpostForBehandlingService,
-) : TaskStep<String> {
+) : TaskStep<JournalførVedtaksbrevTask.JournalførVedtaksbrevTaskData> {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override val type: TaskType<String> = TYPE
+    override val type: TaskType<JournalførVedtaksbrevTaskData> = TYPE
 
-    override fun utfor(kontekst: TaskKontekst<String>) {
-        val taskData = objectMapper.readValue<JournalførVedtaksbrevTaskData>(kontekst.payload)
-        val behandlingId = taskData.behandlingId
+    override fun utfor(kontekst: TaskKontekst<JournalførVedtaksbrevTaskData>) {
+        val behandlingId = kontekst.payload.behandlingId
         val journalføringRequester = journalføringService.lagJournalføringRequester(behandlingId)
 
         journalføringRequester.forEach { request ->
@@ -34,7 +30,7 @@ class JournalførVedtaksbrevTask(
     }
 
     companion object {
-        val TYPE: TaskType<String> = strengType("journalførVedtaksbrev")
+        val TYPE: TaskType<JournalførVedtaksbrevTaskData> = lagTaskType("journalførVedtaksbrev")
     }
 
     data class JournalførVedtaksbrevTaskData(

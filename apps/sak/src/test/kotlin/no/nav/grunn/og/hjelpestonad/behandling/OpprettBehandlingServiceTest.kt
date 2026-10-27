@@ -72,8 +72,8 @@ class OpprettBehandlingServiceTest {
     fun `opprettBehandling sender startbehandling til Infotrygd for første behandling`() {
         // Arrange
         every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
-        val typer = mutableListOf<TaskType<String>>()
-        val payloads = mutableListOf<String>()
+        val typer = mutableListOf<TaskType<UUID>>()
+        val payloads = mutableListOf<UUID>()
         every { taskService.opprett(capture(typer), capture(payloads), any(), any()) } returns TaskId(1)
 
         // Act
@@ -81,7 +81,7 @@ class OpprettBehandlingServiceTest {
 
         // Assert
         assertEquals(SendStartBehandlingTilInfotrygdFeedTask.TYPE.navn, typer.single().navn)
-        assertEquals(behandling.id.toString(), payloads.single())
+        assertEquals(behandling.id, payloads.single())
     }
 
     @Test
@@ -97,7 +97,7 @@ class OpprettBehandlingServiceTest {
 
         // Assert
         verify(exactly = 0) {
-            taskService.opprett(any<TaskType<String>>(), any<String>(), any(), any())
+            taskService.opprett(any<TaskType<UUID>>(), any<UUID>(), any(), any())
         }
     }
 

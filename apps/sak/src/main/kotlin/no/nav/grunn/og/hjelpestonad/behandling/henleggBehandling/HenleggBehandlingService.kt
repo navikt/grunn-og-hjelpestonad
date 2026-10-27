@@ -13,7 +13,6 @@ import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTask
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
 @Service
@@ -22,7 +21,6 @@ class HenleggBehandlingService(
     private val endringshistorikkService: EndringshistorikkService,
     private val oppgaveService: OppgaveService,
     private val taskService: TaskService,
-    private val objectMapper: ObjectMapper,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
 ) {
     @Transactional
@@ -50,7 +48,6 @@ class HenleggBehandlingService(
         FerdigstillOppgaveTask.opprettTask(
             behandlingId = behandlingId,
             oppgavetype = aktivOppgavetype,
-            objectMapper = objectMapper,
             taskService = taskService,
         )
 

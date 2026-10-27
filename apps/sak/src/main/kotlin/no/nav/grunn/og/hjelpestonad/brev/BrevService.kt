@@ -11,7 +11,6 @@ import no.nav.grunn.og.hjelpestonad.task.BrevTask
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tools.jackson.databind.ObjectMapper
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -21,15 +20,11 @@ import java.util.UUID
 class BrevService(
     private val brevRepository: BrevRepository,
     private val behandlingService: BehandlingService,
-    private val objectMapper: ObjectMapper,
     private val entraProxyClient: EntraProxyClient,
     private val endringshistorikkService: EndringshistorikkService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
 ) {
-    fun lagBrevPdfTask(behandlingId: UUID): String =
-        objectMapper.writeValueAsString(
-            BrevTask.LagBrevPdfTaskData(behandlingId),
-        )
+    fun lagBrevPdfTask(behandlingId: UUID): BrevTask.LagBrevPdfTaskData = BrevTask.LagBrevPdfTaskData(behandlingId)
 
     @Transactional
     fun mellomlagreBrev(

@@ -16,21 +16,17 @@ import no.nav.grunn.og.hjelpestonad.iverksett.brev.domene.DokumentInfoResponse
 import no.nav.grunn.og.hjelpestonad.iverksett.brev.domene.JournalpostRequest
 import no.nav.grunn.og.hjelpestonad.iverksett.brev.domene.JournalpostType
 import org.assertj.core.api.Assertions.assertThat
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.Instant
 import java.util.UUID
 import kotlin.test.Test
 
 class JournalførVedtaksbrevTaskTest {
     private val dokarkivClient = mockk<DokarkivClient>()
-    private val objectMapper: ObjectMapper = jacksonObjectMapper()
     private val journalføringService = mockk<JournalføringService>()
     private val journalpostForBehandlingService = mockk<JournalpostForBehandlingService>()
     private val journalførVedtaksbrevTask =
         JournalførVedtaksbrevTask(
             dokarkivClient = dokarkivClient,
-            objectMapper = objectMapper,
             journalføringService = journalføringService,
             journalpostForBehandlingService = journalpostForBehandlingService,
         )
@@ -39,7 +35,6 @@ class JournalførVedtaksbrevTaskTest {
     fun `doTask skal journalføre vedtaksbrev for én mottaker`() {
         val behandlingId = UUID.randomUUID()
         val taskData = JournalførVedtaksbrevTask.JournalførVedtaksbrevTaskData(behandlingId)
-        val payload = objectMapper.writeValueAsString(taskData)
         val journalpostRequest = lagJournalpostRequest(behandlingId, 0)
 
         every { journalføringService.lagJournalføringRequester(behandlingId) } returns listOf(journalpostRequest)
@@ -47,7 +42,7 @@ class JournalførVedtaksbrevTaskTest {
         every { journalpostForBehandlingService.lagreJournalpostId(behandlingId, "123456") } returns
             JournalpostForBehandling(behandlingId = behandlingId, journalpostId = "123456")
 
-        journalførVedtaksbrevTask.utfor(kontekst(payload, JournalførVedtaksbrevTask.TYPE))
+        journalførVedtaksbrevTask.utfor(kontekst(taskData, JournalførVedtaksbrevTask.TYPE))
 
         verify(exactly = 1) { journalføringService.lagJournalføringRequester(behandlingId) }
         verify(exactly = 1) { dokarkivClient.arkiverDokument(journalpostRequest, true) }
@@ -58,7 +53,6 @@ class JournalførVedtaksbrevTaskTest {
     fun `doTask skal journalføre vedtaksbrev for flere mottakere`() {
         val behandlingId = UUID.randomUUID()
         val taskData = JournalførVedtaksbrevTask.JournalførVedtaksbrevTaskData(behandlingId)
-        val payload = objectMapper.writeValueAsString(taskData)
         val request1 = lagJournalpostRequest(behandlingId, 0)
         val request2 = lagJournalpostRequest(behandlingId, 1)
 
@@ -70,7 +64,7 @@ class JournalførVedtaksbrevTaskTest {
         every { journalpostForBehandlingService.lagreJournalpostId(behandlingId, "123457") } returns
             JournalpostForBehandling(behandlingId = behandlingId, journalpostId = "123457")
 
-        journalførVedtaksbrevTask.utfor(kontekst(payload, JournalførVedtaksbrevTask.TYPE))
+        journalførVedtaksbrevTask.utfor(kontekst(taskData, JournalførVedtaksbrevTask.TYPE))
 
         verify(exactly = 1) { journalføringService.lagJournalføringRequester(behandlingId) }
         verify(exactly = 1) { dokarkivClient.arkiverDokument(request1, true) }
@@ -81,12 +75,14 @@ class JournalførVedtaksbrevTaskTest {
 
     @Test
     fun `opprettIverksettVedtaksbrevTask skal opprette riktig payload`() {
-        val payload = """{"behandlingId": "123e4567-e89b-12d3-a456-426614174000"}"""
-        val service = IverksettVedtaksbrevService(objectMapper)
+        val behandlingId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000")
+        val service = IverksettVedtaksbrevService()
 
-        val faktisk = service.opprettIverksettVedtaksbrevTask(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"))
+        val faktisk = service.opprettIverksettVedtaksbrevTask(behandlingId)
 
-        assertThat(objectMapper.readTree(faktisk)).isEqualTo(objectMapper.readTree(payload))
+        assertThat(faktisk).isEqualTo(JournalførVedtaksbrevTask.JournalførVedtaksbrevTaskData(behandlingId))
+        assertThat(JournalførVedtaksbrevTask.TYPE.serialiser(faktisk))
+            .isEqualTo("""{"behandlingId":"123e4567-e89b-12d3-a456-426614174000"}""")
     }
 
     @Test
@@ -95,15 +91,15 @@ class JournalførVedtaksbrevTaskTest {
     }
 
     private fun kontekst(
-        payload: String,
-        type: TaskType<String>,
+        payload: JournalførVedtaksbrevTask.JournalførVedtaksbrevTaskData,
+        type: TaskType<JournalførVedtaksbrevTask.JournalførVedtaksbrevTaskData>,
     ) = TaskKontekst(
         task =
             Task(
                 id = 1,
                 type = type.navn,
                 status = Status.KJØRER,
-                payload = payload,
+                payload = type.serialiser(payload),
                 triggerTid = Instant.now(),
                 opprettetTid = Instant.now(),
                 plukketTid = null,

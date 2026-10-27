@@ -12,7 +12,6 @@ import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
-import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 import kotlin.test.Test
 
@@ -25,7 +24,6 @@ class HenleggBehandlingServiceTest {
             endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true),
             oppgaveService = mockk<OppgaveService>(relaxed = true),
             taskService = mockk<TaskService>(relaxed = true),
-            objectMapper = mockk<ObjectMapper>(relaxed = true),
             ansvarligSaksbehandlerService = ansvarligSaksbehandlerService,
         )
 

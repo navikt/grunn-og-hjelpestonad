@@ -3,12 +3,10 @@ package no.nav.grunn.og.hjelpestonad.task
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
 import efterlatte.prosessering.TaskType
-import efterlatte.prosessering.strengType
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.brev.FamilieDokumentClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import tools.jackson.databind.ObjectMapper
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -16,14 +14,12 @@ import java.util.UUID
 class BrevTask(
     val brevService: BrevService,
     private val familieDokumentClient: FamilieDokumentClient,
-    private val objectMapper: ObjectMapper,
-) : TaskStep<String> {
-    override val type: TaskType<String> = TYPE
+) : TaskStep<BrevTask.LagBrevPdfTaskData> {
+    override val type: TaskType<LagBrevPdfTaskData> = TYPE
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun utfor(kontekst: TaskKontekst<String>) {
-        val data = objectMapper.readValue(kontekst.payload, LagBrevPdfTaskData::class.java)
-        val behandlingId = data.behandlingId
+    override fun utfor(kontekst: TaskKontekst<LagBrevPdfTaskData>) {
+        val behandlingId = kontekst.payload.behandlingId
         val brev =
             brevService.hentBrev(behandlingId)
                 ?: error("Fant ikke brev for behandlingId=$behandlingId")
@@ -35,11 +31,12 @@ class BrevTask(
     }
 
     companion object {
-        val TYPE: TaskType<String> = strengType("BrevTask")
+        val TYPE: TaskType<LagBrevPdfTaskData> = lagTaskType("BrevTask")
     }
 
     data class LagBrevPdfTaskData(
         val behandlingId: UUID,
+        // Trengs fordi prosessering_task har UNIQUE (type, payload), og samme behandling kan få ny brev-task.
         val unik: LocalDateTime = LocalDateTime.now(),
     )
 }

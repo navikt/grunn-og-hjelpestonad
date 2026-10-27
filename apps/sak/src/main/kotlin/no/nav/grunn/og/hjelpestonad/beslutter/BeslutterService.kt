@@ -24,7 +24,6 @@ import no.nav.grunn.og.hjelpestonad.vedtak.tilBehandlingResultat
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
 @Service
@@ -35,7 +34,6 @@ class BeslutterService(
     private val oppgaveService: OppgaveService,
     private val totrinnskontrollService: TotrinnskontrollService,
     private val taskService: TaskService,
-    private val objectMapper: ObjectMapper,
     private val lagBehandleSakOppgaveTask: LagBehandleSakOppgaveTask,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val vedtakService: VedtakService,
@@ -61,14 +59,12 @@ class BeslutterService(
         FerdigstillOppgaveTask.opprettTask(
             behandlingId = behandlingId,
             oppgavetype = aktivOppgavetype,
-            objectMapper = objectMapper,
             taskService = taskService,
         )
 
         OpprettOppgaveTask.opprettTask(
             behandlingId = behandlingId,
             oppgavetype = OppgavetypeEYO.GOD_VED,
-            objectMapper = objectMapper,
             taskService = taskService,
         )
     }
@@ -89,7 +85,6 @@ class BeslutterService(
         FerdigstillOppgaveTask.opprettTask(
             behandlingId = behandlingId,
             oppgavetype = aktivOppgavetype,
-            objectMapper = objectMapper,
             taskService = taskService,
         )
 
@@ -153,12 +148,11 @@ class BeslutterService(
         FerdigstillOppgaveTask.opprettTask(
             behandlingId = behandlingId,
             oppgavetype = OppgavetypeEYO.GOD_VED,
-            objectMapper = objectMapper,
             taskService = taskService,
         )
 
         if (vedtak?.resultatType == ResultatType.INNVILGET) {
-            taskService.opprett(SendVedtakTilInfotrygdFeedTask.TYPE, behandlingId.toString())
+            taskService.opprett(SendVedtakTilInfotrygdFeedTask.TYPE, behandlingId)
         }
     }
 
@@ -191,7 +185,6 @@ class BeslutterService(
         FerdigstillOppgaveTask.opprettTask(
             behandlingId = behandlingId,
             oppgavetype = OppgavetypeEYO.GOD_VED,
-            objectMapper = objectMapper,
             taskService = taskService,
         )
 
@@ -199,7 +192,6 @@ class BeslutterService(
             behandlingId = behandlingId,
             oppgavetype = OppgavetypeEYO.BEH_UND_VED,
             tilordnetSaksbehandler = saksbehandlerSomSendteTilBeslutter,
-            objectMapper = objectMapper,
             taskService = taskService,
         )
     }

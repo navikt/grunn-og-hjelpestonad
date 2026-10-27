@@ -19,6 +19,7 @@ import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.Instant
@@ -44,7 +45,7 @@ class InfotrygdFeedTaskTest {
 
         // Act
         val task = SendStartBehandlingTilInfotrygdFeedTask(behandlingService, fagsakService, infotrygdFeedClient)
-        task.utfor(kontekst(behandlingId.toString(), SendStartBehandlingTilInfotrygdFeedTask.TYPE))
+        task.utfor(kontekst(behandlingId, SendStartBehandlingTilInfotrygdFeedTask.TYPE))
 
         // Assert
         verify { infotrygdFeedClient.sendStartBehandling("12345678901") }
@@ -80,10 +81,20 @@ class InfotrygdFeedTaskTest {
                 infotrygdFeedClient,
             )
         // Act
-        task.utfor(kontekst(behandlingId.toString(), SendVedtakTilInfotrygdFeedTask.TYPE))
+        task.utfor(kontekst(behandlingId, SendVedtakTilInfotrygdFeedTask.TYPE))
 
         // Assert
         verify { infotrygdFeedClient.sendVedtak("12345678901", LocalDate.of(2026, 2, 1)) }
+    }
+
+    @Test
+    fun `vedtak task lagrer behandlingId som ra UUID-streng`() {
+        val behandlingId = UUID.randomUUID()
+
+        val payload = SendVedtakTilInfotrygdFeedTask.TYPE.serialiser(behandlingId)
+
+        assertEquals(behandlingId.toString(), payload)
+        assertEquals(behandlingId, SendVedtakTilInfotrygdFeedTask.TYPE.deserialiser(payload))
     }
 
     private fun periode(
@@ -99,15 +110,15 @@ class InfotrygdFeedTaskTest {
     )
 
     private fun kontekst(
-        payload: String,
-        type: TaskType<String>,
+        payload: UUID,
+        type: TaskType<UUID>,
     ) = TaskKontekst(
         task =
             Task(
                 id = 1,
                 type = type.navn,
                 status = Status.KJØRER,
-                payload = payload,
+                payload = type.serialiser(payload),
                 triggerTid = Instant.now(),
                 opprettetTid = Instant.now(),
                 plukketTid = null,

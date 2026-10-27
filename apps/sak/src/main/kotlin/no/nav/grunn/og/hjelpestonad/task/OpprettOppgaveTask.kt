@@ -4,26 +4,23 @@ import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
 import efterlatte.prosessering.TaskType
 import efterlatte.prosessering.spring.TaskService
-import efterlatte.prosessering.strengType
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
+import no.nav.grunn.og.hjelpestonad.task.lagTaskType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.module.kotlin.readValue
 import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
 class OpprettOppgaveTask(
     private val oppgaveService: OppgaveService,
-    private val objectMapper: ObjectMapper,
-) : TaskStep<String> {
-    override val type: TaskType<String> = TYPE
+) : TaskStep<OpprettOppgaveTaskData> {
+    override val type: TaskType<OpprettOppgaveTaskData> = TYPE
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun utfor(kontekst: TaskKontekst<String>) {
-        val data: OpprettOppgaveTaskData = objectMapper.readValue(kontekst.payload)
+    override fun utfor(kontekst: TaskKontekst<OpprettOppgaveTaskData>) {
+        val data = kontekst.payload
         logger.info("Oppretter oppgave for behandling=${data.behandlingId}, type=${data.oppgavetype}")
 
         when (data.oppgavetype) {
@@ -47,13 +44,12 @@ class OpprettOppgaveTask(
     }
 
     companion object {
-        val TYPE: TaskType<String> = strengType("OpprettOppgaveTask")
+        val TYPE: TaskType<OpprettOppgaveTaskData> = lagTaskType("OpprettOppgaveTask")
 
         fun opprettTask(
             behandlingId: UUID,
             oppgavetype: OppgavetypeEYO,
             tilordnetSaksbehandler: String? = null,
-            objectMapper: ObjectMapper,
             taskService: TaskService,
         ) {
             val payload =
@@ -62,7 +58,7 @@ class OpprettOppgaveTask(
                     oppgavetype = oppgavetype,
                     tilordnetSaksbehandler = tilordnetSaksbehandler,
                 )
-            taskService.opprett(TYPE, objectMapper.writeValueAsString(payload))
+            taskService.opprett(TYPE, payload)
         }
     }
 }
@@ -71,5 +67,6 @@ data class OpprettOppgaveTaskData(
     val behandlingId: UUID,
     val oppgavetype: OppgavetypeEYO,
     val tilordnetSaksbehandler: String? = null,
+    // Trengs fordi prosessering_task har UNIQUE (type, payload), og samme behandling kan få samme task flere ganger.
     val unik: LocalDateTime = LocalDateTime.now(),
 )

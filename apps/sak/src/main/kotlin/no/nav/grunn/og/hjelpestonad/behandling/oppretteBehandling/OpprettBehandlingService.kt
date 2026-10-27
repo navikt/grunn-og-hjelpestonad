@@ -46,7 +46,7 @@ class OpprettBehandlingService(
             )
 
         if (forrigeBehandlingId == null) {
-            taskService.opprett(SendStartBehandlingTilInfotrygdFeedTask.TYPE, behandling.id.toString())
+            taskService.opprett(SendStartBehandlingTilInfotrygdFeedTask.TYPE, behandling.id)
         }
 
         lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(behandling = behandling, saksbehandler = SikkerhetContext.hentSaksbehandler())
