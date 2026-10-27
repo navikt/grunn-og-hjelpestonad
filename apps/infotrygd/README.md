@@ -45,9 +45,9 @@ og skjemaet står i
 |--------|---------|
 | `t_lopenr_fnr` | Kobler `person_lopenr` til fnr (`personnr`) |
 | `t_stonad` | Stønaden, med `kode_rutine`, opphørsdato og `oppdrag_id` |
-| `t_vedtak` | Vedtakene på en stønad, med innvilget periode (`dato_innv_fom`/`dato_innv_tom`) |
+| `t_vedtak` | Vedtakene på en stønad, med innvilget periode (`dato_innv_fom`/`dato_innv_tom`), sakstype (`type_sak`) og resultat (`kode_resultat`). Se [kodene](docs/gh-i-infotrygd.md#sakstyper-og-resultatkoder). |
 | `t_endring` | Endringskoder per vedtak (F, O, AN, UA …). Ett vedtak kan ha flere. Se [kodene](docs/gh-i-infotrygd.md#endringskoder). |
-| `t_delytelse` | Beløp per periode for et vedtak, med type delytelse, sats og utbetaling |
+| `t_delytelse` | Beløp per periode for et vedtak, med type delytelse, sats og utbetaling. Se [kodene](docs/gh-i-infotrygd.md#delytelser). |
 | `t_gh` | Trygdetid og sats per vedtak, med én rad per registrering |
 | `sa_*`, `ev_*` | Saker, statuser, hendelser og vedtaksdata fra saksbehandlingsdelen (DL1) |
 

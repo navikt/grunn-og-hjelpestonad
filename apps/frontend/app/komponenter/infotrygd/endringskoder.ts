@@ -24,8 +24,10 @@ const endringskoder: Record<string, string> = {
   OO: "Overf ny løsning",
 };
 
-export const formaterEndringskode = (kode: string): string => {
+export const formaterKode = (koder: Record<string, string>, kode: string): string => {
   const renset = kode.trim();
-  const tekst = endringskoder[renset.toUpperCase()];
+  const tekst = koder[renset.toUpperCase()];
   return tekst ? `${tekst} (${renset})` : renset;
 };
+
+export const formaterEndringskode = (kode: string): string => formaterKode(endringskoder, kode);

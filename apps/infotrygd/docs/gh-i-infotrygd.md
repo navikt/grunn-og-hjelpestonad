@@ -117,3 +117,70 @@ så oppdater begge stedene.
 | `P` | Passivt |
 | `AV` | Avslag |
 | `OO` | Overf ny løsning |
+
+### Sakstyper og resultatkoder
+
+Kodene i `t_vedtak.type_sak` og `t_vedtak.kode_resultat`. Tekstene kommer fra
+en Infotrygd-ekspert og står i kodetabellen med `KT1_TEKSTTYPE` lik `T` for
+sakstype og `R` for resultat. Kodetabellen dekker alle rutinene, så bare kodene
+som finnes på GH-vedtak, er med her. Tekstene står slik de er i Infotrygd.
+Frontend viser teksten fra
+[`vedtakskoder.ts`](../../frontend/app/komponenter/infotrygd/vedtakskoder.ts),
+så oppdater begge stedene.
+
+Kolonnene GS og HS er antall vedtak per kode, oppgitt av teamet 2026-10-27.
+Summen er lik for de to tabellene: 1 894 592 vedtak for GS og 1 310 420 for HS.
+
+#### Sakstype (`type_sak`)
+
+| Kode | Tekst | GS | HS |
+|------|-------|---:|---:|
+| `A` | Anke | 1 | 6 |
+| `FU` | Flytting til utlandet | 0 | 2 |
+| `K` | Klage | 3 286 | 4 042 |
+| `KO` | Konverteringssak | 129 969 | 84 811 |
+| `MO` | Manuell satsomregning | 3 889 | 3 683 |
+| `MS` | Maskinell satsomregning | 1 507 834 | 892 434 |
+| `R` | Revurdering | 139 831 | 185 209 |
+| `S` | Søknad | 103 692 | 123 139 |
+| `SØ` | Søknad om økning/endring | 6 090 | 17 094 |
+
+#### Resultat (`kode_resultat`)
+
+| Kode | Tekst | GS | HS |
+|------|-------|---:|---:|
+| `A` | Avslag | 1 | 0 |
+| `AN` | Annulert | 864 | 790 |
+| `DI` | Delvis innvilget | 2 189 | 504 |
+| `FI` | Fortsatt innvilget | 1 637 434 | 1 062 434 |
+| `HB` | Henlagt / bortfalt | 0 | 1 |
+| `I` | Innvilget | 110 728 | 143 547 |
+| `IN` | Innvilget ny situasjon | 101 | 108 |
+| `K` | Konvertert | 129 969 | 84 811 |
+| `MO` | Midlertidig opphørt | 189 | 137 |
+| `MR` | Ukjent, se under | 12 | 0 |
+| `R` | Redusert | 9 452 | 11 361 |
+| `Ø` | Økning | 3 653 | 6 727 |
+
+- `MR` finnes ikke som resultat i kodetabellen. Som sakstype betyr `MR`
+  «Maskinell revurdering», men det er ikke bekreftet at resultatet betyr det
+  samme. Frontend viser bare koden.
+- Resultat `K` og sakstype `KO` har like mange vedtak. Trolig er dette vedtakene
+  fra konverteringen ut av pensjonsrutinen i 2009 (se [Historikk](#historikk)),
+  men det er ikke sjekket at det er de samme vedtakene.
+- `MS` med `FI` er den vanligste kombinasjonen: vedtak Infotrygd lager selv når
+  satsene endres. Slike vedtak kan mangle evaluering, se README-en under
+  [Kjente tilfeller uten evaluering](../README.md#kjente-tilfeller-uten-evaluering).
+
+### Delytelser
+
+Kodene i `t_delytelse`, oppgitt av teamet 2026-10-27. For GH har hver kolonne
+bare én verdi per stønadstype, så frontend viser ingen av dem. API-et returnerer
+dem fortsatt.
+
+| Kolonne | Kode | Tekst |
+|---------|------|-------|
+| `type_delytelse` | `MG` | Grunnstønad månedsats. Alltid `MG` for GS. |
+| `type_delytelse` | `MH` | Hjelpestønad månedsats. Alltid `MH` for HS. |
+| `type_sats` | `M` | Alltid `M`. Teksten er ikke kjent. |
+| `type_utbetaling` | `L` | Alltid `L`. Teksten er ikke kjent. |
