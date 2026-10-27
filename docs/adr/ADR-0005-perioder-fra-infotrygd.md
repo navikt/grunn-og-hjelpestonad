@@ -130,5 +130,5 @@ bekreftet for våre stønader.
 - [ ] Finn ut hvilken registrering i `t_gh` som gjelder for en delytelse.
 - [ ] Oppdater `InfotrygdClient` i `sak` og siden «Infotrygd historikk» i
       frontend.
-- [ ] Vurder sammenslåtte perioder når vi vet hvordan vedtak overskriver
-      hverandre.
+- [x] Vurder sammenslåtte perioder når vi vet hvordan vedtak overskriver
+      hverandre. Se [ADR-0012](ADR-0012-arv-og-gjeldende-perioder-fra-infotrygd.md).

@@ -8,8 +8,8 @@ import org.springframework.web.client.RestClient
 
 /**
  * springdoc navngir skjemaer etter klassenavnet uten pakke. To klasser med samme navn gir ett skjema, og det ene
- * overskriver det andre uten feil. Modellene som genereres fra infotrygd-kontrakten og sendes videre til frontend,
- * har derfor prefikset Infotrygd (modelNameMappings i pom.xml). Testen feiler hvis de kolliderer igjen.
+ * overskriver det andre uten feil. Typene fra Infotrygd som sendes til frontend har derfor egne navn, og
+ * modelNameMappings i pom.xml gir den genererte kontrakten Infotrygd-prefiks. Testen feiler hvis de kolliderer igjen.
  */
 class OpenApiSkjemanavnTest(
     @param:Value("\${local.server.port}") private val port: Int,
@@ -19,8 +19,11 @@ class OpenApiSkjemanavnTest(
         val skjemaer = hentSkjemaer()
 
         assertThat(egenskaper(skjemaer, "VedtakResponse")).contains("resultatType")
-        assertThat(egenskaper(skjemaer, "InfotrygdVedtakResponse")).contains("tknr", "delytelser")
-        assertThat(egenskaper(skjemaer, "InfotrygdStonadResponse")).contains("stonadId", "vedtak")
+        assertThat(egenskaper(skjemaer, "InfotrygdVedtakMedArv")).contains("tknr", "delytelser", "evaluering", "gh")
+        assertThat(egenskaper(skjemaer, "VerdiMedKildeInfotrygdEvaluering")).contains("verdi", "arvetFraVedtak")
+        assertThat(egenskaper(skjemaer, "VerdiMedKildeListInfotrygdGhResponse")).contains("verdi", "arvetFraVedtak")
+        assertThat(egenskaper(skjemaer, "InfotrygdStonadMedArv")).contains("stonadId", "vedtak")
+        assertThat(egenskaper(skjemaer, "GjeldendeInfotrygdPeriode")).contains("fom", "tom", "stonadId", "vedtak")
     }
 
     @Suppress("UNCHECKED_CAST")
