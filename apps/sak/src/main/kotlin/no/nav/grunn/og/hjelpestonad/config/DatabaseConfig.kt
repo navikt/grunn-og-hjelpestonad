@@ -1,7 +1,5 @@
 package no.nav.grunn.og.hjelpestonad.config
 
-import no.nav.familie.prosessering.PropertiesWrapperTilStringConverter
-import no.nav.familie.prosessering.StringTilPropertiesWrapperConverter
 import no.nav.grunn.og.hjelpestonad.beslutter.ÅrsakUnderkjent
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import no.nav.grunn.og.hjelpestonad.iverksett.utbetaling.SimuleringResponse
@@ -35,7 +33,7 @@ import java.time.YearMonth
 import javax.sql.DataSource
 
 @Configuration
-@EnableJdbcRepositories("no.nav.familie", "no.nav.grunn.og.hjelpestonad")
+@EnableJdbcRepositories("no.nav.grunn.og.hjelpestonad")
 open class DatabaseConfig(
     private val objectMapper: ObjectMapper,
 ) : AbstractJdbcConfiguration() {
@@ -44,8 +42,6 @@ open class DatabaseConfig(
 
     override fun userConverters(): List<*> =
         listOf(
-            PropertiesWrapperTilStringConverter(),
-            StringTilPropertiesWrapperConverter(),
             BrevRequestTilJsonbConverter(objectMapper),
             JsonbTilBrevRequestConverter(objectMapper),
             SimuleringResponseTilJsonbConverter(objectMapper),

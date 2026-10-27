@@ -1,6 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.behandling.henleggBehandling
 
-import no.nav.familie.prosessering.internal.TaskService
+import efterlatte.prosessering.spring.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus

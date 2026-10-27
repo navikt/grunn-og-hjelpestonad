@@ -1,8 +1,9 @@
 package no.nav.grunn.og.hjelpestonad.iverksett.brev
 
-import no.nav.familie.prosessering.AsyncTaskStep
-import no.nav.familie.prosessering.TaskStepBeskrivelse
-import no.nav.familie.prosessering.domene.Task
+import efterlatte.prosessering.TaskKontekst
+import efterlatte.prosessering.TaskStep
+import efterlatte.prosessering.TaskType
+import efterlatte.prosessering.strengType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import tools.jackson.databind.ObjectMapper
@@ -10,22 +11,18 @@ import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 @Service
-@TaskStepBeskrivelse(
-    taskStepType = JournalførVedtaksbrevTask.TYPE,
-    maxAntallFeil = 5,
-    triggerTidVedFeilISekunder = 15,
-    beskrivelse = "Journalfører vedtaksbrev.",
-)
 class JournalførVedtaksbrevTask(
     private val dokarkivClient: DokarkivClient,
     private val objectMapper: ObjectMapper,
     private val journalføringService: JournalføringService,
     private val journalpostForBehandlingService: JournalpostForBehandlingService,
-) : AsyncTaskStep {
+) : TaskStep<String> {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun doTask(task: Task) {
-        val taskData = objectMapper.readValue<JournalførVedtaksbrevTaskData>(task.payload)
+    override val type: TaskType<String> = TYPE
+
+    override fun utfor(kontekst: TaskKontekst<String>) {
+        val taskData = objectMapper.readValue<JournalførVedtaksbrevTaskData>(kontekst.payload)
         val behandlingId = taskData.behandlingId
         val journalføringRequester = journalføringService.lagJournalføringRequester(behandlingId)
 
@@ -37,13 +34,7 @@ class JournalførVedtaksbrevTask(
     }
 
     companion object {
-        const val TYPE = "journalførVedtaksbrev"
-
-        fun opprettTask(payload: String): Task =
-            Task(
-                TYPE,
-                payload,
-            )
+        val TYPE: TaskType<String> = strengType("journalførVedtaksbrev")
     }
 
     data class JournalførVedtaksbrevTaskData(

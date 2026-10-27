@@ -1,6 +1,5 @@
 package no.nav.grunn.og.hjelpestonad.brev
 
-import no.nav.familie.prosessering.domene.Task
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
@@ -27,11 +26,9 @@ class BrevService(
     private val endringshistorikkService: EndringshistorikkService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
 ) {
-    fun lagBrevPdfTask(behandlingId: UUID): Task =
-        BrevTask.opprettTask(
-            objectMapper.writeValueAsString(
-                BrevTask.LagBrevPdfTaskData(behandlingId),
-            ),
+    fun lagBrevPdfTask(behandlingId: UUID): String =
+        objectMapper.writeValueAsString(
+            BrevTask.LagBrevPdfTaskData(behandlingId),
         )
 
     @Transactional

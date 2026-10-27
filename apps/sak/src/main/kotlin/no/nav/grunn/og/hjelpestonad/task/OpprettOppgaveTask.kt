@@ -1,9 +1,10 @@
 package no.nav.grunn.og.hjelpestonad.task
 
-import no.nav.familie.prosessering.AsyncTaskStep
-import no.nav.familie.prosessering.TaskStepBeskrivelse
-import no.nav.familie.prosessering.domene.Task
-import no.nav.familie.prosessering.internal.TaskService
+import efterlatte.prosessering.TaskKontekst
+import efterlatte.prosessering.TaskStep
+import efterlatte.prosessering.TaskType
+import efterlatte.prosessering.spring.TaskService
+import efterlatte.prosessering.strengType
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
 import org.slf4j.LoggerFactory
@@ -14,20 +15,15 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
-@TaskStepBeskrivelse(
-    taskStepType = OpprettOppgaveTask.TYPE,
-    maxAntallFeil = 3,
-    settTilManuellOppfølgning = true,
-    beskrivelse = "Oppretter oppgave i Gosys",
-)
 class OpprettOppgaveTask(
     private val oppgaveService: OppgaveService,
     private val objectMapper: ObjectMapper,
-) : AsyncTaskStep {
+) : TaskStep<String> {
+    override val type: TaskType<String> = TYPE
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun doTask(task: Task) {
-        val data: OpprettOppgaveTaskData = objectMapper.readValue(task.payload)
+    override fun utfor(kontekst: TaskKontekst<String>) {
+        val data: OpprettOppgaveTaskData = objectMapper.readValue(kontekst.payload)
         logger.info("Oppretter oppgave for behandling=${data.behandlingId}, type=${data.oppgavetype}")
 
         when (data.oppgavetype) {
@@ -51,7 +47,7 @@ class OpprettOppgaveTask(
     }
 
     companion object {
-        const val TYPE = "OpprettOppgaveTask"
+        val TYPE: TaskType<String> = strengType("OpprettOppgaveTask")
 
         fun opprettTask(
             behandlingId: UUID,
@@ -66,8 +62,7 @@ class OpprettOppgaveTask(
                     oppgavetype = oppgavetype,
                     tilordnetSaksbehandler = tilordnetSaksbehandler,
                 )
-            val task = Task(TYPE, objectMapper.writeValueAsString(payload))
-            taskService.save(task)
+            taskService.opprett(TYPE, objectMapper.writeValueAsString(payload))
         }
     }
 }

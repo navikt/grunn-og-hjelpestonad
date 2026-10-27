@@ -1,11 +1,13 @@
 package no.nav.grunn.og.hjelpestonad.behandling
 
+import efterlatte.prosessering.TaskId
+import efterlatte.prosessering.TaskType
+import efterlatte.prosessering.spring.TaskService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import io.mockk.verify
-import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.oppretteBehandling.OpprettBehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl.PdlFaktagrunnlagService
@@ -70,19 +72,16 @@ class OpprettBehandlingServiceTest {
     fun `opprettBehandling sender startbehandling til Infotrygd for første behandling`() {
         // Arrange
         every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
+        val typer = mutableListOf<TaskType<String>>()
+        val payloads = mutableListOf<String>()
+        every { taskService.opprett(capture(typer), capture(payloads), any(), any()) } returns TaskId(1)
 
         // Act
         val behandling = opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
 
         // Assert
-        verify {
-            taskService.save(
-                match {
-                    it.type == SendStartBehandlingTilInfotrygdFeedTask.TYPE &&
-                        it.payload == behandling.id.toString()
-                },
-            )
-        }
+        assertEquals(SendStartBehandlingTilInfotrygdFeedTask.TYPE.navn, typer.single().navn)
+        assertEquals(behandling.id.toString(), payloads.single())
     }
 
     @Test
@@ -98,7 +97,7 @@ class OpprettBehandlingServiceTest {
 
         // Assert
         verify(exactly = 0) {
-            taskService.save(match { it.type == SendStartBehandlingTilInfotrygdFeedTask.TYPE })
+            taskService.opprett(any<TaskType<String>>(), any<String>(), any(), any())
         }
     }
 

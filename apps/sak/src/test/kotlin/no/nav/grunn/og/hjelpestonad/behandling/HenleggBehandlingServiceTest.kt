@@ -1,8 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.behandling
 
+import efterlatte.prosessering.spring.TaskService
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.henleggBehandling.HenleggBehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil

@@ -1,11 +1,13 @@
 package no.nav.grunn.og.hjelpestonad.beslutter
 
+import efterlatte.prosessering.TaskId
+import efterlatte.prosessering.TaskType
+import efterlatte.prosessering.spring.TaskService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import io.mockk.verify
-import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
@@ -157,17 +159,18 @@ class BeslutterServiceTest {
             )
 
         // Act
+        val typer = mutableListOf<TaskType<String>>()
+        val payloads = mutableListOf<String>()
+        every { taskService.opprett(capture(typer), capture(payloads), any(), any()) } returns TaskId(1)
         beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
 
         // Assert
-        verify {
-            taskService.save(
-                match {
-                    it.type == SendVedtakTilInfotrygdFeedTask.TYPE &&
-                        it.payload == behandlingId.toString()
-                },
-            )
-        }
+        assertThat(
+            typer
+                .zip(payloads)
+                .filter { (type, _) -> type.navn == SendVedtakTilInfotrygdFeedTask.TYPE.navn }
+                .map { (_, payload) -> payload },
+        ).containsExactly(behandlingId.toString())
     }
 
     @Test
@@ -209,7 +212,7 @@ class BeslutterServiceTest {
             unmockkObject(SikkerhetContext)
         }
 
-        verify { taskService.save(any()) }
+        verify { taskService.opprett(any<TaskType<String>>(), any<String>(), any(), any()) }
         verify { lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(behandling, "Z123456") }
         verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.UTREDES) }
         verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.ANGRET_SEND_TIL_BESLUTTER) }
@@ -243,7 +246,7 @@ class BeslutterServiceTest {
     }
 
     private fun verifyIngenEndringer() {
-        verify(exactly = 0) { taskService.save(any()) }
+        verify(exactly = 0) { taskService.opprett(any<TaskType<String>>(), any<String>(), any(), any()) }
         verify(exactly = 0) { lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(any(), any()) }
         verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any()) }

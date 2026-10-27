@@ -1,6 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.behandling.oppretteBehandling
 
-import no.nav.familie.prosessering.internal.TaskService
+import efterlatte.prosessering.spring.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
@@ -46,7 +46,7 @@ class OpprettBehandlingService(
             )
 
         if (forrigeBehandlingId == null) {
-            taskService.save(SendStartBehandlingTilInfotrygdFeedTask.opprettTask(behandling.id))
+            taskService.opprett(SendStartBehandlingTilInfotrygdFeedTask.TYPE, behandling.id.toString())
         }
 
         lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(behandling = behandling, saksbehandler = SikkerhetContext.hentSaksbehandler())

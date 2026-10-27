@@ -68,12 +68,11 @@ anbefalingen i dokumentasjonen, se «Komplett regelsett» under alternativer.
 - `EndepunktRegisterTest` lister handlerne i pakken `no.nav.grunn.og.hjelpestonad`
   med profilen `dev`. Et nytt endepunkt der får testen til å feile til det er
   plassert som «med personsjekk» eller «uten personsjekk». Testen ser ikke
-  task-endepunktene fra prosessering-biblioteket eller controllere som bare finnes
-  i andre profiler.
+  controllere som bare finnes i andre profiler.
 
-Endepunkter uten personsjekk: `DiagnosekodeController`, `UnleashController`,
-`TestDbController` og task-endepunktene fra prosessering (`/api/task/**`), som
-`etterlatte-prosessering` bruker.
+Endepunkter uten personsjekk: `DiagnosekodeController`, `UnleashController` og
+`TestDbController`. Task-endepunktene (`/api/task/**`) forsvant da sak byttet fra
+familie-prosessering til efterlatte-prosessering, som ikke har endepunkter.
 
 ### Svar ved avslag og feil
 
@@ -201,8 +200,8 @@ beslutninger. Forkastet fordi appen ikke er i prod og ikke har egen tilgangslogi
 - [ ] Test i dev med testbrukere: én med kode 6 og én skjermet.
 - [ ] Prod-manifest: outbound-regel til `populasjonstilgangskontroll` i namespace
       `tilgangsmaskin`.
-- [ ] Sjekk tilgangskontrollen på `/api/task/**`. `ApplicationConfig` leser
-      `prosessering.rolle`, men `harTilgang()` gir alltid `true`.
+- [x] Sjekk tilgangskontrollen på `/api/task/**`. Endepunktene er fjernet sammen
+      med familie-prosessering.
 - [ ] Sjekk barn når barn blir en del av saken.
 - [ ] Vurder regelsettet på nytt når Nav stiller krav om å sjekke avdøde brukere.
 - [ ] Auditlogg: database for økonominære handlinger og ArcSight via `AuditLogger`.
