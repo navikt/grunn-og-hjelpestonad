@@ -1,11 +1,12 @@
 import React from "react";
 import { BodyShort, Box, HGrid, Label, Table, VStack } from "@navikt/ds-react";
+import type { InfotrygdKildevedtak } from "~/api/generated/types.gen";
 import { formaterBelop, formaterIsoDatoTid } from "~/utils/utils";
 import { formaterDato, formaterMaaned } from "./formatering";
 import { formaterEndringskode } from "./endringskoder";
 import { formaterHjemmelbokstav, formaterResultat, formaterSakstype } from "./vedtakskoder";
 import { erMotstridende, ingenBryting, TomtFelt, UlikeVerdier, visVerdi } from "./celler";
-import type { Kildevedtak, Vedtaksrad } from "./vedtaksrader";
+import type { Vedtaksrad } from "./vedtaksrader";
 
 function Diagnose({
   kode,
@@ -43,7 +44,7 @@ function Felt({ tittel, children }: { tittel: string; children: React.ReactNode 
 function Kildetekst({ rad }: { rad: Vedtaksrad }) {
   const evaluering = rad.evalueringFraVedtak;
   const trygdetid = rad.ghFraVedtak;
-  const fattet = (kilde: Kildevedtak) =>
+  const fattet = (kilde: InfotrygdKildevedtak) =>
     `er hentet fra vedtaket fattet ${formaterDato(kilde.vedtakstidspunkt)}.`;
 
   const setninger =
