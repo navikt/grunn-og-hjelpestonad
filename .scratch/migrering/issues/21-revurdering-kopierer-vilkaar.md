@@ -19,9 +19,13 @@ Slik gjør EF det (`RevurderingService.opprettRevurdering`):
 
 Krav:
 
-- [ ] Vilkårsperiodene for medlemskap, diagnose og institusjon fra forrige iverksatte behandling kopieres til revurderingen når den opprettes, med ny ID, ny behandlings-ID og ny `sporbar`.
-- [ ] Perioder med rett kopieres ikke. De utledes når vilkårssteget fullføres.
-- [ ] Saksbehandler kan endre de kopierte vilkårene som andre vilkår.
-- [ ] Revurderingen stoppes med en feil hvis forrige behandling ikke har vilkår.
-- [ ] Tester dekker: førstegangsbehandling uten kopiering, revurdering med vilkår fra forrige behandling og forrige behandling uten vilkår.
-- [ ] Opphav og merket «maskinelt opprettet» krever nye kolonner og er flyttet til ticket 25.
+- [x] Vilkårsperiodene for medlemskap, diagnose og institusjon fra forrige iverksatte behandling kopieres til revurderingen når den opprettes, med ny ID, ny behandlings-ID og ny `sporbar`.
+- [x] Perioder med rett kopieres ikke. De utledes når vilkårssteget fullføres.
+- [x] Saksbehandler kan endre de kopierte vilkårene som andre vilkår.
+- [x] Revurderingen stoppes med en feil hvis forrige behandling ikke har vilkår.
+- [x] Tester dekker: førstegangsbehandling uten kopiering, revurdering med vilkår fra forrige behandling og forrige behandling uten vilkår.
+- [x] Opphav og merket «maskinelt opprettet» krever nye kolonner og er flyttet til ticket 25.
+
+## Comments
+
+**2026-10-28:** Gjort i `KopierVilkårService`, som `OpprettBehandlingService` kaller når det finnes en forrige iverksatte behandling. Hele testsuiten i `apps/sak` er grønn (376 tester), og ktlint er grønn. Merk: en revurdering i dev feiler nå hvis forrige iverksatte behandling ble laget før vilkårene fantes.

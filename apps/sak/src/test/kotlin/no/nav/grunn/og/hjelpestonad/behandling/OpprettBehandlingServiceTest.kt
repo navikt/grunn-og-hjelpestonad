@@ -12,6 +12,7 @@ import no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl.PdlFaktagrunnlagService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.task.SendStartBehandlingTilInfotrygdFeedTask
+import no.nav.grunn.og.hjelpestonad.vilkår.KopierVilkårService
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -23,6 +24,7 @@ class OpprettBehandlingServiceTest {
     private val behandlingRepository = mockk<BehandlingRepository>(relaxed = true)
     private val pdlFaktagrunnlagService = mockk<PdlFaktagrunnlagService>(relaxed = true)
     private val taskService = mockk<TaskService>(relaxed = true)
+    private val kopierVilkårService = mockk<KopierVilkårService>(relaxed = true)
     private val opprettBehandlingService =
         OpprettBehandlingService(
             behandlingService = BehandlingService(behandlingRepository),
@@ -30,6 +32,7 @@ class OpprettBehandlingServiceTest {
             endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true),
             pdlFaktagrunnlagService = pdlFaktagrunnlagService,
             taskService = taskService,
+            kopierVilkårService = kopierVilkårService,
         )
 
     @BeforeEach
@@ -100,6 +103,33 @@ class OpprettBehandlingServiceTest {
         verify(exactly = 0) {
             taskService.save(match { it.type == SendStartBehandlingTilInfotrygdFeedTask.TYPE })
         }
+    }
+
+    @Test
+    fun `revurdering kopierer vilkårene fra forrige iverksatte behandling`() {
+        // Arrange
+        every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
+        val forrigeBehandlingId = UUID.randomUUID()
+        val forrigeBehandling = mockk<Behandling>()
+        every { forrigeBehandling.id } returns forrigeBehandlingId
+        every { behandlingRepository.finnSisteIverksatteBehandling(any()) } returns forrigeBehandling
+
+        // Act
+        val behandling = opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
+
+        // Assert
+        verify(exactly = 1) {
+            kopierVilkårService.kopierFraForrigeBehandling(forrigeBehandlingId = forrigeBehandlingId, behandlingId = behandling.id)
+        }
+    }
+
+    @Test
+    fun `første behandling kopierer ingen vilkår`() {
+        every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
+
+        opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
+
+        verify(exactly = 0) { kopierVilkårService.kopierFraForrigeBehandling(any(), any()) }
     }
 
     @Test
