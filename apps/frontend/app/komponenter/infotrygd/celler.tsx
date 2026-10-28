@@ -1,10 +1,10 @@
 import React from "react";
 import { ClockDashedIcon } from "@navikt/aksel-icons";
 import { HStack, InlineMessage, Tag, Tooltip } from "@navikt/ds-react";
-import type { InfotrygdEvaluering } from "~/api/generated/types.gen";
+import type { InfotrygdEvaluering, InfotrygdKildevedtak } from "~/api/generated/types.gen";
 import { formaterBelop } from "~/utils/utils";
 import { formaterDato, formaterPeriode } from "./formatering";
-import type { Kildevedtak, Vedtaksrad } from "./vedtaksrader";
+import type { Vedtaksrad } from "./vedtaksrader";
 
 type MotstridendeFelt = InfotrygdEvaluering["motstridendeFelt"][number];
 
@@ -22,10 +22,10 @@ export const visVerdi = (verdi: string | null | undefined): React.ReactNode =>
 
 export const ingenBryting: React.CSSProperties = { whiteSpace: "nowrap" };
 
-const hentetFraTekst = (kilde: Kildevedtak): string =>
+const hentetFraTekst = (kilde: InfotrygdKildevedtak): string =>
   `Hentet fra vedtaket fattet ${formaterDato(kilde.vedtakstidspunkt)}`;
 
-export function FraTidligereVedtak({ kilde }: { kilde: Kildevedtak | null }) {
+export function FraTidligereVedtak({ kilde }: { kilde: InfotrygdKildevedtak | null }) {
   if (!kilde) return null;
   return (
     <>
@@ -45,7 +45,7 @@ export const erMotstridende = (
 ): boolean => evaluering?.motstridendeFelt.includes(felt) ?? false;
 
 // Ikonet vises bare når evalueringen er arvet. Uten kilde står advarselen alene.
-export function UlikeVerdier({ kilde }: { kilde?: Kildevedtak | null }) {
+export function UlikeVerdier({ kilde }: { kilde?: InfotrygdKildevedtak | null }) {
   const advarsel = (
     <InlineMessage status="warning" size="small">
       Ulike verdier. Les i Infotrygd.
@@ -66,7 +66,7 @@ export function VerdiMedKilde({
   kilde,
 }: {
   children: React.ReactNode;
-  kilde: Kildevedtak | null;
+  kilde: InfotrygdKildevedtak | null;
 }) {
   return (
     <span style={ingenBryting}>

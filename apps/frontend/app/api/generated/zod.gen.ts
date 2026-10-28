@@ -207,7 +207,22 @@ export const zInfotrygdGhResponse = z.object({
     satsHs: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).nullish()
 });
 
-export const zInfotrygdVedtakResponse = z.object({
+export const zInfotrygdKildevedtak = z.object({
+    vedtakId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
+    vedtakstidspunkt: z.iso.datetime({ local: true })
+});
+
+export const zVerdiMedKildeInfotrygdEvaluering = z.object({
+    verdi: zInfotrygdEvaluering,
+    arvetFraVedtak: zInfotrygdKildevedtak.nullish()
+});
+
+export const zVerdiMedKildeListInfotrygdGhResponse = z.object({
+    verdi: z.array(zInfotrygdGhResponse),
+    arvetFraVedtak: zInfotrygdKildevedtak.nullish()
+});
+
+export const zInfotrygdVedtakMedArv = z.object({
     vedtakId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
     tknr: z.string(),
     saksblokk: z.string(),
@@ -215,6 +230,7 @@ export const zInfotrygdVedtakResponse = z.object({
     typeSak: z.string(),
     kodeResultat: z.string(),
     datoInnvFom: z.iso.date(),
+    datoInnvTom: z.iso.date().nullish(),
     datoMottattSak: z.iso.date(),
     kodeVedtaksnivaa: z.string(),
     typeBeregning: z.string(),
@@ -222,27 +238,38 @@ export const zInfotrygdVedtakResponse = z.object({
     brukerid: z.string(),
     endringer: z.array(z.string()),
     delytelser: z.array(zInfotrygdDelytelseResponse),
-    gh: z.array(zInfotrygdGhResponse),
-    datoInnvTom: z.iso.date().nullish(),
-    evaluering: zInfotrygdEvaluering.nullish()
+    gh: zVerdiMedKildeListInfotrygdGhResponse.nullish(),
+    evaluering: zVerdiMedKildeInfotrygdEvaluering.nullish()
 });
 
-export const zInfotrygdStonadResponse = z.object({
+export const zInfotrygdStonadMedArv = z.object({
     stonadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
     personnr: z.string(),
     kodeRutine: z.string(),
     datoStart: z.iso.date(),
-    vedtak: z.array(zInfotrygdVedtakResponse),
     kodeOpphor: z.string().nullish(),
     datoOpphor: z.iso.date().nullish(),
     oppdragId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).nullish(),
     tidspunktOpphort: z.iso.datetime({ local: true }).nullish(),
     tidspunktReg: z.iso.datetime({ local: true }).nullish(),
-    brukerid: z.string().nullish()
+    brukerid: z.string().nullish(),
+    vedtak: z.array(zInfotrygdVedtakMedArv)
 });
 
 export const zInfotrygdStonaderResponse = z.object({
-    stonader: z.array(zInfotrygdStonadResponse),
+    stonader: z.array(zInfotrygdStonadMedArv),
+    diagnosetekster: z.record(z.string(), z.string())
+});
+
+export const zGjeldendeInfotrygdPeriode = z.object({
+    fom: z.iso.date(),
+    tom: z.iso.date().nullish(),
+    stonadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
+    vedtak: zInfotrygdVedtakMedArv
+});
+
+export const zInfotrygdGjeldendePerioderResponse = z.object({
+    perioder: z.array(zGjeldendeInfotrygdPeriode),
     diagnosetekster: z.record(z.string(), z.string())
 });
 
@@ -675,6 +702,13 @@ export const zHentStønaderForPersonBody = zInfotrygdStonaderRequest;
  * OK
  */
 export const zHentStønaderForPersonResponse = zInfotrygdStonaderResponse;
+
+export const zHentGjeldendePerioderForPersonBody = zInfotrygdStonaderRequest;
+
+/**
+ * OK
+ */
+export const zHentGjeldendePerioderForPersonResponse = zInfotrygdGjeldendePerioderResponse;
 
 export const zOpprettFagsakBody = zFagsakRequest;
 

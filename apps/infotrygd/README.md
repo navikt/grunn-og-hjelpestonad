@@ -45,9 +45,9 @@ og skjemaet står i
 |--------|---------|
 | `t_lopenr_fnr` | Kobler `person_lopenr` til fnr (`personnr`) |
 | `t_stonad` | Stønaden, med `kode_rutine`, opphørsdato og `oppdrag_id` |
-| `t_vedtak` | Vedtakene på en stønad, med innvilget periode (`dato_innv_fom`/`dato_innv_tom`) |
-| `t_endring` | Endringskoder per vedtak (F, O, AN, UA …). Ett vedtak kan ha flere. |
-| `t_delytelse` | Beløp per periode for et vedtak, med type delytelse, sats og utbetaling |
+| `t_vedtak` | Vedtakene på en stønad, med innvilget periode (`dato_innv_fom`/`dato_innv_tom`), sakstype (`type_sak`) og resultat (`kode_resultat`). Se [kodene](docs/gh-i-infotrygd.md#sakstyper-og-resultatkoder). |
+| `t_endring` | Endringskoder per vedtak (F, O, AN, UA …). Ett vedtak kan ha flere. Se [kodene](docs/gh-i-infotrygd.md#endringskoder). |
+| `t_delytelse` | Beløp per periode for et vedtak, med type delytelse, sats og utbetaling. Se [kodene](docs/gh-i-infotrygd.md#delytelser). |
 | `t_gh` | Trygdetid og sats per vedtak, med én rad per registrering |
 | `sa_*`, `ev_*` | Saker, statuser, hendelser og vedtaksdata fra saksbehandlingsdelen (DL1) |
 
@@ -137,10 +137,13 @@ ligger ikke nær EF-appen. Svaret følger tabellene i stedet:
   i camelCase. `personnr` kommer fra `t_lopenr_fnr`.
 - Bare kolonnene vi trenger er med. Metadata fra replikeringen (`opprettet`,
   `oppdatert`, `db_splitt`) og løpenumre for andre personer er utelatt.
-- Ingen rader filtreres bort, bortsett fra på person og `kode_rutine`. Vedtak
-  uten endringer eller delytelser, vedtak med `dato_innv_tom` før eller lik
-  `dato_innv_fom` og stønader uten `oppdrag_id` er med. Konsumenten bestemmer
-  hva som vises.
+- Rader filtreres bare bort på person, `kode_rutine` og endringskode. Vedtak
+  uten delytelser, vedtak med `dato_innv_tom` før eller lik `dato_innv_fom` og
+  stønader uten `oppdrag_id` er med. Konsumenten bestemmer hva som vises.
+- Et vedtak tas bare med når det har minst én endringskode som ikke er `AN`
+  (Annullert) eller `UA` (Uaktuell). Et vedtak med `F` og `AN` er med, og
+  `endringer` viser begge kodene. Vedtak med bare `AN` og `UA`, eller uten
+  endringskoder, er ikke med.
 - Et vedtak tas bare med når `t_vedtak.person_lopenr` hører til en av identene
   i forespørselen, ikke bare når stønaden gjør det. Tilgangen er bare sjekket for
   disse identene. Replikaen har ingen fremmednøkler, og i dev hadde fire vedtak
@@ -214,4 +217,4 @@ Målt i dev 2026-10-21 for én syntetisk person med en revurdering.
 - Maskinvedtak kan mangle EVGH. Vedtak 2 hadde `brukerid` AUTO, `type_sak` MS, `kode_resultat` FI og endringskode S. Saken hadde tom `s10_eval_kode`. Saken med EVGH hadde `s10_eval_kode` lik `EVGH`.
 - `s10_knyttet_til_sak` var `00` på begge sakene, og `t_vedtak.nokkel_dl1` var tom. Ingen av dem lenker til forrige sak.
 - `ev10_vedtaks_dag` (06) samsvarte med vedtaksdagen for vedtaket med evalueringen. Virkningstidspunkt `0626` samsvarte med innvilget fom 2026-06-01.
-- API-et returnerer evaluering bare for vedtakets egen sak. Frontend viser evalueringen fra nærmeste tidligere vedtak på samme stønad, merket som hentet fra et tidligere vedtak.
+- API-et returnerer evaluering bare for vedtakets egen sak. `sak` fyller inn evalueringen fra vedtaket med nærmeste lavere `vedtakId` og merker den med `arvetFraVedtak`, se [ADR-0012](../../docs/adr/ADR-0012-arv-og-gjeldende-perioder-fra-infotrygd.md).

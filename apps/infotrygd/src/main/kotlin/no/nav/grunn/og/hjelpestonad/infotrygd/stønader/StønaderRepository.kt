@@ -66,6 +66,10 @@ class StønaderRepository(
      * sjekket for personidentene i forespørselen. Replikaen har ingen fremmednøkler, og t_vedtak.person_lopenr kan
      * avvike fra t_stonad.person_lopenr eller mangle i t_lopenr_fnr (målt i dev 2026-10-22: fire vedtak). Uten
      * filteret kunne et slikt vedtak vises under feil person. Barnetabellene og evalueringen arver eierskapet fra vedtaket.
+     *
+     * Vedtaket må ha minst én endringskode som ikke er AN (annullert) eller UA (uaktuell). F og AN på samme vedtak
+     * tas med. Vedtak med bare AN og UA, eller uten endringskoder, tas ikke med. Koden trimmes, fordi kolonnen er
+     * text og kan ha etterfølgende mellomrom.
      */
     fun hentVedtak(
         stønadIder: Set<Long>,
@@ -95,6 +99,12 @@ class StønaderRepository(
                       SELECT l.person_lopenr
                       FROM t_lopenr_fnr l
                       WHERE l.personnr IN (:personidenter)
+                  )
+                  AND EXISTS (
+                      SELECT 1
+                      FROM t_endring e
+                      WHERE e.vedtak_id = v.vedtak_id
+                        AND trim(e.kode) NOT IN ('AN', 'UA')
                   )
                 ORDER BY v.stonad_id, v.vedtak_id
                 """.trimIndent(),

@@ -4,13 +4,13 @@ import type {
   InfotrygdDelytelseResponse,
   InfotrygdEvaluering,
   InfotrygdGhResponse,
-  InfotrygdStonadResponse,
-  InfotrygdVedtakResponse,
+  InfotrygdStonadMedArv,
+  InfotrygdVedtakMedArv,
 } from "~/api/generated/types.gen";
-import { lagVedtaksrader, medDataFraTidligereVedtak } from "./vedtaksrader.ts";
+import { lagVedtaksrader } from "./vedtaksrader.ts";
 import type { Vedtaksrad } from "./vedtaksrader.ts";
 
-const stønad = (overstyr: Partial<InfotrygdStonadResponse> = {}): InfotrygdStonadResponse => ({
+const stønad = (overstyr: Partial<InfotrygdStonadMedArv> = {}): InfotrygdStonadMedArv => ({
   stonadId: 1,
   personnr: "00000000000",
   kodeRutine: "TEST",
@@ -20,7 +20,7 @@ const stønad = (overstyr: Partial<InfotrygdStonadResponse> = {}): InfotrygdSton
   ...overstyr,
 });
 
-const vedtak = (overstyr: Partial<InfotrygdVedtakResponse> = {}): InfotrygdVedtakResponse => ({
+const vedtak = (overstyr: Partial<InfotrygdVedtakMedArv> = {}): InfotrygdVedtakMedArv => ({
   vedtakId: 1,
   tknr: "0000",
   saksblokk: "A",
@@ -35,7 +35,7 @@ const vedtak = (overstyr: Partial<InfotrygdVedtakResponse> = {}): InfotrygdVedta
   brukerid: "TEST",
   endringer: [],
   delytelser: [],
-  gh: [],
+  gh: null,
   ...overstyr,
 });
 
@@ -71,11 +71,6 @@ function finn(rader: Vedtaksrad[], vedtakId: number): Vedtaksrad {
   const rad = rader.find((r) => r.vedtak.vedtakId === vedtakId);
   if (!rad) throw new Error(`Fant ingen rad for vedtak ${vedtakId}`);
   return rad;
-}
-
-// Rad for ett vedtak alene på stønaden, så lagVedtaksrader gir ingen arv.
-function enRad(v: InfotrygdVedtakResponse): Vedtaksrad {
-  return finn(lagVedtaksrader([stønad({ vedtak: [v] })]), v.vedtakId);
 }
 
 describe("lagVedtaksrader", () => {
@@ -231,11 +226,14 @@ describe("lagVedtaksrader", () => {
           stønad({
             vedtak: [
               vedtak({
-                gh: [
-                  gh({ tidspunktReg: "2023-01-01T10:00:00", trygdetid: 10 }),
-                  gh({ tidspunktReg: "2024-01-01T10:00:00", trygdetid: 20 }),
-                  gh({ tidspunktReg: "2023-06-01T10:00:00", trygdetid: 15 }),
-                ],
+                gh: {
+                  verdi: [
+                    gh({ tidspunktReg: "2023-01-01T10:00:00", trygdetid: 10 }),
+                    gh({ tidspunktReg: "2024-01-01T10:00:00", trygdetid: 20 }),
+                    gh({ tidspunktReg: "2023-06-01T10:00:00", trygdetid: 15 }),
+                  ],
+                  arvetFraVedtak: null,
+                },
               }),
             ],
           }),
@@ -249,274 +247,66 @@ describe("lagVedtaksrader", () => {
     });
   });
 
-  describe("arv av evaluering", () => {
-    it("arver fra nærmeste tidligere vedtak med egen evaluering", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          vedtak: [
-            vedtak({
-              vedtakId: 1,
-              tidspunktReg: "2024-01-01T10:00:00",
-              evaluering: evaluering({ diagnose1: "X01" }),
-            }),
-            vedtak({
-              vedtakId: 2,
-              tidspunktReg: "2024-02-01T10:00:00",
-              evaluering: evaluering({ diagnose1: "X02" }),
-            }),
-            vedtak({ vedtakId: 3, tidspunktReg: "2024-03-01T10:00:00" }),
-          ],
-        }),
-      ]);
-      const rad = finn(rader, 3);
-      assert.deepEqual(rad.evaluering, evaluering({ diagnose1: "X02" }));
-      assert.deepEqual(rad.evalueringFraVedtak, {
-        vedtakId: 2,
-        vedtakstidspunkt: "2024-02-01T10:00:00",
-      });
-    });
+  describe("kilde fra API", () => {
+    const kilde = { vedtakId: 1, vedtakstidspunkt: "2024-01-01T10:00:00" };
 
-    it("arver ikke fra senere vedtak", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          vedtak: [
-            vedtak({ vedtakId: 1, tidspunktReg: "2024-01-01T10:00:00" }),
-            vedtak({
-              vedtakId: 2,
-              tidspunktReg: "2024-02-01T10:00:00",
-              evaluering: evaluering(),
-            }),
-          ],
-        }),
-      ]);
-      const rad = finn(rader, 1);
-      assert.equal(rad.evaluering, null);
+    it("gir evalueringFraVedtak null når evalueringen er vedtakets egen", () => {
+      const rad = finn(
+        lagVedtaksrader([
+          stønad({
+            vedtak: [
+              vedtak({
+                evaluering: { verdi: evaluering({ diagnose1: "X01" }), arvetFraVedtak: null },
+              }),
+            ],
+          }),
+        ]),
+        1
+      );
+      assert.deepEqual(rad.evaluering, evaluering({ diagnose1: "X01" }));
       assert.equal(rad.evalueringFraVedtak, null);
     });
 
-    it("arver ikke fra vedtak på en annen stønad", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          stonadId: 1,
-          vedtak: [vedtak({ vedtakId: 1, tidspunktReg: "2024-01-01T10:00:00" })],
-        }),
-        stønad({
-          stonadId: 2,
-          vedtak: [
-            vedtak({
-              vedtakId: 2,
-              tidspunktReg: "2023-12-01T10:00:00",
-              evaluering: evaluering(),
-            }),
-          ],
-        }),
-      ]);
-      const rad = finn(rader, 1);
-      assert.equal(rad.evaluering, null);
-      assert.equal(rad.evalueringFraVedtak, null);
+    it("gir evalueringFraVedtak lik arvetFraVedtak når evalueringen er arvet", () => {
+      const rad = finn(
+        lagVedtaksrader([
+          stønad({
+            vedtak: [
+              vedtak({
+                vedtakId: 2,
+                evaluering: { verdi: evaluering({ diagnose1: "X01" }), arvetFraVedtak: kilde },
+              }),
+            ],
+          }),
+        ]),
+        2
+      );
+      assert.deepEqual(rad.evaluering, evaluering({ diagnose1: "X01" }));
+      assert.deepEqual(rad.evalueringFraVedtak, kilde);
     });
 
-    it("arver ikke fra vedtak med samme tidspunktReg", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          vedtak: [
-            vedtak({ vedtakId: 1, tidspunktReg: "2024-01-01T10:00:00" }),
-            vedtak({
-              vedtakId: 2,
-              tidspunktReg: "2024-01-01T10:00:00",
-              evaluering: evaluering(),
-            }),
-          ],
-        }),
-      ]);
-      const rad = finn(rader, 1);
-      assert.equal(rad.evaluering, null);
-      assert.equal(rad.evalueringFraVedtak, null);
+    it("gir gh tom liste og ghFraVedtak null når gh er null", () => {
+      const rad = finn(lagVedtaksrader([stønad({ vedtak: [vedtak({ gh: null })] })]), 1);
+      assert.deepEqual(rad.gh, []);
+      assert.equal(rad.ghFraVedtak, null);
     });
 
-    it("arver ikke i kjede: både B og C peker på A", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          vedtak: [
-            vedtak({
-              vedtakId: 1,
-              tidspunktReg: "2024-01-01T10:00:00",
-              evaluering: evaluering({ diagnose1: "X01" }),
-            }),
-            vedtak({ vedtakId: 2, tidspunktReg: "2024-02-01T10:00:00" }),
-            vedtak({ vedtakId: 3, tidspunktReg: "2024-03-01T10:00:00" }),
-          ],
-        }),
-      ]);
-      const kilde = { vedtakId: 1, vedtakstidspunkt: "2024-01-01T10:00:00" };
-      assert.deepEqual(finn(rader, 2).evalueringFraVedtak, kilde);
-      assert.deepEqual(finn(rader, 3).evalueringFraVedtak, kilde);
-      assert.deepEqual(finn(rader, 3).evaluering, evaluering({ diagnose1: "X01" }));
-    });
-
-    it("overskriver ikke egen evaluering, og evalueringFraVedtak er null", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          vedtak: [
-            vedtak({
-              vedtakId: 1,
-              tidspunktReg: "2024-01-01T10:00:00",
-              evaluering: evaluering({ diagnose1: "X01" }),
-            }),
-            vedtak({
-              vedtakId: 2,
-              tidspunktReg: "2024-02-01T10:00:00",
-              evaluering: evaluering({ diagnose1: "X02" }),
-            }),
-          ],
-        }),
-      ]);
-      const rad = finn(rader, 2);
-      assert.deepEqual(rad.evaluering, evaluering({ diagnose1: "X02" }));
-      assert.equal(rad.evalueringFraVedtak, null);
-    });
-  });
-
-  describe("arv av gh", () => {
-    it("arver gh fra nærmeste tidligere vedtak med gh", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          vedtak: [
-            vedtak({
-              vedtakId: 1,
-              tidspunktReg: "2024-01-01T10:00:00",
-              gh: [gh({ trygdetid: 10 })],
-            }),
-            vedtak({
-              vedtakId: 2,
-              tidspunktReg: "2024-02-01T10:00:00",
-              gh: [gh({ trygdetid: 20 })],
-            }),
-            vedtak({ vedtakId: 3, tidspunktReg: "2024-03-01T10:00:00" }),
-          ],
-        }),
-      ]);
-      const rad = finn(rader, 3);
+    it("gir ghFraVedtak lik arvetFraVedtak når gh er arvet", () => {
+      const rad = finn(
+        lagVedtaksrader([
+          stønad({
+            vedtak: [
+              vedtak({
+                vedtakId: 2,
+                gh: { verdi: [gh({ trygdetid: 20 })], arvetFraVedtak: kilde },
+              }),
+            ],
+          }),
+        ]),
+        2
+      );
       assert.deepEqual(rad.gh, [gh({ trygdetid: 20 })]);
-      assert.deepEqual(rad.ghFraVedtak, {
-        vedtakId: 2,
-        vedtakstidspunkt: "2024-02-01T10:00:00",
-      });
-    });
-
-    it("arver ikke fra senere vedtak", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          vedtak: [
-            vedtak({ vedtakId: 1, tidspunktReg: "2024-01-01T10:00:00" }),
-            vedtak({ vedtakId: 2, tidspunktReg: "2024-02-01T10:00:00", gh: [gh()] }),
-          ],
-        }),
-      ]);
-      const rad = finn(rader, 1);
-      assert.deepEqual(rad.gh, []);
-      assert.equal(rad.ghFraVedtak, null);
-    });
-
-    it("arver ikke fra vedtak på en annen stønad", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          stonadId: 1,
-          vedtak: [vedtak({ vedtakId: 1, tidspunktReg: "2024-01-01T10:00:00" })],
-        }),
-        stønad({
-          stonadId: 2,
-          vedtak: [vedtak({ vedtakId: 2, tidspunktReg: "2023-12-01T10:00:00", gh: [gh()] })],
-        }),
-      ]);
-      const rad = finn(rader, 1);
-      assert.deepEqual(rad.gh, []);
-      assert.equal(rad.ghFraVedtak, null);
-    });
-
-    it("arver ikke fra vedtak med samme tidspunktReg", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          vedtak: [
-            vedtak({ vedtakId: 1, tidspunktReg: "2024-01-01T10:00:00" }),
-            vedtak({ vedtakId: 2, tidspunktReg: "2024-01-01T10:00:00", gh: [gh()] }),
-          ],
-        }),
-      ]);
-      const rad = finn(rader, 1);
-      assert.deepEqual(rad.gh, []);
-      assert.equal(rad.ghFraVedtak, null);
-    });
-
-    it("arver ikke i kjede: både B og C peker på A", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          vedtak: [
-            vedtak({
-              vedtakId: 1,
-              tidspunktReg: "2024-01-01T10:00:00",
-              gh: [gh({ trygdetid: 10 })],
-            }),
-            vedtak({ vedtakId: 2, tidspunktReg: "2024-02-01T10:00:00" }),
-            vedtak({ vedtakId: 3, tidspunktReg: "2024-03-01T10:00:00" }),
-          ],
-        }),
-      ]);
-      const kilde = { vedtakId: 1, vedtakstidspunkt: "2024-01-01T10:00:00" };
-      assert.deepEqual(finn(rader, 2).ghFraVedtak, kilde);
-      assert.deepEqual(finn(rader, 3).ghFraVedtak, kilde);
-      assert.deepEqual(finn(rader, 3).gh, [gh({ trygdetid: 10 })]);
-    });
-
-    it("overskriver ikke egen gh, og ghFraVedtak er null", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          vedtak: [
-            vedtak({
-              vedtakId: 1,
-              tidspunktReg: "2024-01-01T10:00:00",
-              gh: [gh({ trygdetid: 10 })],
-            }),
-            vedtak({
-              vedtakId: 2,
-              tidspunktReg: "2024-02-01T10:00:00",
-              gh: [gh({ trygdetid: 20 })],
-            }),
-          ],
-        }),
-      ]);
-      const rad = finn(rader, 2);
-      assert.deepEqual(rad.gh, [gh({ trygdetid: 20 })]);
-      assert.equal(rad.ghFraVedtak, null);
-    });
-
-    it("arver gh uavhengig av evaluering, og de kan komme fra ulike vedtak", () => {
-      const rader = lagVedtaksrader([
-        stønad({
-          vedtak: [
-            vedtak({
-              vedtakId: 1,
-              tidspunktReg: "2024-01-01T10:00:00",
-              evaluering: evaluering({ diagnose1: "X01" }),
-            }),
-            vedtak({
-              vedtakId: 2,
-              tidspunktReg: "2024-02-01T10:00:00",
-              gh: [gh({ trygdetid: 20 })],
-            }),
-            vedtak({ vedtakId: 3, tidspunktReg: "2024-03-01T10:00:00" }),
-          ],
-        }),
-      ]);
-      const rad = finn(rader, 3);
-      assert.deepEqual(rad.evalueringFraVedtak, {
-        vedtakId: 1,
-        vedtakstidspunkt: "2024-01-01T10:00:00",
-      });
-      assert.deepEqual(rad.ghFraVedtak, {
-        vedtakId: 2,
-        vedtakstidspunkt: "2024-02-01T10:00:00",
-      });
+      assert.deepEqual(rad.ghFraVedtak, kilde);
     });
   });
 
@@ -527,36 +317,6 @@ describe("lagVedtaksrader", () => {
 
     it("gir tom liste når stønadene ikke har vedtak", () => {
       assert.deepEqual(lagVedtaksrader([stønad({ vedtak: [] })]), []);
-    });
-  });
-});
-
-describe("medDataFraTidligereVedtak", () => {
-  it("gir tom liste for tom liste", () => {
-    assert.deepEqual(medDataFraTidligereVedtak([]), []);
-  });
-
-  it("arver evaluering og gh fra tidligere rad på samme stønad", () => {
-    const tidligere = enRad(
-      vedtak({
-        vedtakId: 1,
-        tidspunktReg: "2024-01-01T10:00:00",
-        evaluering: evaluering(),
-        gh: [gh()],
-      })
-    );
-    const senere = enRad(vedtak({ vedtakId: 2, tidspunktReg: "2024-02-01T10:00:00" }));
-
-    const rad = finn(medDataFraTidligereVedtak([tidligere, senere]), 2);
-    assert.deepEqual(rad.evaluering, evaluering());
-    assert.deepEqual(rad.evalueringFraVedtak, {
-      vedtakId: 1,
-      vedtakstidspunkt: "2024-01-01T10:00:00",
-    });
-    assert.deepEqual(rad.gh, [gh()]);
-    assert.deepEqual(rad.ghFraVedtak, {
-      vedtakId: 1,
-      vedtakstidspunkt: "2024-01-01T10:00:00",
     });
   });
 });

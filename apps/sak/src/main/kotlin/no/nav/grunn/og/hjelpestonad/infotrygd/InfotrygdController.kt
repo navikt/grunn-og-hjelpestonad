@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController
     description = "Oppslag mot grunn-og-hjelpestonad-infotrygd",
 )
 class InfotrygdController(
-    private val infotrygdClient: InfotrygdClient,
+    private val infotrygdService: InfotrygdService,
     private val tilgangService: TilgangService,
 ) {
     private val logger = LoggerFactory.getLogger(InfotrygdController::class.java)
@@ -40,11 +40,31 @@ class InfotrygdController(
         tilgangService.validerTilgangTilPerson(request.personident)
 
         val response =
-            infotrygdClient
-                .hentStønader(personident = request.personident, stønadstype = request.stønadstype)
-                .tilInfotrygdStonaderResponse()
+            infotrygdService.hentStønader(personident = request.personident, stønadstype = request.stønadstype)
 
         logger.info("Hentet {} stønader fra Infotrygd, stønadstype={}", response.stonader.size, request.stønadstype)
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noStore())
+            .body(response)
+    }
+
+    @PostMapping("/gjeldende-perioder")
+    @PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('BESLUTTER') or hasRole('LESETILGANG')")
+    @Operation(
+        summary = "Hent gjeldende perioder for person fra Infotrygd",
+        description = "Hvert vedtak blir én periode fra datoInnvFom til datoInnvTom. Nyere vedtakId overskriver eldre vedtak i hele sin periode, også på tvers av stønadene. Vedtak med tom før eller lik fom er ikke med. Vedtakene har arvet evaluering og gh der de mangler egen verdi. Inneholder helseopplysninger.",
+        security = [SecurityRequirement(name = "oauth2")],
+    )
+    fun hentGjeldendePerioderForPerson(
+        @RequestBody request: InfotrygdStonaderRequest,
+    ): ResponseEntity<InfotrygdGjeldendePerioderResponse> {
+        PersonidentValidator.validerPersonident(request.personident)
+        tilgangService.validerTilgangTilPerson(request.personident)
+
+        val response =
+            infotrygdService.hentGjeldendePerioder(personident = request.personident, stønadstype = request.stønadstype)
+
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noStore())

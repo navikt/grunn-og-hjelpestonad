@@ -1,9 +1,12 @@
 import React from "react";
 import { BodyShort, Box, HGrid, Label, Table, VStack } from "@navikt/ds-react";
+import type { InfotrygdKildevedtak } from "~/api/generated/types.gen";
 import { formaterBelop, formaterIsoDatoTid } from "~/utils/utils";
 import { formaterDato, formaterMaaned } from "./formatering";
+import { formaterEndringskode } from "./endringskoder";
+import { formaterHjemmelbokstav, formaterResultat, formaterSakstype } from "./vedtakskoder";
 import { erMotstridende, ingenBryting, TomtFelt, UlikeVerdier, visVerdi } from "./celler";
-import type { Kildevedtak, Vedtaksrad } from "./vedtaksrader";
+import type { Vedtaksrad } from "./vedtaksrader";
 
 function Diagnose({
   kode,
@@ -41,7 +44,7 @@ function Felt({ tittel, children }: { tittel: string; children: React.ReactNode 
 function Kildetekst({ rad }: { rad: Vedtaksrad }) {
   const evaluering = rad.evalueringFraVedtak;
   const trygdetid = rad.ghFraVedtak;
-  const fattet = (kilde: Kildevedtak) =>
+  const fattet = (kilde: InfotrygdKildevedtak) =>
     `er hentet fra vedtaket fattet ${formaterDato(kilde.vedtakstidspunkt)}.`;
 
   const setninger =
@@ -73,15 +76,7 @@ function Delytelser({ rad }: { rad: Vedtaksrad }) {
         <Table size="small" aria-label="Delytelser">
           <Table.Header>
             <Table.Row>
-              {[
-                "Type",
-                "Fra og med",
-                "Til og med",
-                "Beløp",
-                "Type sats",
-                "Type utbetaling",
-                "Registrert",
-              ].map((tittel) => (
+              {["Fra og med", "Til og med", "Beløp", "Registrert"].map((tittel) => (
                 <Table.HeaderCell key={tittel} scope="col" style={ingenBryting}>
                   {tittel}
                 </Table.HeaderCell>
@@ -91,12 +86,9 @@ function Delytelser({ rad }: { rad: Vedtaksrad }) {
           <Table.Body>
             {rad.delytelser.map((d) => (
               <Table.Row key={`${d.typeDelytelse}-${d.tidspunktReg}`}>
-                <Table.DataCell>{d.typeDelytelse}</Table.DataCell>
                 <Table.DataCell>{formaterDato(d.fom)}</Table.DataCell>
                 <Table.DataCell>{d.tom ? formaterDato(d.tom) : <TomtFelt />}</Table.DataCell>
                 <Table.DataCell style={ingenBryting}>{formaterBelop(d.belop)}</Table.DataCell>
-                <Table.DataCell>{d.typeSats}</Table.DataCell>
-                <Table.DataCell>{d.typeUtbetaling}</Table.DataCell>
                 <Table.DataCell>{formaterIsoDatoTid(d.tidspunktReg)}</Table.DataCell>
               </Table.Row>
             ))}
@@ -174,6 +166,15 @@ export function Detaljer({
                   <Diagnose kode={evaluering.diagnose2} diagnosetekster={diagnosetekster} />
                 )}
               </Felt>
+              <Felt tittel="Ekstrautgift">
+                {erMotstridende(evaluering, "HJEMMELBOKSTAV") ? (
+                  <UlikeVerdier />
+                ) : evaluering.hjemmelbokstav?.trim() ? (
+                  formaterHjemmelbokstav(evaluering.hjemmelbokstav)
+                ) : (
+                  <TomtFelt />
+                )}
+              </Felt>
               <Felt tittel="Sats i evalueringen">
                 {erMotstridende(evaluering, "SATS") ? <UlikeVerdier /> : visVerdi(evaluering.sats)}
               </Felt>
@@ -183,16 +184,19 @@ export function Detaljer({
             </>
           )}
           <Felt tittel="Endringskoder">
-            {vedtak.endringer.length > 0 ? vedtak.endringer.join(", ") : <TomtFelt />}
+            {vedtak.endringer.length > 0 ? (
+              vedtak.endringer.map((kode) => <div key={kode}>{formaterEndringskode(kode)}</div>)
+            ) : (
+              <TomtFelt />
+            )}
           </Felt>
           <Felt tittel="Innvilget">
             {formaterDato(vedtak.datoInnvFom)} –{" "}
             {vedtak.datoInnvTom ? formaterDato(vedtak.datoInnvTom) : <TomtFelt />}
           </Felt>
           <Felt tittel="Vedtakstidspunkt">{formaterIsoDatoTid(vedtak.tidspunktReg)}</Felt>
-          <Felt tittel="Type sak og resultat">
-            {visVerdi(vedtak.typeSak)} / {visVerdi(vedtak.kodeResultat)}
-          </Felt>
+          <Felt tittel="Sakstype">{visVerdi(formaterSakstype(vedtak.typeSak))}</Felt>
+          <Felt tittel="Resultat">{visVerdi(formaterResultat(vedtak.kodeResultat))}</Felt>
           <Felt tittel="Stønaden startet">{formaterDato(stønad.datoStart)}</Felt>
           <Felt tittel="Stønaden opphørte">
             {stønad.datoOpphor ? formaterDato(stønad.datoOpphor) : <TomtFelt />}
