@@ -4,7 +4,7 @@
 
 **Blocked by:** 02, 03
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 Spec: [spec.md](../spec.md)
 
@@ -16,3 +16,7 @@ Spec: [spec.md](../spec.md)
 - [ ] Vedtak og beregning kan ikke fullføres med avvik. Feilen er funksjonell og viser måned og begge beløpene.
 - [ ] Rene tester dekker: ingen avvik, avvik i én måned, avvik i flere måneder og øreavrunding som gir likt beløp.
 - [ ] Revurderinger og andre behandlinger påvirkes ikke.
+
+## Comments
+
+**2026-10-28:** Lukket. Migreringen gjøres nå som i EF, se ADR-0013 og ny spec. Erstattet av ticket 13–25.

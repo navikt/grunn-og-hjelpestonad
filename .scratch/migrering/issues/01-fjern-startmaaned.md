@@ -18,3 +18,5 @@ Spec: [spec.md](../spec.md)
 ## Comments
 
 **2026-10-26:** V44 ble deployet til dev-gcp med «Oppdrag (#95)» før ticketen ble tatt. Å slette V44 ville stoppet Flyway-valideringen i dev, så V44 er beholdt og V46 kjører `DROP COLUMN startmaned`. Spec-linjen «Den slettes i stedet for å følges av en ny migrering» stemmer derfor ikke lenger.
+
+**2026-10-28:** Reverseres av ticket 13. Migreringen gjøres nå som i EF, med startmåned på tilkjent ytelse (ADR-0013).

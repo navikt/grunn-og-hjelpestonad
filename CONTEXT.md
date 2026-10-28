@@ -50,19 +50,18 @@ Brøken x/40 fra søkers alderspensjon eller uføretrygd. Er 40/40 når søker i
 ## Behandling
 
 **Migrering**:
-At en løpende sak flyttes fra Infotrygd til ny løsning, slik at Infotrygd slutter å utbetale og ny løsning overtar utbetalingen. Vilkår og perioder flyttes over slik de er i Infotrygd. Endrer ikke hva stønadsmottaker får utbetalt, og er derfor ikke en behandling i juridisk forstand. Endringer i saken gjøres i en egen revurdering etterpå.
+At en løpende sak flyttes fra Infotrygd til ny løsning, slik at Infotrygd slutter å utbetale og ny løsning overtar utbetalingen fra inneværende måned. Systemet gjør det med ett klikk fra saksbehandler, uten vedtaksbrev og uten beslutter, som i EF. Endrer ikke hva stønadsmottaker får utbetalt.
 _Avoid_: Konvertering, overføring
 
 **Migreringsbehandling**:
-Behandlingen i ny løsning som gjennomfører en migrering. Har ikke vedtaksbrev, men godkjennes av beslutter.
+Den første behandlingen i en migrert sak, med årsak `MIGRERING`. Vilkårene er satt til oppfylt av systemet og er ikke vurdert av noen.
 
-**Migreringsdato**:
-Den første måneden ny løsning eier utbetalingen for en migrert sak, og ikke Infotrygd. Infotrygd utbetaler til og med måneden før. Kan være tidligere enn tidspunktet saken faktisk ble migrert. Finnes bare for saker som har vært i Infotrygd, og er den tidligste migreringsdatoen blant iverksatte migreringsbehandlinger. Kan bare flyttes bakover i tid, og bare i en «Endre migreringsdato»-behandling. Merk: I BA ligger migreringsdatoen i måneden før den første måneden BA utbetaler.
-_Avoid_: Migrert fra og med, opphørsdato i Infotrygd
+**Migrert sak**:
+En sak der den første behandlingen er en migreringsbehandling.
 
-**«Endre migreringsdato»-behandling**:
-En migreringsbehandling for en sak som allerede er migrert, der migreringsdatoen flyttes bakover. Flytter flere måneder fra Infotrygd, og endrer ikke hva stønadsmottaker får utbetalt.
-_Avoid_: Endre migrert fra og med
+**Startmåned**:
+Den første måneden ny løsning eier utbetalingen for en sak. Er den tidligste av første andel og forrige behandlings startmåned. En vanlig revurdering kan flytte den bakover og ta over måneder Infotrygd har utbetalt for. Tilsvarer `startdato` i EF.
+_Avoid_: Migreringsdato, startdato, migrert fra og med
 
 ## Utfall
 

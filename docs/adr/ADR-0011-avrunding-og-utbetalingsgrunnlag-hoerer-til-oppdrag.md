@@ -1,7 +1,8 @@
 # ADR-0011: Avrunding og utbetalingsgrunnlag hører til oppdrag
 
 **Dato:** 2026-10-26
-**Status:** Foreslått
+**Status:** Foreslått. Delene om migrering er erstattet av
+[ADR-0013](ADR-0013-migrering-fra-infotrygd-som-i-ef.md).
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 
 ## Kontekst
@@ -47,6 +48,10 @@ Løpende saker skal migreres fra Infotrygd. Referanseappene håndterer også det
 - Siste andel i hver kjede hentes med en spørring: høyeste `periode_id` per fagsak
   og klassekode. Den virker også når siste behandling opphørte alle andelene.
 - All kode for oppdrag ligger i pakken `no.nav.grunn.og.hjelpestonad.oppdrag`.
+
+> **Erstattet av [ADR-0013](ADR-0013-migrering-fra-infotrygd-som-i-ef.md):**
+> avsnittene fra hit til «Alternativer vurdert», og alternativene og
+> konsekvensene som gjelder migrering.
 
 ### Migreringsdatoen lagres på migreringsbehandlingen, som i BA
 

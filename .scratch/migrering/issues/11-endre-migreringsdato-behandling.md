@@ -4,7 +4,7 @@
 
 **Blocked by:** 05, 06, 07, 08, og ekstern blokkering: Økonomi har bekreftet om OS motregner mellom Infotrygd og ny løsning (aksjonspunkt i ADR-0011)
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 Spec: [spec.md](../spec.md)
 
@@ -16,3 +16,7 @@ Spec: [spec.md](../spec.md)
 - [ ] Kontroll 2 er en ren funksjon som sammenligner utbetalingsbeløp per måned med forrige iverksatte behandling, fra gammel migreringsdato og fremover. Den kjøres når vedtak og beregning fullføres, og ved sending til beslutter.
 - [ ] En ren funksjon utleder `opphørAlleKjederFra`: ny migreringsdato for `ENDRE_MIGRERINGSDATO`, ellers ingen. Den er klar til bruk når oppdrag-delen kaller generatoren.
 - [ ] Rene tester dekker bakover-regelen, kontroll 2 med og uten avvik, og utledningen av opphøret for hver årsak.
+
+## Comments
+
+**2026-10-28:** Lukket. Migreringen gjøres nå som i EF, se ADR-0013 og ny spec. Erstattet av ticket 13–25.

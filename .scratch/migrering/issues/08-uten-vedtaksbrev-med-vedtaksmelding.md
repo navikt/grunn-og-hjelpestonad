@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 Spec: [spec.md](../spec.md)
 
@@ -14,3 +14,7 @@ Spec: [spec.md](../spec.md)
 - [ ] Ved iverksetting av en migreringsbehandling med årsak `MIGRERING` sendes `vedtaksmelding` med `datoStartNyGrunnstønad` lik migreringsdatoen, gjennom den eksisterende feed-klienten.
 - [ ] Behandlinger med årsak `ENDRE_MIGRERINGSDATO` sender ingen `vedtaksmelding`.
 - [ ] Andre behandlinger får vedtaksbrev og sender `vedtaksmelding` som før.
+
+## Comments
+
+**2026-10-28:** Lukket. Migreringen gjøres nå som i EF, se ADR-0013 og ny spec. Erstattet av ticket 13–25.

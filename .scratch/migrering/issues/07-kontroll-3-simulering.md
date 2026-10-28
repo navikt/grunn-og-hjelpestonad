@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 Spec: [spec.md](../spec.md)
 
@@ -14,3 +14,7 @@ Spec: [spec.md](../spec.md)
 - [ ] Avvik kan ikke overstyres.
 - [ ] Rene tester bruker et simuleringsresultat laget i testen og dekker: 0 kr, etterbetaling, feilutbetaling og begge.
 - [ ] Sending til beslutter for andre behandlinger virker som før.
+
+## Comments
+
+**2026-10-28:** Lukket. Migreringen gjøres nå som i EF, se ADR-0013 og ny spec. Erstattet av ticket 13–25.

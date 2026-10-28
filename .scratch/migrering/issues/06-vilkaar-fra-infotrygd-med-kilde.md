@@ -4,7 +4,7 @@
 
 **Blocked by:** 02, 04
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 Spec: [spec.md](../spec.md)
 
@@ -15,3 +15,7 @@ Spec: [spec.md](../spec.md)
 - [ ] Backend validerer ikke vilkårene i migreringsbehandlinger (ADR-0011).
 - [ ] Beslutter ser kilden og begrunnelsen for hver verdi.
 - [ ] Vilkårsvurdering i vanlige behandlinger virker som før.
+
+## Comments
+
+**2026-10-28:** Lukket. Migreringen gjøres nå som i EF, se ADR-0013 og ny spec. Erstattet av ticket 13–25.

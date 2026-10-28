@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-human
+**Status:** wontfix
 
 Spec: [spec.md](../spec.md). Bakgrunn: ADR-0006, ADR-0010 og avsnittet «Evaluering» i README for `apps/infotrygd`.
 
@@ -13,3 +13,7 @@ Spec: [spec.md](../spec.md). Bakgrunn: ADR-0006, ADR-0010 og avsnittet «Evaluer
 - [ ] Det er bestemt hvilke vilkår som alltid må fylles inn av saksbehandler, hvis noen.
 - [ ] Det er bestemt hvilken begrunnelse som vises for verdier fra Infotrygd, slik at det ikke ser ut som Nav har vurdert vilkåret i ny løsning.
 - [ ] Svaret er skrevet under `## Answer` i denne fila, og `CONTEXT.md` er oppdatert hvis nye begreper oppstår.
+
+## Comments
+
+**2026-10-28:** Lukket. Migreringen gjøres nå som i EF, se ADR-0013 og ny spec. Erstattet av ticket 13–25.

@@ -4,7 +4,7 @@
 
 **Blocked by:** 02
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 Spec: [spec.md](../spec.md)
 
@@ -13,3 +13,7 @@ Spec: [spec.md](../spec.md)
 - [ ] Uten migreringsdato returnerer begge funksjonene ingen avvik, så etterbetaling bakover i saker som ikke er migrert virker som før.
 - [ ] Feilene er funksjonelle og nevner migreringsdatoen og «Endre migreringsdato»-behandling.
 - [ ] Rene tester dekker: ingen migreringsdato, periode i samme måned som datoen, periode før datoen og periode etter datoen.
+
+## Comments
+
+**2026-10-28:** Lukket. Migreringen gjøres nå som i EF, se ADR-0013 og ny spec. Erstattet av ticket 13–25.

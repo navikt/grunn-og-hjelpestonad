@@ -1,60 +1,69 @@
 # Avhengigheter mellom ticketene
 
-Ticketene ligger i [issues/](issues/), og spec-en i [spec.md](spec.md).
+Ticketene ligger i [issues/](issues/), og spec-en i [spec.md](spec.md). Ticket 02
+og 04–12 er lukket som `wontfix` (ADR-0013), og ticket 01 reverseres av 13.
 
-- Grønne tickets kan startes nå.
-- Oransje tickets er `ready-for-human`.
+- Hvite tickets er `ready-for-agent`.
+- Oransje tickets er `ready-for-human`. De er rød sone eller krever kunnskap om
+  Infotrygd.
+- Gule tickets er `needs-triage`.
 - Grå sekskanter er blokkeringer utenfor repoet, tegnet med stiplede piler.
 
-01 har ingen piler fordi ingen andre tickets avhenger av den.
+24 har ingen piler fordi ingen andre tickets avhenger av den.
 
 ```mermaid
 flowchart TD
-    T01["01 Fjern startmåned"]
-    T02["02 Opprett migreringsbehandling<br/>med migreringsdato"]
     T03["03 Avklar perioder og<br/>utbetalt beløp fra Infotrygd"]
-    T04["04 Avklar vilkår<br/>fra Infotrygd"]
-    T05["05 Perioder fra Infotrygd<br/>og kontroll 1"]
-    T06["06 Vilkår fra Infotrygd<br/>med kilde og utfylling"]
-    T07["07 Kontroll 3:<br/>simulering 0 kr"]
-    T08["08 Uten vedtaksbrev,<br/>med vedtaksmelding"]
-    T09["09 Revurderingssperre"]
-    T10["10 Migreringsdato<br/>tilbake i tid"]
-    T11["11 «Endre migreringsdato»-<br/>behandling"]
-    T12["12 Test av hele<br/>migreringsflyten"]
+    T13["13 Startmåned tilbake<br/>på tilkjent ytelse"]
+    T14["14 Validering av Infotrygd<br/>og forhåndsvisning"]
+    T15["15 Kontroll 1 og<br/>simulering"]
+    T16["16 Opprett og iverksett<br/>migrering"]
+    T17["17 Lås mot<br/>dobbel migrering"]
+    T18["18 vedtaksmelding og<br/>sjekk av opphør"]
+    T19["19 Sperre mot<br/>førstegangsbehandling"]
+    T20["20 «Migrer» i frontend"]
+    T21["21 Revurdering<br/>kopierer vilkår"]
+    T22["22 Revurdering flytter<br/>startmåned bakover"]
+    T23["23 Test av hele<br/>migreringen"]
+    T24["24 Unik indeks mot<br/>to åpne behandlinger"]
+    T25["25 Opphav og maskinelt<br/>merke på vilkår"]
 
     OKO{{"Økonomi: motregner OS?"}}
     OPP{{"Oppdrag-delen<br/>(ADR-0011)"}}
 
-    T02 --> T05
-    T03 --> T05
-    T02 --> T06
-    T04 --> T06
-    T02 --> T07
-    T02 --> T08
-    T02 --> T09
+    T03 --> T14
+    T03 --> T15
 
-    T05 --> T10
-    T07 --> T10
-    OKO -.-> T10
+    T13 --> T16
+    T14 --> T16
+    T15 --> T16
+    T17 --> T16
+    T25 --> T16
+    T21 --> T25
+    OPP -.-> T16
 
-    T05 --> T11
-    T06 --> T11
-    T07 --> T11
-    T08 --> T11
-    OKO -.-> T11
+    T16 --> T18
+    T14 --> T19
+    T14 --> T20
+    T16 --> T20
 
-    T05 --> T12
-    T06 --> T12
-    T07 --> T12
-    T08 --> T12
-    OPP -.-> T12
+    T13 --> T22
+    T21 --> T22
+    OPP -.-> T22
+    OKO -.-> T22
 
-    classDef klar fill:#ccf1d6,stroke:#06893a
+    T16 --> T23
+    T17 --> T23
+    T18 --> T23
+
     classDef menneske fill:#ffe5c2,stroke:#c77300
+    classDef triage fill:#fff6c2,stroke:#a68b00
     classDef ekstern fill:#f1f1f1,stroke:#707070,stroke-dasharray: 4 3
 
-    class T01,T02 klar
-    class T03,T04 menneske
+    class T03,T13,T14,T15,T17,T22 menneske
+    class T24 triage
     class OKO,OPP ekstern
 ```
+
+21 kan startes med en gang av en agent. 13 og 17 kan også startes, men er rød
+sone og skrives av en utvikler.

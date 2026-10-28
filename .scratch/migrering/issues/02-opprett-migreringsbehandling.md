@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 Spec: [spec.md](../spec.md)
 
@@ -17,3 +17,7 @@ Spec: [spec.md](../spec.md)
 - [ ] En repository-test sjekker at migreringsdatoen lagres og leses som riktig måned, og er tom for andre behandlinger.
 - [ ] Migrering ligger bak en feature toggle i Unleash. Uten toggle kan ikke årsaken `MIGRERING` velges.
 - [ ] Frontend-typene er generert på nytt fra OpenAPI.
+
+## Comments
+
+**2026-10-28:** Lukket. Migreringen gjøres nå som i EF, se ADR-0013 og ny spec. Erstattet av ticket 13–25.

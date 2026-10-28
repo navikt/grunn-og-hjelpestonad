@@ -4,7 +4,7 @@
 
 **Blocked by:** 05, 06, 07, 08, og ekstern blokkering: oppdrag-delen av ADR-0011 (integrasjon med `familie-oppdrag`)
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 Spec: [spec.md](../spec.md)
 
@@ -13,3 +13,7 @@ Spec: [spec.md](../spec.md)
 - [ ] Testen sjekker at en henlagt migreringsbehandling ikke påvirker gjeldende migreringsdato.
 - [ ] Testen sjekker at `vedtaksmelding` sendes ved iverksetting av en migrering, og ikke ved «Endre migreringsdato».
 - [ ] Testen bruker oppsettet i `SpringContextTest` og WireMock som de andre klienttestene.
+
+## Comments
+
+**2026-10-28:** Lukket. Migreringen gjøres nå som i EF, se ADR-0013 og ny spec. Erstattet av ticket 13–25.
