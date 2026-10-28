@@ -1,6 +1,9 @@
 import React from "react";
 import { BodyShort, Box, Heading, Table, VStack } from "@navikt/ds-react";
-import type { InfotrygdStonaderResponse } from "~/api/generated/types.gen";
+import type {
+  GjeldendeInfotrygdPeriode,
+  InfotrygdStonaderResponse,
+} from "~/api/generated/types.gen";
 import { formaterDato, formaterMaaned } from "./formatering";
 import {
   Beløp,
@@ -105,14 +108,20 @@ const KOLONNER = [
   "Saksbehandler",
 ];
 
-export function InfotrygdVedtak({ data }: { data: InfotrygdStonaderResponse }) {
-  const rader = lagVedtaksrader(data.stonader);
-  const overskriftId = "infotrygd-grunnstonad";
+export function InfotrygdVedtak({
+  data,
+  gjeldendePerioder,
+}: {
+  data: InfotrygdStonaderResponse;
+  gjeldendePerioder?: readonly GjeldendeInfotrygdPeriode[];
+}) {
+  const rader = lagVedtaksrader(data.stonader, gjeldendePerioder);
+  const overskriftId = "infotrygd-alle-vedtak";
 
   return (
-    <VStack gap="space-8">
+    <VStack gap="space-8" marginBlock="space-32 space-0">
       <Heading level="2" size="small" id={overskriftId}>
-        Grunnstønad
+        Alle vedtak
       </Heading>
       {rader.length === 0 ? (
         <BodyShort>Ingen vedtak på grunnstønad i Infotrygd</BodyShort>

@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type {
+  GjeldendeInfotrygdPeriode,
   InfotrygdDelytelseResponse,
   InfotrygdEvaluering,
   InfotrygdGhResponse,
@@ -66,6 +67,12 @@ const evaluering = (overstyr: Partial<InfotrygdEvaluering> = {}): InfotrygdEvalu
   diagnose1: "X00",
   ...overstyr,
 });
+
+const gjeldendePeriode = (
+  v: InfotrygdVedtakMedArv,
+  fom: string,
+  tom: string | null
+): GjeldendeInfotrygdPeriode => ({ fom, tom, stonadId: 1, vedtak: v });
 
 function finn(rader: Vedtaksrad[], vedtakId: number): Vedtaksrad {
   const rad = rader.find((r) => r.vedtak.vedtakId === vedtakId);
@@ -141,6 +148,62 @@ describe("lagVedtaksrader", () => {
     it("er iverksatt når oppdragId er satt", () => {
       const rad = finn(lagVedtaksrader([stønad({ oppdragId: 42, vedtak: [vedtak()] })]), 1);
       assert.equal(rad.ikkeIverksatt, false);
+    });
+  });
+
+  describe("gjeldende", () => {
+    it("er HELT_GJELDENDE når én periode har samme fom og tom som vedtaket", () => {
+      const v = vedtak({ vedtakId: 1, datoInnvTom: "2024-06-30" });
+      const rader = lagVedtaksrader(
+        [stønad({ vedtak: [v] })],
+        [gjeldendePeriode(v, "2024-01-01", "2024-06-30")]
+      );
+      assert.equal(finn(rader, 1).gjeldende, "HELT_GJELDENDE");
+    });
+
+    it("er HELT_GJELDENDE for løpende vedtak når tom er null i både periode og vedtak", () => {
+      const v = vedtak({ vedtakId: 1 });
+      const rader = lagVedtaksrader(
+        [stønad({ vedtak: [v] })],
+        [gjeldendePeriode(v, "2024-01-01", null)]
+      );
+      assert.equal(finn(rader, 1).gjeldende, "HELT_GJELDENDE");
+    });
+
+    it("er DELVIS_GJELDENDE når periodens tom er før vedtakets tom", () => {
+      const v = vedtak({ vedtakId: 1, datoInnvTom: "2024-12-31" });
+      const rader = lagVedtaksrader(
+        [stønad({ vedtak: [v] })],
+        [gjeldendePeriode(v, "2024-01-01", "2024-06-30")]
+      );
+      assert.equal(finn(rader, 1).gjeldende, "DELVIS_GJELDENDE");
+    });
+
+    it("er DELVIS_GJELDENDE når to perioder for samme vedtak har et hull imellom", () => {
+      const v = vedtak({ vedtakId: 1, datoInnvTom: "2024-12-31" });
+      const rader = lagVedtaksrader(
+        [stønad({ vedtak: [v] })],
+        [
+          gjeldendePeriode(v, "2024-01-01", "2024-03-31"),
+          gjeldendePeriode(v, "2024-05-01", "2024-12-31"),
+        ]
+      );
+      assert.equal(finn(rader, 1).gjeldende, "DELVIS_GJELDENDE");
+    });
+
+    it("er IKKE_GJELDENDE når gjeldende perioder bare gjelder andre vedtak", () => {
+      const v = vedtak({ vedtakId: 1 });
+      const annet = vedtak({ vedtakId: 2 });
+      const rader = lagVedtaksrader(
+        [stønad({ vedtak: [v] })],
+        [gjeldendePeriode(annet, "2024-01-01", null)]
+      );
+      assert.equal(finn(rader, 1).gjeldende, "IKKE_GJELDENDE");
+    });
+
+    it("er IKKE_GJELDENDE når gjeldende perioder utelates", () => {
+      const rader = lagVedtaksrader([stønad({ vedtak: [vedtak({ vedtakId: 1 })] })]);
+      assert.equal(finn(rader, 1).gjeldende, "IKKE_GJELDENDE");
     });
   });
 
