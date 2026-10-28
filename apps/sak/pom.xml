@@ -49,7 +49,7 @@
         <flyway.version>13.5.0</flyway.version>
         <unleash.version>12.3.1</unleash.version>
         <mockk.version>1.14.11</mockk.version>
-        <prosessering.version>2.20261027150838_57ccae7</prosessering.version>
+        <efterlatte-prosessering.version>1.20261027142018_2544cfc</efterlatte-prosessering.version>
         <familie-felles.version>4.20261026180911_c3ff6d9</familie-felles.version>
         <openapi-generator.version>7.26.0</openapi-generator.version>
         <diagnosekoder.version>1.2026.0</diagnosekoder.version>
@@ -122,16 +122,6 @@
             <groupId>io.getunleash</groupId>
             <artifactId>unleash-client-java</artifactId>
             <version>${unleash.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>no.nav.familie</groupId>
-            <artifactId>prosessering-core</artifactId>
-            <version>${prosessering.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>no.nav.familie</groupId>
-            <artifactId>prosessering-web-spring-security</artifactId>
-            <version>${prosessering.version}</version>
         </dependency>
         <dependency>
             <groupId>no.nav.efterlatte</groupId>
