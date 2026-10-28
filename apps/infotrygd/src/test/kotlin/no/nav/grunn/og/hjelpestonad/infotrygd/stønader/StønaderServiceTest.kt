@@ -50,8 +50,7 @@ class StønaderServiceTest {
     @Test
     fun `bygger treet fra stønad til endringer, delytelser og gh, med trimmet tekst`() {
         lagreStønad("10", kodeOpphor = "O ")
-        lagreVedtak("100", stønadId = "10", typeSak = "S ", kodeResultat = "I ", datoMottattSak = "2019-12-15")
-        lagreEndring("100", "F ")
+        lagreVedtak("100", stønadId = "10", typeSak = "S ", kodeResultat = "I ", datoMottattSak = "2019-12-15", endringskode = "F ")
         lagreDelytelse("100", type = "GS", fom = "2020-01-01", tom = null, beløp = "1000.50")
         testdata.lagre(ExodusTabell.T_GH, "vedtak_id" to "100", "tidspunkt_reg" to "2020-01-01T00:00", "trygdetid" to "40", "sats_gs" to "2")
 
@@ -88,8 +87,7 @@ class StønaderServiceTest {
     @Test
     fun `vedtak med to endringskoder og to delytelser gir ett vedtak uten duplikater`() {
         lagreStønad("10")
-        lagreVedtak("100", stønadId = "10")
-        lagreEndring("100", "F")
+        lagreVedtak("100", stønadId = "10", endringskode = "F")
         lagreEndring("100", "O")
         lagreDelytelse("100", fom = "2020-01-01", tom = "2020-12-31", tidspunktReg = "2020-01-01T00:00")
         lagreDelytelse("100", fom = "2021-01-01", tom = null, tidspunktReg = "2021-01-01T00:00")
@@ -121,7 +119,7 @@ class StønaderServiceTest {
     }
 
     @Test
-    fun `stønad uten vedtak og vedtak uten endringer, delytelser og gh tas med`() {
+    fun `stønad uten vedtak og vedtak uten delytelser og gh tas med`() {
         lagreStønad("10")
         lagreStønad("11")
         lagreVedtak("110", stønadId = "11")
@@ -131,10 +129,26 @@ class StønaderServiceTest {
         assertEquals(listOf(10L, 11L), stønader.map { it.stonadId })
         assertEquals(emptyList(), stønader[0].vedtak)
         val vedtak = stønader[1].vedtak.single()
-        assertEquals(emptyList(), vedtak.endringer)
         assertEquals(emptyList(), vedtak.delytelser)
         assertEquals(emptyList(), vedtak.gh)
         assertNull(vedtak.evaluering)
+    }
+
+    @Test
+    fun `vedtak tas med bare når det har minst én endringskode som ikke er AN eller UA`() {
+        lagreStønad("10")
+        lagreVedtak("100", stønadId = "10", endringskode = "F")
+        lagreEndring("100", "AN")
+        lagreVedtak("101", stønadId = "10", endringskode = "AN")
+        lagreVedtak("102", stønadId = "10", endringskode = "AN")
+        lagreEndring("102", "UA")
+        lagreVedtak("103", stønadId = "10", endringskode = "UA ")
+        lagreVedtak("104", stønadId = "10", endringskode = null)
+
+        val vedtak = hentGrunnstønad().single().vedtak
+
+        assertEquals(listOf(100L), vedtak.map { it.vedtakId })
+        assertEquals(listOf("AN", "F"), vedtak.single().endringer)
     }
 
     @Test
@@ -272,20 +286,24 @@ class StønaderServiceTest {
         kodeResultat: String = "I",
         datoMottattSak: String = "2020-01-01",
         personLøpenr: String = "1",
-    ) = testdata.lagre(
-        ExodusTabell.T_VEDTAK,
-        "vedtak_id" to vedtakId,
-        "stonad_id" to stønadId,
-        "person_lopenr" to personLøpenr,
-        "kode_rutine" to kodeRutine,
-        "type_sak" to typeSak,
-        "kode_resultat" to kodeResultat,
-        "dato_innv_fom" to fom,
-        "dato_innv_tom" to tom,
-        "dato_mottatt_sak" to datoMottattSak,
-        "saksblokk" to saksblokk,
-        "saksnr" to saksnr,
-    )
+        endringskode: String? = "F",
+    ) {
+        testdata.lagre(
+            ExodusTabell.T_VEDTAK,
+            "vedtak_id" to vedtakId,
+            "stonad_id" to stønadId,
+            "person_lopenr" to personLøpenr,
+            "kode_rutine" to kodeRutine,
+            "type_sak" to typeSak,
+            "kode_resultat" to kodeResultat,
+            "dato_innv_fom" to fom,
+            "dato_innv_tom" to tom,
+            "dato_mottatt_sak" to datoMottattSak,
+            "saksblokk" to saksblokk,
+            "saksnr" to saksnr,
+        )
+        endringskode?.let { lagreEndring(vedtakId, it) }
+    }
 
     private fun lagreEndring(
         vedtakId: String,

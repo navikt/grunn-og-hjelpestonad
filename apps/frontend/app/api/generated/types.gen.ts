@@ -162,28 +162,33 @@ export type InfotrygdGhResponse = {
     satsHs?: number | null;
 };
 
-export type InfotrygdStonadResponse = {
+export type InfotrygdKildevedtak = {
+    vedtakId: number;
+    vedtakstidspunkt: string;
+};
+
+export type InfotrygdStonadMedArv = {
     stonadId: number;
     personnr: string;
     kodeRutine: string;
     datoStart: string;
-    vedtak: Array<InfotrygdVedtakResponse>;
     kodeOpphor?: string | null;
     datoOpphor?: string | null;
     oppdragId?: number | null;
     tidspunktOpphort?: string | null;
     tidspunktReg?: string | null;
     brukerid?: string | null;
+    vedtak: Array<InfotrygdVedtakMedArv>;
 };
 
 export type InfotrygdStonaderResponse = {
-    stonader: Array<InfotrygdStonadResponse>;
+    stonader: Array<InfotrygdStonadMedArv>;
     diagnosetekster: {
         [key: string]: string;
     };
 };
 
-export type InfotrygdVedtakResponse = {
+export type InfotrygdVedtakMedArv = {
     vedtakId: number;
     tknr: string;
     saksblokk: string;
@@ -191,6 +196,7 @@ export type InfotrygdVedtakResponse = {
     typeSak: string;
     kodeResultat: string;
     datoInnvFom: string;
+    datoInnvTom?: string | null;
     datoMottattSak: string;
     kodeVedtaksnivaa: string;
     typeBeregning: string;
@@ -198,9 +204,32 @@ export type InfotrygdVedtakResponse = {
     brukerid: string;
     endringer: Array<string>;
     delytelser: Array<InfotrygdDelytelseResponse>;
-    gh: Array<InfotrygdGhResponse>;
-    datoInnvTom?: string | null;
-    evaluering?: InfotrygdEvaluering | null;
+    gh?: VerdiMedKildeListInfotrygdGhResponse | null;
+    evaluering?: VerdiMedKildeInfotrygdEvaluering | null;
+};
+
+export type VerdiMedKildeInfotrygdEvaluering = {
+    verdi: InfotrygdEvaluering;
+    arvetFraVedtak?: InfotrygdKildevedtak | null;
+};
+
+export type VerdiMedKildeListInfotrygdGhResponse = {
+    verdi: Array<InfotrygdGhResponse>;
+    arvetFraVedtak?: InfotrygdKildevedtak | null;
+};
+
+export type GjeldendeInfotrygdPeriode = {
+    fom: string;
+    tom?: string | null;
+    stonadId: number;
+    vedtak: InfotrygdVedtakMedArv;
+};
+
+export type InfotrygdGjeldendePerioderResponse = {
+    perioder: Array<GjeldendeInfotrygdPeriode>;
+    diagnosetekster: {
+        [key: string]: string;
+    };
 };
 
 export type FagsakRequest = {
@@ -610,6 +639,19 @@ export type HentStønaderForPersonResponses = {
 };
 
 export type HentStønaderForPersonResponse = HentStønaderForPersonResponses[keyof HentStønaderForPersonResponses];
+
+export type HentGjeldendePerioderForPersonData = {
+    body: InfotrygdStonaderRequest;
+    path?: never;
+    query?: never;
+    url: '/api/infotrygd/gjeldende-perioder';
+};
+
+export type HentGjeldendePerioderForPersonResponses = {
+    200: InfotrygdGjeldendePerioderResponse;
+};
+
+export type HentGjeldendePerioderForPersonResponse = HentGjeldendePerioderForPersonResponses[keyof HentGjeldendePerioderForPersonResponses];
 
 export type OpprettFagsakData = {
     body: FagsakRequest;

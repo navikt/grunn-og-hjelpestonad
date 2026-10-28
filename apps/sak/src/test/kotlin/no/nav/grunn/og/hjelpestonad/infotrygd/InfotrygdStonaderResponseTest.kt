@@ -3,7 +3,6 @@ package no.nav.grunn.og.hjelpestonad.infotrygd
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.InfotrygdEvaluering
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.InfotrygdStonadResponse
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.InfotrygdVedtakResponse
-import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.StonaderResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -13,9 +12,9 @@ class InfotrygdStonaderResponseTest {
     @Test
     fun `diagnosekode trimmes, og tom kode slås ikke opp`() {
         val response =
-            stonaderResponse(
-                stønad(vedtak(evaluering = evaluering(diagnose1 = " E10.9 ", diagnose2 = "   "))),
-            ).tilInfotrygdStonaderResponse()
+            InfotrygdArv
+                .fyllVedtakMedVerdierFraTidligereVedtak(listOf(stønad(vedtak(evaluering = evaluering(diagnose1 = " E10.9 ", diagnose2 = "   ")))))
+                .tilInfotrygdStonaderResponse()
 
         assertThat(response.diagnosetekster).containsOnlyKeys("E10.9")
     }
@@ -23,9 +22,9 @@ class InfotrygdStonaderResponseTest {
     @Test
     fun `ICD-10-tekst slås opp for diagnose1, og ukjent kode får ingen tekst`() {
         val response =
-            stonaderResponse(
-                stønad(vedtak(evaluering = evaluering(diagnose1 = "E10.9", diagnose2 = "ZZZ99"))),
-            ).tilInfotrygdStonaderResponse()
+            InfotrygdArv
+                .fyllVedtakMedVerdierFraTidligereVedtak(listOf(stønad(vedtak(evaluering = evaluering(diagnose1 = "E10.9", diagnose2 = "ZZZ99")))))
+                .tilInfotrygdStonaderResponse()
 
         assertThat(response.diagnosetekster).containsExactlyEntriesOf(
             mapOf("E10.9" to "Diabetes mellitus type 1 uten komplikasjoner"),
@@ -35,18 +34,21 @@ class InfotrygdStonaderResponseTest {
     @Test
     fun `motstridendeFelt DIAGNOSE_1 med diagnose1 null gir tekst bare for diagnose2`() {
         val response =
-            stonaderResponse(
-                stønad(
-                    vedtak(
-                        evaluering =
-                            evaluering(
-                                diagnose1 = null,
-                                diagnose2 = "E10.9",
-                                motstridendeFelt = setOf(InfotrygdEvaluering.MotstridendeFelt.DIAGNOSE_1),
+            InfotrygdArv
+                .fyllVedtakMedVerdierFraTidligereVedtak(
+                    listOf(
+                        stønad(
+                            vedtak(
+                                evaluering =
+                                    evaluering(
+                                        diagnose1 = null,
+                                        diagnose2 = "E10.9",
+                                        motstridendeFelt = setOf(InfotrygdEvaluering.MotstridendeFelt.DIAGNOSE_1),
+                                    ),
                             ),
+                        ),
                     ),
-                ),
-            ).tilInfotrygdStonaderResponse()
+                ).tilInfotrygdStonaderResponse()
 
         assertThat(response.diagnosetekster).containsExactlyEntriesOf(
             mapOf("E10.9" to "Diabetes mellitus type 1 uten komplikasjoner"),
@@ -56,28 +58,29 @@ class InfotrygdStonaderResponseTest {
     @Test
     fun `samme diagnosekode i flere vedtak og stønader gir én tekst`() {
         val response =
-            stonaderResponse(
-                stønad(
-                    vedtak(vedtakId = 1L, evaluering = evaluering(diagnose1 = "E10.9")),
-                    vedtak(vedtakId = 2L, evaluering = evaluering(diagnose1 = "E10.9")),
-                ),
-                stønad(vedtak(vedtakId = 3L, evaluering = evaluering(diagnose2 = "E10.9")), stønadId = 2L),
-            ).tilInfotrygdStonaderResponse()
+            InfotrygdArv
+                .fyllVedtakMedVerdierFraTidligereVedtak(
+                    listOf(
+                        stønad(
+                            vedtak(vedtakId = 1L, evaluering = evaluering(diagnose1 = "E10.9")),
+                            vedtak(vedtakId = 2L, evaluering = evaluering(diagnose1 = "E10.9")),
+                        ),
+                        stønad(vedtak(vedtakId = 3L, evaluering = evaluering(diagnose2 = "E10.9")), stønadId = 2L),
+                    ),
+                ).tilInfotrygdStonaderResponse()
 
         assertThat(response.diagnosetekster).hasSize(1)
     }
 
     @Test
     fun `vedtak uten evaluering gir ingen diagnosetekst, og stønadene beholdes`() {
-        val stønader = listOf(stønad(vedtak(evaluering = null)))
+        val medArv = InfotrygdArv.fyllVedtakMedVerdierFraTidligereVedtak(listOf(stønad(vedtak(evaluering = null))))
 
-        val response = StonaderResponse(stonader = stønader).tilInfotrygdStonaderResponse()
+        val response = medArv.tilInfotrygdStonaderResponse()
 
         assertThat(response.diagnosetekster).isEmpty()
-        assertThat(response.stonader).isEqualTo(stønader)
+        assertThat(response.stonader).isEqualTo(medArv)
     }
-
-    private fun stonaderResponse(vararg stønader: InfotrygdStonadResponse) = StonaderResponse(stonader = stønader.toList())
 
     private fun stønad(
         vararg vedtak: InfotrygdVedtakResponse,

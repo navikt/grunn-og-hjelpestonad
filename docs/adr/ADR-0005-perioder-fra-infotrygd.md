@@ -125,10 +125,10 @@ bekreftet for våre stønader.
 ## Aksjonspunkter
 
 - [x] Godkjenn eller forkast ADR-en i teamet.
-- [ ] Kartlegg kodene i `t_endring`, `t_vedtak.type_sak` og `t_delytelse` i dev.
+- [x] Kartlegg kodene i `t_endring`, `t_vedtak.type_sak` og `t_delytelse` i dev.
 - [ ] Bekreft at regelen om `oppdrag_id` gjelder for grunn- og hjelpestønad.
 - [ ] Finn ut hvilken registrering i `t_gh` som gjelder for en delytelse.
 - [ ] Oppdater `InfotrygdClient` i `sak` og siden «Infotrygd historikk» i
       frontend.
-- [ ] Vurder sammenslåtte perioder når vi vet hvordan vedtak overskriver
-      hverandre.
+- [x] Vurder sammenslåtte perioder når vi vet hvordan vedtak overskriver
+      hverandre. Se [ADR-0012](ADR-0012-arv-og-gjeldende-perioder-fra-infotrygd.md).
