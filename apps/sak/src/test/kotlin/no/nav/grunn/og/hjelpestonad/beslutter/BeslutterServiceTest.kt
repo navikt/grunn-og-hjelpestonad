@@ -135,7 +135,6 @@ class BeslutterServiceTest {
 
     @Test
     fun `godkjent innvilget vedtak sender vedtak til Infotrygd-feed`() {
-        // Arrange
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
             behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
@@ -158,7 +157,6 @@ class BeslutterServiceTest {
                 opprettetAv = "Z123456",
             )
 
-        // Act
         val typer = mutableListOf<TaskType<UUID>>()
         val payloads = mutableListOf<UUID>()
         every { taskService.opprett(capture(typer), capture(payloads), any(), any()) } returns TaskId(1)

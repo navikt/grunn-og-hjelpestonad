@@ -2,7 +2,6 @@ package no.nav.grunn.og.hjelpestonad.iverksett.brev
 
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
-import efterlatte.prosessering.TaskType
 import no.nav.grunn.og.hjelpestonad.iverksett.brev.domene.DistribuerJournalpostRequest
 import no.nav.grunn.og.hjelpestonad.iverksett.brev.domene.Distribusjonstype
 import no.nav.grunn.og.hjelpestonad.iverksett.brev.domene.Fagsystem
@@ -18,7 +17,7 @@ class DistribuerVedtaksbrevTask(
 ) : TaskStep<DistribuerVedtaksbrevTask.DistribuerVedtaksbrevTaskData> {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override val type: TaskType<DistribuerVedtaksbrevTaskData> = TYPE
+    override val type = TYPE
 
     override fun utfor(kontekst: TaskKontekst<DistribuerVedtaksbrevTaskData>) {
         val behandlingId = kontekst.payload.behandlingId
@@ -40,7 +39,7 @@ class DistribuerVedtaksbrevTask(
     }
 
     companion object {
-        val TYPE: TaskType<DistribuerVedtaksbrevTaskData> = lagTaskType("distribuerVedtaksbrev")
+        val TYPE = lagTaskType<DistribuerVedtaksbrevTaskData>("distribuerVedtaksbrev")
     }
 
     data class DistribuerVedtaksbrevTaskData(

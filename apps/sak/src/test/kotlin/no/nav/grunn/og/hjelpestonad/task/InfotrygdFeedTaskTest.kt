@@ -35,7 +35,6 @@ class InfotrygdFeedTaskTest {
 
     @Test
     fun `startbehandling bruker gjeldende personident`() {
-        // Arrange
         val behandlingId = UUID.randomUUID()
         val fagsakId = UUID.randomUUID()
         val behandling = mockk<Behandling>()
@@ -43,17 +42,14 @@ class InfotrygdFeedTaskTest {
         every { behandling.fagsakId } returns fagsakId
         every { fagsakService.hentAktivIdent(fagsakId) } returns "12345678901"
 
-        // Act
         val task = SendStartBehandlingTilInfotrygdFeedTask(behandlingService, fagsakService, infotrygdFeedClient)
         task.utfor(kontekst(behandlingId, SendStartBehandlingTilInfotrygdFeedTask.TYPE))
 
-        // Assert
         verify { infotrygdFeedClient.sendStartBehandling("12345678901") }
     }
 
     @Test
     fun `vedtak sender første ordinære stønadsperiode`() {
-        // Arrange
         val behandlingId = UUID.randomUUID()
         val fagsakId = UUID.randomUUID()
         val behandling = mockk<Behandling>()
@@ -80,10 +76,9 @@ class InfotrygdFeedTaskTest {
                 fagsakService,
                 infotrygdFeedClient,
             )
-        // Act
+
         task.utfor(kontekst(behandlingId, SendVedtakTilInfotrygdFeedTask.TYPE))
 
-        // Assert
         verify { infotrygdFeedClient.sendVedtak("12345678901", LocalDate.of(2026, 2, 1)) }
     }
 

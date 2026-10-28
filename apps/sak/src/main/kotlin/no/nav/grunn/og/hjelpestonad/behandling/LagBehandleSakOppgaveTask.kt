@@ -2,7 +2,6 @@ package no.nav.grunn.og.hjelpestonad.behandling
 
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
-import efterlatte.prosessering.TaskType
 import efterlatte.prosessering.spring.TaskService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.saksbehandler.EntraProxyClient
@@ -20,7 +19,7 @@ class LagBehandleSakOppgaveTask(
 ) : TaskStep<OpprettOppgavePayload> {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override val type: TaskType<OpprettOppgavePayload> = TYPE
+    override val type = TYPE
 
     override fun utfor(kontekst: TaskKontekst<OpprettOppgavePayload>) {
         logger.info("LagBehandleSakOppgaveTask task: ${kontekst.payload.behandlingsId}, saksbehandler: ${kontekst.payload.saksbehandler}")
@@ -45,14 +44,13 @@ class LagBehandleSakOppgaveTask(
     }
 
     companion object {
-        val TYPE: TaskType<OpprettOppgavePayload> = lagTaskType("LagBehandleSakOppgaveTask")
+        val TYPE = lagTaskType<OpprettOppgavePayload>("LagBehandleSakOppgaveTask")
     }
 }
 
 data class OpprettOppgavePayload(
     val behandlingsId: UUID,
     val saksbehandler: String,
-    // Trengs fordi prosessering_task har UNIQUE (type, payload), og samme behandling/saksbehandler kan få ny oppgave-task.
     val uniqueTaskPayloadId: UUID = UUID.randomUUID(),
     val tildeltEnhetsnr: String,
 )

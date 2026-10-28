@@ -2,7 +2,6 @@ package no.nav.grunn.og.hjelpestonad.task
 
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
-import efterlatte.prosessering.TaskType
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.brev.FamilieDokumentClient
 import org.slf4j.LoggerFactory
@@ -15,7 +14,7 @@ class BrevTask(
     val brevService: BrevService,
     private val familieDokumentClient: FamilieDokumentClient,
 ) : TaskStep<BrevTask.LagBrevPdfTaskData> {
-    override val type: TaskType<LagBrevPdfTaskData> = TYPE
+    override val type = TYPE
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun utfor(kontekst: TaskKontekst<LagBrevPdfTaskData>) {
@@ -31,12 +30,11 @@ class BrevTask(
     }
 
     companion object {
-        val TYPE: TaskType<LagBrevPdfTaskData> = lagTaskType("BrevTask")
+        val TYPE = lagTaskType<LagBrevPdfTaskData>("BrevTask")
     }
 
     data class LagBrevPdfTaskData(
         val behandlingId: UUID,
-        // Trengs fordi prosessering_task har UNIQUE (type, payload), og samme behandling kan få ny brev-task.
         val unik: LocalDateTime = LocalDateTime.now(),
     )
 }
