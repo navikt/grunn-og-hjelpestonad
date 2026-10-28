@@ -16,7 +16,9 @@ import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
 import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTask
+import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTask
+import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
@@ -56,16 +58,14 @@ class BeslutterService(
 
         val aktivOppgavetype = oppgaveService.hentAktivOppgavetype(behandlingId)
 
-        FerdigstillOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = aktivOppgavetype,
-            taskService = taskService,
+        taskService.opprett(
+            FerdigstillOppgaveTask.TYPE,
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = aktivOppgavetype),
         )
 
-        OpprettOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = OppgavetypeEYO.GOD_VED,
-            taskService = taskService,
+        taskService.opprett(
+            OpprettOppgaveTask.TYPE,
+            OpprettOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeEYO.GOD_VED),
         )
     }
 
@@ -82,10 +82,9 @@ class BeslutterService(
             )
         }
 
-        FerdigstillOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = aktivOppgavetype,
-            taskService = taskService,
+        taskService.opprett(
+            FerdigstillOppgaveTask.TYPE,
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = aktivOppgavetype),
         )
 
         lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(
@@ -145,10 +144,9 @@ class BeslutterService(
             endringType = EndringType.BESLUTTER_GODKJENT,
         )
 
-        FerdigstillOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = OppgavetypeEYO.GOD_VED,
-            taskService = taskService,
+        taskService.opprett(
+            FerdigstillOppgaveTask.TYPE,
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeEYO.GOD_VED),
         )
 
         if (vedtak?.resultatType == ResultatType.INNVILGET) {
@@ -182,17 +180,18 @@ class BeslutterService(
             begrunnelse = begrunnelse,
         )
 
-        FerdigstillOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = OppgavetypeEYO.GOD_VED,
-            taskService = taskService,
+        taskService.opprett(
+            FerdigstillOppgaveTask.TYPE,
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeEYO.GOD_VED),
         )
 
-        OpprettOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = OppgavetypeEYO.BEH_UND_VED,
-            tilordnetSaksbehandler = saksbehandlerSomSendteTilBeslutter,
-            taskService = taskService,
+        taskService.opprett(
+            OpprettOppgaveTask.TYPE,
+            OpprettOppgaveTaskData(
+                behandlingId = behandlingId,
+                oppgavetype = OppgavetypeEYO.BEH_UND_VED,
+                tilordnetSaksbehandler = saksbehandlerSomSendteTilBeslutter,
+            ),
         )
     }
 

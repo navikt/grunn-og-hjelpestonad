@@ -10,6 +10,7 @@ import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTask
+import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTaskData
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -45,10 +46,9 @@ class HenleggBehandlingService(
         )
 
         val aktivOppgavetype = oppgaveService.hentAktivOppgavetype(behandlingId)
-        FerdigstillOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = aktivOppgavetype,
-            taskService = taskService,
+        taskService.opprett(
+            FerdigstillOppgaveTask.TYPE,
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = aktivOppgavetype),
         )
 
         endringshistorikkService.registrerEndring(

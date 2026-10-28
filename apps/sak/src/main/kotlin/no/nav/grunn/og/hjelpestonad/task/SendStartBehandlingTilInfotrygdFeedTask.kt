@@ -2,7 +2,6 @@ package no.nav.grunn.og.hjelpestonad.task
 
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
-import efterlatte.prosessering.TaskType
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakService
 import no.nav.grunn.og.hjelpestonad.infotrygd.InfotrygdFeedClient
@@ -15,7 +14,7 @@ class SendStartBehandlingTilInfotrygdFeedTask(
     private val fagsakService: FagsakService,
     private val infotrygdFeedClient: InfotrygdFeedClient,
 ) : TaskStep<UUID> {
-    override val type: TaskType<UUID> = TYPE
+    override val type = TYPE
 
     override fun utfor(kontekst: TaskKontekst<UUID>) {
         val behandlingId = kontekst.payload
@@ -28,6 +27,6 @@ class SendStartBehandlingTilInfotrygdFeedTask(
     }
 
     companion object {
-        val TYPE: TaskType<UUID> = lagUuidTaskType("SendStartBehandlingTilInfotrygdFeedTask")
+        val TYPE = lagUuidTaskType("SendStartBehandlingTilInfotrygdFeedTask")
     }
 }

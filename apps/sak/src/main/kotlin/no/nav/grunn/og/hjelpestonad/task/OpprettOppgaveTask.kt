@@ -2,11 +2,8 @@ package no.nav.grunn.og.hjelpestonad.task
 
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
-import efterlatte.prosessering.TaskType
-import efterlatte.prosessering.spring.TaskService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
-import no.nav.grunn.og.hjelpestonad.task.lagTaskType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -16,7 +13,7 @@ import java.util.UUID
 class OpprettOppgaveTask(
     private val oppgaveService: OppgaveService,
 ) : TaskStep<OpprettOppgaveTaskData> {
-    override val type: TaskType<OpprettOppgaveTaskData> = TYPE
+    override val type = TYPE
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun utfor(kontekst: TaskKontekst<OpprettOppgaveTaskData>) {
@@ -44,22 +41,7 @@ class OpprettOppgaveTask(
     }
 
     companion object {
-        val TYPE: TaskType<OpprettOppgaveTaskData> = lagTaskType("OpprettOppgaveTask")
-
-        fun opprettTask(
-            behandlingId: UUID,
-            oppgavetype: OppgavetypeEYO,
-            tilordnetSaksbehandler: String? = null,
-            taskService: TaskService,
-        ) {
-            val payload =
-                OpprettOppgaveTaskData(
-                    behandlingId = behandlingId,
-                    oppgavetype = oppgavetype,
-                    tilordnetSaksbehandler = tilordnetSaksbehandler,
-                )
-            taskService.opprett(TYPE, payload)
-        }
+        val TYPE = lagTaskType<OpprettOppgaveTaskData>("OpprettOppgaveTask")
     }
 }
 
@@ -67,6 +49,5 @@ data class OpprettOppgaveTaskData(
     val behandlingId: UUID,
     val oppgavetype: OppgavetypeEYO,
     val tilordnetSaksbehandler: String? = null,
-    // Trengs fordi prosessering_task har UNIQUE (type, payload), og samme behandling kan få samme task flere ganger.
     val unik: LocalDateTime = LocalDateTime.now(),
 )
