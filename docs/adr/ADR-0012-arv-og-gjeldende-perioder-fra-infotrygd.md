@@ -43,7 +43,9 @@ verdi, så `gh` er aldri en tom liste.
 
 1. Hvert vedtak, med arv, blir én periode fra `datoInnvFom` til `datoInnvTom`.
    Tom `datoInnvTom` betyr at perioden er løpende.
-2. Vedtak med `datoInnvTom` før eller lik `datoInnvFom` er ikke med.
+2. Et vedtak med `datoInnvTom` før eller lik `datoInnvFom` gir `UgyldigInput`
+   (400) med vedtakId, fom og tom. Vi gjetter ikke på hva vedtaket skulle
+   gjelde, og saksbehandleren må lese saken i Infotrygd.
 3. Vedtakene legges på tidslinjen etter stigende `vedtakId`. Et vedtak
    overskriver de eldre i hele sin periode, på tvers av stønadene. Etter at et
    nyere vedtak slutter, gjelder det eldre igjen.
@@ -118,4 +120,4 @@ nærmeste lavere vedtakId» i loggene.
 
 - [ ] Godkjenn eller forkast ADR-en i teamet.
 - [ ] Sjekk loggene for avvik i rekkefølgen etter deploy til dev.
-- [ ] Vis gjeldende perioder i frontend.
+- [x] Vis gjeldende perioder i frontend.

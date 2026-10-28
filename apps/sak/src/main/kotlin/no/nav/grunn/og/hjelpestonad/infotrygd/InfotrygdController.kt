@@ -53,7 +53,7 @@ class InfotrygdController(
     @PreAuthorize("hasRole('SAKSBEHANDLER') or hasRole('BESLUTTER') or hasRole('LESETILGANG')")
     @Operation(
         summary = "Hent gjeldende perioder for person fra Infotrygd",
-        description = "Hvert vedtak blir én periode fra datoInnvFom til datoInnvTom. Nyere vedtakId overskriver eldre vedtak i hele sin periode, også på tvers av stønadene. Vedtak med tom før eller lik fom er ikke med. Vedtakene har arvet evaluering og gh der de mangler egen verdi. Inneholder helseopplysninger.",
+        description = "Hvert vedtak blir én periode fra datoInnvFom til datoInnvTom. Nyere vedtakId overskriver eldre vedtak i hele sin periode, også på tvers av stønadene. Et vedtak med tom før eller lik fom gir 400 med melding om vedtaket. Vedtakene har arvet evaluering og gh der de mangler egen verdi. Inneholder helseopplysninger.",
         security = [SecurityRequirement(name = "oauth2")],
     )
     fun hentGjeldendePerioderForPerson(
