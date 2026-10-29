@@ -32,7 +32,10 @@ class TilgangService(
         return medTilgang
     }
 
-    fun validerTilgangTilPersoner(personidenter: Set<String>) {
+    fun validerTilgangTilPersoner(
+        personidenter: Set<String>,
+        oppslag: Oppslag,
+    ) {
         require(personidenter.isNotEmpty()) { "Må oppgi minst én personident" }
         validerAntall(personidenter.size)
 
@@ -50,7 +53,7 @@ class TilgangService(
                 is ManglerTilgangTilPersonFeil -> Tilgangsutfall.AVSLAG
                 else -> Tilgangsutfall.FEIL
             }
-        auditlogg.forespørselOmTilgang(saksbehandler, personidenter, utfall)
+        auditlogg.forespørselOmTilgang(saksbehandler, personidenter, oppslag, utfall)
 
         // Kaster avslag og feil videre. Uten denne linjen blir avslag til tilgang.
         resultat.getOrThrow()

@@ -1,11 +1,15 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.tilgangskontroll
 
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import jakarta.servlet.Filter
 import no.nav.grunn.og.hjelpestonad.infotrygd.Application
 import no.nav.grunn.og.hjelpestonad.infotrygd.security.JwtTestHelper
 import no.nav.grunn.og.hjelpestonad.infotrygd.texas.TexasClient
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
@@ -119,6 +123,28 @@ class TilgangskontrollIntegrasjonTest {
                 jsonPath("$.stonader") { doesNotExist() }
             }
         assertTrue(tilgangsmaskin.kall.single() == setOf(PERSON_1))
+    }
+
+    @Test
+    fun `auditlinjen for stonader sier hvilken stønadstype saksbehandleren spør om`() {
+        tilgangsmaskin.svar = { identer -> identer.map { Tilgangsvurdering(it, false, null) } }
+        val auditAppender = ListAppender<ILoggingEvent>().apply { start() }
+        val auditLogger = LoggerFactory.getLogger("auditLogger") as Logger
+        auditLogger.addAppender(auditAppender)
+
+        try {
+            mockMvc
+                .post("/api/infotrygd/stonader") {
+                    header(HttpHeaders.AUTHORIZATION, "Bearer $SAKSBEHANDLER")
+                    contentType = MediaType.APPLICATION_JSON
+                    content = """{"personidenter":["$PERSON_1"],"stønadstype":"HJELPESTØNAD"}"""
+                }.andExpect { status { isForbidden() } }
+        } finally {
+            auditLogger.detachAppender(auditAppender)
+        }
+
+        val linje = auditAppender.list.single().formattedMessage
+        assertTrue(linje.contains("for å ${Oppslag.HENTE_HJELPESTØNADER.tekst}. Utfall: avslag"), linje)
     }
 
     @Test

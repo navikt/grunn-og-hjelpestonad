@@ -104,7 +104,9 @@ Et diagram over tabellene og koblingene står i
 
 `stonader`, `stonad/eksisterer` og `saker/finn` skriver én linje per kall til
 loggeren `auditLogger`, som bare går til team logs:
-`Z123456 ba om tilgang til fnr: 12345678901. Utfall: tilgang`. De tre endepunktene tar
+`Z123456 ba om tilgang til fnr: 12345678901 for å se saker i Infotrygd. Utfall: tilgang`.
+Teksten etter «for å» sier hva saksbehandleren spør om, og kommer fra enumen
+`Oppslag` som hvert endepunkt sender inn. De tre endepunktene tar
 én personident per kall. Flere gir `400`.
 `Nav-Call-Id` følger med som eget felt. Utfallet er `tilgang`, `avslag` eller
 `feil`. `avslag` betyr at tilgangsmaskinen avviste eller ikke svarte for
