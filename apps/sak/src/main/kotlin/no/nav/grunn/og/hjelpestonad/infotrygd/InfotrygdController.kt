@@ -1,7 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import no.nav.grunn.og.hjelpestonad.util.PersonidentValidator
@@ -31,7 +30,6 @@ class InfotrygdController(
     @Operation(
         summary = "Hent stønader for person fra Infotrygd",
         description = "Henter stønadene for én stønadstype som et tre fra t_stonad til vedtak, endringer, delytelser, trygdetid og sats og evaluering, med ICD-10-tekst for diagnosene. Inneholder helseopplysninger.",
-        security = [SecurityRequirement(name = "oauth2")],
     )
     fun hentStønaderForPerson(
         @RequestBody request: InfotrygdStonaderRequest,
@@ -54,7 +52,6 @@ class InfotrygdController(
     @Operation(
         summary = "Hent gjeldende perioder for person fra Infotrygd",
         description = "Hvert vedtak blir én periode fra datoInnvFom til datoInnvTom. Nyere vedtakId overskriver eldre vedtak i hele sin periode, også på tvers av stønadene. Et vedtak med tom før eller lik fom gir 400 med melding om vedtaket. Vedtakene har arvet evaluering og gh der de mangler egen verdi. Inneholder helseopplysninger.",
-        security = [SecurityRequirement(name = "oauth2")],
     )
     fun hentGjeldendePerioderForPerson(
         @RequestBody request: InfotrygdStonaderRequest,
