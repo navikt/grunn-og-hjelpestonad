@@ -1,7 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.brev
 
 import com.ninjasquad.springmockk.MockkBean
-import efterlatte.prosessering.spring.TaskService
 import io.mockk.every
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.ApplicationLocalSetup
@@ -34,9 +33,6 @@ open class BrevControllerTest {
 
     @MockkBean
     private lateinit var brevService: BrevService
-
-    @MockkBean
-    private lateinit var taskService: TaskService
 
     @MockkBean(relaxed = true)
     private lateinit var tilgangService: TilgangService

@@ -18,7 +18,6 @@ import java.util.UUID
 class IverksettVedtaksbrevController(
     private val taskService: TaskService,
     private val iverksettVedtaksbrevService: IverksettVedtaksbrevService,
-    private val distribuerVedtaksbrevTask: DistribuerVedtaksbrevTask,
     private val tilgangService: TilgangService,
 ) {
     @PostMapping("/lag-iverksettVedtaksbrevController-task/{behandlingId}")
@@ -31,7 +30,7 @@ class IverksettVedtaksbrevController(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<String> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        taskService.opprett(
+        taskService.opprettIEgenTransaksjon(
             JournalførVedtaksbrevTask.TYPE,
             iverksettVedtaksbrevService.opprettIverksettVedtaksbrevTask(behandlingId),
         )
@@ -49,7 +48,7 @@ class IverksettVedtaksbrevController(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<String> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        taskService.opprett(
+        taskService.opprettIEgenTransaksjon(
             DistribuerVedtaksbrevTask.TYPE,
             iverksettVedtaksbrevService.opprettDistribuerVedtaksbrevTask(behandlingId),
         )

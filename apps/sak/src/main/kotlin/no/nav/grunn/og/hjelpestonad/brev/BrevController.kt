@@ -1,11 +1,9 @@
 package no.nav.grunn.og.hjelpestonad.brev
 
-import efterlatte.prosessering.spring.TaskService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevResponse
-import no.nav.grunn.og.hjelpestonad.task.BrevTask
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -22,7 +20,6 @@ import java.util.UUID
 @Tag(name = "BrevController", description = "Endepunkter for håndtering av brev")
 class BrevController(
     private val brevService: BrevService,
-    private val taskService: TaskService,
     private val tilgangService: TilgangService,
 ) {
     @PostMapping("/lag-task/{behandlingId}") // TODO renames til beslutte-behandling elr noe sånt
@@ -36,7 +33,6 @@ class BrevController(
     ): ResponseEntity<String> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
         brevService.oppdaterBeslutterForBrev(behandlingId)
-        taskService.opprett(BrevTask.TYPE, brevService.lagBrevPdfTask(behandlingId))
 
         return ResponseEntity.ok("OK")
     }
