@@ -174,6 +174,76 @@
               }
             },
             {
+              "vedtakId": 27700120,
+              "tknr": "0315",
+              "saksblokk": "A",
+              "saksnr": 5,
+              "typeSak": "R",
+              "kodeResultat": "I",
+              "datoInnvFom": "2025-09-01",
+              "datoInnvTom": "2025-12-31",
+              "datoMottattSak": "2025-08-12",
+              "kodeVedtaksnivaa": "TK",
+              "typeBeregning": "O",
+              "tidspunktReg": "2025-08-20T11:42:07.214590",
+              "brukerid": "SBH5678",
+              "endringer": ["E"],
+              "delytelser": [
+                {
+                  "typeDelytelse": "MG",
+                  "tidspunktReg": "2025-08-20T11:42:07.228311",
+                  "fom": "2025-09-01",
+                  "tom": "2025-12-31",
+                  "belop": 720.00,
+                  "typeSats": "M",
+                  "typeUtbetaling": "L",
+                  "brukerid": "SBH5678",
+                  "linjeId": 5
+                }
+              ],
+              "gh": [
+                {
+                  "tidspunktReg": "2025-08-20T11:42:07.240876",
+                  "trygdetid": 40,
+                  "satsGs": 1,
+                  "satsHs": null,
+                  "brukerid": "SBH5678"
+                }
+              ],
+              "evaluering": null
+            },
+            {
+              "vedtakId": 27700150,
+              "tknr": "0315",
+              "saksblokk": "A",
+              "saksnr": 6,
+              "typeSak": "R",
+              "kodeResultat": "R",
+              "datoInnvFom": "2025-05-01",
+              "datoInnvTom": "2025-06-30",
+              "datoMottattSak": "2025-08-25",
+              "kodeVedtaksnivaa": "TK",
+              "typeBeregning": "O",
+              "tidspunktReg": "2025-08-27T13:05:44.381920",
+              "brukerid": "SBH5678",
+              "endringer": ["E"],
+              "delytelser": [
+                {
+                  "typeDelytelse": "MG",
+                  "tidspunktReg": "2025-08-27T13:05:44.395617",
+                  "fom": "2025-05-01",
+                  "tom": "2025-06-30",
+                  "belop": 360.00,
+                  "typeSats": "M",
+                  "typeUtbetaling": "L",
+                  "brukerid": "SBH5678",
+                  "linjeId": 6
+                }
+              ],
+              "gh": [],
+              "evaluering": null
+            },
+            {
               "vedtakId": 27700188,
               "tknr": "0315",
               "saksblokk": "A",

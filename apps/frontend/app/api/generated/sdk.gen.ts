@@ -191,7 +191,6 @@ export const hentStønaderForPerson = <ThrowOnError extends boolean = false>(opt
         query: z.never().optional()
     }).parseAsync(data),
     responseValidator: async (data) => await zHentStønaderForPersonResponse.parseAsync(data),
-    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/infotrygd/stonader',
     ...options,
     headers: {
@@ -203,7 +202,7 @@ export const hentStønaderForPerson = <ThrowOnError extends boolean = false>(opt
 /**
  * Hent gjeldende perioder for person fra Infotrygd
  *
- * Hvert vedtak blir én periode fra datoInnvFom til datoInnvTom. Nyere vedtakId overskriver eldre vedtak i hele sin periode, også på tvers av stønadene. Vedtak med tom før eller lik fom er ikke med. Vedtakene har arvet evaluering og gh der de mangler egen verdi. Inneholder helseopplysninger.
+ * Hvert vedtak blir én periode fra datoInnvFom til datoInnvTom. Nyere vedtakId overskriver eldre vedtak i hele sin periode, også på tvers av stønadene. Et vedtak med tom før eller lik fom gir 400 med melding om vedtaket. Vedtakene har arvet evaluering og gh der de mangler egen verdi. Inneholder helseopplysninger.
  */
 export const hentGjeldendePerioderForPerson = <ThrowOnError extends boolean = false>(options: Options<HentGjeldendePerioderForPersonData, ThrowOnError>): RequestResult<HentGjeldendePerioderForPersonResponses, unknown, ThrowOnError> => (options.client ?? client).post<HentGjeldendePerioderForPersonResponses, unknown, ThrowOnError>({
     requestValidator: async (data) => await z.object({
@@ -212,7 +211,6 @@ export const hentGjeldendePerioderForPerson = <ThrowOnError extends boolean = fa
         query: z.never().optional()
     }).parseAsync(data),
     responseValidator: async (data) => await zHentGjeldendePerioderForPersonResponse.parseAsync(data),
-    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/infotrygd/gjeldende-perioder',
     ...options,
     headers: {

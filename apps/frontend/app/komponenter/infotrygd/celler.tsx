@@ -91,6 +91,16 @@ export function Periode({ rad }: { rad: Vedtaksrad }) {
           {`Opphørt ${formaterDato(rad.opphørt)}`}
         </Tag>
       )}
+      {rad.gjeldende === "HELT_GJELDENDE" && (
+        <Tag variant="moderate" size="xsmall" data-color="success">
+          Gjeldende
+        </Tag>
+      )}
+      {rad.gjeldende === "DELVIS_GJELDENDE" && (
+        <Tag variant="moderate" size="xsmall" data-color="success">
+          Delvis gjeldende
+        </Tag>
+      )}
       {rad.ikkeIverksatt && (
         <Tag variant="moderate" size="xsmall" data-color="warning">
           Ikke iverksatt

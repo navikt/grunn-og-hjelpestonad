@@ -1,4 +1,5 @@
 import type {
+  GjeldendeInfotrygdPeriode,
   InfotrygdDelytelseResponse,
   InfotrygdEvaluering,
   InfotrygdGhResponse,
@@ -12,9 +13,13 @@ export type Stønad = Omit<InfotrygdStonadMedArv, "vedtak">;
 /** Beløpet vises i raden bare når vedtaket har nøyaktig én delytelse. */
 export type Radbeløp = { type: "ETT"; beløp: number } | { type: "FLERE" } | { type: "INGEN" };
 
+export type Gjeldende = "HELT_GJELDENDE" | "DELVIS_GJELDENDE" | "IKKE_GJELDENDE";
+
 export type Vedtaksrad = {
   stønad: Stønad;
   vedtak: InfotrygdVedtakMedArv;
+  /** Om vedtaket fremdeles er gjeldende. */
+  gjeldende: Gjeldende;
   beløp: Radbeløp;
   /** Innvilget tom mangler, og stønaden er ikke opphørt. */
   løpende: boolean;
@@ -33,7 +38,7 @@ export type Vedtaksrad = {
 
 const tid = (tidspunkt: string): number => Date.parse(tidspunkt);
 
-const nyesteGhFørst = (gh: InfotrygdGhResponse[]): InfotrygdGhResponse[] =>
+export const nyesteGhFørst = (gh: InfotrygdGhResponse[]): InfotrygdGhResponse[] =>
   gh.toSorted((a, b) => tid(b.tidspunktReg) - tid(a.tidspunktReg));
 
 const nyesteDelytelseFørst = (delytelser: InfotrygdDelytelseResponse[]) =>
@@ -46,13 +51,31 @@ function radbeløp(delytelser: InfotrygdDelytelseResponse[]): Radbeløp {
   return delytelser.length === 0 ? { type: "INGEN" } : { type: "FLERE" };
 }
 
-function lagRad(stønad: Stønad, vedtak: InfotrygdVedtakMedArv): Vedtaksrad {
+// Backend slår sammen like nabo-perioder, så et vedtak som gjelder i hele
+// perioden kommer alltid som én periode.
+function gjeldendeStatus(
+  vedtak: InfotrygdVedtakMedArv,
+  perioder: readonly GjeldendeInfotrygdPeriode[]
+): Gjeldende {
+  if (perioder.length === 0) return "IKKE_GJELDENDE";
+  const hele = perioder.filter(
+    (p) => p.fom === vedtak.datoInnvFom && (p.tom ?? null) === (vedtak.datoInnvTom ?? null)
+  );
+  return hele.length === 1 ? "HELT_GJELDENDE" : "DELVIS_GJELDENDE";
+}
+
+function lagRad(
+  stønad: Stønad,
+  vedtak: InfotrygdVedtakMedArv,
+  perioderPerVedtak: ReadonlyMap<number, readonly GjeldendeInfotrygdPeriode[]>
+): Vedtaksrad {
   const åpen = vedtak.datoInnvTom == null;
   const opphørsdato = stønad.datoOpphor ?? null;
 
   return {
     stønad,
     vedtak,
+    gjeldende: gjeldendeStatus(vedtak, perioderPerVedtak.get(vedtak.vedtakId) ?? []),
     beløp: radbeløp(vedtak.delytelser),
     løpende: åpen && opphørsdato === null,
     opphørt: åpen ? opphørsdato : null,
@@ -69,8 +92,12 @@ const nyesteVedtakFørst = (a: Vedtaksrad, b: Vedtaksrad): number =>
   tid(b.vedtak.tidspunktReg) - tid(a.vedtak.tidspunktReg) || b.vedtak.vedtakId - a.vedtak.vedtakId;
 
 /** Én rad per vedtak på tvers av stønadene, nyeste vedtak først. Ingen vedtak filtreres bort. */
-export function lagVedtaksrader(stønader: InfotrygdStonadMedArv[]): Vedtaksrad[] {
+export function lagVedtaksrader(
+  stønader: InfotrygdStonadMedArv[],
+  gjeldendePerioder: readonly GjeldendeInfotrygdPeriode[] = []
+): Vedtaksrad[] {
+  const perioderPerVedtak = Map.groupBy(gjeldendePerioder, (periode) => periode.vedtak.vedtakId);
   return stønader
-    .flatMap(({ vedtak, ...stønad }) => vedtak.map((v) => lagRad(stønad, v)))
+    .flatMap(({ vedtak, ...stønad }) => vedtak.map((v) => lagRad(stønad, v, perioderPerVedtak)))
     .toSorted(nyesteVedtakFørst);
 }
