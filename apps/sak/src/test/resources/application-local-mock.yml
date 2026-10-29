@@ -93,10 +93,3 @@ springdoc:
 # NAIS
 NAIS_NAMESPACE: grunn-og-hjelp
 NAIS_CLUSTER_NAME: local-mock
-
-# Task prosessering konfigurasjon
-prosessering:
-    rolle: 00000000-0000-0000-0000-000000000000
-    fixedDelayString:
-        in:
-            milliseconds: 3000

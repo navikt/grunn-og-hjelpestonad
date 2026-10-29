@@ -1,9 +1,9 @@
 package no.nav.grunn.og.hjelpestonad.brev
 
 import com.ninjasquad.springmockk.MockkBean
+import efterlatte.prosessering.spring.TaskService
 import io.mockk.every
 import io.mockk.verify
-import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.ApplicationLocalSetup
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevmalDto

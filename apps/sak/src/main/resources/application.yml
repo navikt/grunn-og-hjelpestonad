@@ -127,8 +127,6 @@ integrasjoner:
 
 # Swagger/OpenAPI konfigurasjon
 springdoc:
-    paths-to-exclude:
-        - /api/task/**
     api-docs:
         path: /v3/api-docs
     swagger-ui:
@@ -149,17 +147,10 @@ app:
         simulering-response-topic: helved.dryrun-respons.v1
         status-topic: helved.status.v1
 
-# Task prosessering konfigurasjon
-prosessering:
-    rolle: 928636f4-fd0d-4149-978e-a6fb68bb19de # 0000-GA-STDAPPS
-    continuousRunning:
-        enabled: true
-    fixedDelayString:
-        in:
-            milliseconds: 15000
-    delete:
-        after:
-            weeks: 16
+# Task-prosessering (efterlatte-prosessering)
+efterlatte-prosessering:
+    node: ${HOSTNAME:lokal}
+    max-antall-feil: 3
 
 unleash:
     api:

@@ -1,8 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.task
 
-import no.nav.familie.prosessering.AsyncTaskStep
-import no.nav.familie.prosessering.TaskStepBeskrivelse
-import no.nav.familie.prosessering.domene.Task
+import efterlatte.prosessering.TaskKontekst
+import efterlatte.prosessering.TaskStep
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakService
 import no.nav.grunn.og.hjelpestonad.infotrygd.InfotrygdFeedClient
@@ -10,19 +9,15 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
-@TaskStepBeskrivelse(
-    taskStepType = SendStartBehandlingTilInfotrygdFeedTask.TYPE,
-    maxAntallFeil = 3,
-    settTilManuellOppfølgning = true,
-    beskrivelse = "Sender startbehandling til Infotrygd-feed",
-)
 class SendStartBehandlingTilInfotrygdFeedTask(
     private val behandlingService: BehandlingService,
     private val fagsakService: FagsakService,
     private val infotrygdFeedClient: InfotrygdFeedClient,
-) : AsyncTaskStep {
-    override fun doTask(task: Task) {
-        val behandlingId = UUID.fromString(task.payload)
+) : TaskStep<UUID> {
+    override val type = TYPE
+
+    override fun utfor(kontekst: TaskKontekst<UUID>) {
+        val behandlingId = kontekst.payload
         val behandling =
             behandlingService.hentBehandling(behandlingId)
                 ?: error("Fant ikke behandling med id=$behandlingId")
@@ -32,8 +27,6 @@ class SendStartBehandlingTilInfotrygdFeedTask(
     }
 
     companion object {
-        const val TYPE = "SendStartBehandlingTilInfotrygdFeedTask"
-
-        fun opprettTask(behandlingId: UUID): Task = Task(TYPE, behandlingId.toString())
+        val TYPE = lagUuidTaskType("SendStartBehandlingTilInfotrygdFeedTask")
     }
 }

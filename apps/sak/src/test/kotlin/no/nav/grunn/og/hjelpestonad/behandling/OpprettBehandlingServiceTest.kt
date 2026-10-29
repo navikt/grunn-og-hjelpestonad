@@ -1,11 +1,13 @@
 package no.nav.grunn.og.hjelpestonad.behandling
 
+import efterlatte.prosessering.TaskId
+import efterlatte.prosessering.TaskType
+import efterlatte.prosessering.spring.TaskService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import io.mockk.verify
-import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.oppretteBehandling.OpprettBehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl.PdlFaktagrunnlagService
@@ -68,37 +70,28 @@ class OpprettBehandlingServiceTest {
 
     @Test
     fun `opprettBehandling sender startbehandling til Infotrygd for første behandling`() {
-        // Arrange
         every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
+        val typer = mutableListOf<TaskType<UUID>>()
+        val payloads = mutableListOf<UUID>()
+        every { taskService.opprett(capture(typer), capture(payloads), any(), any()) } returns TaskId(1)
 
-        // Act
         val behandling = opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
 
-        // Assert
-        verify {
-            taskService.save(
-                match {
-                    it.type == SendStartBehandlingTilInfotrygdFeedTask.TYPE &&
-                        it.payload == behandling.id.toString()
-                },
-            )
-        }
+        assertEquals(SendStartBehandlingTilInfotrygdFeedTask.TYPE.navn, typer.single().navn)
+        assertEquals(behandling.id, payloads.single())
     }
 
     @Test
     fun `opprettBehandling ikke sender startbehandling for senere behandlinger`() {
-        // Arrange
         every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
         val forrigeBehandling = mockk<Behandling>()
         every { forrigeBehandling.id } returns UUID.randomUUID()
         every { behandlingRepository.finnSisteIverksatteBehandling(any()) } returns forrigeBehandling
 
-        // Act
         opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
 
-        // Assert
         verify(exactly = 0) {
-            taskService.save(match { it.type == SendStartBehandlingTilInfotrygdFeedTask.TYPE })
+            taskService.opprett(any<TaskType<UUID>>(), any<UUID>(), any(), any())
         }
     }
 

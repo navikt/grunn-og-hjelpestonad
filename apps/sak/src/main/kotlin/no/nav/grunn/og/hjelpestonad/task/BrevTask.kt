@@ -1,33 +1,24 @@
 package no.nav.grunn.og.hjelpestonad.task
 
-import no.nav.familie.prosessering.AsyncTaskStep
-import no.nav.familie.prosessering.TaskStepBeskrivelse
-import no.nav.familie.prosessering.domene.Task
+import efterlatte.prosessering.TaskKontekst
+import efterlatte.prosessering.TaskStep
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.brev.FamilieDokumentClient
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import tools.jackson.databind.ObjectMapper
 import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
-@TaskStepBeskrivelse(
-    taskStepType = BrevTask.TYPE,
-    maxAntallFeil = 1,
-    settTilManuellOppfølgning = true,
-    beskrivelse = "Brev task",
-)
 class BrevTask(
     val brevService: BrevService,
     private val familieDokumentClient: FamilieDokumentClient,
-    private val objectMapper: ObjectMapper,
-) : AsyncTaskStep {
+) : TaskStep<BrevTask.LagBrevPdfTaskData> {
+    override val type = TYPE
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun doTask(task: Task) {
-        val data = objectMapper.readValue(task.payload, LagBrevPdfTaskData::class.java)
-        val behandlingId = data.behandlingId
+    override fun utfor(kontekst: TaskKontekst<LagBrevPdfTaskData>) {
+        val behandlingId = kontekst.payload.behandlingId
         val brev =
             brevService.hentBrev(behandlingId)
                 ?: error("Fant ikke brev for behandlingId=$behandlingId")
@@ -39,13 +30,7 @@ class BrevTask(
     }
 
     companion object {
-        const val TYPE = "BrevTask"
-
-        fun opprettTask(payload: String): Task =
-            Task(
-                TYPE,
-                payload,
-            )
+        val TYPE = lagTaskType<LagBrevPdfTaskData>("BrevTask")
     }
 
     data class LagBrevPdfTaskData(

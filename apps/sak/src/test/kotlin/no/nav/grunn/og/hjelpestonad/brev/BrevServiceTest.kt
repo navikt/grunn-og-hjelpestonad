@@ -17,18 +17,16 @@ import no.nav.grunn.og.hjelpestonad.saksbehandler.EntraProxyClient
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.springframework.data.repository.findByIdOrNull
-import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 import kotlin.test.Test
 
 class BrevServiceTest {
     private val brevRepository = mockk<BrevRepository>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
-    private val objectMapper = mockk<ObjectMapper>()
     private val entraProxyClient = mockk<EntraProxyClient>()
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
-    private val brevService = BrevService(brevRepository, behandlingService, objectMapper, entraProxyClient, endringshistorikkService, ansvarligSaksbehandlerService)
+    private val brevService = BrevService(brevRepository, behandlingService, entraProxyClient, endringshistorikkService, ansvarligSaksbehandlerService)
 
     @Test
     fun `mellomlagreBrev insert når brev ikke finnes`() {

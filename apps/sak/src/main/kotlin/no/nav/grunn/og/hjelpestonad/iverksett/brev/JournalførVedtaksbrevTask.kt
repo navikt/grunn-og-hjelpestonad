@@ -1,49 +1,35 @@
 package no.nav.grunn.og.hjelpestonad.iverksett.brev
 
-import no.nav.familie.prosessering.AsyncTaskStep
-import no.nav.familie.prosessering.TaskStepBeskrivelse
-import no.nav.familie.prosessering.domene.Task
+import efterlatte.prosessering.TaskKontekst
+import efterlatte.prosessering.TaskStep
+import no.nav.grunn.og.hjelpestonad.task.lagTaskType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.module.kotlin.readValue
 import java.util.UUID
 
 @Service
-@TaskStepBeskrivelse(
-    taskStepType = JournalførVedtaksbrevTask.TYPE,
-    maxAntallFeil = 5,
-    triggerTidVedFeilISekunder = 15,
-    beskrivelse = "Journalfører vedtaksbrev.",
-)
 class JournalførVedtaksbrevTask(
     private val dokarkivClient: DokarkivClient,
-    private val objectMapper: ObjectMapper,
     private val journalføringService: JournalføringService,
     private val journalpostForBehandlingService: JournalpostForBehandlingService,
-) : AsyncTaskStep {
+) : TaskStep<JournalførVedtaksbrevTask.JournalførVedtaksbrevTaskData> {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun doTask(task: Task) {
-        val taskData = objectMapper.readValue<JournalførVedtaksbrevTaskData>(task.payload)
-        val behandlingId = taskData.behandlingId
+    override val type = TYPE
+
+    override fun utfor(kontekst: TaskKontekst<JournalførVedtaksbrevTaskData>) {
+        val behandlingId = kontekst.payload.behandlingId
         val journalføringRequester = journalføringService.lagJournalføringRequester(behandlingId)
 
         journalføringRequester.forEach { request ->
             val response = dokarkivClient.arkiverDokument(request, true)
             journalpostForBehandlingService.lagreJournalpostId(behandlingId, response.journalpostId)
-            logger.info("Journalført vedtaksbrev for mottaker ${request.avsenderMottaker?.navn}: journalpostId=${response.journalpostId}")
+            logger.info("Journalført vedtaksbrev for behandlingId={}: journalpostId={}", behandlingId, response.journalpostId)
         }
     }
 
     companion object {
-        const val TYPE = "journalførVedtaksbrev"
-
-        fun opprettTask(payload: String): Task =
-            Task(
-                TYPE,
-                payload,
-            )
+        val TYPE = lagTaskType<JournalførVedtaksbrevTaskData>("journalførVedtaksbrev")
     }
 
     data class JournalførVedtaksbrevTaskData(
