@@ -48,6 +48,12 @@ interface VilkårPeriode<SELV : VilkårPeriode<SELV>> : Periodisert {
     val begrunnelse: String
     val sporbar: Sporbar
 
+    /**
+     * Kopi med ny id, gitt behandling og ny sporbarhet. Brukes når en revurdering arver
+     * vilkårene fra forrige behandling. Vurdering, begrunnelse og periode følger med uendret.
+     */
+    fun kopierTilBehandling(behandlingId: UUID): SELV
+
     fun erVilkårOppfylt(): Boolean = vurdering == Vurdering.JA
 
     /**

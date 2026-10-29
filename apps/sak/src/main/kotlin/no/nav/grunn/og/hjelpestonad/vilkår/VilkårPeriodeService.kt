@@ -34,6 +34,16 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
 
     open fun hentPerioder(behandlingId: UUID): List<VILKÅR_PERIODE> = repository.findByBehandlingId(behandlingId)
 
+    @Transactional
+    open fun kopierPerioder(
+        fraBehandlingId: UUID,
+        tilBehandlingId: UUID,
+    ): List<VILKÅR_PERIODE> {
+        val kopier = repository.findByBehandlingId(fraBehandlingId).map { it.kopierTilBehandling(tilBehandlingId) }
+        repository.insertAll(kopier)
+        return kopier
+    }
+
     open fun hentPeriodePåBehandling(
         behandlingId: UUID,
         periodeId: UUID,

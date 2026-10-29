@@ -30,6 +30,8 @@ data class VilkårDiagnose(
      */
     override fun tidslinjenøkkel() = kode
 
+    override fun kopierTilBehandling(behandlingId: UUID) = copy(id = UUID.randomUUID(), behandlingId = behandlingId, sporbar = Sporbar())
+
     override fun kopierMedTidsrom(
         id: UUID,
         fraOgMedDato: LocalDate?,

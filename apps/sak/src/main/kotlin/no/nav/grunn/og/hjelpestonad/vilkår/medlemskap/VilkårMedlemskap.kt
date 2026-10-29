@@ -27,6 +27,8 @@ data class VilkårMedlemskap(
     override val sporbar: Sporbar = Sporbar(),
     val regelverk: Regelverk,
 ) : VilkårPeriode<VilkårMedlemskap> {
+    override fun kopierTilBehandling(behandlingId: UUID) = copy(id = UUID.randomUUID(), behandlingId = behandlingId, sporbar = Sporbar())
+
     override fun kopierMedTidsrom(
         id: UUID,
         fraOgMedDato: LocalDate?,
