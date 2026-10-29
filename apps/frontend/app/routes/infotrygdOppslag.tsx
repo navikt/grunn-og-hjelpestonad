@@ -1,8 +1,7 @@
 import React, { useState, type FormEvent } from "react";
-import { Alert, Box, Button, Heading, HStack, Loader, TextField, VStack } from "@navikt/ds-react";
+import { Box, Button, HStack, TextField, VStack } from "@navikt/ds-react";
 import type { Route } from "./+types/infotrygdOppslag";
-import { useHentInfotrygdHistorikk } from "~/hooks/useHentInfotrygdHistorikk";
-import { InfotrygdVedtak } from "~/komponenter/infotrygd/InfotrygdVedtak";
+import { InfotrygdOversikt } from "~/komponenter/infotrygd/InfotrygdOversikt";
 import { Side } from "~/komponenter/layout/Side";
 
 export function meta(_: Route.MetaArgs) {
@@ -30,10 +29,6 @@ export default function InfotrygdOppslag() {
     <Box flexGrow="1" minHeight="0" overflowY="auto">
       <Side>
         <VStack gap="space-8">
-          <Heading level="1" size="large" spacing>
-            Oppslag i Infotrygd
-          </Heading>
-
           <form onSubmit={håndterSubmit}>
             <HStack gap="space-8" align="end">
               <TextField
@@ -49,22 +44,10 @@ export default function InfotrygdOppslag() {
           </form>
 
           {innsendtPersonident && (
-            <Oppslagsresultat key={innsendtPersonident} personident={innsendtPersonident} />
+            <InfotrygdOversikt key={innsendtPersonident} personident={innsendtPersonident} />
           )}
         </VStack>
       </Side>
     </Box>
   );
-}
-
-function Oppslagsresultat({ personident }: { personident: string }) {
-  const historikkState = useHentInfotrygdHistorikk(personident);
-
-  return historikkState.laster ? (
-    <Loader title="Henter vedtak fra Infotrygd…" />
-  ) : historikkState.melding ? (
-    <Alert variant="warning">{historikkState.melding}</Alert>
-  ) : historikkState.data != null ? (
-    <InfotrygdVedtak data={historikkState.data} />
-  ) : null;
 }
