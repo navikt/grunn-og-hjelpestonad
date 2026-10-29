@@ -1,10 +1,11 @@
 package no.nav.grunn.og.hjelpestonad.brev
 
+import efterlatte.prosessering.spring.TaskService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevResponse
+import no.nav.grunn.og.hjelpestonad.task.BrevTask
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -35,8 +36,7 @@ class BrevController(
     ): ResponseEntity<String> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
         brevService.oppdaterBeslutterForBrev(behandlingId)
-        val task = brevService.lagBrevPdfTask(behandlingId)
-        taskService.save(task)
+        taskService.opprettIEgenTransaksjon(BrevTask.TYPE, brevService.lagBrevPdfTask(behandlingId))
 
         return ResponseEntity.ok("OK")
     }

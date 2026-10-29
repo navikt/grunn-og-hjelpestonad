@@ -62,7 +62,6 @@ class InfotrygdFeedClientTest {
 
     @Test
     fun `sender startbehandling med maskintoken`() {
-        // Arrange
         wireMockServer.stubFor(
             post(urlEqualTo("/api/grunnstonad/v1/feed/startbehandlingsmelding"))
                 .withRequestBody(equalToJson("""{"personIdent":"12345678901"}"""))
@@ -70,16 +69,13 @@ class InfotrygdFeedClientTest {
                 .willReturn(aResponse().withStatus(204)),
         )
 
-        // Act
         client.sendStartBehandling("12345678901")
 
-        // Assert
         verify(exactly = 1) { texasClient.hentMaskinToken(AUDIENCE) }
     }
 
     @Test
     fun `sender vedtak med første stønadsdato`() {
-        // Arrange
         wireMockServer.stubFor(
             post(urlEqualTo("/api/grunnstonad/v1/feed/vedtaksmelding"))
                 .withRequestBody(equalToJson("""{"personIdent":"12345678901","datoStartNyGrunnstønad":"2026-01-01"}"""))
@@ -87,22 +83,18 @@ class InfotrygdFeedClientTest {
                 .willReturn(aResponse().withStatus(204)),
         )
 
-        // Act
         client.sendVedtak("12345678901", LocalDate.of(2026, 1, 1))
 
-        // Assert
         verify(exactly = 1) { texasClient.hentMaskinToken(AUDIENCE) }
     }
 
     @Test
     fun `kaster exception når feeden returnerer feilstatus`() {
-        // Arrange
         wireMockServer.stubFor(
             post(urlEqualTo("/api/grunnstonad/v1/feed/startbehandlingsmelding"))
                 .willReturn(aResponse().withStatus(500)),
         )
 
-        // Act & Assert
         assertFailsWith<RestClientResponseException> { client.sendStartBehandling("12345678901") }
     }
 }

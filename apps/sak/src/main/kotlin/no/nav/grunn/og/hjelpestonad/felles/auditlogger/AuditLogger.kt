@@ -1,7 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.felles.auditlogger
 
 import jakarta.servlet.http.HttpServletRequest
-import no.nav.familie.prosessering.util.MDCConstants
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -9,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
+
+private const val MDC_CALL_ID = "callId"
 
 /**
  * [custom1], [custom2], [custom3] brukes for å logge ekstra felter, eks fagsak, behandling,
@@ -100,5 +101,5 @@ class AuditLogger(
             data.custom3?.let { "cs6Label=${it.key} cs6=${it.value}" },
         ).joinToString(" ")
 
-    private fun getCallId(): String = MDC.get(MDCConstants.MDC_CALL_ID) ?: throw IllegalStateException("Mangler callId")
+    private fun getCallId(): String = MDC.get(MDC_CALL_ID) ?: throw IllegalStateException("Mangler callId")
 }

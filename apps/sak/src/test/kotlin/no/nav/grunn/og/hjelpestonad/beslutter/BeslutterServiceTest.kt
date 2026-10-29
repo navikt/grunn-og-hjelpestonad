@@ -1,11 +1,13 @@
 package no.nav.grunn.og.hjelpestonad.beslutter
 
+import efterlatte.prosessering.TaskId
+import efterlatte.prosessering.TaskType
+import efterlatte.prosessering.spring.TaskService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import io.mockk.verify
-import no.nav.familie.prosessering.internal.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
@@ -25,6 +27,9 @@ import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.Oppgave
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
+import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTask
+import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTaskData
+import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
 import no.nav.grunn.og.hjelpestonad.vedtak.AktivitetstypeBarnetilsyn
 import no.nav.grunn.og.hjelpestonad.vedtak.GrunnstønadPeriode
@@ -35,7 +40,6 @@ import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.springframework.http.HttpStatus
-import tools.jackson.databind.ObjectMapper
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
@@ -48,7 +52,6 @@ class BeslutterServiceTest {
     private val oppgaveService = mockk<OppgaveService>(relaxed = true)
     private val totrinnskontrollService = mockk<TotrinnskontrollService>(relaxed = true)
     private val taskService = mockk<TaskService>(relaxed = true)
-    private val objectMapper = mockk<ObjectMapper>(relaxed = true)
     private val lagBehandleSakOppgaveTask = mockk<LagBehandleSakOppgaveTask>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val vedtakService = mockk<VedtakService>(relaxed = true)
@@ -62,7 +65,6 @@ class BeslutterServiceTest {
             oppgaveService = oppgaveService,
             totrinnskontrollService = totrinnskontrollService,
             taskService = taskService,
-            objectMapper = objectMapper,
             lagBehandleSakOppgaveTask = lagBehandleSakOppgaveTask,
             ansvarligSaksbehandlerService = ansvarligSaksbehandlerService,
             vedtakService = vedtakService,
@@ -133,7 +135,6 @@ class BeslutterServiceTest {
 
     @Test
     fun `godkjent innvilget vedtak sender vedtak til Infotrygd-feed`() {
-        // Arrange
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
             behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
@@ -156,18 +157,18 @@ class BeslutterServiceTest {
                 opprettetAv = "Z123456",
             )
 
-        // Act
+        val typer = mutableListOf<TaskType<UUID>>()
+        val payloads = mutableListOf<UUID>()
+        every { taskService.opprett(capture(typer), capture(payloads), any(), any()) } returns TaskId(1)
         beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
 
         // Assert
-        verify {
-            taskService.save(
-                match {
-                    it.type == SendVedtakTilInfotrygdFeedTask.TYPE &&
-                        it.payload == behandlingId.toString()
-                },
-            )
-        }
+        assertThat(
+            typer
+                .zip(payloads)
+                .filter { (type, _) -> type.navn == SendVedtakTilInfotrygdFeedTask.TYPE.navn }
+                .map { (_, payload) -> payload },
+        ).containsExactly(behandlingId)
     }
 
     @Test
@@ -209,7 +210,16 @@ class BeslutterServiceTest {
             unmockkObject(SikkerhetContext)
         }
 
-        verify { taskService.save(any()) }
+        verify {
+            taskService.opprett(
+                FerdigstillOppgaveTask.TYPE,
+                match<FerdigstillOppgaveTaskData> {
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeEYO.GOD_VED
+                },
+                any(),
+                any(),
+            )
+        }
         verify { lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(behandling, "Z123456") }
         verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.UTREDES) }
         verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.ANGRET_SEND_TIL_BESLUTTER) }
@@ -243,7 +253,12 @@ class BeslutterServiceTest {
     }
 
     private fun verifyIngenEndringer() {
-        verify(exactly = 0) { taskService.save(any()) }
+        verify(exactly = 0) {
+            taskService.opprett(any<TaskType<FerdigstillOppgaveTaskData>>(), any<FerdigstillOppgaveTaskData>(), any(), any())
+        }
+        verify(exactly = 0) {
+            taskService.opprett(any<TaskType<OpprettOppgaveTaskData>>(), any<OpprettOppgaveTaskData>(), any(), any())
+        }
         verify(exactly = 0) { lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(any(), any()) }
         verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any()) }

@@ -48,7 +48,6 @@ spec:
             rules:
                 -   application: grunn-og-hjelpestonad-frontend
                 -   application: grunn-og-hjelpestonad-frontend-lokal
-                -   application: etterlatte-prosessering
         outbound:
             rules:
                 -   application: grunn-og-hjelpestonad-frontend

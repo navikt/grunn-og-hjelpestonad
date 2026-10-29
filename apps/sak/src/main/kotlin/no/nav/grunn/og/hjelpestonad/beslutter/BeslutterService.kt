@@ -1,6 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.beslutter
 
-import no.nav.familie.prosessering.internal.TaskService
+import efterlatte.prosessering.spring.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
@@ -16,7 +16,9 @@ import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
 import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTask
+import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTask
+import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
@@ -24,7 +26,6 @@ import no.nav.grunn.og.hjelpestonad.vedtak.tilBehandlingResultat
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tools.jackson.databind.ObjectMapper
 import java.util.UUID
 
 @Service
@@ -35,7 +36,6 @@ class BeslutterService(
     private val oppgaveService: OppgaveService,
     private val totrinnskontrollService: TotrinnskontrollService,
     private val taskService: TaskService,
-    private val objectMapper: ObjectMapper,
     private val lagBehandleSakOppgaveTask: LagBehandleSakOppgaveTask,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val vedtakService: VedtakService,
@@ -58,18 +58,14 @@ class BeslutterService(
 
         val aktivOppgavetype = oppgaveService.hentAktivOppgavetype(behandlingId)
 
-        FerdigstillOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = aktivOppgavetype,
-            objectMapper = objectMapper,
-            taskService = taskService,
+        taskService.opprett(
+            FerdigstillOppgaveTask.TYPE,
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = aktivOppgavetype),
         )
 
-        OpprettOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = OppgavetypeEYO.GOD_VED,
-            objectMapper = objectMapper,
-            taskService = taskService,
+        taskService.opprett(
+            OpprettOppgaveTask.TYPE,
+            OpprettOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeEYO.GOD_VED),
         )
     }
 
@@ -86,11 +82,9 @@ class BeslutterService(
             )
         }
 
-        FerdigstillOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = aktivOppgavetype,
-            objectMapper = objectMapper,
-            taskService = taskService,
+        taskService.opprett(
+            FerdigstillOppgaveTask.TYPE,
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = aktivOppgavetype),
         )
 
         lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(
@@ -150,15 +144,13 @@ class BeslutterService(
             endringType = EndringType.BESLUTTER_GODKJENT,
         )
 
-        FerdigstillOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = OppgavetypeEYO.GOD_VED,
-            objectMapper = objectMapper,
-            taskService = taskService,
+        taskService.opprett(
+            FerdigstillOppgaveTask.TYPE,
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeEYO.GOD_VED),
         )
 
         if (vedtak?.resultatType == ResultatType.INNVILGET) {
-            taskService.save(SendVedtakTilInfotrygdFeedTask.opprettTask(behandlingId))
+            taskService.opprett(SendVedtakTilInfotrygdFeedTask.TYPE, behandlingId)
         }
     }
 
@@ -188,19 +180,18 @@ class BeslutterService(
             begrunnelse = begrunnelse,
         )
 
-        FerdigstillOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = OppgavetypeEYO.GOD_VED,
-            objectMapper = objectMapper,
-            taskService = taskService,
+        taskService.opprett(
+            FerdigstillOppgaveTask.TYPE,
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeEYO.GOD_VED),
         )
 
-        OpprettOppgaveTask.opprettTask(
-            behandlingId = behandlingId,
-            oppgavetype = OppgavetypeEYO.BEH_UND_VED,
-            tilordnetSaksbehandler = saksbehandlerSomSendteTilBeslutter,
-            objectMapper = objectMapper,
-            taskService = taskService,
+        taskService.opprett(
+            OpprettOppgaveTask.TYPE,
+            OpprettOppgaveTaskData(
+                behandlingId = behandlingId,
+                oppgavetype = OppgavetypeEYO.BEH_UND_VED,
+                tilordnetSaksbehandler = saksbehandlerSomSendteTilBeslutter,
+            ),
         )
     }
 

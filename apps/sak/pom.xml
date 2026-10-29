@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
     <groupId>no.nav</groupId>
@@ -21,6 +21,10 @@
         <repository>
             <id>github</id>
             <url>https://maven.pkg.github.com/navikt/familie-felles</url>
+        </repository>
+        <repository>
+            <id>github-efterlatte-prosessering</id>
+            <url>https://maven.pkg.github.com/navikt/efterlatte-prosessering</url>
         </repository>
     </repositories>
     <url/>
@@ -45,8 +49,8 @@
         <flyway.version>13.5.0</flyway.version>
         <unleash.version>12.3.1</unleash.version>
         <mockk.version>1.14.11</mockk.version>
-        <prosessering.version>2.20260817115650_f13f507</prosessering.version>
-        <familie-felles.version>4.20261014144209_63578dc</familie-felles.version>
+        <efterlatte-prosessering.version>1.20261027142018_2544cfc</efterlatte-prosessering.version>
+        <familie-felles.version>4.20261026180911_c3ff6d9</familie-felles.version>
         <openapi-generator.version>7.26.0</openapi-generator.version>
         <diagnosekoder.version>1.2026.0</diagnosekoder.version>
 
@@ -120,14 +124,9 @@
             <version>${unleash.version}</version>
         </dependency>
         <dependency>
-            <groupId>no.nav.familie</groupId>
-            <artifactId>prosessering-core</artifactId>
-            <version>${prosessering.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>no.nav.familie</groupId>
-            <artifactId>prosessering-web-spring-security</artifactId>
-            <version>${prosessering.version}</version>
+            <groupId>no.nav.efterlatte</groupId>
+            <artifactId>prosessering-spring-boot-starter</artifactId>
+            <version>${efterlatte-prosessering.version}</version>
         </dependency>
         <dependency>
             <groupId>no.nav.familie.felles</groupId>
