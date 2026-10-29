@@ -1,5 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.brev
 
+import EnhetResponse
+import SaksbehandlerResponse
+import efterlatte.prosessering.spring.TaskService
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -14,6 +17,7 @@ import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.saksbehandler.EntraProxyClient
+import no.nav.grunn.og.hjelpestonad.task.BrevTask
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.springframework.data.repository.findByIdOrNull
@@ -26,7 +30,9 @@ class BrevServiceTest {
     private val entraProxyClient = mockk<EntraProxyClient>()
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
-    private val brevService = BrevService(brevRepository, behandlingService, entraProxyClient, endringshistorikkService, ansvarligSaksbehandlerService)
+    private val taskService = mockk<TaskService>(relaxed = true)
+    private val brevService =
+        BrevService(brevRepository, behandlingService, entraProxyClient, endringshistorikkService, ansvarligSaksbehandlerService, taskService)
 
     @Test
     fun `mellomlagreBrev insert når brev ikke finnes`() {
@@ -125,6 +131,44 @@ class BrevServiceTest {
 
         assertThat(result).isNull()
     }
+
+    @Test
+    fun `oppdaterBeslutterForBrev lagrer beslutter og oppretter brev-task`() {
+        val behandlingId = UUID.randomUUID()
+        every { entraProxyClient.hentSaksbehandlerInfo(any()) } returns saksbehandlerResponse()
+        every { brevRepository.findByIdOrNull(behandlingId) } returns Brev(behandlingId = behandlingId, brevJson = gyldigBrevRequest())
+        every { brevRepository.update(any()) } answers { firstArg<Brev>() }
+
+        brevService.oppdaterBeslutterForBrev(behandlingId)
+
+        verify(exactly = 1) { brevRepository.update(match { it.beslutter == "Fornavn Etternavn" && it.beslutterEnhetnummer == "4415" }) }
+        verify(exactly = 1) {
+            taskService.opprett(BrevTask.TYPE, match<BrevTask.LagBrevPdfTaskData> { it.behandlingId == behandlingId })
+        }
+    }
+
+    @Test
+    fun `oppdaterBeslutterForBrev oppretter ikke task når brev mangler`() {
+        val behandlingId = UUID.randomUUID()
+        every { entraProxyClient.hentSaksbehandlerInfo(any()) } returns saksbehandlerResponse()
+        every { brevRepository.findByIdOrNull(behandlingId) } returns null
+
+        assertThatThrownBy { brevService.oppdaterBeslutterForBrev(behandlingId) }
+            .isInstanceOf(IllegalStateException::class.java)
+
+        verify(exactly = 0) { taskService.opprett<Any>(any(), any(), any(), any()) }
+    }
+
+    private fun saksbehandlerResponse() =
+        SaksbehandlerResponse(
+            navIdent = "Z999999",
+            visningNavn = "Fornavn Etternavn",
+            fornavn = "Fornavn",
+            etternavn = "Etternavn",
+            tIdent = "Z999999",
+            epost = "fornavn.etternavn@nav.no",
+            enhet = EnhetResponse(enhetnummer = "4415", navn = "Nav Molde"),
+        )
 
     private fun gyldigBrevRequest() =
         BrevRequest(

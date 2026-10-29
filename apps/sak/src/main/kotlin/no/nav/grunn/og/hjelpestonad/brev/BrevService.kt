@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.brev
 
+import efterlatte.prosessering.spring.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
@@ -23,8 +24,9 @@ class BrevService(
     private val entraProxyClient: EntraProxyClient,
     private val endringshistorikkService: EndringshistorikkService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
+    private val taskService: TaskService,
 ) {
-    fun lagBrevPdfTask(behandlingId: UUID): BrevTask.LagBrevPdfTaskData = BrevTask.LagBrevPdfTaskData(behandlingId)
+    private fun lagBrevPdfTask(behandlingId: UUID): BrevTask.LagBrevPdfTaskData = BrevTask.LagBrevPdfTaskData(behandlingId)
 
     @Transactional
     fun mellomlagreBrev(
@@ -93,6 +95,7 @@ class BrevService(
             behandlingId = behandlingId,
             endringType = EndringType.BESLUTTER_GODKJENT,
         )
+        taskService.opprett(BrevTask.TYPE, lagBrevPdfTask(behandlingId))
     }
 
     fun lagHtml(brev: Brev): String {

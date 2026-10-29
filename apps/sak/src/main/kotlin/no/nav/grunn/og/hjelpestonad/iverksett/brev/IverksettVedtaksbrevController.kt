@@ -31,7 +31,7 @@ class IverksettVedtaksbrevController(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<String> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        taskService.opprett(
+        taskService.opprettIEgenTransaksjon(
             JournalførVedtaksbrevTask.TYPE,
             iverksettVedtaksbrevService.opprettIverksettVedtaksbrevTask(behandlingId),
         )
@@ -49,7 +49,7 @@ class IverksettVedtaksbrevController(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<String> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        taskService.opprett(
+        taskService.opprettIEgenTransaksjon(
             DistribuerVedtaksbrevTask.TYPE,
             iverksettVedtaksbrevService.opprettDistribuerVedtaksbrevTask(behandlingId),
         )
