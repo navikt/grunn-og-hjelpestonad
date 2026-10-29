@@ -1,6 +1,6 @@
 # 03: Avklar perioder og utbetalt beløp fra Infotrygd
 
-**What to build:** En beslutning om hvordan en migreringsbehandling får perioder og utbetalt beløp per måned fra Infotrygd. Ticket 05 bygger på svaret. Dette krever kunnskap om Infotrygd og fagsiden, og kan ikke avgjøres av en agent alene.
+**What to build:** En beslutning om hvordan en migreringsbehandling får perioder og utbetalt beløp per måned fra Infotrygd. Ticket 14 og 15 bygger på svaret. Dette krever kunnskap om Infotrygd og fagsiden, og kan ikke avgjøres av en agent alene.
 
 **Blocked by:** None (can start immediately)
 

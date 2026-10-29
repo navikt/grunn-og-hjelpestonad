@@ -1,7 +1,7 @@
 # Avhengigheter mellom ticketene
 
 Ticketene ligger i [issues/](issues/), og spec-en i [spec.md](spec.md). Ticket 02
-og 04–12 er lukket som `wontfix` (ADR-0013), og ticket 01 reverseres av 13.
+og 04–12 er slettet (ADR-0013), og ticket 01 reverseres av 13.
 
 - Hvite tickets er `ready-for-agent`.
 - Oransje tickets er `ready-for-human`. De er rød sone eller krever kunnskap om
