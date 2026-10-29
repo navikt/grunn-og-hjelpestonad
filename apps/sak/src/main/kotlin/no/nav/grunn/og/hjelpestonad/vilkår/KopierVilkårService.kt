@@ -10,7 +10,6 @@ import java.util.UUID
 
 /**
  * En revurdering starter med vilkårene fra forrige iverksatte behandling, som i EF.
- * Perioder med rett kopieres ikke. De utledes når vilkårssteget fullføres.
  */
 @Service
 class KopierVilkårService(
