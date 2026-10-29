@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
     <groupId>no.nav</groupId>
@@ -38,16 +38,16 @@
     </scm>
     <properties>
         <java.version>25</java.version>
-        <kotlin.version>2.4.20</kotlin.version>
+        <kotlin.version>2.4.21</kotlin.version>
         <kotlin.jvm.target>21</kotlin.jvm.target>
         <ktlint.version>1.8.0</ktlint.version>
         <springdoc.version>3.1.1</springdoc.version>
         <flyway.version>13.5.0</flyway.version>
-        <unleash.version>12.3.0</unleash.version>
+        <unleash.version>12.3.1</unleash.version>
         <mockk.version>1.14.11</mockk.version>
-        <prosessering.version>2.20260817115650_f13f507</prosessering.version>
-        <familie-felles.version>4.20260818093920_16ad74a</familie-felles.version>
-        <openapi-generator.version>7.25.0</openapi-generator.version>
+        <prosessering.version>2.20261027150838_57ccae7</prosessering.version>
+        <familie-felles.version>4.20261026180911_c3ff6d9</familie-felles.version>
+        <openapi-generator.version>7.26.0</openapi-generator.version>
         <diagnosekoder.version>1.2026.0</diagnosekoder.version>
 
     </properties>
