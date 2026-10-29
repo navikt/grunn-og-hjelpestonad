@@ -36,7 +36,7 @@ class BrevController(
     ): ResponseEntity<String> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
         brevService.oppdaterBeslutterForBrev(behandlingId)
-        taskService.opprettIEgenTransaksjon(BrevTask.TYPE, brevService.lagBrevPdfTask(behandlingId))
+        taskService.opprett(BrevTask.TYPE, brevService.lagBrevPdfTask(behandlingId))
 
         return ResponseEntity.ok("OK")
     }
