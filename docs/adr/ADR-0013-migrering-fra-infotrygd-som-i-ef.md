@@ -31,8 +31,8 @@ Teamet vil heller gjøre det som familie-ef-sak:
 - En revurdering kopierer vilkårene fra forrige behandling
   (`RevurderingService`).
 
-Bare ticket 01 i den gamle spec-en er gjort: startmåned ble fjernet fra tilkjent
-ytelse, og V46 dropper kolonnen.
+Bare ticket 01 i den gamle spec-en ble gjort (commit `1a4d1b3`): startmåned ble
+fjernet fra tilkjent ytelse, og V46 dropper kolonnen.
 
 ## Beslutning
 
@@ -157,8 +157,8 @@ sporbarheten erstatter fireøyneprinsippet.
   rettes i Infotrygd først.
 - Vilkårene i en migrert sak er ikke vurdert av noen. Den første revurderingen
   kopierer dem som oppfylt.
-- Ticket 01 må reverseres. V44 og V46 blir liggende, og en ny migrering legger
-  kolonnen til igjen.
+- Commit `1a4d1b3` fra ticket 01 må reverseres. V44 og V46 blir liggende, og en
+  ny migrering legger kolonnen til igjen.
 - En migrering kan ikke rulles tilbake etter at Infotrygd har sluttet å
   utbetale. Feil må rettes med en revurdering.
 

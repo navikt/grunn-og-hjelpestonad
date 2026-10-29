@@ -7,9 +7,9 @@ avrundingen i [ADR-0011](../../docs/adr/ADR-0011-avrunding-og-utbetalingsgrunnla
 og begrepene under «Behandling» i [CONTEXT.md](../../CONTEXT.md).
 
 Spec-en erstatter versjonen fra 2026-10-27, der saksbehandler valgte
-migreringsdato og beslutter godkjente migreringen. Ticket 02 og 04–12 hørte til
-den versjonen og er slettet. Begrunnelsen står i ADR-0013. Ticket 01 reverseres
-av ticket 13.
+migreringsdato og beslutter godkjente migreringen. Ticket 01, 02 og 04–12 hørte
+til den versjonen og er slettet. Begrunnelsen står i ADR-0013. Ticket 01 var
+gjort (commit `1a4d1b3`), og ticket 13 reverserer den.
 
 ## Problem
 

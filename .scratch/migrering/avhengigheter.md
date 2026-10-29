@@ -1,7 +1,8 @@
 # Avhengigheter mellom ticketene
 
-Ticketene ligger i [issues/](issues/), og spec-en i [spec.md](spec.md). Ticket 02
-og 04–12 er slettet (ADR-0013), og ticket 01 reverseres av 13.
+Ticketene ligger i [issues/](issues/), og spec-en i [spec.md](spec.md). Ticket 01,
+02 og 04–12 er slettet (ADR-0013). Ticket 13 reverserer commit `1a4d1b3` fra
+ticket 01.
 
 - Hvite tickets er `ready-for-agent`.
 - Oransje tickets er `ready-for-human`. De er rød sone eller krever kunnskap om
