@@ -18,7 +18,6 @@ import java.util.UUID
 class IverksettVedtaksbrevController(
     private val taskService: TaskService,
     private val iverksettVedtaksbrevService: IverksettVedtaksbrevService,
-    private val distribuerVedtaksbrevTask: DistribuerVedtaksbrevTask,
     private val tilgangService: TilgangService,
 ) {
     @PostMapping("/lag-iverksettVedtaksbrevController-task/{behandlingId}")
