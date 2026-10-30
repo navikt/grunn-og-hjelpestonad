@@ -26,8 +26,8 @@ class Auditlogg {
 enum class Oppslag(
     val tekst: String,
 ) {
-    HENTE_GRUNNSTØNADER("se saker om grunnstønad med vedtak, trygdetid, sats og evaluering i Infotrygd"),
-    HENTE_HJELPESTØNADER("se saker om hjelpestønad med vedtak, trygdetid, sats og evaluering i Infotrygd"),
+    HENTE_GRUNNSTØNADER("se vedtak om grunnstønad med diagnose i Infotrygd"),
+    HENTE_HJELPESTØNADER("se vedtak om hjelpestønad med diagnose i Infotrygd"),
     SJEKKE_OM_FINNES_I_INFOTRYGD("sjekke om personen har vedtak eller saker i Infotrygd"),
     HENTE_SAKER("se saker i Infotrygd"),
 }
