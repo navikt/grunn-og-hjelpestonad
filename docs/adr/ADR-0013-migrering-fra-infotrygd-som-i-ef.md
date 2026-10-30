@@ -1,6 +1,6 @@
 # ADR-0013: Migrering fra Infotrygd som i EF
 
-**Dato:** 2026-10-28
+**Dato:** 2026-10-28, endret 2026-10-30
 **Status:** Foreslått
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 
@@ -53,18 +53,25 @@ fjernet fra tilkjent ytelse, og V46 dropper kolonnen.
 - Systemet velger første måned. Den er den seneste av inneværende måned og
   periodens fom, som `maxOf(kjøremåned, fom)` i EF. Saksbehandler velger ingen
   dato.
+- Periodene kommer fra gjeldende perioder i
+  [ADR-0012](ADR-0012-arv-og-gjeldende-perioder-fra-infotrygd.md), de samme som
+  saksbehandler ser i Infotrygd-oppslaget. Migreringen bruker den siste perioden.
+  Hvordan perioder, Infotrygd-beløp, sats og trygdetid leses fra Infotrygd, står
+  i [ticket 03](../../.scratch/migrering/issues/03-avklar-perioder-og-utbetalt-belop-fra-infotrygd.md).
 - Har personen ingen periode fremover i tid, migreres siste måned av siste
   periode med beløp, som i EF.
-- Migreringen stoppes hvis:
+- Migreringen stoppes blant annet hvis:
   - personen har en åpen sak i Infotrygd, utenom klage og anke
-  - det er mer enn én aktiv periode fremover i tid, etter at like perioder som
-    henger sammen, er slått sammen
+  - det er mer enn én gjeldende periode fremover i tid, etter at like perioder
+    som henger sammen, er slått sammen
   - fom ikke er første dag eller tom ikke er siste dag i måneden
   - beløpet er 0
-  - siste utbetaling i Infotrygd er eldre enn datogrensen
+  - siste periode slutter før datogrensen 2026-01-01. EF bruker 2019-01-01.
   - fagsaken har en behandling som ikke er henlagt eller avslått
-- Kontroll 1: utbetalingsbeløpet per måned er likt det Infotrygd utbetalte.
-  Kontrollen sammenligner beløpet etter avrundingen i oppdrag (ADR-0011).
+
+  Hele listen står i ticket 03.
+- Kontroll 1: utbetalingsbeløpet per måned er likt Infotrygd-beløpet. Kontrollen
+  sammenligner beløpet etter avrundingen i oppdrag (ADR-0011).
 - Simuleringen må vise 0 kr i feilutbetaling og 0 kr i etterbetaling.
 - Ingen av sperrene kan overstyres.
 
