@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.infotrygd.stønad
 import io.swagger.v3.oas.annotations.Operation
 import no.nav.grunn.og.hjelpestonad.infotrygd.sak.PersonidenterRequest
 import no.nav.grunn.og.hjelpestonad.infotrygd.sak.SakRepository
+import no.nav.grunn.og.hjelpestonad.infotrygd.tilgangskontroll.Oppslag
 import no.nav.grunn.og.hjelpestonad.infotrygd.tilgangskontroll.TilgangService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -24,7 +25,7 @@ class StønadController(
         @RequestBody request: PersonidenterRequest,
     ): InfotrygdFinnesResponse {
         request.valider()
-        tilgangService.validerTilgangTilPersoner(request.personidenter)
+        tilgangService.validerTilgangTilPersoner(request.personidenter, Oppslag.SJEKKE_OM_FINNES_I_INFOTRYGD)
         return InfotrygdFinnesResponse(
             vedtak = stønadRepository.finnVedtakstreff(request.personidenter),
             saker = sakRepository.finnesSaker(request.personidenter),

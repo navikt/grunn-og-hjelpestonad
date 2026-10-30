@@ -43,7 +43,7 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { identer -> identer.map { tilgang(it) } }
 
-        tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2))
+        tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2), OPPSLAG)
 
         assertEquals(listOf(setOf(PERSON_1, PERSON_2)), tilgangsmaskin.kall)
     }
@@ -53,7 +53,7 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { listOf(tilgang(PERSON_1), avslag(PERSON_2, null)) }
 
-        val feil = assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2)) }
+        val feil = assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2), OPPSLAG) }
 
         assertEquals(TilgangService.MANGLER_TILGANG_FLERE_MELDING, feil.melding)
     }
@@ -63,7 +63,7 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { listOf(avslag(PERSON_1, Avvisningskode.AVVIST_SKJERMING)) }
 
-        val feil = assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1)) }
+        val feil = assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG) }
 
         assertEquals(Avvisningskode.AVVIST_SKJERMING.feilmelding, feil.melding)
     }
@@ -75,7 +75,7 @@ class TilgangServiceTest {
             listOf(avslag(PERSON_1, Avvisningskode.AVVIST_SKJERMING), avslag(PERSON_2, Avvisningskode.AVVIST_FORTROLIG_ADRESSE))
         }
 
-        val feil = assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2)) }
+        val feil = assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2), OPPSLAG) }
 
         assertEquals(TilgangService.MANGLER_TILGANG_FLERE_MELDING, feil.melding)
     }
@@ -85,7 +85,7 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { listOf(tilgang(PERSON_1)) }
 
-        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2)) }
+        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2), OPPSLAG) }
     }
 
     @Test
@@ -93,7 +93,7 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { listOf(tilgang(PERSON_2)) }
 
-        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1)) }
+        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG) }
     }
 
     @Test
@@ -101,7 +101,7 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { listOf(tilgang(PERSON_1), avslag(PERSON_1, null)) }
 
-        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1)) }
+        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG) }
     }
 
     @Test
@@ -109,7 +109,7 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { listOf(avslag(PERSON_1, null), avslag(PERSON_2, Avvisningskode.AVVIST_SKJERMING)) }
 
-        val feil = assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2)) }
+        val feil = assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2), OPPSLAG) }
 
         assertFalse(feil.melding.contains(PERSON_1) || feil.melding.contains(PERSON_2))
     }
@@ -119,7 +119,7 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { throw TilgangsmaskinException("Feil ved kall mot tilgangsmaskinen: HTTP 500", 500) }
 
-        assertFailsWith<TilgangsmaskinException> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1)) }
+        assertFailsWith<TilgangsmaskinException> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG) }
     }
 
     @Test
@@ -127,7 +127,7 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         val identer = (1..1001).map { it.toString().padStart(11, '0') }.toSet()
 
-        assertFailsWith<IllegalArgumentException> { tilgangService.validerTilgangTilPersoner(identer) }
+        assertFailsWith<IllegalArgumentException> { tilgangService.validerTilgangTilPersoner(identer, OPPSLAG) }
         assertTrue(tilgangsmaskin.kall.isEmpty())
     }
 
@@ -162,19 +162,22 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { identer -> identer.map { tilgang(it) } }
 
-        tilgangService.validerTilgangTilPersoner(setOf(PERSON_1))
+        tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG)
 
         assertEquals(listOf(Regeltype.KJERNE_REGELTYPE), tilgangsmaskin.regeltyper)
     }
 
     @Test
-    fun `tilgang gir én auditlinje med NAV-ident, begge fnr og utfall tilgang`() {
+    fun `tilgang gir én auditlinje med NAV-ident, begge fnr, hva det spørres om og utfall tilgang`() {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { identer -> identer.map { tilgang(it) } }
 
-        tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2))
+        tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2), Oppslag.HENTE_SAKER)
 
-        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1, $PERSON_2. Utfall: tilgang"), auditLinjer())
+        assertEquals(
+            listOf("$navIdent ba om tilgang til fnr: $PERSON_1, $PERSON_2 for å se saker i Infotrygd. Utfall: tilgang"),
+            auditLinjer(),
+        )
     }
 
     @Test
@@ -182,9 +185,9 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { listOf(tilgang(PERSON_1), avslag(PERSON_2, null)) }
 
-        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2)) }
+        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1, PERSON_2), OPPSLAG) }
 
-        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1, $PERSON_2. Utfall: avslag"), auditLinjer())
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1, $PERSON_2 for å ${OPPSLAG.tekst}. Utfall: avslag"), auditLinjer())
     }
 
     @Test
@@ -192,9 +195,9 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { emptyList() }
 
-        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1)) }
+        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG) }
 
-        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1. Utfall: avslag"), auditLinjer())
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1 for å ${OPPSLAG.tekst}. Utfall: avslag"), auditLinjer())
     }
 
     @Test
@@ -202,9 +205,9 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         tilgangsmaskin.svar = { throw TilgangsmaskinException("Feil ved kall mot tilgangsmaskinen: HTTP 500", 500) }
 
-        assertFailsWith<TilgangsmaskinException> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1)) }
+        assertFailsWith<TilgangsmaskinException> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG) }
 
-        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1. Utfall: feil"), auditLinjer())
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1 for å ${OPPSLAG.tekst}. Utfall: feil"), auditLinjer())
     }
 
     @Test
@@ -222,7 +225,7 @@ class TilgangServiceTest {
         loggInnSaksbehandler()
         val identer = (1..TilgangService.MAKS_ANTALL_PERSONER + 1).map { it.toString().padStart(11, '0') }.toSet()
 
-        assertFailsWith<IllegalArgumentException> { tilgangService.validerTilgangTilPersoner(identer) }
+        assertFailsWith<IllegalArgumentException> { tilgangService.validerTilgangTilPersoner(identer, OPPSLAG) }
 
         assertTrue(auditLinjer().isEmpty())
     }
@@ -266,5 +269,6 @@ class TilgangServiceTest {
         private const val PERSON_1 = "12345678901"
         private const val PERSON_2 = "12345678902"
         private const val PERSON_3 = "12345678903"
+        private val OPPSLAG = Oppslag.HENTE_GRUNNSTØNADER
     }
 }

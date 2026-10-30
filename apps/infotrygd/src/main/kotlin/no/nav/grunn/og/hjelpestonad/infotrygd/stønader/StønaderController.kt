@@ -1,6 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.stønader
 
 import io.swagger.v3.oas.annotations.Operation
+import no.nav.grunn.og.hjelpestonad.infotrygd.stønad.Stønadstype
+import no.nav.grunn.og.hjelpestonad.infotrygd.tilgangskontroll.Oppslag
 import no.nav.grunn.og.hjelpestonad.infotrygd.tilgangskontroll.TilgangService
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -25,7 +27,13 @@ class StønaderController(
         @RequestBody request: StonaderRequest,
     ): StonaderResponse {
         request.valider()
-        tilgangService.validerTilgangTilPersoner(request.personidenter)
+        tilgangService.validerTilgangTilPersoner(request.personidenter, oppslagFor(request.stønadstype))
         return stønaderService.hentStønader(request)
     }
+
+    private fun oppslagFor(stønadstype: Stønadstype): Oppslag =
+        when (stønadstype) {
+            Stønadstype.GRUNNSTØNAD -> Oppslag.HENTE_GRUNNSTØNADER
+            Stønadstype.HJELPESTØNAD -> Oppslag.HENTE_HJELPESTØNADER
+        }
 }
