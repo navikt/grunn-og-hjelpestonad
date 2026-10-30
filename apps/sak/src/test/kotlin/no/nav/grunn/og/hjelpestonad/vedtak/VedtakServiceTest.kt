@@ -7,6 +7,7 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import java.util.UUID
@@ -18,7 +19,8 @@ class VedtakServiceTest {
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val tilkjentYtelseService = mockk<TilkjentYtelseService>(relaxed = true)
-    private val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingService, ansvarligSaksbehandlerService, tilkjentYtelseService)
+    private val beregnTilkjentYtelseService = mockk<BeregnTilkjentYtelseService>(relaxed = true)
+    private val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingService, ansvarligSaksbehandlerService, tilkjentYtelseService, beregnTilkjentYtelseService)
 
     @Test
     fun `lagreVedtak kaster feil når behandling ikke er redigerbar`() {
