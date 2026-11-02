@@ -2,7 +2,7 @@
 
 **What to build:** Hver vilkårsperiode viser hvilken behandling den først ble vurdert i, som `opphavsvilkår` i EF, og om systemet opprettet den i en migrering. Saksbehandler ser da i en revurdering hvilke vilkår ingen har vurdert.
 
-**Blocked by:** 21, nummeret på neste Flyway-migrering (V47 brukes av branchen `bruk-ny-prosessering`)
+**Blocked by:** None (can start immediately). 21 er løst, og `bruk-ny-prosessering` er merget med V47. Neste ledige Flyway-nummer er V49.
 
 **Status:** ready-for-agent
 
