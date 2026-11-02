@@ -8,7 +8,7 @@ enum class GrunnOgHjelpYtelsestype(
     override val klassifisering: String,
     override val satsType: Utbetalingsperiode.SatsType,
 ) : Ytelsestype {
-    GRUNNSTØNAD("GHGSORMG", Utbetalingsperiode.SatsType.MND),
+    GRUNNSTØNAD("GH", Utbetalingsperiode.SatsType.MND),
 }
 
 /**
