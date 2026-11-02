@@ -12,7 +12,7 @@ enum class GrunnOgHjelpYtelsestype(
 }
 
 /**
- * IT28 og GHGSORMG er midlertidige koder for dev (ADR-0011, `tmp/todo-it28-oppdrag.md`).
+ * IT28 og GH er midlertidige koder for dev (ADR-0011, `tmp/todo-it28-oppdrag.md`).
  * De byttes når økonomi gir prod-koder.
  */
 enum class GrunnOgHjelpFagsystem(
