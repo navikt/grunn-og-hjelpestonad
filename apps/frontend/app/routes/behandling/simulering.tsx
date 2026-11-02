@@ -10,6 +10,7 @@ import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { SimuleringTabell } from "~/komponenter/simulering/SimuleringTabell";
 import { SimuleringOppsummering } from "~/komponenter/simulering/SimuleringOppsummering";
 import { StegNavigering } from "~/komponenter/behandling/StegNavigering";
+import { OppdragSimulering } from "~/komponenter/simulering/OppdragSimulering";
 
 export function meta(_args: Route.MetaArgs) {
   return [
@@ -86,6 +87,7 @@ export default function Simulering() {
 
   return (
     <VStack gap={"space-24"}>
+      <OppdragSimulering behandlingId={behandlingId} />
       <Box>
         {!simuleringResultat && (
           <Button variant="secondary" onClick={() => void handleHentResultat()}>

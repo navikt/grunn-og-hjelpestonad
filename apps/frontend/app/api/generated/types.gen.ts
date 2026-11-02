@@ -127,6 +127,40 @@ export type AnsvarligSaksbehandlerResponse = {
     rolle: 'INNLOGGET_SAKSBEHANDLER' | 'ANNEN_SAKSBEHANDLER' | 'IKKE_SATT';
 };
 
+export type DetaljertSimuleringResultat = {
+    simuleringMottaker: Array<SimuleringMottaker>;
+};
+
+export type OppdragSimuleringResponse = {
+    resultat: DetaljertSimuleringResultat;
+    testandel?: Testandel | null;
+};
+
+export type SimuleringMottaker = {
+    simulertPostering: Array<SimulertPostering>;
+    mottakerNummer?: string | null;
+    mottakerType?: string | null;
+};
+
+export type SimulertPostering = {
+    fagOmrådeKode?: string | null;
+    erFeilkonto?: boolean | null;
+    fom?: string | null;
+    tom?: string | null;
+    betalingType?: string | null;
+    beløp?: number | null;
+    posteringType?: string | null;
+    forfallsdato?: string | null;
+    utenInntrekk?: boolean | null;
+    klassekode?: string | null;
+};
+
+export type Testandel = {
+    fom: string;
+    tom: string;
+    beløp: number;
+};
+
 export type InfotrygdStonaderRequest = {
     personident: string;
     stønadstype: 'GRUNNSTØNAD' | 'HJELPESTØNAD';
@@ -596,6 +630,21 @@ export type HentAnsvarligSaksbehandlerResponses = {
 };
 
 export type HentAnsvarligSaksbehandlerResponse = HentAnsvarligSaksbehandlerResponses[keyof HentAnsvarligSaksbehandlerResponses];
+
+export type SimulerMotOppdragData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/oppdrag/simulering/{behandlingId}';
+};
+
+export type SimulerMotOppdragResponses = {
+    200: OppdragSimuleringResponse;
+};
+
+export type SimulerMotOppdragResponse = SimulerMotOppdragResponses[keyof SimulerMotOppdragResponses];
 
 export type LagIverksettVedtaksbrevTaskData = {
     body?: never;
