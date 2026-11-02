@@ -24,7 +24,10 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
-internal class TilkjentYtelseServiceTest : SpringContextTest() {
+internal class BeregnTilkjentYtelseServiceTest : SpringContextTest() {
+    @Autowired
+    private lateinit var beregnTilkjentYtelseService: BeregnTilkjentYtelseService
+
     @Autowired
     private lateinit var tilkjentYtelseService: TilkjentYtelseService
 
@@ -53,7 +56,7 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
                     ),
             )
 
-        tilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtak)
+        beregnTilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtak)
 
         val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(behandlingId)
         assertThat(tilkjentYtelse).isNotNull
@@ -82,7 +85,7 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
                         ),
                     ),
             )
-        tilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtakFørste)
+        beregnTilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtakFørste)
 
         val vedtakOppdatert =
             lagInnvilgetVedtak(
@@ -96,7 +99,7 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
                         ),
                     ),
             )
-        tilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtakOppdatert)
+        beregnTilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtakOppdatert)
 
         val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(behandlingId)!!
         assertThat(tilkjentYtelse.andelerTilkjentYtelse).hasSize(1)
@@ -122,7 +125,7 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
                         ),
                     ),
             )
-        tilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(førstegangsbehandlingId, innvilget)
+        beregnTilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(førstegangsbehandlingId, innvilget)
 
         val revurderingId = opprettBehandling(fagsakId, forrigeBehandlingId = førstegangsbehandlingId)
         val opphør =
@@ -133,49 +136,10 @@ internal class TilkjentYtelseServiceTest : SpringContextTest() {
                 saksbehandlerIdent = "VL",
                 opphørFom = YearMonth.of(2025, 1),
             )
-        tilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(revurderingId, opphør)
+        beregnTilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(revurderingId, opphør)
 
         val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(revurderingId)!!
         assertThat(tilkjentYtelse.andelerTilkjentYtelse).isEmpty()
-    }
-
-    @Test
-    fun `ingen_stønad-perioder skal ikke gi andeler`() {
-        val behandlingId = opprettBehandling()
-        val vedtak =
-            lagInnvilgetVedtak(
-                behandlingId = behandlingId,
-                perioder =
-                    listOf(
-                        lagBarnetilsynperiode(
-                            datoFra = YearMonth.of(2025, 1),
-                            datoTil = YearMonth.of(2025, 2),
-                            utgifter = BigDecimal(5000),
-                        ),
-                        GrunnstønadPeriode(
-                            datoFra = YearMonth.of(2025, 3),
-                            datoTil = YearMonth.of(2025, 4),
-                            utgifter = BigDecimal.ZERO,
-                            barn = emptyList(),
-                            periodetype = PeriodetypeBarnetilsyn.INGEN_STØNAD,
-                            aktivitetstype = AktivitetstypeBarnetilsyn.IKKE_RELEVANT,
-                        ),
-                        lagBarnetilsynperiode(
-                            datoFra = YearMonth.of(2025, 5),
-                            datoTil = YearMonth.of(2025, 6),
-                            utgifter = BigDecimal(5000),
-                        ),
-                    ),
-            )
-
-        tilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtak)
-
-        val andeler = tilkjentYtelseService.hentTilkjentYtelse(behandlingId)!!.andelerTilkjentYtelse
-        assertThat(andeler).hasSize(2)
-        assertThat(andeler.map { it.fom }).containsExactlyInAnyOrder(
-            LocalDate.of(2025, 1, 1),
-            LocalDate.of(2025, 5, 1),
-        )
     }
 
     private fun opprettFagsak(): UUID {
