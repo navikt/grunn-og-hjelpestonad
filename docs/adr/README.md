@@ -29,3 +29,4 @@ utover å oppdatere status og lenke til den nye ADR-en.
 | [ADR-0011](ADR-0011-avrunding-og-utbetalingsgrunnlag-hoerer-til-oppdrag.md) | Avrunding og utbetalingsgrunnlag hører til oppdrag | Foreslått, migrering erstattet av ADR-0013 |
 | [ADR-0012](ADR-0012-arv-og-gjeldende-perioder-fra-infotrygd.md) | Arv og gjeldende perioder fra Infotrygd | Foreslått |
 | [ADR-0013](ADR-0013-migrering-fra-infotrygd-som-i-ef.md) | Migrering fra Infotrygd som i EF | Foreslått |
+| [ADR-0014](ADR-0014-tilkjent-ytelse-fra-ekstrautgifter-og-trygdetid.md) | Steg 2 regner ut tilkjent ytelse fra ekstrautgifter og trygdetid | Foreslått |

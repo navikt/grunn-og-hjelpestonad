@@ -44,6 +44,9 @@ Vilkårene uten skjønn, medlemskap og diagnose, som vurderes først. De andre v
 **Periode med oppfylte inngangsvilkår**:
 En periode der både medlemskap og diagnose er oppfylt.
 
+**Nødvendige ekstrautgifter**:
+Vilkåret som avgjør om søker har rett i en periode med oppfylte inngangsvilkår, og i så fall hvilken sats. Er ekstrautgiftene under laveste sats, er vilkåret ikke oppfylt, jf. § 6-3 tredje ledd.
+
 **Trygdetidsbrøk**:
 Brøken x/40 fra søkers alderspensjon eller uføretrygd. Er 40/40 når søker ikke har noen av dem. Kan ikke skjønnsvurderes.
 
@@ -65,17 +68,30 @@ _Avoid_: Migreringsdato, startdato, migrert fra og med
 
 ## Utfall
 
+**Avslag**:
+Vedtak om at søker ikke har rett i noen av månedene det er søkt om.
+_Avoid_: Opphør (når søker ikke har hatt en løpende ytelse)
+
+**Opphør**:
+Vedtak om at en løpende rett til grunnstønad faller bort fra en gitt måned, slik at utbetalingen må stoppes fra den måneden.
+_Avoid_: Avslag (når søker har hatt en løpende ytelse)
+
 **Sats**:
-Ett av seks faste beløp for grunnstønad, bestemt av de nødvendige ekstrautgiftene i en periode. Ekstrautgifter under laveste sats gir ikke rett.
+Ett av seks nivåer for grunnstønad, sats 1 til 6, bestemt av de nødvendige ekstrautgiftene i en periode. Ekstrautgifter under laveste sats gir ikke rett.
+_Avoid_: Sats om kronebeløpet (det er satsbeløpet)
+
+**Satsbeløp**:
+Månedsbeløpet Stortinget har fastsatt for en sats i en gitt periode. Satsbeløpet for samme sats endres over tid, vanligvis fra 1. januar.
+_Avoid_: Årsbeløp delt på 12
 
 **Tilkjent ytelse**:
-Beløpet søker har rett til per periode: satsen redusert med trygdetidsbrøken, uten avrunding.
+Beløpet søker har rett til per måned: satsbeløpet redusert med trygdetidsbrøken, uten avrunding.
 _Avoid_: Utbetalt beløp (det er beløpet etter avrunding)
 
 ## Utbetaling
 
 **Utbetalingsbeløp**:
-Tilkjent ytelse avrundet til det beløpet som faktisk utbetales.
+Tilkjent ytelse avrundet til nærmeste hele krone, jf. § 22-11. Det er beløpet som faktisk utbetales.
 _Avoid_: Tilkjent ytelse, sats
 
 **Utbetalingsandel**:

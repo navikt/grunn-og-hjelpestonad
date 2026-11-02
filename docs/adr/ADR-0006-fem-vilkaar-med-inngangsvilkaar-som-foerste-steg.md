@@ -64,6 +64,42 @@ Begrepet `PeriodeMedRett` fra ADR-0004 fjernes. Det som går videre fra første
 steg, er perioder med oppfylte inngangsvilkår. Om retten foreligger, avgjøres
 først når institusjon og ekstrautgifter er vurdert.
 
+Periodene med oppfylte inngangsvilkår lagres ikke. En ren funksjon regner dem ut
+fra vilkårsradene når de trengs. Tabellen `periode_med_rett` og
+`PeriodeMedRett*` fjernes. Første steg fullføres med
+`POST /api/behandling/{behandlingId}/inngangsvilkar/fullfor`. Endepunktet
+validerer, lagrer ingenting og skriver «Vurdering av inngangsvilkår fullført» i
+endringshistorikken.
+
+### Steg 2 er nødvendige ekstrautgifter og trygdetid
+
+Steget etter inngangsvilkårene heter «Sats og trygdetid» og vurderer to vilkår:
+
+- **Nødvendige ekstrautgifter** (`VilkårEkstrautgifter`) har `vurdering`
+  (`JA`/`NEI`) og `sats` (1–6). Satsen er påkrevd ved `JA` og tom ved `NEI`.
+  `NEI` gir ingen rett i perioden, med § 6-3 tredje ledd som hjemmel.
+- **Trygdetid** har en teller fra 0 til 40 og en kilde, men ingen `JA`/`NEI`.
+  Søker kan ha rett uansett trygdetid.
+
+Når steget fullføres, regner saken ut og lagrer tilkjent ytelse. Beslutningen
+står i [ADR-0014](ADR-0014-tilkjent-ytelse-fra-ekstrautgifter-og-trygdetid.md),
+og reglene i
+[utledning av tilkjent ytelse](../tilkjent-ytelse/utledning-av-tilkjent-ytelse.md).
+
+### Institusjon tas ut av løsningen inntil videre
+
+Institusjon er fortsatt et vilkår etter § 6-8, men vurderingen henger sammen med
+ekstrautgiftene: søker kan ha ekstrautgifter som institusjonen ikke dekker. Det
+krever skjønn, og modellen er ikke ferdig. Vi fjerner derfor alt for
+institusjon: tabellen `vilkar_institusjon`, `VilkårType`-verdien, koden og
+skjermbildet. Verdiene i `Oppholdstype` og `Unntakshjemmel` var heller aldri
+sjekket med fag, se ADR-0003. Koden finnes i git-historikken. Når vilkåret
+kommer tilbake, designer vi det sammen med ekstrautgiftene.
+
+Uten institusjonsvilkåret kan løsningen innvilge grunnstønad til noen som bor på
+institusjon. Løsningen kan derfor ikke tas i bruk i prod før vilkåret er på
+plass.
+
 ## Hva som erstattes
 
 Fra **ADR-0003**:
@@ -96,17 +132,25 @@ Den lar heller ikke saksbehandler stoppe når et inngangsvilkår ikke er oppfylt
 1. **Trygdetid: vilkår eller reduksjon?** Trygdetid kan aldri gi avslag, bare
    redusere beløpet. Juridisk kan det derfor være mer presist å kalle det en
    reduksjon. Enn så lenge kaller vi trygdetid et vilkår, fordi fag gjør det.
-2. **Trenger perioder med oppfylte inngangsvilkår en egen tabell?** Eller skal
-   periodene utledes fra vilkårsradene hver gang de leses?
-3. **Hvilke steg kommer etter inngangsvilkårene?** Det er ikke bestemt om
-   institusjon, ekstrautgifter og trygdetid vurderes i ett eller flere steg,
-   eller i hvilken rekkefølge.
+
+## Avklarte spørsmål
+
+| Spørsmål | Avklaring |
+|---|---|
+| Trenger perioder med oppfylte inngangsvilkår en egen tabell? | Nei. En ren funksjon regner dem ut fra vilkårsradene |
+| Hvilke steg kommer etter inngangsvilkårene? | Ett steg, «Sats og trygdetid», med nødvendige ekstrautgifter og trygdetid. Institusjon venter |
+
+## Aksjonspunkter
+
+- [ ] Institusjon må tilbake i løsningen før prod, designet sammen med
+      nødvendige ekstrautgifter.
 
 ## Konsekvenser
 
 - Vilkårssteget i backend og frontend, som i dag vurderer institusjon sammen
   med inngangsvilkårene, må endres.
-- `periode_med_rett`, `PeriodeMedRettUtleder` og `PerioderMedRettTidslinje` i
-  steget «Sats og trygdetid» må erstattes når de neste stegene er bestemt.
+- `periode_med_rett`, `PeriodeMedRettUtleder` og `PerioderMedRettTidslinje`
+  fjernes. `vilkar_institusjon` droppes i en ny migrering.
+- `POST /vilkar/fullfor` erstattes av `POST /inngangsvilkar/fullfor`.
 - Kravet om minst én vurdert periode per vilkår (R1 i ADR-0004) gjelder i første
   steg bare medlemskap og diagnose.
