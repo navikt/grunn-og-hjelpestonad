@@ -1,6 +1,6 @@
 # ADR-0012: Arv og gjeldende perioder fra Infotrygd
 
-**Dato:** 2026-10-27, endret 2026-10-30
+**Dato:** 2026-10-27, endret 2026-10-30 og 2026-11-02
 **Status:** Foreslått
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 
@@ -10,6 +10,11 @@ kutt ved opphør, nye feil, sammenslåing og Infotrygd-beløp. Migreringen
 ([ADR-0013](ADR-0013-migrering-fra-infotrygd-som-i-ef.md)) bruker de samme
 periodene. Ticket 26 og 27 bygger endringen, så koden følger ikke ADR-en før de
 er ferdige.
+
+Endringen 2026-11-02: vedtak som er opphørt fra start, tas ikke med. Opphør
+den 1. i måneden er første dag uten stønad, som i EF. Saksbehandler har bekreftet
+det, se
+[ticket 03](../../.scratch/migrering/issues/03-avklar-perioder-og-utbetalt-belop-fra-infotrygd.md).
 
 ## Kontekst
 
@@ -59,7 +64,9 @@ migreringen vil gjøre.
    gjelde, og saksbehandleren må lese saken i Infotrygd.
 3. Når stønaden har `datoOpphor`, kuttes tom på alle vedtakene på stønaden ved
    opphøret. Er opphørsdatoen den 1. i måneden, blir tom siste dag i måneden
-   før, som i EF. Andre datoer brukes som de er.
+   før, som i EF. Opphør den 1. er første dag uten stønad. Andre datoer brukes
+   som de er. Et vedtak som starter samme dag som opphøret, er opphørt fra start
+   og tas ikke med.
 4. Et vedtak som får tom før fom etter kuttet, gir `UgyldigInput`: «Vedtak
    {vedtakId} starter {fom}, etter at stønaden opphørte {opphørsdato}. Vi har
    ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.»
@@ -121,6 +128,23 @@ polymorfi i OpenAPI.
 Den første versjonen brukte bare `datoInnvTom`. Da kunne en stønad som er
 opphørt i Infotrygd, se løpende ut og bli migrert. Vi kutter derfor ved opphøret,
 som EF.
+
+### Opphør den 1. som siste dag med stønad
+
+Vi vurderte å bruke opphørsdatoen som den er, også når den er den 1. Det ville
+gitt perioder på én dag i opphørsmåneden. Ved opphør den 1. er opphøret lik
+startdatoen på stønaden eller siste vedtak for 907 av 1 380 stønader i dev.
+Ved opphør siste dag i måneden skjer det aldri. Opphør den 1. betyr altså ofte
+at stønaden eller vedtaket er opphørt fra start. Målingene står i
+[ticket 03](../../.scratch/migrering/issues/03-avklar-perioder-og-utbetalt-belop-fra-infotrygd.md).
+
+### Stønaden varer ut opphørsmåneden
+
+Vi vurderte at opphør den 1. gir sluttdato lik siste dag i opphørsmåneden.
+Replikaen har ikke utbetalingene, og sluttdatoene på vedtakene avgjorde det
+ikke. Saksbehandler sjekket en sak med opphør 01.01.2025 i Infotrygd og Oppdrag:
+januar 2025 ble ikke utbetalt. Ifølge saksbehandler tillot Infotrygd tidligere
+ikke opphør den 1., og saksbehandler måtte opphøre siste dag i måneden før.
 
 ### Overskriving som i EF
 
@@ -202,3 +226,8 @@ nærmeste lavere vedtakId» i loggene.
 - [ ] Spør en Infotrygd-ekspert hvorfor en maskinell satsomregning (`MS`) kan
       være første vedtak, og hva en delytelse som slutter før et løpende vedtak
       betyr. Se eksemplene fra saksbehandler i ticket 03.
+- [x] Avklar om stønaden varer ut opphørsmåneden når opphørsdatoen er den 1.
+      Nei: saksbehandler bekreftet at opphør 01.01.2025 stanset utbetalingen
+      for januar 2025. Se ticket 03.
+- [ ] Mål vedtak som faller bort ved opphør på nytt. Tallene under
+      «Konsekvenser» er målt før vedtak som er opphørt fra start, ble tatt ut.

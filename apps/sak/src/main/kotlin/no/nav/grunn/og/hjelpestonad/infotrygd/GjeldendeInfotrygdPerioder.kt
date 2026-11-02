@@ -18,23 +18,16 @@ data class GjeldendeInfotrygdPeriode(
     val vedtak: InfotrygdVedtakMedArv,
 )
 
-/**
- * Hvert vedtak blir én periode fra datoInnvFom til datoInnvTom. Vedtakene legges på tidslinjen etter stigende
- * vedtakId, og et vedtak overskriver de eldre i hele sin periode, på tvers av stønadene. Et vedtak med tom
- * før eller lik fom gir [UgyldigInput].
- */
 object GjeldendeInfotrygdPerioder {
     fun utled(stønader: List<InfotrygdStonadMedArv>): List<GjeldendeInfotrygdPeriode> {
         val tidslinjer =
             stønader
-                .flatMap { stønad -> stønad.vedtak.map { VedtakPåStønad(stønad.stonadId, it) } }
-                .sortedBy { it.vedtak.vedtakId }
-                .onEach { it.vedtak.validerPeriode() }
-                .map { Periode(it, it.vedtak.datoInnvFom, it.vedtak.datoInnvTom).tilTidslinje() }
+                .flatMap { stønad -> stønad.vedtak.map { vedtak -> stønad to vedtak } }
+                .sortedBy { (_, vedtak) -> vedtak.vedtakId }
+                .map { (stønad, vedtak) -> vedtak.tilPeriode(stønad).tilTidslinje() }
 
         if (tidslinjer.isEmpty()) return emptyList()
 
-        // Ett vedtak om gangen: tilTidslinje() på alle vedtakene samtidig kaster ved overlapp.
         return tidslinjer
             .reduce { eldre, nyere -> nyere.kombinerMed(eldre) { ny, gammel -> ny ?: gammel } }
             .slåSammenLikePerioder()
@@ -61,7 +54,21 @@ object GjeldendeInfotrygdPerioder {
             .zipWithNext()
             .count { (forrige, neste) -> neste.tidspunktReg < forrige.tidspunktReg }
 
-    private fun InfotrygdVedtakMedArv.validerPeriode() {
+    private fun InfotrygdVedtakMedArv.tilPeriode(stønad: InfotrygdStonadMedArv): Periode<VedtakPåStønad> {
+        validerInnvilgetPeriode()
+
+        val datoOpphor = stønad.datoOpphor ?: return Periode(VedtakPåStønad(stønad.stonadId, this), datoInnvFom, datoInnvTom)
+        val tom = listOfNotNull(datoInnvTom, faktiskOpphørsdato(datoOpphor)).min()
+        if (tom <= datoInnvFom) {
+            throw UgyldigInput(
+                "Vedtak $vedtakId starter ${datoInnvFom.format(DATOFORMAT)}, etter at stønaden opphørte " +
+                    "${datoOpphor.format(DATOFORMAT)}. Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
+            )
+        }
+        return Periode(VedtakPåStønad(stønad.stonadId, this), datoInnvFom, tom)
+    }
+
+    private fun InfotrygdVedtakMedArv.validerInnvilgetPeriode() {
         val tom = datoInnvTom ?: return
         if (tom <= datoInnvFom) {
             throw UgyldigInput(
@@ -70,6 +77,9 @@ object GjeldendeInfotrygdPerioder {
             )
         }
     }
+
+    /** Opphør den 1. i måneden betyr at stønaden gjaldt ut måneden før. */
+    private fun faktiskOpphørsdato(datoOpphor: LocalDate): LocalDate = if (datoOpphor.dayOfMonth == 1) datoOpphor.minusDays(1) else datoOpphor
 
     private val DATOFORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 

@@ -17,13 +17,9 @@ export function InfotrygdOversikt({ personident }: { personident: string | undef
 
       {gjeldendeState.laster ? (
         <Loader title="Henter gjeldende perioder fra Infotrygd…" />
-      ) : gjeldendeState.melding ? (
-        <LocalAlert status="warning">
-          <LocalAlert.Content>{gjeldendeState.melding}</LocalAlert.Content>
-        </LocalAlert>
-      ) : gjeldendeState.data != null ? (
-        <GjeldendeInfotrygdPerioder data={gjeldendeState.data} />
-      ) : null}
+      ) : (
+        <GjeldendeInfotrygdPerioder data={gjeldendeState.data} feilmelding={gjeldendeState.melding} />
+      )}
 
       {historikkState.laster ? (
         <Loader title="Henter vedtak fra Infotrygd…" />

@@ -47,7 +47,7 @@ data class InfotrygdVedtakMedArv(
     val typeSak: String,
     val kodeResultat: String,
     val datoInnvFom: LocalDate,
-    /** Tom betyr at vedtaket er løpende. */
+    /** Null betyr at vedtaket er løpende. */
     val datoInnvTom: LocalDate?,
     val datoMottattSak: LocalDate,
     val kodeVedtaksnivaa: String,

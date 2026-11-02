@@ -21,3 +21,7 @@ Spec: [spec.md](../spec.md). Beslutningene står i [ticket 03](03-avklar-periode
 - [ ] «Gjeldende perioder» i frontend har en kolonne for beløp.
 - [ ] Rene tester dekker: like perioder som slås sammen, perioder som skilles på hvert av de fem feltene, delytelse som slutter før vedtaket, delytelse som starter etter vedtaket, delytelse som varer lenger enn vedtaket i en tidligere periode og i den siste perioden, vedtak uten delytelse og arvet `t_gh`.
 - [ ] Teksten i feilmeldingen er gjennomgått av `@forfatter`.
+
+## Comments
+
+**2026-11-02:** Opphør den 1. i måneden er første dag uten stønad, som i EF, se «Status» i kommentaren 2026-11-02 i ticket 03. Perioden slutter da siste dag i måneden før, altså ved et månedsskifte, så ticket 27 trenger ingen egen regel for en del av en måned.

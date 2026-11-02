@@ -106,7 +106,7 @@ class GjeldendeInfotrygdPerioderTest {
     fun `går på tvers av stønader, og perioden får stønaden vedtaket hører til`() {
         val perioder =
             utled(
-                stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), stønadId = 10),
+                stønad(vedtak(vedtakId = 1, fom = "2020-01-01", tom = "2023-12-31"), stønadId = 10),
                 stønad(vedtak(vedtakId = 2, fom = "2022-01-01"), stønadId = 20),
             )
 
@@ -117,12 +117,207 @@ class GjeldendeInfotrygdPerioderTest {
         )
     }
 
-    @Test
-    fun `datoOpphor på stønaden kutter ikke perioden`() {
-        val perioder =
-            utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphor = LocalDate.parse("2021-01-01")))
+    @Nested
+    inner class KuttVedOpphør {
+        @Test
+        fun `opphør midt i et vedtak kutter tom ved opphørsdatoen`() {
+            val perioder =
+                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphor = LocalDate.parse("2021-06-15")))
 
-        assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", null, 1))
+            assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2021-06-15", 1))
+        }
+
+        @Test
+        fun `opphør den 1 i måneden gir tom siste dag i måneden før`() {
+            val perioder =
+                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphor = LocalDate.parse("2021-06-01")))
+
+            assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2021-05-31", 1))
+        }
+
+        @Test
+        fun `opphør siste dag i måneden brukes som den er`() {
+            val perioder =
+                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphor = LocalDate.parse("2021-06-30")))
+
+            assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2021-06-30", 1))
+        }
+
+        @Test
+        fun `vedtak som slutter før opphøret beholder tom`() {
+            val perioder =
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2020-01-01", tom = "2020-12-31"),
+                        datoOpphor = LocalDate.parse("2021-06-30"),
+                    ),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2020-12-31", 1))
+        }
+
+        @Test
+        fun `alle vedtakene på stønaden kuttes før de legges på tidslinjen, så eldre vedtak ikke gjelder igjen etter opphøret`() {
+            val perioder =
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2020-01-01"),
+                        vedtak(vedtakId = 2, fom = "2021-01-01", tom = "2025-12-31"),
+                        datoOpphor = LocalDate.parse("2022-06-30"),
+                    ),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(
+                Forenklet("2020-01-01", "2020-12-31", 1),
+                Forenklet("2021-01-01", "2022-06-30", 2),
+            )
+        }
+
+        @Test
+        fun `eldre vedtak på en annen stønad gjelder igjen etter at det nyere er kuttet ved opphør`() {
+            val perioder =
+                utled(
+                    stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), stønadId = 10),
+                    stønad(vedtak(vedtakId = 2, fom = "2022-01-01"), stønadId = 20, datoOpphor = LocalDate.parse("2022-12-31")),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(
+                Forenklet("2020-01-01", "2021-12-31", 1),
+                Forenklet("2022-01-01", "2022-12-31", 2),
+                Forenklet("2023-01-01", null, 1),
+            )
+        }
+
+        @Test
+        fun `vedtak som får tom før fom etter kuttet gir feil`() {
+            assertThatThrownBy {
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2020-01-01"),
+                        vedtak(vedtakId = 4711, fom = "2022-01-01"),
+                        datoOpphor = LocalDate.parse("2021-07-01"),
+                    ),
+                )
+            }.isInstanceOf(UgyldigInput::class.java)
+                .hasMessage(
+                    "Vedtak 4711 starter 01.01.2022, etter at stønaden opphørte 01.07.2021. " +
+                        "Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
+                )
+        }
+
+        @Test
+        fun `vedtak som er ugyldig uten kuttet gir samme feil som før`() {
+            assertThatThrownBy {
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 4711, fom = "2022-01-01", tom = "2021-12-31"),
+                        datoOpphor = LocalDate.parse("2021-07-01"),
+                    ),
+                )
+            }.isInstanceOf(UgyldigInput::class.java)
+                .hasMessage("Vedtak 4711 i Infotrygd har innvilget tom 31.12.2021, som ikke er etter innvilget fom 01.01.2022.")
+        }
+    }
+
+    @Nested
+    inner class UklareSaker {
+        @Test
+        fun `løpende vedtak på flere stønader gir feil`() {
+            assertThatThrownBy {
+                utled(
+                    stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), stønadId = 10),
+                    stønad(vedtak(vedtakId = 2, fom = "2022-01-01"), stønadId = 20),
+                )
+            }.isInstanceOf(UgyldigInput::class.java)
+                .hasMessage(
+                    "Personen har løpende vedtak på flere stønader i Infotrygd (10, 20). " +
+                        "Vi har ikke bestemt hvordan slike saker skal tolkes. Kontakt teamet.",
+                )
+        }
+
+        @Test
+        fun `løpende vedtak på en stønad som er kuttet ved opphør regnes ikke som løpende`() {
+            val perioder =
+                utled(
+                    stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), stønadId = 10, datoOpphor = LocalDate.parse("2020-12-31")),
+                    stønad(vedtak(vedtakId = 2, fom = "2022-01-01"), stønadId = 20),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(
+                Forenklet("2020-01-01", "2020-12-31", 1),
+                Forenklet("2022-01-01", null, 2),
+            )
+        }
+
+        @Test
+        fun `siste vedtak avsluttet etter datogrensen på en stønad som ikke er opphørt gir feil`() {
+            assertThatThrownBy {
+                utled(stønad(vedtak(vedtakId = 4711, fom = "2025-01-01", tom = "2026-06-30"), stønadId = 10))
+            }.isInstanceOf(UgyldigInput::class.java)
+                .hasMessage(
+                    "Stønad 10 er ikke opphørt, men siste vedtak 4711 sluttet 30.06.2026. " +
+                        "Vi har ikke bestemt hvordan slike saker skal tolkes. Kontakt teamet.",
+                )
+        }
+
+        @Test
+        fun `siste vedtak avsluttet på datogrensen gir feil`() {
+            assertThatThrownBy {
+                utled(stønad(vedtak(vedtakId = 4711, fom = "2025-01-01", tom = "2026-01-01"), stønadId = 10))
+            }.isInstanceOf(UgyldigInput::class.java)
+                .hasMessageContainingAll("Stønad 10", "4711", "01.01.2026")
+        }
+
+        @Test
+        fun `stønad som ikke er opphørt og med siste vedtak avsluttet før datogrensen regnes som avsluttet`() {
+            val perioder = utled(stønad(vedtak(vedtakId = 1, fom = "2025-01-01", tom = "2025-12-31")))
+
+            assertThat(perioder.forenklet()).containsExactly(Forenklet("2025-01-01", "2025-12-31", 1))
+        }
+
+        @Test
+        fun `siste vedtak avsluttet etter datogrensen på en opphørt stønad gir ikke feil`() {
+            val perioder =
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2025-01-01", tom = "2026-06-30"),
+                        datoOpphor = LocalDate.parse("2026-07-01"),
+                    ),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(Forenklet("2025-01-01", "2026-06-30", 1))
+        }
+
+        @Test
+        fun `bare personens siste vedtak sjekkes mot datogrensen`() {
+            val perioder =
+                utled(
+                    stønad(vedtak(vedtakId = 1, fom = "2025-01-01", tom = "2026-06-30"), stønadId = 10),
+                    stønad(vedtak(vedtakId = 2, fom = "2026-07-01"), stønadId = 20),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(
+                Forenklet("2025-01-01", "2026-06-30", 1),
+                Forenklet("2026-07-01", null, 2),
+            )
+        }
+
+        @Test
+        fun `feilmeldingene har ikke fnr`() {
+            val tilfeller =
+                listOf(
+                    listOf(stønad(vedtak(vedtakId = 1, fom = "2022-01-01"), datoOpphor = LocalDate.parse("2021-07-01"))),
+                    listOf(stønad(vedtak(vedtakId = 1), stønadId = 10), stønad(vedtak(vedtakId = 2), stønadId = 20)),
+                    listOf(stønad(vedtak(vedtakId = 1, fom = "2025-01-01", tom = "2026-06-30"))),
+                )
+
+            tilfeller.forEach { stønader ->
+                assertThatThrownBy { utled(*stønader.toTypedArray()) }
+                    .isInstanceOf(UgyldigInput::class.java)
+                    .message()
+                    .doesNotContain(stønader.first().personnr)
+            }
+        }
     }
 
     @Test

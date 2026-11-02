@@ -91,7 +91,9 @@ Et diagram over tabellene og koblingene står i
   EF-appen.
 - **Opphørsdato:** `t_stonad.dato_opphor` er som regel siste dag med stønad. I
   dev er 98 672 opphørsdatoer for GS siste dag i en måned og 2 031 den 1. `sak`
-  tolker den 1. som første dag uten stønad, som EF.
+  tolker den 1. som første dag uten stønad, som EF. Saksbehandler har bekreftet
+  at opphør 01.01.2025 stanset utbetalingen for januar 2025, se
+  [ticket 03](../../.scratch/migrering/issues/03-avklar-perioder-og-utbetalt-belop-fra-infotrygd.md).
 
 ### Målt for grunnstønad
 
