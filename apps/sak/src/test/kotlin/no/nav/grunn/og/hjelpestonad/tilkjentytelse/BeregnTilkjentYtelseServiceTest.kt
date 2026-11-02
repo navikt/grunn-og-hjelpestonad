@@ -110,7 +110,7 @@ internal class BeregnTilkjentYtelseServiceTest : SpringContextTest() {
     }
 
     @Test
-    fun `opphør av alle andeler skal gi tom andelliste`() {
+    fun `opphør gir tom andelliste og beholder forrige startmåned`() {
         val fagsakId = opprettFagsak()
         val førstegangsbehandlingId = opprettBehandling(fagsakId)
         val innvilget =
@@ -134,12 +134,52 @@ internal class BeregnTilkjentYtelseServiceTest : SpringContextTest() {
                 resultatType = ResultatType.OPPHØR,
                 grunnstønadPerioder = emptyList(),
                 saksbehandlerIdent = "VL",
-                opphørFom = YearMonth.of(2025, 1),
+                opphørFom = YearMonth.of(2025, 3),
             )
         beregnTilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(revurderingId, opphør)
 
         val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(revurderingId)!!
         assertThat(tilkjentYtelse.andelerTilkjentYtelse).isEmpty()
+        assertThat(tilkjentYtelse.startmåned).isEqualTo(YearMonth.of(2025, 1))
+    }
+
+    @Test
+    fun `revurdering med første andel etter forrige startmåned beholder forrige startmåned`() {
+        val fagsakId = opprettFagsak()
+        val førstegangsbehandlingId = opprettBehandling(fagsakId)
+        val innvilgetFørstegangsbehandling =
+            lagInnvilgetVedtak(
+                behandlingId = førstegangsbehandlingId,
+                perioder =
+                    listOf(
+                        lagBarnetilsynperiode(
+                            datoFra = YearMonth.of(2025, 1),
+                            datoTil = YearMonth.of(2025, 6),
+                            utgifter = BigDecimal(5000),
+                        ),
+                    ),
+            )
+        beregnTilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(førstegangsbehandlingId, innvilgetFørstegangsbehandling)
+
+        val revurderingId = opprettBehandling(fagsakId, forrigeBehandlingId = førstegangsbehandlingId)
+        val innvilgetRevurdering =
+            lagInnvilgetVedtak(
+                behandlingId = revurderingId,
+                perioder =
+                    listOf(
+                        lagBarnetilsynperiode(
+                            datoFra = YearMonth.of(2025, 4),
+                            datoTil = YearMonth.of(2025, 6),
+                            utgifter = BigDecimal(5000),
+                        ),
+                    ),
+            )
+        beregnTilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(revurderingId, innvilgetRevurdering)
+
+        val revurderingensTilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(revurderingId)!!
+        val førstegangsbehandlingensTilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(førstegangsbehandlingId)!!
+        assertThat(revurderingensTilkjentYtelse.startmåned).isEqualTo(YearMonth.of(2025, 1))
+        assertThat(førstegangsbehandlingensTilkjentYtelse.startmåned).isEqualTo(YearMonth.of(2025, 1))
     }
 
     private fun opprettFagsak(): UUID {
