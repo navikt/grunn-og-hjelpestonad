@@ -9,7 +9,7 @@
 Spec: [spec.md](../spec.md)
 
 - [ ] Sperren gjelder bare fagsaker uten behandlinger.
-- [ ] En ren funksjon avgjør om personen har perioder med beløp som er nyere enn grensen i EF.
+- [ ] En ren funksjon avgjør om personen har en gjeldende periode med beløp som er løpende eller slutter på eller etter datogrensen 2026-01-01, samme grense som migreringen. Sperren gjelder også når migreringen ville stoppet av en annen grunn, for saken må rettes i Infotrygd og migreres. EF bruker en egen grense på 4 år.
 - [ ] Feilen er funksjonell og sier at personen må migreres først.
 - [ ] Sperren ligger bak feature toggle for migrering.
 - [ ] Rene tester dekker: ingen perioder, gamle perioder, aktive perioder og perioder uten beløp.

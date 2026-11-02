@@ -1,6 +1,6 @@
 # 13: Startmåned tilbake på tilkjent ytelse
 
-**What to build:** Tilkjent ytelse får tilbake startmåned, som `startdato` i EF (ADR-0013). Startmåned er den tidligste av første andel og forrige behandlings startmåned. Reverserer ticket 01.
+**What to build:** Tilkjent ytelse får tilbake startmåned, som `startdato` i EF (ADR-0013). Startmåned er den tidligste av første andel og forrige behandlings startmåned. Reverserer commit `1a4d1b3`, som fjernet startmåned.
 
 **Blocked by:** None (can start immediately)
 

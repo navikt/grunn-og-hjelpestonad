@@ -81,3 +81,7 @@ _Avoid_: Tilkjent ytelse, sats
 **Utbetalingsandel**:
 En periode med samme utbetalingsbeløp, slik den sendes til Oppdrag.
 _Avoid_: Andel tilkjent ytelse, utbetalingsperiode
+
+**Infotrygd-beløp**:
+Månedsbeløpet for grunnstønad som Infotrygd har vedtatt for en måned. Er det samme som Oppdrag utbetaler, til ny løsning endrer det.
+_Avoid_: Utbetalt beløp, beløp fra Infotrygd

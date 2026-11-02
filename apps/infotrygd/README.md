@@ -89,6 +89,26 @@ Et diagram over tabellene og koblingene står i
 - **Løpende vedtak:** Et vedtak uten `dato_opphor` og `dato_innv_tom` regnes som
   løpende, siden stønaden ofte varer livet ut. Dette er et bevisst avvik fra
   EF-appen.
+- **Opphørsdato:** `t_stonad.dato_opphor` er som regel siste dag med stønad. I
+  dev er 98 672 opphørsdatoer for GS siste dag i en måned og 2 031 den 1. `sak`
+  tolker den 1. som første dag uten stønad, som EF.
+
+### Målt for grunnstønad
+
+Målt i dev 2026-10-30. Hvordan `sak` bruker tallene, står i
+[ticket 03](../../.scratch/migrering/issues/03-avklar-perioder-og-utbetalt-belop-fra-infotrygd.md).
+
+- Alle vedtak unntatt 2 har nøyaktig én delytelse (`MG`). Ingen vedtak har
+  delytelser med ulikt beløp, og alle beløpene er hele kroner.
+- 7 726 delytelser har en annen periode enn vedtaket, de fleste med løpende
+  delytelse på et avsluttet vedtak. Kuttes vedtakene ved opphør, slutter 98 196
+  delytelser senere enn vedtaket, og 12 starter tidligere. Bare 78 dekker mindre
+  enn vedtaket: alle er løpende vedtak der delytelsen sluttet tidligere.
+- `t_gh.trygdetid` er 1 til 40. `sats_gs` er 1 til 6, utenom 4 rader med 0.
+  Ingen vedtak har `t_gh`-rader med ulik trygdetid eller sats.
+- Bare 2 vedtak som ikke er annullert, mangler `t_gh`, og ingen av dem er
+  maskinvedtak.
+- 7 løpende stønader mangler `oppdrag_id`.
 
 ## Endepunkter
 

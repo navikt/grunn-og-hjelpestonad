@@ -7,9 +7,9 @@ avrundingen i [ADR-0011](../../docs/adr/ADR-0011-avrunding-og-utbetalingsgrunnla
 og begrepene under «Behandling» i [CONTEXT.md](../../CONTEXT.md).
 
 Spec-en erstatter versjonen fra 2026-10-27, der saksbehandler valgte
-migreringsdato og beslutter godkjente migreringen. Ticket 02 og 04–12 hørte til
-den versjonen og er slettet. Begrunnelsen står i ADR-0013. Ticket 01 reverseres
-av ticket 13.
+migreringsdato og beslutter godkjente migreringen. Ticket 01, 02 og 04–12 hørte
+til den versjonen og er slettet. Begrunnelsen står i ADR-0013. Ticket 01 var
+gjort (commit `1a4d1b3`), og ticket 13 reverserer den.
 
 ## Problem
 
@@ -90,9 +90,9 @@ Maskinell migrering i batch kommer senere og bruker samme kode.
 - Første måned er den seneste av inneværende måned og periodens fom. Har
   personen ingen periode fremover i tid, migreres siste måned av siste periode
   med beløp.
-- Hvordan periode, sats, trygdetidsbrøk og utbetalt beløp leses fra Infotrygd,
-  avgjøres i ticket 03. Utgangspunktet er `GjeldendeInfotrygdPerioder.utled`
-  fra ADR-0012 (arv og gjeldende perioder).
+- Periode, sats, trygdetidsbrøk og Infotrygd-beløp leses fra gjeldende perioder
+  (ADR-0012), de samme som saksbehandler ser i Infotrygd-oppslaget. Reglene og
+  hele listen over årsaker står i ticket 03, og ticket 26 og 27 bygger dem.
 
 ### Opprett og iverksett
 
@@ -176,7 +176,8 @@ Maskinell migrering i batch kommer senere og bruker samme kode.
 - **Blokkert av Økonomi.** Vi vet ikke om OS motregner mellom Infotrygd og ny
   løsning. Det må være avklart før migrering i prod og før revurdering bakover i
   en migrert sak slås på.
-- **Data fra Infotrygd må avklares av et menneske** i ticket 03.
+- **Data fra Infotrygd** er avklart i ticket 03. Noen tilfeller gir feil til vi
+  vet hvordan de skal tolkes, se ADR-0012.
 - **Godtatt risiko.** Ingen beslutter kontrollerer migreringen, og inneværende
   måned kan bli utbetalt to ganger hvis Infotrygd kjører utbetalingen etter at vi
   har simulert. Se ADR-0013.
