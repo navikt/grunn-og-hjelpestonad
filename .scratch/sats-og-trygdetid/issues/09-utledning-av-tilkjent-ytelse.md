@@ -1,6 +1,6 @@
 # 09: Utledning av tilkjent ytelse etter § 22-12
 
-**What to build:** En ren funksjon gjør vilkårsradene og satsbeløpene om til tilkjent ytelse per måned, eller gir en liste med valideringsfeil. Funksjonen er kjernen i ADR-0014 og følger reglene i [utledning av tilkjent ytelse](../../../docs/tilkjent-ytelse/utledning-av-tilkjent-ytelse.md). Ticket 10 kobler den til steg 2.
+**What to build:** En ren funksjon gjør vilkårsradene, trygdetidsradene og satsbeløpene om til tilkjent ytelse per måned, eller gir en liste med valideringsfeil. Funksjonen er kjernen i ADR-0014 og følger reglene i [utledning av tilkjent ytelse](../../../docs/tilkjent-ytelse/utledning-av-tilkjent-ytelse.md). Ticket 10 kobler den til steg 2.
 
 🔴 Rød sone: kjernelogikk for hva søker får utbetalt. Gå gjennom reglene og testene nøye.
 
@@ -10,7 +10,7 @@
 
 Spec: [spec.md](../spec.md)
 
-- [ ] Funksjonen er ren Kotlin uten Spring, etter ADR-0008. Inn går vilkårsradene for medlemskap, diagnose, ekstrautgifter og trygdetid og listen over satsbeløp. Ut går andeler per måned, eller en valideringsfeil med én feil per vilkårstype.
+- [ ] Funksjonen er ren Kotlin uten Spring, etter ADR-0008. Inn går vilkårsradene for medlemskap, diagnose og ekstrautgifter, trygdetidsradene og listen over satsbeløp. Ut går andeler per måned, eller en valideringsfeil med én feil per vilkårstype og én for trygdetid. Feilen for trygdetid har en egen nøkkel, siden `VilkårType` ikke har noen verdi for trygdetid.
 - [ ] Validering: finnes det perioder med oppfylte inngangsvilkår, må minst én ekstrautgiftsperiode være vurdert. Trygdetiden må dekke alle tidsrom der ekstrautgiftene er `JA` innenfor periodene med oppfylte inngangsvilkår.
 - [ ] Søker har rett der inngangsvilkårene er oppfylt og ekstrautgiftene er `JA`. Hull i ekstrautgiftene betyr «nei».
 - [ ] Perioder for ekstrautgifter og trygdetid utenfor periodene med oppfylte inngangsvilkår påvirker ikke resultatet og gir ingen feil.

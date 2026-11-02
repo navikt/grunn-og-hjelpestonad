@@ -10,5 +10,5 @@ Spec: [spec.md](../spec.md)
 
 - [ ] Medlemskap og diagnose kopierer bare rader med `JA`.
 - [ ] Kopieringen kaster ikke feil når ingenting blir kopiert, så en revurdering etter et avslag kan starte uten vilkår.
-- [ ] Kopieringen er bygget slik at ticket 07 kan legge til ekstrautgifter med samme regel, og ticket 08 kan legge til trygdetid med alle rader.
+- [ ] Kopieringen er bygget slik at ticket 07 kan legge til ekstrautgifter med samme regel, og ticket 08 kan kopiere alle trygdetidsrader. Trygdetid er ikke et vilkår, så regelen om `JA` gjelder ikke for den.
 - [ ] Testene for kopiering dekker `JA`, `NEI`, en blanding av dem og ingen rader.
