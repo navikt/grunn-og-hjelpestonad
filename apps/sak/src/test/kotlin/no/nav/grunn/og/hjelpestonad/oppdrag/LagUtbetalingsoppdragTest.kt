@@ -20,7 +20,7 @@ class LagUtbetalingsoppdragTest {
         assertThat(oppdrag.saksnummer).isEqualTo(grunnlag.eksternFagsakId.toString())
         assertThat(oppdrag.aktoer).isEqualTo(grunnlag.personIdent)
         assertThat(oppdrag.utbetalingsperiode).hasSize(2)
-        assertThat(oppdrag.utbetalingsperiode.map { it.klassifisering }).containsExactly("GH", "GH")
+        assertThat(oppdrag.utbetalingsperiode.map { it.klassifisering }).containsExactly("GHGSORMG", "GHGSORMG")
         assertThat(oppdrag.utbetalingsperiode.map { it.satsType }).containsExactlyElementsOf(
             List(2) { no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsperiode.SatsType.MND },
         )

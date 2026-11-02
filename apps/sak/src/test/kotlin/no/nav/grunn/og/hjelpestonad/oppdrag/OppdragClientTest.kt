@@ -154,7 +154,7 @@ class OppdragClientTest {
                 .withHeader("Authorization", equalTo("Bearer gyldig-token"))
                 .withRequestBody(matchingJsonPath("$.fagSystem", equalTo("IT28")))
                 .withRequestBody(matchingJsonPath("$.kodeEndring", equalTo("NY")))
-                .withRequestBody(matchingJsonPath("$.utbetalingsperiode[0].klassifisering", equalTo("GH")))
+                .withRequestBody(matchingJsonPath("$.utbetalingsperiode[0].klassifisering", equalTo("GHGSORMG")))
                 .withRequestBody(matchingJsonPath("$.utbetalingsperiode[0].vedtakdatoFom", equalTo("2026-01-01")))
                 .withRequestBody(matchingJsonPath("$.utbetalingsperiode[0].datoForVedtak", equalTo("2026-01-15"))),
         )

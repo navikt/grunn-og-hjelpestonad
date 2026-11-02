@@ -8,11 +8,11 @@ enum class GrunnOgHjelpYtelsestype(
     override val klassifisering: String,
     override val satsType: Utbetalingsperiode.SatsType,
 ) : Ytelsestype {
-    GRUNNSTØNAD("GH", Utbetalingsperiode.SatsType.MND),
+    GRUNNSTØNAD("GHGSORMG", Utbetalingsperiode.SatsType.MND),
 }
 
 /**
- * IT28 og GH er midlertidige koder for dev (ADR-0011, `tmp/todo-it28-oppdrag.md`).
+ * IT28 og GHGSORMG er midlertidige koder for dev (ADR-0011, `tmp/todo-it28-oppdrag.md`).
  * De byttes når økonomi gir prod-koder.
  */
 enum class GrunnOgHjelpFagsystem(
