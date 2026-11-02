@@ -39,7 +39,6 @@ class VedtakController(
     ): ResponseEntity<Map<String, String>> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
         vedtakService.validerKanLagreVedtak(vedtakRequest)
-        vedtakService.slettVedtakHvisFinnes(behandlingId)
         vedtakService.lagreVedtak(vedtakRequest = vedtakRequest, behandlingId = behandlingId)
         return ResponseEntity.ok(mapOf("status" to "OK"))
     }

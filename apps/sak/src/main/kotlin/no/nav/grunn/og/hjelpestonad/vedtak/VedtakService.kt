@@ -9,6 +9,7 @@ import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vedtak.BeregningUtils.beregnBarnetilsynperiode
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.util.UUID
 import kotlin.collections.any
@@ -25,12 +26,17 @@ class VedtakService(
 ) {
     fun hentVedtak(behandlingId: UUID): Vedtak? = vedtakRepository.findByBehandlingId(behandlingId)
 
+    @Transactional
     fun lagreVedtak(
         vedtakRequest: VedtakRequest,
         behandlingId: UUID,
     ): UUID {
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        if (vedtakRepository.findByBehandlingId(behandlingId) != null) {
+            tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
+            vedtakRepository.deleteByBehandlingId(behandlingId)
+        }
         val vedtak = vedtakRepository.insert(vedtakRequest.tilVedtak(behandlingId))
         beregnTilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtak)
 

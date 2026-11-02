@@ -59,7 +59,6 @@ class VedtakControllerTest {
   "opprettetAv": "mockSaksbehandler"
 }"""
         justRun { vedtakService.validerKanLagreVedtak(any()) }
-        justRun { vedtakService.slettVedtakHvisFinnes(any()) }
 
         every { vedtakService.lagreVedtak(any(), any()) } returns UUID.fromString("86460749-53d4-481b-8909-7286efc7eaad")
 
