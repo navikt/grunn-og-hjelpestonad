@@ -27,7 +27,9 @@ data class InfotrygdStonadMedArv(
     val tidspunktReg: LocalDateTime?,
     val brukerid: String?,
     val vedtak: List<InfotrygdVedtakMedArv>,
-)
+){
+    fun erLøpende() = datoOpphør == null
+}
 
 /** Vedtakets egen verdi ([arvetFraVedtak] er null), eller en verdi arvet fra vedtaket i [arvetFraVedtak]. */
 data class VerdiMedKilde<T : Any>(
@@ -59,7 +61,9 @@ data class InfotrygdVedtakMedArv(
     /** Trygdetid og sats fra t_gh. Aldri en tom liste. */
     val gh: VerdiMedKilde<List<InfotrygdGhResponse>>?,
     val evaluering: VerdiMedKilde<InfotrygdEvaluering>?,
-)
+) {
+    fun erLøpende() = datoInnvTom == null
+}
 
 /**
  * Et vedtak uten egen verdi for gh, ev eller delytelse arver verdien fra vedtaket med nærmeste lavere vedtakId som har en egen verdi.

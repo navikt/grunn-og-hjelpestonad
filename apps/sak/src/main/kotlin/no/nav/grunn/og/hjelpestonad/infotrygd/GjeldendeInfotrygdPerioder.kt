@@ -104,12 +104,12 @@ object GjeldendeInfotrygdPerioder {
             stønader
                 .flatMap { stønad -> stønad.vedtak.map { vedtak -> stønad to vedtak } }
                 .maxByOrNull { (_, vedtak) -> vedtak.vedtakId } ?: return
-        val tom = sisteVedtak.datoInnvTom ?: return
+        val vedtakTom = sisteVedtak.datoInnvTom ?: return
 
         // Ønsker bare å kaste feil dersom dette treffer saker som nylig er avsluttet.
-        if (stønad.datoOpphør == null && tom >= DATOGRENSE_FOR_MIGRERING) {
+        if (stønad.erLøpende() && !sisteVedtak.erLøpende() && vedtakTom >= DATOGRENSE_FOR_MIGRERING) {
             throw UgyldigInput(
-                "Stønad ${stønad.stønadId} er ikke opphørt, men siste vedtak ${sisteVedtak.vedtakId} sluttet ${tom.format(DATOFORMAT)}. " +
+                "Stønad ${stønad.stønadId} er ikke opphørt, men siste vedtak ${sisteVedtak.vedtakId} sluttet ${vedtakTom.format(DATOFORMAT)}. " +
                     "Vi har ikke bestemt hvordan slike saker skal tolkes. Kontakt teamet.",
             )
         }
