@@ -11,8 +11,9 @@
 ## Kontekst
 
 ADR-0006 bestemte at steget etter inngangsvilkårene vurderer nødvendige
-ekstrautgifter og trygdetid. Denne ADR-en bestemmer hvordan vurderingene blir til
-tilkjent ytelse. ADR-0011 krever at tilkjent ytelse beholder desimalene.
+ekstrautgifter og trygdetid, og at trygdetid ikke er et vilkår. Denne ADR-en
+bestemmer hvordan ekstrautgiftene og trygdetiden blir til tilkjent ytelse.
+ADR-0011 krever at tilkjent ytelse beholder desimalene.
 
 To paragrafer i folketrygdloven styrer utregningen. § 22-12 sier hvilken måned
 utbetalingen starter, endres og stopper. § 22-11 sier at terminbeløp avrundes
@@ -25,11 +26,12 @@ til nærmeste hele krone. Reglene er oppsummert i
 
 `POST /api/behandling/{behandlingId}/sats-og-trygdetid/fullfor` validerer steget,
 regner ut tilkjent ytelse og lagrer den. Utregningen er en ren funksjon etter
-ADR-0008. Inn går vilkårsradene og listen over satsbeløp, og ut går andeler per
-måned. Servicen sletter tilkjent ytelse for behandlingen og lagrer den på nytt i
-samme transaksjon. Startmåned settes etter ADR-0013.
+ADR-0008. Inn går vilkårsradene, trygdetidsradene og listen over satsbeløp, og
+ut går andeler per måned. Servicen sletter tilkjent ytelse for behandlingen og
+lagrer den på nytt i samme transaksjon. Startmåned settes etter ADR-0013.
 
-Vilkårene ligger på `/vilkar/ekstrautgifter` og `/vilkar/trygdetid`.
+Ekstrautgiftene ligger på `/vilkar/ekstrautgifter`. Trygdetid er ikke et vilkår
+og ligger på `/trygdetid`.
 
 Tilkjent ytelse for en måned er satsbeløpet × trygdetid / 40, lagret som
 `BigDecimal` uten avrunding. Satsbeløpet er et helt kronebeløp, så resultatet har
@@ -48,6 +50,9 @@ brevet.
   ekstrautgiftsperiode være vurdert.
 - Perioder for ekstrautgifter og trygdetid som ligger utenfor periodene med
   oppfylte inngangsvilkår, tar beregningen ikke med. Frontend markerer dem.
+- Valideringsfeilen har én feil per vilkårstype og én for trygdetid. Feilen for
+  trygdetid har en egen nøkkel, siden `VilkårType` ikke har noen verdi for
+  trygdetid.
 
 ### § 22-12 ligger i én ren funksjon
 
@@ -74,12 +79,13 @@ Vi bruker månedsbeløpet fra
 [rundskrivet til § 6-3](https://lovdata.no/nav/rundskriv/v1-06-03), ikke
 årsbeløpet delt på 12.
 
-### Tilkjent ytelse slettes når et vilkår endres
+### Tilkjent ytelse slettes når et vilkår eller trygdetiden endres
 
-`VilkårPeriodeService` sletter tilkjent ytelse for behandlingen i samme
-transaksjon som et vilkår lagres eller slettes. Et vedtak om innvilgelse og
-simuleringen stopper med en melding om å fullføre steg 2 hvis tilkjent ytelse
-mangler.
+Servicen for fellesdelen av vilkårsperiodene sletter tilkjent ytelse for
+behandlingen i samme transaksjon som en periode lagres eller slettes. Slettingen
+ligger i fellesdelen, ikke i `VilkårPeriodeService`, så den gjelder både
+vilkårene og trygdetiden. Et vedtak om innvilgelse og simuleringen stopper med
+en melding om å fullføre steg 2 hvis tilkjent ytelse mangler.
 
 ### Avslag eller opphør når ingen perioder har oppfylte inngangsvilkår
 
@@ -100,10 +106,11 @@ sammen med revurdering og opphør.
 
 ### Kopiering til ny behandling
 
-En ny behandling kopierer `JA`-rader for medlemskap, diagnose og ekstrautgifter,
-og alle trygdetidsrader. Det er samme regel som i `familie-ba-sak`, se
-[vilkår.md](../vilkår/vilkår.md#kopiering-til-ny-behandling). En revurdering
-etter et avslag kan starte uten vilkår.
+En ny behandling kopierer `JA`-rader for medlemskap, diagnose og ekstrautgifter.
+Det er samme regel som i `familie-ba-sak`, se
+[vilkår.md](../vilkår/vilkår.md#kopiering-til-ny-behandling). Trygdetid er ikke
+et vilkår og kopieres for seg, med alle rader. En revurdering etter et avslag
+kan starte uten vilkår.
 
 ## Alternativer vurdert
 

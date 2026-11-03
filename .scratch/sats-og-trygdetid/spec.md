@@ -14,8 +14,8 @@ som må være merget først.
 ## Problem
 
 Saksbehandler kan vurdere medlemskap og diagnose, men kan ikke vurdere
-nødvendige ekstrautgifter eller trygdetid. Løsningen kan derfor ikke regne ut
-hva søker har rett til.
+nødvendige ekstrautgifter eller legge inn trygdetid. Løsningen kan derfor ikke
+regne ut hva søker har rett til.
 
 Tilkjent ytelse regnes i dag ut i vedtakssteget med logikk arvet fra
 barnetilsyn. Beløpet er et heltall, og ingen regel for grunnstønad er med.
@@ -137,8 +137,8 @@ er modellert sammen med ekstrautgiftene.
 
 ### Utdatert beregning
 
-36. Som Nav vil jeg at tilkjent ytelse slettes når et vilkår lagres eller
-    slettes, slik at en utdatert beregning aldri går videre.
+36. Som Nav vil jeg at tilkjent ytelse slettes når et vilkår eller trygdetiden
+    lagres eller slettes, slik at en utdatert beregning aldri går videre.
 37. Som saksbehandler vil jeg få beskjed om å fullføre steg 2 hvis jeg prøver å
     simulere eller innvilge uten tilkjent ytelse.
 
@@ -214,25 +214,42 @@ er modellert sammen med ekstrautgiftene.
   være tom).
 - En CHECK-constraint håndhever at `sats` er satt ved `JA` og tom ved `NEI`.
   En CHECK-constraint håndhever også datorekkefølgen.
-- Vilkåret bruker den felles servicen for vilkårsperioder: redigerbarhet,
-  ansvarlig saksbehandler, forkorting ved overlapp og endringshistorikk.
+- Vilkåret bruker `VilkårPeriodeService`: redigerbarhet, ansvarlig
+  saksbehandler, forkorting ved overlapp og endringshistorikk.
 - Endepunktene ligger på `/api/behandling/{behandlingId}/vilkar/ekstrautgifter`,
   med hent, lagre og slett som for de andre vilkårene.
 - Ny verdi i vilkårstypen for nødvendige ekstrautgifter.
 
-### Nytt vilkår: trygdetid
+### Fellesdel for vilkårsperioder og trygdetid
 
-- Egen tabell med id, behandling, begrunnelse, fra og med, til og med,
-  sporbarhet, `teller` (heltall 0–40) og `kilde` (`ALDERSPENSJON`,
-  `UFØRETRYGD`, `INGEN`). Raden har ingen vurdering.
-- CHECK-constraints: `teller` er mellom 0 og 40, og `kilde = INGEN` gir
-  `teller = 40`.
-- Trygdetid deler livsløpet med de andre vilkårene, men har ikke `JA`/`NEI`.
-  Grensesnittet for vilkårsperioder deles i to: fellesfeltene og livsløpet på
-  den ene siden, og vurderingen og «er oppfylt» på den andre. Trygdetid bruker
-  bare den første delen.
-- Endepunktene ligger på `/api/behandling/{behandlingId}/vilkar/trygdetid`.
-- Ny verdi i vilkårstypen for trygdetid.
+- Prefactoring uten endret oppførsel. Fellesdelen av vilkårsperiodene skilles
+  ut under et navn uten «Vilkår», for eksempel `PeriodeMedBegrunnelse`. Den har
+  id, behandling, begrunnelse, datoer, sporbarhet, tidslinjenøkkel, kopiering,
+  forkorting ved overlapp, redigerbarhet, ansvarlig saksbehandler og
+  endringshistorikk.
+- `VilkårPeriode`, `VilkårPeriodeRequest` og `VilkårPeriodeService` bygger på
+  fellesdelen og legger til vurderingen og «er oppfylt».
+- Servicen for fellesdelen tar inn hvilke endringstyper den skriver. Vilkårene
+  bruker fortsatt `VILKÅR_VURDERING_*`.
+- Fellesdelen bygger detaljene i endringshistorikken av faste felter, så
+  diagnose aldri kan havne der.
+
+### Trygdetid
+
+- Trygdetid er ikke et vilkår. Den har ingen `JA`/`NEI`, kan ikke gi avslag og
+  reduserer bare tilkjent ytelse etter § 6-6. Den bygger på fellesdelen, men
+  ikke på noe som er spesielt for vilkår.
+- Egen tabell, `trygdetid` og ikke `vilkar_trygdetid`, med id, behandling,
+  begrunnelse, fra og med, til og med, sporbarhet, `teller` (heltall 0–40) og
+  `kilde` (`ALDERSPENSJON`, `UFØRETRYGD`, `INGEN`). Raden har ingen vurdering.
+- CHECK-constraints: `teller` er mellom 0 og 40, `kilde = INGEN` gir
+  `teller = 40`, og datoene står i riktig rekkefølge.
+- Servicen bygger på servicen for fellesdelen, ikke på `VilkårPeriodeService`.
+- Egne endringstyper for opprettet, oppdatert og slettet trygdetid, ikke
+  `VILKÅR_VURDERING_*`. Detaljene har type og periode, ingen vurdering.
+- Endepunktene ligger på `/api/behandling/{behandlingId}/trygdetid`, med hent,
+  lagre og slett.
+- `VilkårType` får ingen verdi for trygdetid.
 
 ### Satsbeløp
 
@@ -247,9 +264,9 @@ er modellert sammen med ekstrautgiftene.
 ### Utledning av tilkjent ytelse
 
 - Én ren funksjon uten Spring, etter ADR-0008. Den tar inn vilkårsradene for
-  medlemskap, diagnose, ekstrautgifter og trygdetid, og listen over satsbeløp.
-  Den returnerer andeler per måned, eller kaster en valideringsfeil med listen
-  over feil.
+  medlemskap, diagnose og ekstrautgifter, trygdetidsradene og listen over
+  satsbeløp. Den returnerer andeler per måned, eller kaster en valideringsfeil
+  med listen over feil: én per vilkårstype og én for trygdetid, med egen nøkkel.
 - Den erstatter beregningen av andeler fra barnetilsyn som PR 116 la i en egen
   funksjon.
 - Validering i funksjonen: er det perioder med oppfylte inngangsvilkår, må minst
@@ -273,9 +290,9 @@ er modellert sammen med ekstrautgiftene.
 ### Steg 2: sats og trygdetid
 
 - `POST /api/behandling/{behandlingId}/sats-og-trygdetid/fullfor` sjekker
-  redigerbarhet og ansvarlig saksbehandler, henter vilkårene, kaller
-  utledningen og lagrer tilkjent ytelse med tjenesten for beregning av tilkjent
-  ytelse fra PR 116. Startmåned regnes ut som PR 116 gjør.
+  redigerbarhet og ansvarlig saksbehandler, henter vilkårene og trygdetiden,
+  kaller utledningen og lagrer tilkjent ytelse med tjenesten for beregning av
+  tilkjent ytelse fra PR 116. Startmåned regnes ut som PR 116 gjør.
 - Lagringen sletter og setter inn på nytt i samme transaksjon.
 - Ny endringstype i endringshistorikken for fullført sats og trygdetid, med
   antall andeler og datoer, uten diagnose.
@@ -293,11 +310,12 @@ er modellert sammen med ekstrautgiftene.
 - Vedtakssteget regner ikke lenger ut tilkjent ytelse. Kallet flyttes til
   steg 2.
 
-### Sletting når vilkår endres
+### Sletting når vilkår eller trygdetid endres
 
-- Den felles servicen for vilkårsperioder sletter tilkjent ytelse for
-  behandlingen i samme transaksjon når et vilkår lagres eller slettes. Det
-  gjelder alle fire vilkårene.
+- Servicen for fellesdelen sletter tilkjent ytelse for behandlingen i samme
+  transaksjon når en periode lagres eller slettes. Slettingen ligger i
+  fellesdelen, ikke i `VilkårPeriodeService`, så den gjelder medlemskap,
+  diagnose, ekstrautgifter og trygdetid.
 - Simulering og vedtak om innvilgelse stopper med en funksjonell feil om å
   fullføre steg 2 hvis tilkjent ytelse mangler. Et vedtak om avslag krever ikke
   tilkjent ytelse.
@@ -313,7 +331,7 @@ er modellert sammen med ekstrautgiftene.
 ### Kopiering til ny behandling
 
 - Medlemskap, diagnose og ekstrautgifter kopierer bare rader med `JA`.
-- Trygdetid kopierer alle rader.
+- Trygdetid er ikke et vilkår og kopieres for seg, med alle rader.
 - Feilen som kastes når ingenting blir kopiert, fjernes.
 
 ### Frontend
@@ -326,8 +344,9 @@ er modellert sammen med ekstrautgiftene.
   for inngangsvilkår, og perioder utenfor er markert.
 - Ekstrautgifter: vurdering ja/nei, sats 1–6 bare ved ja, datoer og begrunnelse.
 - Trygdetid: teller 0–40, kilde og datoer. Kilden «ingen» låser telleren på 40.
+  Skjermbildet kaller ikke trygdetid et vilkår.
 - Neste i steg 2 kaller endepunktet for fullføring og viser valideringsfeilene i
-  en `ErrorSummary`, som i steg 1.
+  en `ErrorSummary`, som i steg 1, også feilen for trygdetid.
 - Steget for simulering viser tilkjent ytelse øverst per periode med satsbeløp,
   brøk og tilkjent ytelse, merket som tilkjent ytelse.
 - API-klienten genereres på nytt etter at backend er merget, etter ADR-0002.
@@ -356,9 +375,9 @@ uten Spring og uten mocks, og Spring-skallet testes tynt.
   funksjon i samme stil.
 - **Listen over satsbeløp:** ingen overlapp, ingen hull per sats, første dato er
   1.1.1997, oppslag utenfor listen kaster feil, og stikkprøver mot rundskrivet.
-- **Servicene for de nye vilkårene:** lagring, overlapp, endringshistorikk og
-  at tilkjent ytelse slettes ved lagring og sletting. Forbilde:
-  `VilkårMedlemskapServiceTest`.
+- **Servicene for ekstrautgifter og trygdetid:** lagring, overlapp,
+  endringshistorikk og at tilkjent ytelse slettes ved lagring og sletting.
+  Forbilde: `VilkårMedlemskapServiceTest`.
 - **Kopiering:** bare `JA` kopieres, alle trygdetidsrader kopieres, og ingen feil
   når ingenting blir kopiert. Forbilde: `KopierVilkårServiceTest`.
 - **Repository:** CHECK-constraints for sats og vurdering, teller og kilde, og
@@ -380,7 +399,9 @@ uten Spring og uten mocks, og Spring-skallet testes tynt.
 - Institusjon etter § 6-8. Kommer tilbake sammen med ekstrautgiftene før prod.
 - Utgiftstyper og fast sats ut fra diagnose. Saksbehandler skriver det i
   begrunnelsen.
-- Innhenting av trygdetid fra Pesys.
+- Innhenting av trygdetid fra Pesys. Når den kommer, må teamet avgjøre om den
+  hentede trygdetiden blir faktagrunnlag som saksbehandler kan overstyre, eller
+  om den erstatter radene saksbehandler legger inn.
 - Automatisk utregning av vedtaksresultatet og sjekk av resultatet i
   revurderinger.
 - Automatisk behandling når Stortinget endrer satsene, for løpende saker.

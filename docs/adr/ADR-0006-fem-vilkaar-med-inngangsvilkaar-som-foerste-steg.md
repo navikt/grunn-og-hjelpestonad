@@ -26,7 +26,7 @@ er definert i [CONTEXT.md](../../CONTEXT.md).
 
 ## Beslutning
 
-### Fem vilkår
+### Fire vilkår, og trygdetid for seg
 
 | Vilkår | Hjemmel | Gruppe |
 |---|---|---|
@@ -34,22 +34,26 @@ er definert i [CONTEXT.md](../../CONTEXT.md).
 | Diagnose | § 6-2, § 6-9 | Inngangsvilkår |
 | Institusjon | § 6-8 | Vilkår |
 | Nødvendige ekstrautgifter | § 6-3 | Vilkår |
-| Trygdetid | § 6-6 | Vilkår |
 
-Vi bruker «vilkår» om alle fem, og «inngangsvilkår» om medlemskap og diagnose.
+Vi bruker «vilkår» om disse fire, og «inngangsvilkår» om medlemskap og diagnose.
+
+Trygdetid etter § 6-6 er ikke et vilkår i løsningen. Den har ingen
+ja/nei-vurdering, kan ikke gi avslag og reduserer bare tilkjent ytelse. Vi modellerer den som et eget begrep med samme
+livsløp som vilkårene: perioder, begrunnelse, forkorting ved overlapp,
+endringshistorikk og kopiering til ny behandling.
 
 ### Inngangsvilkårene er første steg
 
-Medlemskap og diagnose vurderes i det første steget. De andre vilkårene
-vurderes bare i perioder med oppfylte inngangsvilkår. Er det ingen slike
-perioder, blir det avslag uten flere vurderinger.
+Medlemskap og diagnose vurderes i det første steget. De andre vilkårene og
+trygdetiden vurderes bare i perioder med oppfylte inngangsvilkår. Er det ingen
+slike perioder, blir det avslag uten flere vurderinger.
 
 § 6-9 hører til inngangsvilkårene: er diagnosen en yrkesskade, lempes
 medlemskapskravet.
 
 ### Alt periodiseres
 
-Faktagrunnlaget, hvert vilkår og tilkjent ytelse periodiseres. Tilkjent
+Faktagrunnlaget, hvert vilkår, trygdetiden og tilkjent ytelse periodiseres. Tilkjent
 ytelse er tidslinjen av sats × trygdetidsbrøk i periodene der søker har rett.
 
 ### Institusjon slår av retten, med ekstrautgifter som unntak
@@ -73,13 +77,20 @@ endringshistorikken.
 
 ### Steg 2 er nødvendige ekstrautgifter og trygdetid
 
-Steget etter inngangsvilkårene heter «Sats og trygdetid» og vurderer to vilkår:
+Steget etter inngangsvilkårene heter «Sats og trygdetid». Saksbehandler
+vurderer ett vilkår og legger inn trygdetiden:
 
 - **Nødvendige ekstrautgifter** (`VilkårEkstrautgifter`) har `vurdering`
   (`JA`/`NEI`) og `sats` (1–6). Satsen er påkrevd ved `JA` og tom ved `NEI`.
   `NEI` gir ingen rett i perioden, med § 6-3 tredje ledd som hjemmel.
 - **Trygdetid** har en teller fra 0 til 40 og en kilde, men ingen `JA`/`NEI`.
-  Søker kan ha rett uansett trygdetid.
+  Søker kan ha rett uansett trygdetid. Til trygdetiden hentes fra andre
+  systemer, legger saksbehandler den inn for hånd med begrunnelse.
+
+Trygdetid bygger på fellesdelen av vilkårsperiodene, men ikke på noe som er
+spesielt for vilkår. Den har egen tabell, `trygdetid`, endepunktene på
+`/api/behandling/{behandlingId}/trygdetid` og egne endringstyper i
+endringshistorikken. `VilkårType` har ingen verdi for trygdetid.
 
 Når steget fullføres, regner saken ut og lagrer tilkjent ytelse. Beslutningen
 står i [ADR-0014](ADR-0014-tilkjent-ytelse-fra-ekstrautgifter-og-trygdetid.md),
@@ -104,10 +115,9 @@ plass.
 
 Fra **ADR-0003**:
 
-- Tabellen med tre vilkår. Den erstattes av de fem vilkårene over.
+- Tabellen med tre vilkår. Den erstattes av de fire vilkårene over.
 - «Nødvendige ekstrautgifter er ikke et vilkår i denne modellen».
 - «Ekstrautgifter og sats flyttes ut av vilkårssteget».
-- Avgrensningen som legger reduksjon ved manglende trygdetid til satsene.
 
 Fra **ADR-0004**:
 
@@ -127,11 +137,13 @@ Tre vilkår i vilkårssteget, og ekstrautgifter og trygdetid i satssteget.
 Forkastet fordi modellen ikke stemmer med hvordan fag beskriver vilkårene.
 Den lar heller ikke saksbehandler stoppe når et inngangsvilkår ikke er oppfylt.
 
-## Åpne spørsmål
+### Trygdetid som vilkår
 
-1. **Trygdetid: vilkår eller reduksjon?** Trygdetid kan aldri gi avslag, bare
-   redusere beløpet. Juridisk kan det derfor være mer presist å kalle det en
-   reduksjon. Enn så lenge kaller vi trygdetid et vilkår, fordi fag gjør det.
+Trygdetid som et femte vilkår, med en verdi i `VilkårType`, endepunktet
+`/vilkar/trygdetid` og endringstypene `VILKÅR_VURDERING_*`. Det er slik fag
+beskriver den. Forkastet fordi trygdetid ikke har noen vurdering å lagre. Som
+vilkår måtte den ha unntak fra «er oppfylt», fra regelen om å kopiere bare
+`JA`-rader og fra vurderingen i endringshistorikken.
 
 ## Avklarte spørsmål
 
@@ -139,6 +151,7 @@ Den lar heller ikke saksbehandler stoppe når et inngangsvilkår ikke er oppfylt
 |---|---|
 | Trenger perioder med oppfylte inngangsvilkår en egen tabell? | Nei. En ren funksjon regner dem ut fra vilkårsradene |
 | Hvilke steg kommer etter inngangsvilkårene? | Ett steg, «Sats og trygdetid», med nødvendige ekstrautgifter og trygdetid. Institusjon venter |
+| Trygdetid: vilkår eller reduksjon? | Reduksjon. Trygdetid kan ikke gi avslag, bare redusere tilkjent ytelse etter § 6-6. Den er et eget begrep med samme livsløp som vilkårene, men ikke et vilkår |
 
 ## Aksjonspunkter
 
@@ -152,5 +165,8 @@ Den lar heller ikke saksbehandler stoppe når et inngangsvilkår ikke er oppfylt
 - `periode_med_rett`, `PeriodeMedRettUtleder` og `PerioderMedRettTidslinje`
   fjernes. `vilkar_institusjon` droppes i en ny migrering.
 - `POST /vilkar/fullfor` erstattes av `POST /inngangsvilkar/fullfor`.
+- Fellesdelen av vilkårsperiodene skilles ut under et navn uten «Vilkår», slik
+  at trygdetid kan bruke den uten vurdering. `VilkårPeriode` legger til
+  vurderingen og «er oppfylt».
 - Kravet om minst én vurdert periode per vilkår (R1 i ADR-0004) gjelder i første
   steg bare medlemskap og diagnose.

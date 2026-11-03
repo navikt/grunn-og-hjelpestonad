@@ -1,6 +1,6 @@
 # 11: Tilkjent ytelse slettes når et vilkår eller trygdetiden endres
 
-**What to build:** En utdatert beregning kan ikke gå videre. Når saksbehandler lagrer eller sletter en periode for et vilkår eller for trygdetid, slettes tilkjent ytelse for behandlingen. Simulering og innvilgelse stopper med beskjed om å fullføre steg 2. Se ADR-0014 under «Tilkjent ytelse slettes når et vilkår endres».
+**What to build:** En utdatert beregning kan ikke gå videre. Når saksbehandler lagrer eller sletter en periode for et vilkår eller for trygdetid, slettes tilkjent ytelse for behandlingen. Simulering og innvilgelse stopper med beskjed om å fullføre steg 2. Se ADR-0014 under «Tilkjent ytelse slettes når et vilkår eller trygdetiden endres».
 
 **Blocked by:** 10
 

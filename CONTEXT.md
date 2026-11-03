@@ -33,19 +33,23 @@ En periode der saksbehandler har vurdert om søker er medlem av folketrygden, et
 En tidslinje som systemet utleder fra faktagrunnlaget for medlemskap. Hver periode har enten en foreslått vurdering, eller en grunn til at saksbehandler må vurdere den manuelt. Det blir til medlemskapsperioder først når saksbehandler godtar det.
 _Avoid_: Automatisk vurdering, maskinell vurdering, aksjonspunkt
 
-## Vilkår
+## Vilkår og trygdetid
 
 **Vilkår**:
-De fem forholdene som vurderes i en behandling: medlemskap, diagnose, nødvendige ekstrautgifter, institusjon og trygdetid. Hvert vilkår vurderes per periode.
+De fire forholdene som vurderes ja eller nei per periode i en behandling: medlemskap, diagnose, nødvendige ekstrautgifter og institusjon. Fag regner også trygdetid som et vilkår, men det gjør ikke løsningen.
 
 **Inngangsvilkår**:
-Vilkårene uten skjønn, medlemskap og diagnose, som vurderes først. De andre vilkårene vurderes bare i perioder der begge er oppfylt.
+Vilkårene uten skjønn, medlemskap og diagnose, som vurderes først. De andre vilkårene og trygdetiden vurderes bare i perioder der begge er oppfylt.
 
 **Periode med oppfylte inngangsvilkår**:
 En periode der både medlemskap og diagnose er oppfylt.
 
 **Nødvendige ekstrautgifter**:
 Vilkåret som avgjør om søker har rett i en periode med oppfylte inngangsvilkår, og i så fall hvilken sats. Er ekstrautgiftene under laveste sats, er vilkåret ikke oppfylt, jf. § 6-3 tredje ledd.
+
+**Trygdetid**:
+Søkers trygdetid per periode, som en teller fra 0 til 40 og kilden alderspensjon, uføretrygd eller ingen. Ikke et vilkår: den har ingen ja/nei-vurdering, kan ikke gi avslag og reduserer bare tilkjent ytelse etter § 6-6. Har samme livsløp som vilkårene, med periode, begrunnelse og endringshistorikk.
+_Avoid_: Trygdetidsvilkår, vilkåret trygdetid
 
 **Trygdetidsbrøk**:
 Brøken x/40 fra søkers alderspensjon eller uføretrygd. Er 40/40 når søker ikke har noen av dem. Kan ikke skjønnsvurderes.
