@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.core.annotation.AnnotatedElementUtils
+import org.springframework.core.env.MapPropertySource
 import org.springframework.core.env.StandardEnvironment
 import org.springframework.core.type.filter.AnnotationTypeFilter
 import org.springframework.web.bind.annotation.RequestMapping
@@ -37,8 +38,13 @@ class EndepunktRegisterTest {
     }
 
     private fun alleHandlere(): Set<String> {
-        // Skanneren tar hensyn til @Profile. "dev" tar med controllere som bare finnes i dev, som UnleashController.
-        val miljø = StandardEnvironment().apply { setActiveProfiles("dev") }
+        // Skanneren tar hensyn til @Profile og @ConditionalOnProperty. "dev" tar med controllere som bare finnes i dev,
+        // som UnleashController, og egenskapene slår på controllere som ellers er av.
+        val miljø =
+            StandardEnvironment().apply {
+                setActiveProfiles("dev")
+                propertySources.addFirst(MapPropertySource("endepunktregister", PÅSLÅTTE_CONTROLLERE))
+            }
         val skanner = ClassPathScanningCandidateComponentProvider(false, miljø)
         skanner.addIncludeFilter(AnnotationTypeFilter(RestController::class.java))
 
@@ -53,6 +59,12 @@ class EndepunktRegisterTest {
     }
 
     companion object {
+        // Egenskaper som slår på controllere med @ConditionalOnProperty, slik at de også blir klassifisert.
+        private val PÅSLÅTTE_CONTROLLERE: Map<String, Any> =
+            mapOf(
+                "oppdrag.iverksetting.testendepunkt-aktivert" to "true",
+            )
+
         private val MED_PERSONSJEKK =
             setOf(
                 "BehandlingController#opprettBehandling",
@@ -82,6 +94,8 @@ class EndepunktRegisterTest {
                 "SimuleringController#simulerForBehandling",
                 "SimuleringController#hentSimuleringsresultat",
                 "OppdragSimuleringController#simulerMotOppdrag",
+                "OppdragIverksettingController#iverksettMotOppdrag",
+                "OppdragIverksettingController#hentOppdragStatus",
                 "OppgaveController#hentAnsvarligSaksbehandler",
                 "OppgaveController#fordelOppgave",
                 "PdlController#hentPerson",
