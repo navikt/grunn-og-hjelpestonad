@@ -47,7 +47,7 @@ object GjeldendeInfotrygdPerioder {
             }
     }
 
-    // Det er ingen tilfeller der vedtakId er mindre, men tidspunktReg er større enn et annet vedtak i infotrygd dev.
+    // Det er ingen tilfeller der vedtakId er mindre mens tidspunktReg er større enn et annet vedtak i infotrygd dev.
     fun antallVedtakUtenforRekkefølge(stønader: List<InfotrygdStonadMedArv>): Int =
         stønader
             .flatMap { it.vedtak }
