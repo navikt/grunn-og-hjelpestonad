@@ -191,6 +191,7 @@ export const hentStønaderForPerson = <ThrowOnError extends boolean = false>(opt
         query: z.never().optional()
     }).parseAsync(data),
     responseValidator: async (data) => await zHentStønaderForPersonResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/infotrygd/stonader',
     ...options,
     headers: {
@@ -211,6 +212,7 @@ export const hentGjeldendePerioderForPerson = <ThrowOnError extends boolean = fa
         query: z.never().optional()
     }).parseAsync(data),
     responseValidator: async (data) => await zHentGjeldendePerioderForPersonResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/infotrygd/gjeldende-perioder',
     ...options,
     headers: {
