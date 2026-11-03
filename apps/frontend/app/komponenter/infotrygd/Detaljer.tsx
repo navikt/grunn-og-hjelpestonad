@@ -88,7 +88,7 @@ function Delytelser({ rad }: { rad: Vedtaksrad }) {
               <Table.Row key={`${d.typeDelytelse}-${d.tidspunktReg}`}>
                 <Table.DataCell>{formaterDato(d.fom)}</Table.DataCell>
                 <Table.DataCell>{d.tom ? formaterDato(d.tom) : <TomtFelt />}</Table.DataCell>
-                <Table.DataCell style={ingenBryting}>{formaterBelop(d.belop)}</Table.DataCell>
+                <Table.DataCell style={ingenBryting}>{formaterBelop(d.beløp)}</Table.DataCell>
                 <Table.DataCell>{formaterIsoDatoTid(d.tidspunktReg)}</Table.DataCell>
               </Table.Row>
             ))}
@@ -199,7 +199,7 @@ export function Detaljer({
           <Felt tittel="Resultat">{visVerdi(formaterResultat(vedtak.kodeResultat))}</Felt>
           <Felt tittel="Stønaden startet">{formaterDato(stønad.datoStart)}</Felt>
           <Felt tittel="Stønaden opphørte">
-            {stønad.datoOpphor ? formaterDato(stønad.datoOpphor) : <TomtFelt />}
+            {stønad.datoOpphør ? formaterDato(stønad.datoOpphør) : <TomtFelt />}
           </Felt>
         </HGrid>
 

@@ -110,7 +110,7 @@ class GjeldendeInfotrygdPerioderTest {
                 stønad(vedtak(vedtakId = 2, fom = "2022-01-01"), stønadId = 20),
             )
 
-        assertThat(perioder.map { it.stonadId to it.vedtak.vedtakId }).containsExactly(10L to 1L, 20L to 2L)
+        assertThat(perioder.map { it.stønadId to it.vedtak.vedtakId }).containsExactly(10L to 1L, 20L to 2L)
         assertThat(perioder.forenklet()).containsExactly(
             Forenklet("2020-01-01", "2021-12-31", 1),
             Forenklet("2022-01-01", null, 2),
@@ -122,7 +122,7 @@ class GjeldendeInfotrygdPerioderTest {
         @Test
         fun `opphør midt i et vedtak kutter tom ved opphørsdatoen`() {
             val perioder =
-                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphor = LocalDate.parse("2021-06-15")))
+                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphør = LocalDate.parse("2021-06-15")))
 
             assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2021-06-15", 1))
         }
@@ -130,7 +130,7 @@ class GjeldendeInfotrygdPerioderTest {
         @Test
         fun `opphør den 1 i måneden gir tom siste dag i måneden før`() {
             val perioder =
-                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphor = LocalDate.parse("2021-06-01")))
+                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphør = LocalDate.parse("2021-06-01")))
 
             assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2021-05-31", 1))
         }
@@ -138,7 +138,7 @@ class GjeldendeInfotrygdPerioderTest {
         @Test
         fun `opphør siste dag i måneden brukes som den er`() {
             val perioder =
-                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphor = LocalDate.parse("2021-06-30")))
+                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphør = LocalDate.parse("2021-06-30")))
 
             assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2021-06-30", 1))
         }
@@ -149,7 +149,7 @@ class GjeldendeInfotrygdPerioderTest {
                 utled(
                     stønad(
                         vedtak(vedtakId = 1, fom = "2020-01-01", tom = "2020-12-31"),
-                        datoOpphor = LocalDate.parse("2021-06-30"),
+                        datoOpphør = LocalDate.parse("2021-06-30"),
                     ),
                 )
 
@@ -163,7 +163,7 @@ class GjeldendeInfotrygdPerioderTest {
                     stønad(
                         vedtak(vedtakId = 1, fom = "2020-01-01"),
                         vedtak(vedtakId = 2, fom = "2021-01-01", tom = "2025-12-31"),
-                        datoOpphor = LocalDate.parse("2022-06-30"),
+                        datoOpphør = LocalDate.parse("2022-06-30"),
                     ),
                 )
 
@@ -178,7 +178,7 @@ class GjeldendeInfotrygdPerioderTest {
             val perioder =
                 utled(
                     stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), stønadId = 10),
-                    stønad(vedtak(vedtakId = 2, fom = "2022-01-01"), stønadId = 20, datoOpphor = LocalDate.parse("2022-12-31")),
+                    stønad(vedtak(vedtakId = 2, fom = "2022-01-01"), stønadId = 20, datoOpphør = LocalDate.parse("2022-12-31")),
                 )
 
             assertThat(perioder.forenklet()).containsExactly(
@@ -195,7 +195,7 @@ class GjeldendeInfotrygdPerioderTest {
                     stønad(
                         vedtak(vedtakId = 1, fom = "2020-01-01", tom = "2021-03-14"),
                         vedtak(vedtakId = 2, fom = "2021-03-15"),
-                        datoOpphor = LocalDate.parse("2021-03-15"),
+                        datoOpphør = LocalDate.parse("2021-03-15"),
                     ),
                 )
 
@@ -209,7 +209,7 @@ class GjeldendeInfotrygdPerioderTest {
                     stønad(
                         vedtak(vedtakId = 1, fom = "2020-01-01", tom = "2021-06-30"),
                         vedtak(vedtakId = 2, fom = "2021-07-01"),
-                        datoOpphor = LocalDate.parse("2021-07-01"),
+                        datoOpphør = LocalDate.parse("2021-07-01"),
                     ),
                 )
 
@@ -223,7 +223,7 @@ class GjeldendeInfotrygdPerioderTest {
                     stønad(
                         vedtak(vedtakId = 1, fom = "2020-01-01"),
                         vedtak(vedtakId = 4711, fom = "2022-01-01"),
-                        datoOpphor = LocalDate.parse("2021-07-01"),
+                        datoOpphør = LocalDate.parse("2021-07-01"),
                     ),
                 )
             }.isInstanceOf(UgyldigInput::class.java)
@@ -239,7 +239,7 @@ class GjeldendeInfotrygdPerioderTest {
                 utled(
                     stønad(
                         vedtak(vedtakId = 4711, fom = "2022-01-01", tom = "2021-12-31"),
-                        datoOpphor = LocalDate.parse("2021-07-01"),
+                        datoOpphør = LocalDate.parse("2021-07-01"),
                     ),
                 )
             }.isInstanceOf(UgyldigInput::class.java)
@@ -267,7 +267,7 @@ class GjeldendeInfotrygdPerioderTest {
         fun `løpende vedtak på en stønad som er kuttet ved opphør regnes ikke som løpende`() {
             val perioder =
                 utled(
-                    stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), stønadId = 10, datoOpphor = LocalDate.parse("2020-12-31")),
+                    stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), stønadId = 10, datoOpphør = LocalDate.parse("2020-12-31")),
                     stønad(vedtak(vedtakId = 2, fom = "2022-01-01"), stønadId = 20),
                 )
 
@@ -309,7 +309,7 @@ class GjeldendeInfotrygdPerioderTest {
                 utled(
                     stønad(
                         vedtak(vedtakId = 1, fom = "2025-01-01", tom = "2026-06-30"),
-                        datoOpphor = LocalDate.parse("2026-07-01"),
+                        datoOpphør = LocalDate.parse("2026-07-01"),
                     ),
                 )
 
@@ -334,7 +334,7 @@ class GjeldendeInfotrygdPerioderTest {
         fun `feilmeldingene har ikke fnr`() {
             val tilfeller =
                 listOf(
-                    listOf(stønad(vedtak(vedtakId = 1, fom = "2022-01-01"), datoOpphor = LocalDate.parse("2021-07-01"))),
+                    listOf(stønad(vedtak(vedtakId = 1, fom = "2022-01-01"), datoOpphør = LocalDate.parse("2021-07-01"))),
                     listOf(stønad(vedtak(vedtakId = 1), stønadId = 10), stønad(vedtak(vedtakId = 2), stønadId = 20)),
                     listOf(stønad(vedtak(vedtakId = 1, fom = "2025-01-01", tom = "2026-06-30"))),
                 )

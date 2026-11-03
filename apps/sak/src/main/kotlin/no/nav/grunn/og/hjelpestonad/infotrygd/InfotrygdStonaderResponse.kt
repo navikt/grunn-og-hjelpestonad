@@ -4,14 +4,14 @@ import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.Icd10
 
 /** /stonader fra infotrygd, med ICD-10-tekst for diagnosene i evalueringene. Inneholder helseopplysninger (GDPR art. 9). */
 data class InfotrygdStonaderResponse(
-    val stonader: List<InfotrygdStonadMedArv>,
+    val stønader: List<InfotrygdStonadMedArv>,
     /** ICD-10-tekst per diagnosekode (diagnose1 og diagnose2, trimmet). Koder uten treff i ICD-10 er ikke med. */
     val diagnosetekster: Map<String, String>,
 )
 
 fun List<InfotrygdStonadMedArv>.tilInfotrygdStonaderResponse(): InfotrygdStonaderResponse =
     InfotrygdStonaderResponse(
-        stonader = this,
+        stønader = this,
         diagnosetekster = diagnosetekster(flatMap { it.vedtak }),
     )
 

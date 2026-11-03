@@ -158,7 +158,12 @@ ligger ikke nær EF-appen. Svaret følger tabellene i stedet:
   stønadstype.
 - Svaret er et tre langs fremmednøklene: `t_stonad` → `t_vedtak` → `t_endring`,
   `t_delytelse` og `t_gh`. Klassene heter som tabellene og feltene som kolonnene,
-  i camelCase. `personnr` kommer fra `t_lopenr_fnr`.
+  i camelCase, med æøå der kolonnene har o eller aa: `stønadId`, `kodeOpphør`,
+  `datoOpphør`, `tidspunktOpphørt`, `kodeVedtaksnivå` og `beløp`. Klassenavnene
+  er uten æøå, fordi OpenAPI bare tillater `a-z`, `A-Z`, `0-9`, `.`, `-` og `_`
+  i skjemanavn. Et felt som begynner med æøå trenger `@JsonProperty` og
+  `@get:JvmName`, se `årsakskode` i `SakResponse.kt`. `personnr` kommer fra
+  `t_lopenr_fnr`.
 - Bare kolonnene vi trenger er med. Metadata fra replikeringen (`opprettet`,
   `oppdatert`, `db_splitt`) og løpenumre for andre personer er utelatt.
 - Rader filtreres bare bort på person, `kode_rutine` og endringskode. Vedtak

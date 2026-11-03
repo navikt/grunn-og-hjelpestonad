@@ -70,7 +70,7 @@ class TilgangskontrollIntegrasjonTest {
         hentStønader(SAKSBEHANDLER, PERSON_1).andExpect {
             status { isForbidden() }
             jsonPath("$.melding") { value(TilgangService.MANGLER_TILGANG_MELDING) }
-            jsonPath("$.stonader") { doesNotExist() }
+            jsonPath("$.stønader") { doesNotExist() }
         }
     }
 
@@ -120,7 +120,7 @@ class TilgangskontrollIntegrasjonTest {
                 content = """{"personidenter":["$PERSON_1"],"stønadstype":"GRUNNSTØNAD"}"""
             }.andExpect {
                 status { isForbidden() }
-                jsonPath("$.stonader") { doesNotExist() }
+                jsonPath("$.stønader") { doesNotExist() }
             }
         assertTrue(tilgangsmaskin.kall.single() == setOf(PERSON_1))
     }

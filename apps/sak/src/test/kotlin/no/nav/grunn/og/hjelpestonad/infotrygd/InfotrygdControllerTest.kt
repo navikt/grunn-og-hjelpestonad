@@ -81,8 +81,8 @@ class InfotrygdControllerTest {
         postJson(stonaderUrl).andExpect {
             status { isOk() }
             header { string(HttpHeaders.CACHE_CONTROL, containsString("no-store")) }
-            jsonPath("$.stonader[0].vedtak[0].vedtakId") { value(1) }
-            jsonPath("$.stonader[0].vedtak[1].evaluering.arvetFraVedtak.vedtakId") { value(1) }
+            jsonPath("$.stønader[0].vedtak[0].vedtakId") { value(1) }
+            jsonPath("$.stønader[0].vedtak[1].evaluering.arvetFraVedtak.vedtakId") { value(1) }
         }
 
         verify(exactly = 1) { tilgangService.validerTilgangTilPerson(personident) }
@@ -122,7 +122,7 @@ class InfotrygdControllerTest {
             status { isOk() }
             header { string(HttpHeaders.CACHE_CONTROL, containsString("no-store")) }
             jsonPath("$.perioder[0].fom") { value("2020-01-01") }
-            jsonPath("$.perioder[0].stonadId") { value(1) }
+            jsonPath("$.perioder[0].stønadId") { value(1) }
             jsonPath("$.perioder[0].vedtak.vedtakId") { value(1) }
         }
 

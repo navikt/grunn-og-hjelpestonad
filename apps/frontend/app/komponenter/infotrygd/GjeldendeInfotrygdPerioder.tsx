@@ -110,7 +110,7 @@ export function GjeldendeInfotrygdPerioder({
             <Table.Body>
               {perioder.map((periode) => (
                 <PeriodeRad
-                  key={`${periode.stonadId}-${periode.vedtak.vedtakId}-${periode.fom}`}
+                  key={`${periode.stønadId}-${periode.vedtak.vedtakId}-${periode.fom}`}
                   periode={periode}
                 />
               ))}

@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.sak
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDate
 
 data class InfotrygdSakerResponse(
@@ -22,6 +23,8 @@ data class InfotrygdSakResponse(
     val resultat: String,
     val vedtaksdato: LocalDate?,
     val iverksattdato: LocalDate?,
+    @JsonProperty("årsakskode")
+    @get:JvmName("getÅrsakskode")
     val årsakskode: String,
     val behandlendeEnhet: String,
     val registrertAvEnhet: String,

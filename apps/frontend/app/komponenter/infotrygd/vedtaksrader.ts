@@ -47,7 +47,7 @@ const nyesteDelytelseFørst = (delytelser: InfotrygdDelytelseResponse[]) =>
   );
 
 function radbeløp(delytelser: InfotrygdDelytelseResponse[]): Radbeløp {
-  if (delytelser.length === 1) return { type: "ETT", beløp: delytelser[0].belop };
+  if (delytelser.length === 1) return { type: "ETT", beløp: delytelser[0].beløp };
   return delytelser.length === 0 ? { type: "INGEN" } : { type: "FLERE" };
 }
 
@@ -70,7 +70,7 @@ function lagRad(
   perioderPerVedtak: ReadonlyMap<number, readonly GjeldendeInfotrygdPeriode[]>
 ): Vedtaksrad {
   const åpen = vedtak.datoInnvTom == null;
-  const opphørsdato = stønad.datoOpphor ?? null;
+  const opphørsdato = stønad.datoOpphør ?? null;
 
   return {
     stønad,

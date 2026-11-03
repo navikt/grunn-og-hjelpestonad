@@ -16,14 +16,14 @@ class InfotrygdService(
         stønadstype: StonaderRequest.Stønadstype,
     ): InfotrygdStonaderResponse =
         InfotrygdArv
-            .fyllVedtakMedVerdierFraTidligereVedtak(infotrygdClient.hentStønader(personident = personident, stønadstype = stønadstype).stonader)
+            .fyllVedtakMedVerdierFraTidligereVedtak(infotrygdClient.hentStønader(personident = personident, stønadstype = stønadstype).stønader)
             .tilInfotrygdStonaderResponse()
 
     fun hentGjeldendePerioder(
         personident: String,
         stønadstype: StonaderRequest.Stønadstype,
     ): InfotrygdGjeldendePerioderResponse {
-        val stønader = InfotrygdArv.fyllVedtakMedVerdierFraTidligereVedtak(infotrygdClient.hentStønader(personident = personident, stønadstype = stønadstype).stonader)
+        val stønader = InfotrygdArv.fyllVedtakMedVerdierFraTidligereVedtak(infotrygdClient.hentStønader(personident = personident, stønadstype = stønadstype).stønader)
 
         val utenforRekkefølge = GjeldendeInfotrygdPerioder.antallVedtakUtenforRekkefølge(stønader)
         if (utenforRekkefølge > 0) {

@@ -62,7 +62,7 @@ migreringen vil gjøre.
 2. Et vedtak med `datoInnvTom` før eller lik `datoInnvFom` gir `UgyldigInput`
    (400) med vedtakId, fom og tom. Vi gjetter ikke på hva vedtaket skulle
    gjelde, og saksbehandleren må lese saken i Infotrygd.
-3. Når stønaden har `datoOpphor`, kuttes tom på alle vedtakene på stønaden ved
+3. Når stønaden har `datoOpphør`, kuttes tom på alle vedtakene på stønaden ved
    opphøret. Er opphørsdatoen den 1. i måneden, blir tom siste dag i måneden
    før, som i EF. Opphør den 1. er første dag uten stønad. Andre datoer brukes
    som de er. Et vedtak som starter samme dag som opphøret, er opphørt fra start
@@ -72,10 +72,10 @@ migreringen vil gjøre.
    ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.»
 5. Har minst to stønader vedtak uten tom etter kuttet, gir oppslaget
    `UgyldigInput`: «Personen har løpende vedtak på flere stønader i Infotrygd
-   ({stonadId-er}). Vi har ikke bestemt hvordan slike saker skal tolkes. Kontakt
+   ({stønadId-er}). Vi har ikke bestemt hvordan slike saker skal tolkes. Kontakt
    teamet.» Er personens siste vedtak avsluttet på eller etter datogrensen for
    migrering (2026-01-01), mens stønaden ikke er opphørt, gir oppslaget
-   `UgyldigInput`: «Stønad {stonadId} er ikke opphørt, men siste vedtak
+   `UgyldigInput`: «Stønad {stønadId} er ikke opphørt, men siste vedtak
    {vedtakId} sluttet {tom}. Vi har ikke bestemt hvordan slike saker skal
    tolkes. Kontakt teamet.»
 6. Mangler vedtaket delytelse, eller dekker delytelsen mindre enn
@@ -93,7 +93,7 @@ migreringen vil gjøre.
    trygdetid, diagnose og hjemmelbokstav er like.
 9. Tidsrom uten vedtak er ikke med i svaret.
 
-Hver periode har `fom`, `tom`, `stonadId`, hele vedtaket med arv og
+Hver periode har `fom`, `tom`, `stønadId`, hele vedtaket med arv og
 Infotrygd-beløpet. Beløpet kommer fra grunnstønad-delytelsen på vedtaket, og
 vedtaket avgjør perioden.
 
@@ -123,7 +123,7 @@ grenen `springdoc-openapi-jackson3`:
 Wrapperen `VerdiMedKilde<T>` gir samme garanti mot ugyldige tilstander uten
 polymorfi i OpenAPI.
 
-### Se bort fra `datoOpphor`
+### Se bort fra `datoOpphør`
 
 Den første versjonen brukte bare `datoInnvTom`. Da kunne en stønad som er
 opphørt i Infotrygd, se løpende ut og bli migrert. Vi kutter derfor ved opphøret,
@@ -204,7 +204,7 @@ Ingen nye Nais-ressurser.
 
   Vi gir heller én feil for mye, fordi reglene er lettere å endre enn en
   migrering som har gått galt.
-- Feilmeldingene har vedtakId og stonadId, ikke fnr.
+- Feilmeldingene har vedtakId og stønadId, ikke fnr.
 
 ### Risiko
 

@@ -19,20 +19,20 @@ data class StonaderRequest(
 }
 
 data class StonaderResponse(
-    val stonader: List<StonadResponse>,
+    val stønader: List<StonadResponse>,
 )
 
 /** Én rad i t_stonad, med personnr fra t_lopenr_fnr. */
 data class StonadResponse(
-    val stonadId: Long,
+    val stønadId: Long,
     /** t_lopenr_fnr.personnr */
     val personnr: String,
     val kodeRutine: String,
     val datoStart: LocalDate,
-    val kodeOpphor: String?,
-    val datoOpphor: LocalDate?,
+    val kodeOpphør: String?,
+    val datoOpphør: LocalDate?,
     val oppdragId: Long?,
-    val tidspunktOpphort: LocalDateTime?,
+    val tidspunktOpphørt: LocalDateTime?,
     val tidspunktReg: LocalDateTime?,
     val brukerid: String?,
     val vedtak: List<VedtakResponse> = emptyList(),
@@ -50,7 +50,7 @@ data class VedtakResponse(
     /** Tom betyr at vedtaket er løpende. */
     val datoInnvTom: LocalDate?,
     val datoMottattSak: LocalDate,
-    val kodeVedtaksnivaa: String,
+    val kodeVedtaksnivå: String,
     val typeBeregning: String,
     val tidspunktReg: LocalDateTime,
     val brukerid: String,
@@ -72,7 +72,7 @@ data class DelytelseResponse(
     val tidspunktReg: LocalDateTime,
     val fom: LocalDate,
     val tom: LocalDate?,
-    val belop: BigDecimal,
+    val beløp: BigDecimal,
     val typeSats: String,
     val typeUtbetaling: String,
     val brukerid: String,

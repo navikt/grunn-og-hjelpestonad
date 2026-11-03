@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter
 data class GjeldendeInfotrygdPeriode(
     val fom: LocalDate,
     val tom: LocalDate?,
-    val stonadId: Long,
+    val stønadId: Long,
     val vedtak: InfotrygdVedtakMedArv,
 )
 
@@ -42,7 +42,7 @@ object GjeldendeInfotrygdPerioder {
                 GjeldendeInfotrygdPeriode(
                     fom = checkNotNull(it.fom) { "Gjeldende periode mangler fom" },
                     tom = it.tom,
-                    stonadId = it.verdi.stonadId,
+                    stønadId = it.verdi.stønadId,
                     vedtak = it.verdi.vedtak,
                 )
             }
@@ -59,7 +59,7 @@ object GjeldendeInfotrygdPerioder {
     private fun InfotrygdVedtakMedArv.tilPeriode(stønad: InfotrygdStonadMedArv): Periode<VedtakPåStønad>? {
         this.validerAtTomKommerEtterFom()
 
-        val datoOpphør = stønad.datoOpphor ?: return Periode(VedtakPåStønad(stønad.stonadId, this), datoInnvFom, datoInnvTom)
+        val datoOpphør = stønad.datoOpphør ?: return Periode(VedtakPåStønad(stønad.stønadId, this), datoInnvFom, datoInnvTom)
 
         // Dersom det er et opphør på samme dag som vedtaket starter, regner vi det som at hele vedtaket er opphørt, og tar det ikke med.
         if (datoInnvFom == datoOpphør) return null
@@ -71,7 +71,7 @@ object GjeldendeInfotrygdPerioder {
                     "${datoOpphør.format(DATOFORMAT)}. Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
             )
         }
-        return Periode(VedtakPåStønad(stønad.stonadId, this), datoInnvFom, tom)
+        return Periode(VedtakPåStønad(stønad.stønadId, this), datoInnvFom, tom)
     }
 
     private fun InfotrygdVedtakMedArv.validerAtTomKommerEtterFom() {
@@ -88,7 +88,7 @@ object GjeldendeInfotrygdPerioder {
         val stønaderMedLøpendeVedtak =
             perioder
                 .filter { it.tom == null }
-                .map { it.verdi.stonadId }
+                .map { it.verdi.stønadId }
                 .distinct()
                 .sorted()
         if (stønaderMedLøpendeVedtak.size >= 2) {
@@ -107,16 +107,16 @@ object GjeldendeInfotrygdPerioder {
         val tom = sisteVedtak.datoInnvTom ?: return
 
         // Ønsker bare å kaste feil dersom dette treffer saker som nylig er avsluttet.
-        if (stønad.datoOpphor == null && tom >= DATOGRENSE_FOR_MIGRERING) {
+        if (stønad.datoOpphør == null && tom >= DATOGRENSE_FOR_MIGRERING) {
             throw UgyldigInput(
-                "Stønad ${stønad.stonadId} er ikke opphørt, men siste vedtak ${sisteVedtak.vedtakId} sluttet ${tom.format(DATOFORMAT)}. " +
+                "Stønad ${stønad.stønadId} er ikke opphørt, men siste vedtak ${sisteVedtak.vedtakId} sluttet ${tom.format(DATOFORMAT)}. " +
                     "Vi har ikke bestemt hvordan slike saker skal tolkes. Kontakt teamet.",
             )
         }
     }
 
     /** Opphør den 1. i måneden betyr at stønaden gjaldt ut måneden før. */
-    private fun faktiskOpphørsdato(datoOpphor: LocalDate): LocalDate = if (datoOpphor.dayOfMonth == 1) datoOpphor.minusDays(1) else datoOpphor
+    private fun faktiskOpphørsdato(datoOpphør: LocalDate): LocalDate = if (datoOpphør.dayOfMonth == 1) datoOpphør.minusDays(1) else datoOpphør
 
     private val DATOFORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
@@ -124,7 +124,7 @@ object GjeldendeInfotrygdPerioder {
     private val DATOGRENSE_FOR_MIGRERING: LocalDate = LocalDate.of(2026, 1, 1)
 
     private data class VedtakPåStønad(
-        val stonadId: Long,
+        val stønadId: Long,
         val vedtak: InfotrygdVedtakMedArv,
     )
 }

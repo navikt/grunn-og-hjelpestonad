@@ -136,7 +136,7 @@ export type InfotrygdDelytelseResponse = {
     typeDelytelse: string;
     tidspunktReg: string;
     fom: string;
-    belop: number;
+    beløp: number;
     typeSats: string;
     typeUtbetaling: string;
     brukerid: string;
@@ -168,21 +168,21 @@ export type InfotrygdKildevedtak = {
 };
 
 export type InfotrygdStonadMedArv = {
-    stonadId: number;
+    stønadId: number;
     personnr: string;
     kodeRutine: string;
     datoStart: string;
-    kodeOpphor?: string | null;
-    datoOpphor?: string | null;
+    kodeOpphør?: string | null;
+    datoOpphør?: string | null;
     oppdragId?: number | null;
-    tidspunktOpphort?: string | null;
+    tidspunktOpphørt?: string | null;
     tidspunktReg?: string | null;
     brukerid?: string | null;
     vedtak: Array<InfotrygdVedtakMedArv>;
 };
 
 export type InfotrygdStonaderResponse = {
-    stonader: Array<InfotrygdStonadMedArv>;
+    stønader: Array<InfotrygdStonadMedArv>;
     diagnosetekster: {
         [key: string]: string;
     };
@@ -198,7 +198,7 @@ export type InfotrygdVedtakMedArv = {
     datoInnvFom: string;
     datoInnvTom?: string | null;
     datoMottattSak: string;
-    kodeVedtaksnivaa: string;
+    kodeVedtaksnivå: string;
     typeBeregning: string;
     tidspunktReg: string;
     brukerid: string;
@@ -221,7 +221,7 @@ export type VerdiMedKildeListInfotrygdGhResponse = {
 export type GjeldendeInfotrygdPeriode = {
     fom: string;
     tom?: string | null;
-    stonadId: number;
+    stønadId: number;
     vedtak: InfotrygdVedtakMedArv;
 };
 

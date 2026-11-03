@@ -16,14 +16,14 @@ data class InfotrygdKildevedtak(
 
 /** Samme felt som [InfotrygdStonadResponse], med vedtak som har fått arv. */
 data class InfotrygdStonadMedArv(
-    val stonadId: Long,
+    val stønadId: Long,
     val personnr: String,
     val kodeRutine: String,
     val datoStart: LocalDate,
-    val kodeOpphor: String?,
-    val datoOpphor: LocalDate?,
+    val kodeOpphør: String?,
+    val datoOpphør: LocalDate?,
     val oppdragId: Long?,
-    val tidspunktOpphort: LocalDateTime?,
+    val tidspunktOpphørt: LocalDateTime?,
     val tidspunktReg: LocalDateTime?,
     val brukerid: String?,
     val vedtak: List<InfotrygdVedtakMedArv>,
@@ -50,7 +50,7 @@ data class InfotrygdVedtakMedArv(
     /** Null betyr at vedtaket er løpende. */
     val datoInnvTom: LocalDate?,
     val datoMottattSak: LocalDate,
-    val kodeVedtaksnivaa: String,
+    val kodeVedtaksnivå: String,
     val typeBeregning: String,
     val tidspunktReg: LocalDateTime,
     val brukerid: String,
@@ -95,14 +95,14 @@ object InfotrygdArv {
 
     private fun InfotrygdStonadResponse.tilStønadMedArv(vedtak: List<InfotrygdVedtakMedArv>) =
         InfotrygdStonadMedArv(
-            stonadId = stonadId,
+            stønadId = stønadId,
             personnr = personnr,
             kodeRutine = kodeRutine,
             datoStart = datoStart,
-            kodeOpphor = kodeOpphor,
-            datoOpphor = datoOpphor,
+            kodeOpphør = kodeOpphør,
+            datoOpphør = datoOpphør,
             oppdragId = oppdragId,
-            tidspunktOpphort = tidspunktOpphort,
+            tidspunktOpphørt = tidspunktOpphørt,
             tidspunktReg = tidspunktReg,
             brukerid = brukerid,
             vedtak = vedtak,
@@ -121,7 +121,7 @@ object InfotrygdArv {
         datoInnvFom = datoInnvFom,
         datoInnvTom = datoInnvTom,
         datoMottattSak = datoMottattSak,
-        kodeVedtaksnivaa = kodeVedtaksnivaa,
+        kodeVedtaksnivå = kodeVedtaksnivå,
         typeBeregning = typeBeregning,
         tidspunktReg = tidspunktReg,
         brukerid = brukerid,

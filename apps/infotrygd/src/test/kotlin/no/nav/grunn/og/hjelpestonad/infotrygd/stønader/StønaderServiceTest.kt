@@ -49,17 +49,17 @@ class StønaderServiceTest {
 
     @Test
     fun `bygger treet fra stønad til endringer, delytelser og gh, med trimmet tekst`() {
-        lagreStønad("10", kodeOpphor = "O ")
+        lagreStønad("10", kodeOpphør = "O ")
         lagreVedtak("100", stønadId = "10", typeSak = "S ", kodeResultat = "I ", datoMottattSak = "2019-12-15", endringskode = "F ")
         lagreDelytelse("100", type = "GS", fom = "2020-01-01", tom = null, beløp = "1000.50")
         testdata.lagre(ExodusTabell.T_GH, "vedtak_id" to "100", "tidspunkt_reg" to "2020-01-01T00:00", "trygdetid" to "40", "sats_gs" to "2")
 
         val stønad = hentGrunnstønad().single()
 
-        assertEquals(10L, stønad.stonadId)
+        assertEquals(10L, stønad.stønadId)
         assertEquals(personident, stønad.personnr)
         assertEquals("GS", stønad.kodeRutine)
-        assertEquals("O", stønad.kodeOpphor)
+        assertEquals("O", stønad.kodeOpphør)
         assertEquals(1L, stønad.oppdragId)
 
         val vedtak = stønad.vedtak.single()
@@ -74,7 +74,7 @@ class StønaderServiceTest {
 
         val delytelse = vedtak.delytelser.single()
         assertEquals("GS", delytelse.typeDelytelse)
-        assertEquals(BigDecimal("1000.50"), delytelse.belop)
+        assertEquals(BigDecimal("1000.50"), delytelse.beløp)
         assertEquals(LocalDate.of(2020, 1, 1), delytelse.fom)
         assertNull(delytelse.tom)
 
@@ -126,7 +126,7 @@ class StønaderServiceTest {
 
         val stønader = hentGrunnstønad()
 
-        assertEquals(listOf(10L, 11L), stønader.map { it.stonadId })
+        assertEquals(listOf(10L, 11L), stønader.map { it.stønadId })
         assertEquals(emptyList(), stønader[0].vedtak)
         val vedtak = stønader[1].vedtak.single()
         assertEquals(emptyList(), vedtak.delytelser)
@@ -158,8 +158,8 @@ class StønaderServiceTest {
         lagreStønad("20", kodeRutine = "HS")
         lagreStønad("30", kodeRutine = "GS", personLøpenr = "2")
 
-        assertEquals(listOf(10L), hentGrunnstønad().map { it.stonadId })
-        assertEquals(listOf(20L), hent(Stønadstype.HJELPESTØNAD).map { it.stonadId })
+        assertEquals(listOf(10L), hentGrunnstønad().map { it.stønadId })
+        assertEquals(listOf(20L), hent(Stønadstype.HJELPESTØNAD).map { it.stønadId })
     }
 
     @Test
@@ -178,7 +178,7 @@ class StønaderServiceTest {
                 .single()
                 .delytelser
                 .single()
-                .belop,
+                .beløp,
         )
     }
 
@@ -207,7 +207,7 @@ class StønaderServiceTest {
         lagreStønad("10")
         lagreVedtak("100", stønadId = "10", personLøpenr = "2")
 
-        val stønader = stønaderService.hentStønader(StonaderRequest(setOf(personident, annenIdent), Stønadstype.GRUNNSTØNAD)).stonader
+        val stønader = stønaderService.hentStønader(StonaderRequest(setOf(personident, annenIdent), Stønadstype.GRUNNSTØNAD)).stønader
 
         assertEquals(listOf(100L), stønader.single().vedtak.map { it.vedtakId })
     }
@@ -256,21 +256,21 @@ class StønaderServiceTest {
 
     private fun hentGrunnstønad() = hent(Stønadstype.GRUNNSTØNAD)
 
-    private fun hent(stønadstype: Stønadstype) = stønaderService.hentStønader(StonaderRequest(setOf(personident), stønadstype)).stonader
+    private fun hent(stønadstype: Stønadstype) = stønaderService.hentStønader(StonaderRequest(setOf(personident), stønadstype)).stønader
 
     private fun lagreStønad(
         stønadId: String,
         kodeRutine: String = "GS",
         personLøpenr: String = "1",
         oppdragId: String? = "1",
-        kodeOpphor: String? = null,
+        kodeOpphør: String? = null,
     ) = testdata.lagre(
         ExodusTabell.T_STONAD,
         "stonad_id" to stønadId,
         "person_lopenr" to personLøpenr,
         "kode_rutine" to kodeRutine,
         "oppdrag_id" to oppdragId,
-        "kode_opphor" to kodeOpphor,
+        "kode_opphor" to kodeOpphør,
         "dato_opphor" to null,
     )
 
