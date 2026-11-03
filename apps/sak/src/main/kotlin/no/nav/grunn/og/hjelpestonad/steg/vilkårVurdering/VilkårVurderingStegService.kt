@@ -6,7 +6,6 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.vilkår.Periodisert
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
-import no.nav.grunn.og.hjelpestonad.vilkår.institusjon.VilkårInstitusjonService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
 import no.nav.grunn.og.hjelpestonad.vilkår.rett.PeriodeMedRett
 import no.nav.grunn.og.hjelpestonad.vilkår.rett.PeriodeMedRettRepository
@@ -19,7 +18,6 @@ import java.util.UUID
 class VilkårVurderingStegService(
     private val vilkårMedlemskapService: VilkårMedlemskapService,
     private val vilkårDiagnoseService: VilkårDiagnoseService,
-    private val vilkårInstitusjonService: VilkårInstitusjonService,
     private val periodeMedRettRepository: PeriodeMedRettRepository,
     private val behandlingService: BehandlingService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
@@ -44,7 +42,6 @@ class VilkårVurderingStegService(
             behandlingId = behandlingId,
             medlemskap = vilkårMedlemskapService.hentPerioder(behandlingId),
             diagnoser = vilkårDiagnoseService.hentPerioder(behandlingId),
-            institusjon = vilkårInstitusjonService.hentPerioder(behandlingId),
         )
 
     private fun registrerEndringshistorikk(
