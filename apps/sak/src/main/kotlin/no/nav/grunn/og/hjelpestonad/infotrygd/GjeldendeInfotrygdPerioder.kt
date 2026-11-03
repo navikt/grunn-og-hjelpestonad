@@ -20,10 +20,11 @@ data class GjeldendeInfotrygdPeriode(
 
 object GjeldendeInfotrygdPerioder {
     fun utled(stønader: List<InfotrygdStonadMedArv>): List<GjeldendeInfotrygdPeriode> {
-        val perioder = stønader
-            .flatMap { stønad -> stønad.vedtak.map { vedtak -> stønad to vedtak } }
-            .sortedBy { (_, vedtak) -> vedtak.vedtakId }
-            .mapNotNull { (stønad, vedtak) -> vedtak.tilPeriode(stønad) }
+        val perioder =
+            stønader
+                .flatMap { stønad -> stønad.vedtak.map { vedtak -> stønad to vedtak } }
+                .sortedBy { (_, vedtak) -> vedtak.vedtakId }
+                .mapNotNull { (stønad, vedtak) -> vedtak.tilPeriode(stønad) }
 
         validerLøpendeVedtakPåHøystÉnStønad(perioder)
         validerIkkeVedtakAvsluttetMenStønadErLøpende(stønader)
@@ -84,11 +85,12 @@ object GjeldendeInfotrygdPerioder {
     }
 
     private fun validerLøpendeVedtakPåHøystÉnStønad(perioder: List<Periode<VedtakPåStønad>>) {
-        val stønaderMedLøpendeVedtak = perioder
-            .filter { it.tom == null }
-            .map { it.verdi.stonadId }
-            .distinct()
-            .sorted()
+        val stønaderMedLøpendeVedtak =
+            perioder
+                .filter { it.tom == null }
+                .map { it.verdi.stonadId }
+                .distinct()
+                .sorted()
         if (stønaderMedLøpendeVedtak.size >= 2) {
             throw UgyldigInput(
                 "Personen har løpende vedtak på flere stønader i Infotrygd (${stønaderMedLøpendeVedtak.joinToString(", ")}). " +
