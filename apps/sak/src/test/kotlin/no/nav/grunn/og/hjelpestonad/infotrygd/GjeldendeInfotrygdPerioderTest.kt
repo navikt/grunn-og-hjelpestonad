@@ -189,6 +189,34 @@ class GjeldendeInfotrygdPerioderTest {
         }
 
         @Test
+        fun `vedtak som starter samme dag som opphøret er opphørt fra start og tas ikke med`() {
+            val perioder =
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2020-01-01", tom = "2021-03-14"),
+                        vedtak(vedtakId = 2, fom = "2021-03-15"),
+                        datoOpphor = LocalDate.parse("2021-03-15"),
+                    ),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2021-03-14", 1))
+        }
+
+        @Test
+        fun `vedtak som starter på en opphørsdato den 1 er opphørt fra start og tas ikke med`() {
+            val perioder =
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2020-01-01", tom = "2021-06-30"),
+                        vedtak(vedtakId = 2, fom = "2021-07-01"),
+                        datoOpphor = LocalDate.parse("2021-07-01"),
+                    ),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2021-06-30", 1))
+        }
+
+        @Test
         fun `vedtak som får tom før fom etter kuttet gir feil`() {
             assertThatThrownBy {
                 utled(
