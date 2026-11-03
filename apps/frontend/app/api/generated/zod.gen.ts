@@ -3,11 +3,7 @@
 import * as z from 'zod';
 
 export const zValideringsfeil = z.object({
-    vilkårType: z.enum([
-        'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN',
-        'DIAGNOSE',
-        'IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM'
-    ]),
+    vilkårType: z.enum(['MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN', 'DIAGNOSE']),
     melding: z.string()
 });
 
@@ -354,48 +350,6 @@ export const zVilkårMedlemskapResponse = z.object({
     id: z.uuid(),
     behandlingId: z.uuid(),
     regelverk: z.enum(['NASJONALE_REGLER', 'EØS_FORORDNINGEN']),
-    vurdering: z.enum(['JA', 'NEI']),
-    begrunnelse: z.string(),
-    fraOgMedDato: z.iso.date().nullish(),
-    tilOgMedDato: z.iso.date().nullish(),
-    erVilkårOppfylt: z.boolean()
-});
-
-export const zVilkårInstitusjonRequest = z.object({
-    id: z.uuid().nullish(),
-    oppholdstype: z.enum([
-        'HELSE_OG_OMSORGSINSTITUSJON',
-        'SPESIALISTHELSETJENESTEN',
-        'PSYKISK_HELSEVERN',
-        'FENGSEL_ELLER_ANNEN_LOVREGULERT_BOFORM'
-    ]).nullish(),
-    unntakshjemmel: z.enum([
-        'EKSTRAUTGIFTER_IKKE_DEKKET_AV_INSTITUSJONEN',
-        'KORTTIDSOPPHOLD',
-        'BARN_UNDER_18_I_SPESIALISTHELSETJENESTEN',
-        'ANNET_UNNTAK_I_FORSKRIFT'
-    ]).nullish(),
-    vurdering: z.enum(['JA', 'NEI']),
-    begrunnelse: z.string(),
-    fraOgMedDato: z.iso.date().nullish(),
-    tilOgMedDato: z.iso.date().nullish()
-});
-
-export const zVilkårInstitusjonResponse = z.object({
-    id: z.uuid(),
-    behandlingId: z.uuid(),
-    oppholdstype: z.enum([
-        'HELSE_OG_OMSORGSINSTITUSJON',
-        'SPESIALISTHELSETJENESTEN',
-        'PSYKISK_HELSEVERN',
-        'FENGSEL_ELLER_ANNEN_LOVREGULERT_BOFORM'
-    ]).nullish(),
-    unntakshjemmel: z.enum([
-        'EKSTRAUTGIFTER_IKKE_DEKKET_AV_INSTITUSJONEN',
-        'KORTTIDSOPPHOLD',
-        'BARN_UNDER_18_I_SPESIALISTHELSETJENESTEN',
-        'ANNET_UNNTAK_I_FORSKRIFT'
-    ]).nullish(),
     vurdering: z.enum(['JA', 'NEI']),
     begrunnelse: z.string(),
     fraOgMedDato: z.iso.date().nullish(),
@@ -799,26 +753,6 @@ export const zLagreMedlemskapPeriodePath = z.object({
  */
 export const zLagreMedlemskapPeriodeResponse = zVilkårMedlemskapResponse;
 
-export const zHentInstitusjonPerioderPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zHentInstitusjonPerioderResponse = z.array(zVilkårInstitusjonResponse);
-
-export const zLagreInstitusjonPeriodeBody = zVilkårInstitusjonRequest;
-
-export const zLagreInstitusjonPeriodePath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zLagreInstitusjonPeriodeResponse = zVilkårInstitusjonResponse;
-
 export const zFullførStegPath = z.object({
     behandlingId: z.uuid()
 });
@@ -1044,11 +978,6 @@ export const zHentMedlemskapFaktagrunnlagPath = z.object({
 export const zHentMedlemskapFaktagrunnlagResponse = zMedlemskapFaktagrunnlagResponse;
 
 export const zSlettMedlemskapPeriodePath = z.object({
-    behandlingId: z.uuid(),
-    vilkårPeriodeId: z.uuid()
-});
-
-export const zSlettInstitusjonPeriodePath = z.object({
     behandlingId: z.uuid(),
     vilkårPeriodeId: z.uuid()
 });

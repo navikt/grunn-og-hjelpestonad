@@ -15,13 +15,6 @@ enum class VilkårType {
 
     /** ftrl. § 6-2 — varig sykdom, skade eller lyte, dokumentert ved diagnose. */
     DIAGNOSE,
-
-    /**
-     * ftrl. § 6-8. Navnet er bevisst negert. § 6-8 er en bortfallsbestemmelse, og uten
-     * negeringen ville JA betydd at vilkåret ikke er oppfylt — motsatt av alle andre
-     * vilkår. Ikke «rett opp» navnet.
-     */
-    IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM,
 }
 
 enum class Vurdering {

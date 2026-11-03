@@ -3,7 +3,6 @@ package no.nav.grunn.og.hjelpestonad.vilkår
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingStegGrunnlag
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingValidering
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
-import no.nav.grunn.og.hjelpestonad.vilkår.institusjon.VilkårInstitusjon
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import org.assertj.core.api.Assertions.assertThat
@@ -39,15 +38,8 @@ class VilkårVurderingValideringTest {
     }
 
     @Test
-    fun `R1 - manglende institusjonsvurdering gir feil på institusjonsvilkåret`() {
-        val feil = VilkårVurderingValidering.valider(komplettGrunnlag().copy(institusjon = emptyList()))
-
-        assertThat(feil.map { it.vilkårType }).containsExactly(VilkårType.IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM)
-    }
-
-    @Test
     fun `R1 - tomt grunnlag gir én feil per vilkår`() {
-        val feil = VilkårVurderingValidering.valider(VilkårVurderingStegGrunnlag(behandlingId, emptyList(), emptyList(), emptyList()))
+        val feil = VilkårVurderingValidering.valider(VilkårVurderingStegGrunnlag(behandlingId, emptyList(), emptyList()))
 
         assertThat(feil.map { it.vilkårType }).containsExactlyInAnyOrder(*VilkårType.entries.toTypedArray())
         assertThat(feil.map { it.melding }).doesNotContainNull()
@@ -57,7 +49,7 @@ class VilkårVurderingValideringTest {
     fun `R3 - manglende begrunnelse ved NEI er ikke en feil`() {
         val grunnlag =
             komplettGrunnlag().copy(
-                institusjon = listOf(institusjon(vurdering = Vurdering.NEI, begrunnelse = "")),
+                diagnoser = listOf(diagnose(vurdering = Vurdering.NEI, begrunnelse = "")),
             )
 
         assertThat(VilkårVurderingValidering.valider(grunnlag)).isEmpty()
@@ -84,7 +76,6 @@ class VilkårVurderingValideringTest {
                 behandlingId = behandlingId,
                 medlemskap = listOf(medlemskap(vurdering = Vurdering.NEI)),
                 diagnoser = listOf(diagnose(vurdering = Vurdering.NEI)),
-                institusjon = listOf(institusjon(vurdering = Vurdering.NEI)),
             )
 
         assertThat(VilkårVurderingValidering.valider(grunnlag)).isEmpty()
@@ -92,7 +83,7 @@ class VilkårVurderingValideringTest {
 
     @Test
     fun `feilmeldingene røper ikke diagnoseopplysninger`() {
-        val feil = VilkårVurderingValidering.valider(VilkårVurderingStegGrunnlag(behandlingId, emptyList(), emptyList(), emptyList()))
+        val feil = VilkårVurderingValidering.valider(VilkårVurderingStegGrunnlag(behandlingId, emptyList(), emptyList()))
 
         assertThat(feil.map { it.melding }).noneMatch { it.contains("Diabetes", ignoreCase = true) || it.contains("E109") }
     }
@@ -102,7 +93,6 @@ class VilkårVurderingValideringTest {
             behandlingId = behandlingId,
             medlemskap = listOf(medlemskap()),
             diagnoser = listOf(diagnose()),
-            institusjon = listOf(institusjon()),
         )
 
     private fun medlemskap(
@@ -117,19 +107,13 @@ class VilkårVurderingValideringTest {
         tilOgMedDato = tilOgMedDato,
     )
 
-    private fun diagnose(vurdering: Vurdering = Vurdering.JA) =
-        VilkårDiagnose(
-            behandlingId = behandlingId,
-            kode = "E109",
-            tekst = "Diabetes mellitus type 1 uten komplikasjoner",
-            vurdering = vurdering,
-        )
-
-    private fun institusjon(
+    private fun diagnose(
         vurdering: Vurdering = Vurdering.JA,
-        begrunnelse: String = "Bor hjemme",
-    ) = VilkårInstitusjon(
+        begrunnelse: String = "Diagnosen er dokumentert",
+    ) = VilkårDiagnose(
         behandlingId = behandlingId,
+        kode = "E109",
+        tekst = "Diabetes mellitus type 1 uten komplikasjoner",
         vurdering = vurdering,
         begrunnelse = begrunnelse,
     )

@@ -7,7 +7,6 @@ import no.nav.grunn.og.hjelpestonad.felles.sporbar.Sporbar
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
-import no.nav.grunn.og.hjelpestonad.vilkår.institusjon.VilkårInstitusjonService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
@@ -21,36 +20,31 @@ import kotlin.test.assertNotEquals
 class KopierVilkårServiceTest {
     private val vilkårMedlemskapService = mockk<VilkårMedlemskapService>()
     private val vilkårDiagnoseService = mockk<VilkårDiagnoseService>()
-    private val vilkårInstitusjonService = mockk<VilkårInstitusjonService>()
     private val kopierVilkårService =
         KopierVilkårService(
             vilkårMedlemskapService = vilkårMedlemskapService,
             vilkårDiagnoseService = vilkårDiagnoseService,
-            vilkårInstitusjonService = vilkårInstitusjonService,
         )
 
     private val forrigeBehandlingId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
 
     @Test
-    fun `kopierer vilkårene for medlemskap, diagnose og institusjon`() {
+    fun `kopierer vilkårene for medlemskap og diagnose`() {
         val medlemskap = medlemskap(behandlingId)
         every { vilkårMedlemskapService.kopierPerioder(forrigeBehandlingId, behandlingId) } returns listOf(medlemskap)
         every { vilkårDiagnoseService.kopierPerioder(forrigeBehandlingId, behandlingId) } returns emptyList()
-        every { vilkårInstitusjonService.kopierPerioder(forrigeBehandlingId, behandlingId) } returns emptyList()
 
         kopierVilkårService.kopierFraForrigeBehandling(forrigeBehandlingId = forrigeBehandlingId, behandlingId = behandlingId)
 
         verify(exactly = 1) { vilkårMedlemskapService.kopierPerioder(forrigeBehandlingId, behandlingId) }
         verify(exactly = 1) { vilkårDiagnoseService.kopierPerioder(forrigeBehandlingId, behandlingId) }
-        verify(exactly = 1) { vilkårInstitusjonService.kopierPerioder(forrigeBehandlingId, behandlingId) }
     }
 
     @Test
     fun `kaster feil når forrige behandling ikke har vilkår`() {
         every { vilkårMedlemskapService.kopierPerioder(any(), any()) } returns emptyList()
         every { vilkårDiagnoseService.kopierPerioder(any(), any()) } returns emptyList()
-        every { vilkårInstitusjonService.kopierPerioder(any(), any()) } returns emptyList()
 
         assertThatThrownBy {
             kopierVilkårService.kopierFraForrigeBehandling(forrigeBehandlingId = forrigeBehandlingId, behandlingId = behandlingId)
