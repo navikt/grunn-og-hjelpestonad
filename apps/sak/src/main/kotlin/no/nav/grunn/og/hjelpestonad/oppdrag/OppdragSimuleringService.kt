@@ -21,7 +21,7 @@ import java.util.UUID
 /**
  * Simulerer en behandling mot oppdrag gjennom `familie-oppdrag-backend`.
  *
- * Første skive for å se at integrasjonen virker: bare førstegangsbehandling, ingen kjeding mot
+ * Første versjon, for å se at integrasjonen virker: bare førstegangsbehandling, ingen kjeding mot
  * tidligere andeler og ingen lagring av resultatet (se ADR-0011).
  */
 @Service
