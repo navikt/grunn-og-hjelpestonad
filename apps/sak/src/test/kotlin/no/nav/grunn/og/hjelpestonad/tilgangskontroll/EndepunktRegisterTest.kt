@@ -91,8 +91,6 @@ class EndepunktRegisterTest {
                 "InfotrygdController#hentGjeldendePerioderForPerson",
                 "IverksettVedtaksbrevController#lagIverksettVedtaksbrevTask",
                 "IverksettVedtaksbrevController#distribuerVedtaksbrev",
-                "SimuleringController#simulerForBehandling",
-                "SimuleringController#hentSimuleringsresultat",
                 "OppdragSimuleringController#simulerMotOppdrag",
                 "OppdragIverksettingController#iverksettMotOppdrag",
                 "OppdragIverksettingController#hentOppdragStatus",

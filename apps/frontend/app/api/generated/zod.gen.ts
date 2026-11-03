@@ -570,24 +570,6 @@ export const zVedtakResponse = z.object({
     beslutterIdent: z.string().nullish()
 });
 
-export const zSimuleringPeriodeResponse = z.object({
-    fom: z.iso.date(),
-    tom: z.iso.date(),
-    nyttBeløp: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    tidligereUtbetalt: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    resultat: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    feilutbetaling: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
-});
-
-export const zSimuleringResultatResponse = z.object({
-    perioder: z.array(zSimuleringPeriodeResponse),
-    fom: z.iso.date(),
-    tomSisteUtbetaling: z.iso.date(),
-    fomDatoNestePeriode: z.iso.date().nullish(),
-    etterbetaling: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    feilutbetaling: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
-});
-
 export const zOppdragStatusSvar = z.object({
     status: z.string(),
     melding: z.string().nullish()
@@ -686,15 +668,6 @@ export const zSøkPersonBody = zSøkRequest;
  * OK
  */
 export const zSøkPersonResponse = zSøkeresultatResponse;
-
-export const zSimulerForBehandlingPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zSimulerForBehandlingResponse = z.string();
 
 export const zHentJournalPostForBrukerIdBody = zHentDokumenterRequest;
 
@@ -1005,15 +978,6 @@ export const zSøkPersonMedFagsakPersonIdPath = z.object({
  * OK
  */
 export const zSøkPersonMedFagsakPersonIdResponse = zSøkeresultatResponse;
-
-export const zHentSimuleringsresultatPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zHentSimuleringsresultatResponse = zSimuleringResultatResponse;
 
 export const zHentDokumentSomPdfPath = z.object({
     journalpostId: z.string(),

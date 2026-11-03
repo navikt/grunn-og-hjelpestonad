@@ -473,24 +473,6 @@ export type VedtakResponse = {
     beslutterIdent?: string | null;
 };
 
-export type SimuleringPeriodeResponse = {
-    fom: string;
-    tom: string;
-    nyttBeløp: number;
-    tidligereUtbetalt: number;
-    resultat: number;
-    feilutbetaling: number;
-};
-
-export type SimuleringResultatResponse = {
-    perioder: Array<SimuleringPeriodeResponse>;
-    fom: string;
-    tomSisteUtbetaling: string;
-    fomDatoNestePeriode?: string | null;
-    etterbetaling: number;
-    feilutbetaling: number;
-};
-
 export type OppdragStatusSvar = {
     status: string;
     melding?: string | null;
@@ -575,21 +557,6 @@ export type SøkPersonResponses = {
 };
 
 export type SøkPersonResponse = SøkPersonResponses[keyof SøkPersonResponses];
-
-export type SimulerForBehandlingData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/simulering/{behandlingId}';
-};
-
-export type SimulerForBehandlingResponses = {
-    200: string;
-};
-
-export type SimulerForBehandlingResponse = SimulerForBehandlingResponses[keyof SimulerForBehandlingResponses];
 
 export type HentJournalPostForBrukerIdData = {
     body: HentDokumenterRequest;
@@ -1130,21 +1097,6 @@ export type SøkPersonMedFagsakPersonIdResponses = {
 };
 
 export type SøkPersonMedFagsakPersonIdResponse = SøkPersonMedFagsakPersonIdResponses[keyof SøkPersonMedFagsakPersonIdResponses];
-
-export type HentSimuleringsresultatData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/simulering/{behandlingId}/resultat';
-};
-
-export type HentSimuleringsresultatResponses = {
-    200: SimuleringResultatResponse;
-};
-
-export type HentSimuleringsresultatResponse = HentSimuleringsresultatResponses[keyof HentSimuleringsresultatResponses];
 
 export type HentDokumentSomPdfData = {
     body?: never;

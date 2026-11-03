@@ -26,6 +26,16 @@ spring:
                     issuer-uri: http://localhost:8089/default
                     jwk-set-uri: http://localhost:8089/default/jwks
                     audiences: default
+    kafka:
+        properties:
+            security:
+                protocol: PLAINTEXT
+
+# Kafka finnes ikke lokalt. Verdiene mater plassholderne i application.yml.
+KAFKA_BROKERS: localhost:9092
+KAFKA_KEYSTORE_PATH: ""
+KAFKA_TRUSTSTORE_PATH: ""
+KAFKA_CREDSTORE_PASSWORD: ""
 
 # Azure AD mock konfigurasjon
 # De flate AZURE_*-nøklene mater plassholdere i application.yml som ikke
