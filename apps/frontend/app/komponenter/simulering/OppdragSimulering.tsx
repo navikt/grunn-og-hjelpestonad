@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { simulerMotOppdrag } from "~/api/generated/sdk.gen";
 import type { OppdragSimuleringResponse } from "~/api/generated/types.gen";
 import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
+import { formaterDato } from "~/komponenter/infotrygd/formatering";
 import { formaterBelop, formaterIsoMånedÅr } from "~/utils/utils";
 
 /**
@@ -90,14 +91,16 @@ export const OppdragSimulering: React.FC<{ behandlingId: string }> = ({ behandli
           <Table.Body>
             {posteringer.map((postering, indeks) => (
               <Table.Row key={indeks}>
-                <Table.DataCell>{postering.fom ?? "–"}</Table.DataCell>
-                <Table.DataCell>{postering.tom ?? "–"}</Table.DataCell>
+                <Table.DataCell>{postering.fom ? formaterDato(postering.fom) : "–"}</Table.DataCell>
+                <Table.DataCell>{postering.tom ? formaterDato(postering.tom) : "–"}</Table.DataCell>
                 <Table.DataCell>{postering.mottaker.mottakerType ?? "–"}</Table.DataCell>
                 <Table.DataCell>{postering.fagOmrådeKode ?? "–"}</Table.DataCell>
                 <Table.DataCell>{postering.klassekode ?? "–"}</Table.DataCell>
                 <Table.DataCell>{postering.posteringType ?? "–"}</Table.DataCell>
                 <Table.DataCell>{postering.betalingType ?? "–"}</Table.DataCell>
-                <Table.DataCell>{postering.forfallsdato ?? "–"}</Table.DataCell>
+                <Table.DataCell>
+                  {postering.forfallsdato ? formaterDato(postering.forfallsdato) : "–"}
+                </Table.DataCell>
                 <Table.DataCell align="right">
                   {postering.beløp != null ? formaterBelop(postering.beløp) : "–"}
                 </Table.DataCell>

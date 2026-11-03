@@ -25,7 +25,7 @@ data class DetaljertSimuleringResultat(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SimuleringMottaker(
     val simulertPostering: List<SimulertPostering> = emptyList(),
-    val mottakerNummer: String? = null,
+    // mottakerNummer (fødselsnummer eller orgnr) leses ikke, så det ikke sendes videre til nettleseren.
     val mottakerType: String? = null,
 )
 

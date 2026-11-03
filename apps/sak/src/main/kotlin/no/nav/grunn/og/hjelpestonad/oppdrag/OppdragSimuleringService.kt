@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
@@ -33,6 +34,7 @@ class OppdragSimuleringService(
     private val meterRegistry: MeterRegistry,
     @Value("\${oppdrag.simulering.bruk-testandel-hvis-mangler:false}")
     private val brukTestandelHvisMangler: Boolean,
+    private val clock: Clock = Clock.systemDefaultZone(),
 ) {
     private val logger = LoggerFactory.getLogger(OppdragSimuleringService::class.java)
 
@@ -52,7 +54,7 @@ class OppdragSimuleringService(
                     throw Feil("Behandlingen har ingen tilkjent ytelse å simulere", HttpStatus.BAD_REQUEST)
                 }
                 logger.info("Behandling={} mangler tilkjent ytelse, simulerer med testandel", behandlingId)
-                lagTestandel(behandlingId)
+                lagTestandel(behandlingId, YearMonth.now(clock))
             } else {
                 null
             }
@@ -65,7 +67,7 @@ class OppdragSimuleringService(
                     eksternFagsakId = fagsak.eksternId,
                     personIdent = fagsakService.hentAktivIdent(fagsak.id),
                     saksbehandlerId = SikkerhetContext.hentSaksbehandler(),
-                    vedtaksdato = LocalDate.now(),
+                    vedtaksdato = LocalDate.now(clock),
                     andeler = testandel?.let { listOf(it) } ?: andeler.sortedBy { it.fom },
                 ),
             )
@@ -91,15 +93,16 @@ class OppdragSimuleringService(
          * TODO: Midlertidig, bare for å teste integrasjonen i dev før behandlingen lager tilkjent ytelse
          * (issue 09 og 10 i planen for sats og trygdetid). Fjern når den flyten er på plass.
          */
-        private fun lagTestandel(behandlingId: UUID): AndelTilkjentYtelse {
-            val måned = YearMonth.now()
-            return AndelTilkjentYtelse(
+        private fun lagTestandel(
+            behandlingId: UUID,
+            måned: YearMonth,
+        ): AndelTilkjentYtelse =
+            AndelTilkjentYtelse(
                 beløp = TESTANDEL_BELØP,
                 fom = måned.atDay(1),
                 tom = måned.atEndOfMonth(),
                 kildeBehandlingId = behandlingId,
             )
-        }
     }
 }
 

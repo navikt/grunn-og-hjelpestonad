@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.oppdrag
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.client.WireMock.matching
 import com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
@@ -156,7 +157,9 @@ class OppdragClientTest {
                 .withRequestBody(matchingJsonPath("$.kodeEndring", equalTo("NY")))
                 .withRequestBody(matchingJsonPath("$.utbetalingsperiode[0].klassifisering", equalTo("GHGSORMG")))
                 .withRequestBody(matchingJsonPath("$.utbetalingsperiode[0].vedtakdatoFom", equalTo("2026-01-01")))
-                .withRequestBody(matchingJsonPath("$.utbetalingsperiode[0].datoForVedtak", equalTo("2026-01-15"))),
+                .withRequestBody(matchingJsonPath("$.utbetalingsperiode[0].datoForVedtak", equalTo("2026-01-15")))
+                .withRequestBody(matchingJsonPath("$.avstemmingTidspunkt", matching("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*")))
+                .withRequestBody(matchingJsonPath("$.utbetalingsperiode[0].sats", equalTo("1234"))),
         )
     }
 

@@ -26,8 +26,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
+import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 import java.util.Optional
 
 class OppdragSimuleringServiceTest {
@@ -46,6 +48,7 @@ class OppdragSimuleringServiceTest {
             resultat = BehandlingResultat.IKKE_SATT,
         )
     private val sendtOppdrag = slot<Utbetalingsoppdrag>()
+    private val clock = Clock.fixed(LocalDate.of(2026, 11, 15).atStartOfDay(ZoneId.of("Europe/Oslo")).toInstant(), ZoneId.of("Europe/Oslo"))
 
     @BeforeEach
     fun setup() {
@@ -71,6 +74,7 @@ class OppdragSimuleringServiceTest {
             oppdragClient = oppdragClient,
             meterRegistry = SimpleMeterRegistry(),
             brukTestandelHvisMangler = brukTestandelHvisMangler,
+            clock = clock,
         )
 
     @Test
@@ -106,8 +110,7 @@ class OppdragSimuleringServiceTest {
 
         val respons = service(brukTestandelHvisMangler = true).simuler(behandling.id)
 
-        val måned = YearMonth.now()
-        assertThat(respons.testandel).isEqualTo(Testandel(fom = måned.atDay(1), tom = måned.atEndOfMonth(), beløp = 1000))
+        assertThat(respons.testandel).isEqualTo(Testandel(fom = LocalDate.of(2026, 11, 1), tom = LocalDate.of(2026, 11, 30), beløp = 1000))
         assertThat(
             sendtOppdrag.captured.utbetalingsperiode
                 .single()

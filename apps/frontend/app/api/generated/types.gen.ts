@@ -138,7 +138,6 @@ export type OppdragSimuleringResponse = {
 
 export type SimuleringMottaker = {
     simulertPostering: Array<SimulertPostering>;
-    mottakerNummer?: string | null;
     mottakerType?: string | null;
 };
 
