@@ -19,8 +19,8 @@ Referanseappene deler ansvaret ulikt:
   med sin egen kopi av tilkjent ytelse, der andelene har `beløp: Int` og kjedefeltene.
 
 Generatoren krever `beløp: Int`. Tilkjent ytelse for grunnstønad er satsen redusert
-med trygdetidsbrøken, og brøken gir desimaler. Fagsiden har ikke bestemt
-avrundingsregelen.
+med trygdetidsbrøken, og brøken gir desimaler. § 22-11 sier at terminbeløp avrundes
+til nærmeste hele krone, men ikke hva som skjer med nøyaktig 50 øre.
 
 Løpende saker skal migreres fra Infotrygd. Referanseappene håndterer også dette ulikt:
 
@@ -35,8 +35,10 @@ Løpende saker skal migreres fra Infotrygd. Referanseappene håndterer også det
 ### Saken eier tilkjent ytelse, oppdrag eier utbetalingsbeløpet
 
 - Tilkjent ytelse beholder alle desimaler. Saken vet ikke at beløpet blir avrundet.
-- Oppdrag avrunder i én ren funksjon. Til fagsiden har bestemt regelen, runder vi
-  til hele kroner med `HALF_UP`.
+- Oppdrag avrunder i én ren funksjon. § 22-11 sier at terminbeløp avrundes til
+  nærmeste hele krone. Loven sier ikke hva som skjer med nøyaktig 50 øre, og til
+  fagsiden har bestemt det, runder vi opp med `HALF_UP`. Se
+  [utledning av tilkjent ytelse](../tilkjent-ytelse/utledning-av-tilkjent-ytelse.md).
 - Oppdrag har sine egne tabeller i samme database:
   - `oppdrag_resultat`, med nøkkel `behandling_id`: kvitteringsstatus,
     kvitteringsmelding og `utbetalingsoppdrag` (JSONB) slik det ble sendt.
@@ -211,7 +213,11 @@ juridisk begrunnelse.
 - [ ] Fagsiden bekrefter at migreringsdatoen er den første måneden ny løsning
       utbetaler (EF), ikke måneden før (BA). Må være avklart før første migrering
       i prod.
-- [ ] Fagsiden bestemmer avrundingsregelen før første utbetaling i prod.
+- [ ] Fagsiden bestemmer om 50 øre rundes opp eller ned før første utbetaling i
+      prod. Resten av avrundingen følger av § 22-11.
+- [ ] Fagsiden bekrefter at satsene i rundskrivet til § 6-3 under «Satser pr.
+      1.1.2024» gjelder fra 1. januar 2024. Teksten sier «fra 1. juli 2023», som
+      ser ut som en kopieringsfeil fra avsnittet før.
 - [ ] Økonomi gir fagområde og klassekode for prod. Dev bruker `IT28` og
       `GHGSORMG`.
 - [ ] Økonomi bekrefter om OS motregner mellom Infotrygd og ny løsning når de

@@ -10,6 +10,7 @@ Spec: [spec.md](../spec.md)
 
 - [ ] Forhåndsvisningen og migreringen gir samme periode og beløp.
 - [ ] Behandlingen har årsak `MIGRERING`, vilkår som er maskinelt oppfylt, startmåned og faktagrunnlag fra Infotrygd.
+- [ ] En revurdering uten endringer etter migreringen gir samme tilkjent ytelse og samme startmåned som migreringen, og ingen opphør. Se [migrering og § 22-12](../../../docs/tilkjent-ytelse/utledning-av-tilkjent-ytelse.md#migrering-og--22-12).
 - [ ] Et avvik i kontroll 1 gir ingen behandling.
 - [ ] To samtidige kall gir én behandling.
 - [ ] Iverksettingen oppretter task for `vedtaksmelding` og task for sjekk av opphør i Infotrygd.
