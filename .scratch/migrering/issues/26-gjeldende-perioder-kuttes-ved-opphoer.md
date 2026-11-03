@@ -21,7 +21,6 @@ Spec: [spec.md](../spec.md). Beslutningene står i [ticket 03](03-avklar-periode
 - [x] Feilmeldingene har ikke fnr.
 - [x] Frontend viser feilmeldingen der tabellen over gjeldende perioder ellers står.
 - [x] Rene tester dekker: opphør midt i et vedtak, opphør den 1. og siste dag i måneden, vedtak som faller bort, løpende vedtak på flere stønader, siste vedtak avsluttet etter datogrensen på en stønad som ikke er opphørt, og at et eldre vedtak på en annen stønad fortsatt gjelder igjen.
-- [x] Teksten i feilmeldingene er gjennomgått av `@forfatter`.
 
 ## Comments
 
