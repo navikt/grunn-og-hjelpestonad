@@ -181,6 +181,7 @@ export const zSimulertPostering = z.object({
 
 export const zSimuleringMottaker = z.object({
     simulertPostering: z.array(zSimulertPostering),
+    mottakerNummer: z.string().nullish(),
     mottakerType: z.string().nullish()
 });
 
