@@ -13,7 +13,7 @@ class LagUtbetalingsoppdragTest {
     fun `lager oppdrag med to andeler for førstegangsbehandling`() {
         val grunnlag = grunnlag(andeler = listOf(andel(1000, "2025-01-01", "2025-03-31"), andel(2000, "2025-04-01", "2025-06-30")))
 
-        val oppdrag = lagUtbetalingsoppdragForSimulering(grunnlag)
+        val oppdrag = lagUtbetalingsoppdrag(grunnlag)
 
         assertThat(oppdrag.kodeEndring).isEqualTo(no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag.KodeEndring.NY)
         assertThat(oppdrag.fagSystem).isEqualTo("IT28")
@@ -33,7 +33,7 @@ class LagUtbetalingsoppdragTest {
     fun `filtrerer andeler med nullbeløp`() {
         val grunnlag = grunnlag(andeler = listOf(andel(0), andel(1000)))
 
-        val oppdrag = lagUtbetalingsoppdragForSimulering(grunnlag)
+        val oppdrag = lagUtbetalingsoppdrag(grunnlag)
 
         assertThat(oppdrag.utbetalingsperiode).hasSize(1)
         assertThat(oppdrag.utbetalingsperiode.single().sats).isEqualByComparingTo("1000")
@@ -41,18 +41,18 @@ class LagUtbetalingsoppdragTest {
 
     @Test
     fun `ingen andeler kaster UgyldigInput`() {
-        assertThatThrownBy { lagUtbetalingsoppdragForSimulering(grunnlag(andeler = emptyList())) }
+        assertThatThrownBy { lagUtbetalingsoppdrag(grunnlag(andeler = emptyList())) }
             .isInstanceOf(UgyldigInput::class.java)
     }
 
     @Test
     fun `bare nullbeløpsandeler kaster UgyldigInput`() {
-        assertThatThrownBy { lagUtbetalingsoppdragForSimulering(grunnlag(andeler = listOf(andel(0)))) }
+        assertThatThrownBy { lagUtbetalingsoppdrag(grunnlag(andeler = listOf(andel(0)))) }
             .isInstanceOf(UgyldigInput::class.java)
     }
 
     private fun grunnlag(andeler: List<AndelTilkjentYtelse>) =
-        SimuleringsgrunnlagOppdrag(
+        Oppdragsgrunnlag(
             behandlingId = UUID.fromString("00000000-0000-0000-0000-000000000001"),
             eksternBehandlingId = 123456L,
             eksternFagsakId = 654321L,

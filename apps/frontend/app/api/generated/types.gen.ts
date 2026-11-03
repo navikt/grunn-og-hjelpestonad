@@ -161,6 +161,13 @@ export type Testandel = {
     beløp: number;
 };
 
+export type OppdragIverksettingResponse = {
+    saksnummer: string;
+    behandlingsId: string;
+    antallPerioder: number;
+    testandel?: Testandel | null;
+};
+
 export type InfotrygdStonaderRequest = {
     personident: string;
     stønadstype: 'GRUNNSTØNAD' | 'HJELPESTØNAD';
@@ -484,6 +491,11 @@ export type SimuleringResultatResponse = {
     feilutbetaling: number;
 };
 
+export type OppdragStatusSvar = {
+    status: string;
+    melding?: string | null;
+};
+
 export type BehandlingEndringResponse = {
     id: string;
     behandlingId: string;
@@ -645,6 +657,21 @@ export type SimulerMotOppdragResponses = {
 };
 
 export type SimulerMotOppdragResponse = SimulerMotOppdragResponses[keyof SimulerMotOppdragResponses];
+
+export type IverksettMotOppdragData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/oppdrag/iverksetting/{behandlingId}';
+};
+
+export type IverksettMotOppdragResponses = {
+    200: OppdragIverksettingResponse;
+};
+
+export type IverksettMotOppdragResponse = IverksettMotOppdragResponses[keyof IverksettMotOppdragResponses];
 
 export type LagIverksettVedtaksbrevTaskData = {
     body?: never;
@@ -1154,6 +1181,21 @@ export type HentDokumentSomPdf1Responses = {
 };
 
 export type HentDokumentSomPdf1Response = HentDokumentSomPdf1Responses[keyof HentDokumentSomPdf1Responses];
+
+export type HentOppdragStatusData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/oppdrag/iverksetting/{behandlingId}/status';
+};
+
+export type HentOppdragStatusResponses = {
+    200: OppdragStatusSvar;
+};
+
+export type HentOppdragStatusResponse = HentOppdragStatusResponses[keyof HentOppdragStatusResponses];
 
 export type HentFagsakData = {
     body?: never;

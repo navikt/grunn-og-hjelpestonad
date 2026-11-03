@@ -1,0 +1,15 @@
+{
+  "name": "familie-oppdrag-backend - status",
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/status"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"data\":\"KVITTERT_OK\",\"status\":\"SUKSESS\",\"melding\":\"\"}"
+  },
+  "priority": 10
+}

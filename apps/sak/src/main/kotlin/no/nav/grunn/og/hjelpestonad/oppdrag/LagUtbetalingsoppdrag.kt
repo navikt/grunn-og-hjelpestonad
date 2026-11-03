@@ -10,7 +10,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
-data class SimuleringsgrunnlagOppdrag(
+data class Oppdragsgrunnlag(
     val behandlingId: UUID,
     val eksternBehandlingId: Long,
     val eksternFagsakId: Long,
@@ -21,12 +21,12 @@ data class SimuleringsgrunnlagOppdrag(
 )
 
 /**
- * Lager oppdrag for simulering av en førstegangsbehandling.
+ * Lager oppdrag for simulering eller iverksetting av en førstegangsbehandling.
  * Kjedingsstøtte mot tidligere andeler (tabellen `utbetalingsandel` i ADR-0011) er ikke bygget.
  */
-fun lagUtbetalingsoppdragForSimulering(grunnlag: SimuleringsgrunnlagOppdrag): Utbetalingsoppdrag {
+fun lagUtbetalingsoppdrag(grunnlag: Oppdragsgrunnlag): Utbetalingsoppdrag {
     if (grunnlag.andeler.none { it.beløp != 0 }) {
-        throw UgyldigInput("Simulering krever minst én andel med beløp ulik 0")
+        throw UgyldigInput("Oppdrag krever minst én andel med beløp ulik 0")
     }
 
     val nyeAndeler =

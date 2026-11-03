@@ -200,6 +200,13 @@ export const zOppdragSimuleringResponse = z.object({
     testandel: zTestandel.nullish()
 });
 
+export const zOppdragIverksettingResponse = z.object({
+    saksnummer: z.string(),
+    behandlingsId: z.string(),
+    antallPerioder: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    testandel: zTestandel.nullish()
+});
+
 export const zInfotrygdStonaderRequest = z.object({
     personident: z.string(),
     stønadstype: z.enum(['GRUNNSTØNAD', 'HJELPESTØNAD'])
@@ -581,6 +588,11 @@ export const zSimuleringResultatResponse = z.object({
     feilutbetaling: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
 });
 
+export const zOppdragStatusSvar = z.object({
+    status: z.string(),
+    melding: z.string().nullish()
+});
+
 export const zBehandlingEndringResponse = z.object({
     id: z.uuid(),
     behandlingId: z.uuid(),
@@ -720,6 +732,15 @@ export const zSimulerMotOppdragPath = z.object({
  * OK
  */
 export const zSimulerMotOppdragResponse = zOppdragSimuleringResponse;
+
+export const zIverksettMotOppdragPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zIverksettMotOppdragResponse = zOppdragIverksettingResponse;
 
 export const zLagIverksettVedtaksbrevTaskPath = z.object({
     behandlingId: z.uuid()
@@ -1021,6 +1042,15 @@ export const zHentDokumentSomPdf1Query = z.object({
  * OK
  */
 export const zHentDokumentSomPdf1Response = z.string();
+
+export const zHentOppdragStatusPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zHentOppdragStatusResponse = zOppdragStatusSvar;
 
 export const zHentFagsakPath = z.object({
     fagsakPersonId: z.uuid(),

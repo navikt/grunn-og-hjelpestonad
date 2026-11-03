@@ -1,12 +1,9 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
-import io.mockk.slot
 import io.mockk.unmockkObject
-import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
@@ -32,12 +29,11 @@ import java.time.YearMonth
 import java.time.ZoneId
 import java.util.Optional
 
-class OppdragSimuleringServiceTest {
+class UtbetalingsoppdragServiceTest {
     private val behandlingService = mockk<BehandlingService>()
     private val fagsakRepository = mockk<FagsakRepository>()
     private val fagsakService = mockk<FagsakService>()
     private val tilkjentYtelseService = mockk<TilkjentYtelseService>()
-    private val oppdragClient = mockk<OppdragClient>()
 
     private val fagsak = Fagsak(fagsakPersonId = java.util.UUID.randomUUID(), eksternId = 2L, stønadstype = StønadType.BARNETILSYN)
     private val behandling =
@@ -47,7 +43,6 @@ class OppdragSimuleringServiceTest {
             status = BehandlingStatus.UTREDES,
             resultat = BehandlingResultat.IKKE_SATT,
         )
-    private val sendtOppdrag = slot<Utbetalingsoppdrag>()
     private val clock = Clock.fixed(LocalDate.of(2026, 11, 15).atStartOfDay(ZoneId.of("Europe/Oslo")).toInstant(), ZoneId.of("Europe/Oslo"))
 
     @BeforeEach
@@ -57,7 +52,6 @@ class OppdragSimuleringServiceTest {
         every { behandlingService.hentBehandlingEllerKast(behandling.id) } returns behandling
         every { fagsakRepository.findById(fagsak.id) } returns Optional.of(fagsak)
         every { fagsakService.hentAktivIdent(fagsak.id) } returns "12345678910"
-        every { oppdragClient.simuler(capture(sendtOppdrag)) } returns DetaljertSimuleringResultat()
     }
 
     @AfterEach
@@ -66,19 +60,17 @@ class OppdragSimuleringServiceTest {
     }
 
     private fun service(brukTestandelHvisMangler: Boolean) =
-        OppdragSimuleringService(
+        UtbetalingsoppdragService(
             behandlingService = behandlingService,
             fagsakRepository = fagsakRepository,
             fagsakService = fagsakService,
             tilkjentYtelseService = tilkjentYtelseService,
-            oppdragClient = oppdragClient,
-            meterRegistry = SimpleMeterRegistry(),
             brukTestandelHvisMangler = brukTestandelHvisMangler,
             clock = clock,
         )
 
     @Test
-    fun `simulerer med andelene fra tilkjent ytelse når de finnes`() {
+    fun `lager oppdrag med andelene fra tilkjent ytelse når de finnes`() {
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns
             TilkjentYtelse(
                 behandlingId = behandling.id,
@@ -94,25 +86,25 @@ class OppdragSimuleringServiceTest {
                     ),
             )
 
-        val respons = service(brukTestandelHvisMangler = true).simuler(behandling.id)
+        val resultat = service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id)
 
-        assertThat(respons.testandel).isNull()
+        assertThat(resultat.testandel).isNull()
         assertThat(
-            sendtOppdrag.captured.utbetalingsperiode
+            resultat.utbetalingsoppdrag.utbetalingsperiode
                 .single()
                 .sats,
         ).isEqualByComparingTo("2500")
     }
 
     @Test
-    fun `simulerer med testandel når tilkjent ytelse mangler og testandel er slått på`() {
+    fun `lager oppdrag med testandel når tilkjent ytelse mangler og testandel er slått på`() {
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns null
 
-        val respons = service(brukTestandelHvisMangler = true).simuler(behandling.id)
+        val resultat = service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id)
 
-        assertThat(respons.testandel).isEqualTo(Testandel(fom = LocalDate.of(2026, 11, 1), tom = LocalDate.of(2026, 11, 30), beløp = 1000))
+        assertThat(resultat.testandel).isEqualTo(Testandel(fom = LocalDate.of(2026, 11, 1), tom = LocalDate.of(2026, 11, 30), beløp = 1000))
         assertThat(
-            sendtOppdrag.captured.utbetalingsperiode
+            resultat.utbetalingsoppdrag.utbetalingsperiode
                 .single()
                 .sats,
         ).isEqualByComparingTo("1000")
@@ -122,7 +114,26 @@ class OppdragSimuleringServiceTest {
     fun `kaster bad request når tilkjent ytelse mangler og testandel er slått av`() {
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns null
 
-        assertThatThrownBy { service(brukTestandelHvisMangler = false).simuler(behandling.id) }
+        assertThatThrownBy { service(brukTestandelHvisMangler = false).lagUtbetalingsoppdrag(behandling.id) }
             .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST) }
+    }
+
+    @Test
+    fun `OppdragId bruker fagsystem, aktiv ident og ekstern behandlings-ID`() {
+        every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns null
+        val service = service(brukTestandelHvisMangler = true)
+
+        val oppdragId = service.lagOppdragId(behandling.id)
+        val oppdrag = service.lagUtbetalingsoppdrag(behandling.id).utbetalingsoppdrag
+
+        assertThat(oppdragId).isEqualTo(OppdragId(fagsystem = "IT28", personIdent = "12345678910", behandlingsId = "1"))
+        assertThat(oppdragId.fagsystem).isEqualTo(oppdrag.fagSystem)
+        assertThat(oppdragId.personIdent).isEqualTo(oppdrag.aktoer)
+        assertThat(oppdragId.behandlingsId).isEqualTo(
+            oppdrag.utbetalingsperiode
+                .first()
+                .behandlingId
+                .toString(),
+        )
     }
 }

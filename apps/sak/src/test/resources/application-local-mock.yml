@@ -97,7 +97,8 @@ springdoc:
 NAIS_NAMESPACE: grunn-og-hjelp
 NAIS_CLUSTER_NAME: local-mock
 
-# Midlertidig: simuler med en testandel når behandlingen mangler tilkjent ytelse.
+# Midlertidig: simuler og iverksett med en testandel når behandlingen mangler tilkjent ytelse.
 oppdrag:
-    simulering:
-        bruk-testandel-hvis-mangler: true
+    bruk-testandel-hvis-mangler: true
+    iverksetting:
+        testendepunkt-aktivert: true
