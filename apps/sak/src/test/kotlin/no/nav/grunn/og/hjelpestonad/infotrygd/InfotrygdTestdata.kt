@@ -12,13 +12,13 @@ object InfotrygdTestdata {
     fun stønad(
         vararg vedtak: InfotrygdVedtakResponse,
         stønadId: Long = 1L,
-        datoOpphor: LocalDate? = null,
+        datoOpphør: LocalDate? = null,
     ) = InfotrygdStonadResponse(
-        stonadId = stønadId,
+        stønadId = stønadId,
         personnr = "12345678901",
         kodeRutine = "GS",
         datoStart = LocalDate.parse("2020-01-01"),
-        datoOpphor = datoOpphor,
+        datoOpphør = datoOpphør,
         vedtak = vedtak.toList(),
     )
 
@@ -39,7 +39,7 @@ object InfotrygdTestdata {
         datoInnvFom = LocalDate.parse(fom),
         datoInnvTom = tom?.let(LocalDate::parse),
         datoMottattSak = LocalDate.parse("2019-12-15"),
-        kodeVedtaksnivaa = "L",
+        kodeVedtaksnivå = "L",
         typeBeregning = "M",
         tidspunktReg = tidspunktReg,
         brukerid = "Z123456",

@@ -251,7 +251,7 @@ class InfotrygdArvTest {
 
         val medArv = InfotrygdArv.fyllVedtakMedVerdierFraTidligereVedtak(listOf(stønad)).single()
 
-        assertThat(medArv.stonadId).isEqualTo(7)
+        assertThat(medArv.stønadId).isEqualTo(7)
         assertThat(medArv.personnr).isEqualTo(stønad.personnr)
         assertThat(medArv.vedtak.map { it.vedtakId }).containsExactly(2L, 1L)
     }

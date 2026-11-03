@@ -175,7 +175,7 @@ export const zInfotrygdDelytelseResponse = z.object({
     typeDelytelse: z.string(),
     tidspunktReg: z.iso.datetime({ local: true }),
     fom: z.iso.date(),
-    belop: z.number(),
+    beløp: z.number(),
     typeSats: z.string(),
     typeUtbetaling: z.string(),
     brukerid: z.string(),
@@ -232,7 +232,7 @@ export const zInfotrygdVedtakMedArv = z.object({
     datoInnvFom: z.iso.date(),
     datoInnvTom: z.iso.date().nullish(),
     datoMottattSak: z.iso.date(),
-    kodeVedtaksnivaa: z.string(),
+    kodeVedtaksnivå: z.string(),
     typeBeregning: z.string(),
     tidspunktReg: z.iso.datetime({ local: true }),
     brukerid: z.string(),
@@ -243,28 +243,28 @@ export const zInfotrygdVedtakMedArv = z.object({
 });
 
 export const zInfotrygdStonadMedArv = z.object({
-    stonadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
+    stønadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
     personnr: z.string(),
     kodeRutine: z.string(),
     datoStart: z.iso.date(),
-    kodeOpphor: z.string().nullish(),
-    datoOpphor: z.iso.date().nullish(),
+    kodeOpphør: z.string().nullish(),
+    datoOpphør: z.iso.date().nullish(),
     oppdragId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).nullish(),
-    tidspunktOpphort: z.iso.datetime({ local: true }).nullish(),
+    tidspunktOpphørt: z.iso.datetime({ local: true }).nullish(),
     tidspunktReg: z.iso.datetime({ local: true }).nullish(),
     brukerid: z.string().nullish(),
     vedtak: z.array(zInfotrygdVedtakMedArv)
 });
 
 export const zInfotrygdStonaderResponse = z.object({
-    stonader: z.array(zInfotrygdStonadMedArv),
+    stønader: z.array(zInfotrygdStonadMedArv),
     diagnosetekster: z.record(z.string(), z.string())
 });
 
 export const zGjeldendeInfotrygdPeriode = z.object({
     fom: z.iso.date(),
     tom: z.iso.date().nullish(),
-    stonadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
+    stønadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
     vedtak: zInfotrygdVedtakMedArv
 });
 

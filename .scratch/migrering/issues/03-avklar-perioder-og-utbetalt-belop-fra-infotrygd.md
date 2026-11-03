@@ -20,6 +20,87 @@ Spec: [spec.md](../spec.md). Bakgrunn: ADR-0005 (risiko og aksjonspunkter) og RE
 
 **2026-10-30:** Avklart i en grilling. Tallene under er målt i dev samme dag. Reglene for perioder bygges i ticket 26 og 27, som 14 og 15 nå er blokkert av.
 
+**2026-11-02:** Målt i dev for å finne ut om opphør den 1. i måneden betyr første dag uten stønad, som EF antar. Regelen kommer fra `trekkFraEnDagHvisFørsteIMåneden` i `InfotrygdPeriodeUtil` i `familie-ef-infotrygd-replika`. Tallene gjelder grunnstønad og vedtak som ikke bare er annullert (`AN`) eller uaktuelle (`UA`).
+
+Når slutter siste vedtak og siste delytelse (`MG`) på en opphørt stønad, sammenlignet med opphørsdatoen? Hver rad summerer til antall stønader:
+
+| Opphørsdato | Sluttdato på | Stønader | Ingen sluttdato | Lik opphørsdatoen | Dagen før opphørsdatoen | Mer enn én dag før | Etter opphørsdatoen |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Siste dag i måneden | siste vedtak | 98 671 | 91 921 | 5 874 | 0 | 18 | 858 |
+| Siste dag i måneden | siste delytelse | 98 671 | 92 820 | 5 001 | 0 | 3 | 847 |
+| Den 1. | siste vedtak | 1 380 | 1 265 | 2 | 0 | 0 | 113 |
+| Den 1. | siste delytelse | 1 380 | 1 273 | 2 | 0 | 0 | 105 |
+
+Ingen stønader har opphør på en annen dag. Ingen vedtak eller delytelser slutter dagen før opphøret.
+
+- Ved opphør siste dag i måneden er sluttdatoen på vedtaket lik opphørsdatoen for 5 874 av de 5 892 stønadene der vedtaket har sluttdato og ikke slutter etter opphøret. Opphørsdatoen er altså siste dag med stønad.
+- For opphør den 1. sier sluttdatoene ingenting for 1 378 av 1 380 stønader. Vedtaket har ingen sluttdato, eller det slutter etter opphøret fordi opphøret er satt tilbake i tid. Bare 2 stønader har sluttdato lik den 1. Replikaen har ingen tabeller med utbetalinger, så vi kan ikke se om måneden med den 1. ble utbetalt.
+- Opphør den 1. er ikke et gammelt mønster. Andelen var 0,8–1,2 % i 2010–2015 og 2,5–3,6 % i 2021–2025. 2009 skiller seg ut med 448 (5,1 %).
+- I 2026 er 38 stønader opphørt den 1., fra 2026-01-01 til 2026-09-01. Ingen har opphør den 1. fram i tid. 10 av dem er opphørt 2026-01-01. Med regelen fra EF slutter siste periode 2025-12-31, og migreringen stopper på datogrensen. Varer stønaden ut opphørsmåneden, slutter siste periode 2026-01-31, og de kan migreres med januar som siste måned.
+
+Opphør den 1. er første dag uten stønad, som i EF. Se «Status» nederst i denne kommentaren og svaret fra saksbehandler i kommentaren under.
+
+Vurdert: bruke sluttdatoen på vedtaket og gi feil når den er etter opphøret. Løpende vedtak må fortsatt kuttes ved opphør. Ellers ser 93 186 opphørte stønader løpende ut, og 3 444 eldre løpende vedtak gjelder igjen etter at det nyere slutter. Feilen ville truffet disse:
+
+«Har også en grunnstønad uten opphør» betyr at personen har minst én annen grunnstønad uten `dato_opphor`, med et vedtak som ikke har sluttdato eller slutter 2026-01-01 eller senere. Det er et grovt mål for hvem migreringen kan treffe. Annullerte vedtak er ikke filtrert bort i dette målet.
+
+| Vedtak med sluttdato etter opphøret | Vedtak | Stønader | Personer | Har også en grunnstønad uten opphør |
+|---|---:|---:|---:|---:|
+| Siste vedtak på stønaden | 971 | 971 | 968 | 178 |
+| Eldre vedtak | 996 | 755 | 752 | 174 |
+
+Samme stønad eller person kan stå på begge linjene, så til sammen gjelder det 968–1 720 personer, og 178–352 av dem har også en grunnstønad uten opphør. Noen av dem får allerede feilen om vedtak som faller bort ved opphør. Overlappet er ikke målt.
+
+Vurdert: gi feil når opphørsdatoen ikke er siste dag i måneden. Siden ingen stønader har opphør på en annen dag, gjelder det bare opphør den 1.:
+
+| Opphør den 1. | Personer | Har også en grunnstønad uten opphør |
+|---|---:|---:|
+| Før 2026-01-01 | 1 331 | 400 |
+| På eller etter 2026-01-01 | 38 | 11 |
+
+Feil i alle tilfeller treffer opptil 411 personer som også har en grunnstønad uten opphør. Det er like mange som feilen om vedtak som faller bort ved opphør (398). Gir vi feil bare på eller etter datogrensen, og bruker regelen fra EF for eldre opphør, treffer det 11.
+
+Når starter personens neste grunnstønad, målt fra opphørsdatoen på den forrige? Startdatoen er tidligste `dato_innv_fom` på stønaden. Tabellen tar bare med stønader der personen har fått en ny grunnstønad senere:
+
+| Opphør | Samme dag | Dagen etter | 2–31 dager etter | 1–31 dager før | Mer enn en måned unna |
+|---|---:|---:|---:|---:|---:|
+| Siste dag i måneden | 0 | 15 658 | 53 | 4 | 2 002 |
+| Den 1. | 2 | 35 | 226 | 0 | 220 |
+
+Ved opphør siste dag i måneden starter neste stønad dagen etter, altså den 1. i neste måned. Ved opphør den 1. starter neste stønad den 1. i måneden etter i 226 tilfeller, dagen etter i 35 og samme dag i 2. De 226 passer med at stønaden varer ut opphørsmåneden. Mange av dem kan også være stønader som er opphørt fra start, se tabellen under, og da sier de ingenting om opphørsmåneden.
+
+Når er opphøret, sammenlignet med når stønaden og siste vedtak startet? «Stønaden startet» er tidligste `dato_innv_fom` på stønaden:
+
+| Opphør | Før stønaden startet | Samme dag som stønaden startet | Etter at stønaden startet, før siste vedtak startet | Samme dag som siste vedtak startet | Etter at siste vedtak startet |
+|---|---:|---:|---:|---:|---:|
+| Siste dag i måneden | 126 | 0 | 960 | 0 | 97 585 |
+| Den 1. | 6 | 584 | 0 | 323 | 467 |
+
+- Ved opphør den 1. er opphøret lik en startdato for 907 av 1 380 stønader. Hele stønaden eller siste vedtak er opphørt fra start. Ved opphør siste dag i måneden skjer det aldri.
+- 579 av de 584 har opphør lik `t_stonad.dato_start`. `dato_start` ser ut til å være startdatoen for stønaden.
+- Tallene for vedtak som faller bort ved opphør, under «Perioder» i `## Answer` og i ADR-0012, er målt med regelen fra EF, men før vedtak som er opphørt fra start, ble tatt ut. Med den regelen gir vedtak som er opphørt fra start, den feilen. Tallene må måles på nytt.
+
+**Status:** Bestemt. Opphør den 1. er første dag uten stønad, som i EF, og sluttdatoen blir dagen før. Opphør 01.01.2025 gir sluttdato 31.12.2024. Saksbehandler bekreftet det 2026-11-02, se kommentaren under.
+
+Vi vurderte også at stønaden varer ut opphørsmåneden, altså at opphør 01.01.2025 gir 31.01.2025. Det stemmer ikke: Infotrygd utbetalte ikke januar 2025.
+
+Disse reglene gjelder:
+
+- Et vedtak som starter etter opphøret, gir feilen om vedtak som faller bort. Det er opphør som er satt tilbake i tid.
+- Vedtak som er opphørt fra start, altså vedtak som starter samme dag som opphøret, tas ikke med og gir ingen feil.
+
+**2026-11-02:** Svar fra saksbehandler om personen med opphør 01.01.2025: Infotrygd utbetalte ikke januar 2025. Saksbehandleren sjekket også Oppdrag. Opphør den 1. betyr altså at stønaden stanses fra og med den dagen.
+
+Saksbehandleren forklarte hvordan opphør registreres i Infotrygd:
+
+- Saken hadde en automatisk satsjustering 01.01.2025, så siste vedtaksperiode startet 01.01.2025. Infotrygd tillater ikke opphør før starten på siste vedtaksperiode.
+- **Før:** Infotrygd tillot ikke opphør den 1. i måneden. For å stanse januar måtte saksbehandler først trekke vedtaksperioden tilbake med `GH GS OR R TK FI` og virkningstidspunkt 01.12.2024, og deretter opphøre med `GH GS OR R TK O`, vedtaksdato 01.12.2024 og opphørsdato 31.12.2024.
+- **Nå:** Saksbehandler opphører direkte med `GH GS OR R TK O`, vedtaksperiode 01.01.2025 og opphørsdato 01.01.2025. Det stanser utbetalingen for januar 2025.
+
+Saksbehandleren mener Infotrygd fikk en generell teknisk endring som tillot dette, men vet ikke når. Begge måtene gir samme siste dag med stønad, 31.12.2024, og regelen fra EF tolker begge riktig. Svaret gjelder én sak. Endringen kan forklare at andelen opphør den 1. økte fra 2010–2015 til 2021–2025.
+
+Ikke undersøkt: den gamle måten lager et nytt vedtak (`FI`) med virkningstidspunkt før satsjusteringen, og så et opphør bakover i tid. Satsjusteringen starter da etter opphøret. Det kan forklare de fleste av vedtakene som faller bort ved opphør, som er satsomregninger (`MS`/`FI`) laget før stønaden ble opphørt bakover i tid. Er det slik, er satsjusteringen allerede overskrevet av det nyere `FI`-vedtaket, og feilen kunne vært unngått. Det må måles før vi endrer regelen.
+
 ## Answer
 
 ### Én kilde til perioder
@@ -33,7 +114,8 @@ Når dataene er uklare, gir vi heller én feil for mye. Det er lettere å endre 
 ### Perioder
 
 - Vedtaket avgjør perioden, fra `dato_innv_fom` til `dato_innv_tom`, kuttet ved opphør. Delytelsen flytter aldri fom eller tom, men et avvik mellom delytelsen og vedtaket kan gi feil, se listen under.
-- Når stønaden er opphørt, kuttes tom på alle vedtakene på stønaden ved `dato_opphor`. Er opphørsdatoen den 1. i måneden, blir tom siste dag i måneden før, som i EF. Andre datoer brukes som de er. I dev er 98 672 opphørsdatoer siste dag i en måned og 2 031 den 1.
+- Når stønaden er opphørt, kuttes tom på alle vedtakene på stønaden ved `dato_opphor`. Er opphørsdatoen den 1. i måneden, blir tom siste dag i måneden før, som i EF. Opphør den 1. er første dag uten stønad, bekreftet av saksbehandler 2026-11-02. Andre datoer brukes som de er. I dev er 98 672 opphørsdatoer siste dag i en måned og 2 031 den 1.
+- Et vedtak som starter samme dag som stønaden opphørte, er opphørt fra start. Det tas ikke med og gir ingen feil.
 - Det nyeste vedtaket (høyest `vedtakId`) vinner, også på tvers av stønader. Et eldre vedtak gjelder igjen etter at et nyere slutter, som i ADR-0012. EF kutter i stedet alt etter fom på det nyere vedtaket. Forskjellen gjelder 5 stønader i dev, alle med siste vedtak mellom 2009 og 2020. En Infotrygd-ekspert bør bekrefte regelen.
 - Vedtak der alle endringskodene er `AN` (Annullert) eller `UA` (Uaktuell), er ikke med. `/stonader` filtrerer dem allerede bort.
 - Er stønaden ikke opphørt, men alle vedtakene er avsluttet, er saken avsluttet. Unntaket er når personens siste vedtak er på en slik stønad og slutter på eller etter datogrensen 2026-01-01. Da gir oppslaget og migreringen feil, se listen under. I dev gjelder det 427 stønader hos 419 personer, og bare 1 person får feil.

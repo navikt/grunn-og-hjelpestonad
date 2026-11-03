@@ -68,11 +68,12 @@ flowchart TD
     classDef ekstern fill:#f1f1f1,stroke:#707070,stroke-dasharray: 4 3
     classDef loest fill:#d9f2d9,stroke:#2e7d32
 
-    class T13,T14,T15,T17,T22,T26,T27 menneske
-    class T03 loest
+    class T14,T15,T17,T22,T26,T27 menneske
+    class T03,T13,T21 loest
     class T24 triage
     class OKO,OPP ekstern
 ```
 
-03 er løst. 21 kan startes med en gang av en agent. 13, 17 og 26 kan også
-startes, men er rød sone og skrives av en utvikler.
+03, 13 og 21 er løst. 25 kan startes med en gang av en agent, med V49 som neste
+Flyway-migrering. 17 og 26 kan også startes, men er rød sone og skrives av en
+utvikler. 26 ligger på den lengste stien til 16: 26, 27, 14 og 15.

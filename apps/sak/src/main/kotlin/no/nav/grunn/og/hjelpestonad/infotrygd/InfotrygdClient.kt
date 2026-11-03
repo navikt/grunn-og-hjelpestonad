@@ -47,8 +47,8 @@ class InfotrygdClient(
                     logger.info(
                         "Hentet stønader fra Infotrygd: stønadstype={}, {} stønader, {} vedtak",
                         stønadstype,
-                        response.stonader.size,
-                        response.stonader.sumOf { it.vedtak.size },
+                        response.stønader.size,
+                        response.stønader.sumOf { it.vedtak.size },
                     )
                 } ?: throw Feil("Person ikke funnet i Infotrygd", HttpStatus.NOT_FOUND)
         } catch (e: HttpClientErrorException.NotFound) {

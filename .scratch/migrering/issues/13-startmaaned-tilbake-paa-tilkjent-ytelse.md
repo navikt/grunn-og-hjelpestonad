@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-human
+**Status:** resolved
 
 🔴 Rød sone: utledningen av startmåned. Utvikleren skriver funksjonen og testene. Flyway-migreringen og koblingen i `TilkjentYtelseService` er grønn sone.
 

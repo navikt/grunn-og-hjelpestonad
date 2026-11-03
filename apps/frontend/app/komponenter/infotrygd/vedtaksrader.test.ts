@@ -12,7 +12,7 @@ import { lagVedtaksrader } from "./vedtaksrader.ts";
 import type { Vedtaksrad } from "./vedtaksrader.ts";
 
 const stønad = (overstyr: Partial<InfotrygdStonadMedArv> = {}): InfotrygdStonadMedArv => ({
-  stonadId: 1,
+  stønadId: 1,
   personnr: "00000000000",
   kodeRutine: "TEST",
   datoStart: "2024-01-01",
@@ -30,7 +30,7 @@ const vedtak = (overstyr: Partial<InfotrygdVedtakMedArv> = {}): InfotrygdVedtakM
   kodeResultat: "TEST",
   datoInnvFom: "2024-01-01",
   datoMottattSak: "2024-01-01",
-  kodeVedtaksnivaa: "TEST",
+  kodeVedtaksnivå: "TEST",
   typeBeregning: "TEST",
   tidspunktReg: "2024-01-01T10:00:00",
   brukerid: "TEST",
@@ -46,7 +46,7 @@ const delytelse = (
   typeDelytelse: "TEST",
   tidspunktReg: "2024-01-01T10:00:00",
   fom: "2024-01-01",
-  belop: 1000,
+  beløp: 1000,
   typeSats: "TEST",
   typeUtbetaling: "TEST",
   brukerid: "TEST",
@@ -72,7 +72,7 @@ const gjeldendePeriode = (
   v: InfotrygdVedtakMedArv,
   fom: string,
   tom: string | null
-): GjeldendeInfotrygdPeriode => ({ fom, tom, stonadId: 1, vedtak: v });
+): GjeldendeInfotrygdPeriode => ({ fom, tom, stønadId: 1, vedtak: v });
 
 function finn(rader: Vedtaksrad[], vedtakId: number): Vedtaksrad {
   const rad = rader.find((r) => r.vedtak.vedtakId === vedtakId);
@@ -84,7 +84,7 @@ describe("lagVedtaksrader", () => {
   describe("beløp", () => {
     it("gir ETT med beløpet når vedtaket har én delytelse", () => {
       const rader = lagVedtaksrader([
-        stønad({ vedtak: [vedtak({ delytelser: [delytelse({ belop: 1200 })] })] }),
+        stønad({ vedtak: [vedtak({ delytelser: [delytelse({ beløp: 1200 })] })] }),
       ]);
       assert.deepEqual(finn(rader, 1).beløp, { type: "ETT", beløp: 1200 });
     });
@@ -92,7 +92,7 @@ describe("lagVedtaksrader", () => {
     it("gir FLERE når vedtaket har flere delytelser", () => {
       const rader = lagVedtaksrader([
         stønad({
-          vedtak: [vedtak({ delytelser: [delytelse({ belop: 1200 }), delytelse({ belop: 300 })] })],
+          vedtak: [vedtak({ delytelser: [delytelse({ beløp: 1200 }), delytelse({ beløp: 300 })] })],
         }),
       ]);
       assert.deepEqual(finn(rader, 1).beløp, { type: "FLERE" });
@@ -111,9 +111,9 @@ describe("lagVedtaksrader", () => {
       assert.equal(rad.opphørt, null);
     });
 
-    it("er ikke løpende og får opphørsdato når innvilget tom mangler og stønaden har datoOpphor", () => {
+    it("er ikke løpende og får opphørsdato når innvilget tom mangler og stønaden har datoOpphør", () => {
       const rad = finn(
-        lagVedtaksrader([stønad({ datoOpphor: "2024-06-30", vedtak: [vedtak()] })]),
+        lagVedtaksrader([stønad({ datoOpphør: "2024-06-30", vedtak: [vedtak()] })]),
         1
       );
       assert.equal(rad.løpende, false);
@@ -129,10 +129,10 @@ describe("lagVedtaksrader", () => {
       assert.equal(rad.opphørt, null);
     });
 
-    it("viser ikke opphørsdato når innvilget tom er satt, også når datoOpphor finnes", () => {
+    it("viser ikke opphørsdato når innvilget tom er satt, også når datoOpphør finnes", () => {
       const rad = finn(
         lagVedtaksrader([
-          stønad({ datoOpphor: "2024-06-30", vedtak: [vedtak({ datoInnvTom: "2024-05-31" })] }),
+          stønad({ datoOpphør: "2024-06-30", vedtak: [vedtak({ datoInnvTom: "2024-05-31" })] }),
         ]),
         1
       );
@@ -211,14 +211,14 @@ describe("lagVedtaksrader", () => {
     it("legger nyeste vedtak først på tvers av stønader", () => {
       const rader = lagVedtaksrader([
         stønad({
-          stonadId: 1,
+          stønadId: 1,
           vedtak: [
             vedtak({ vedtakId: 1, tidspunktReg: "2024-01-01T10:00:00" }),
             vedtak({ vedtakId: 3, tidspunktReg: "2024-02-01T10:00:00" }),
           ],
         }),
         stønad({
-          stonadId: 2,
+          stønadId: 2,
           vedtak: [vedtak({ vedtakId: 2, tidspunktReg: "2024-03-01T10:00:00" })],
         }),
       ]);
@@ -245,9 +245,9 @@ describe("lagVedtaksrader", () => {
             vedtak: [
               vedtak({
                 delytelser: [
-                  delytelse({ fom: "2024-01-01", belop: 100 }),
-                  delytelse({ fom: "2024-03-01", belop: 300 }),
-                  delytelse({ fom: "2024-02-01", belop: 200 }),
+                  delytelse({ fom: "2024-01-01", beløp: 100 }),
+                  delytelse({ fom: "2024-03-01", beløp: 300 }),
+                  delytelse({ fom: "2024-02-01", beløp: 200 }),
                 ],
               }),
             ],
@@ -256,7 +256,7 @@ describe("lagVedtaksrader", () => {
         1
       );
       assert.deepEqual(
-        rad.delytelser.map((d) => d.belop),
+        rad.delytelser.map((d) => d.beløp),
         [300, 200, 100]
       );
     });
@@ -268,8 +268,8 @@ describe("lagVedtaksrader", () => {
             vedtak: [
               vedtak({
                 delytelser: [
-                  delytelse({ fom: "2024-01-01", tidspunktReg: "2024-01-10T10:00:00", belop: 100 }),
-                  delytelse({ fom: "2024-01-01", tidspunktReg: "2024-02-10T10:00:00", belop: 200 }),
+                  delytelse({ fom: "2024-01-01", tidspunktReg: "2024-01-10T10:00:00", beløp: 100 }),
+                  delytelse({ fom: "2024-01-01", tidspunktReg: "2024-02-10T10:00:00", beløp: 200 }),
                 ],
               }),
             ],
@@ -278,7 +278,7 @@ describe("lagVedtaksrader", () => {
         1
       );
       assert.deepEqual(
-        rad.delytelser.map((d) => d.belop),
+        rad.delytelser.map((d) => d.beløp),
         [200, 100]
       );
     });
