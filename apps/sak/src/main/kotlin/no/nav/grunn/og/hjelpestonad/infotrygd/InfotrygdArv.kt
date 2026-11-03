@@ -27,7 +27,7 @@ data class InfotrygdStonadMedArv(
     val tidspunktReg: LocalDateTime?,
     val brukerid: String?,
     val vedtak: List<InfotrygdVedtakMedArv>,
-){
+) {
     fun erLøpende() = datoOpphør == null
 }
 
