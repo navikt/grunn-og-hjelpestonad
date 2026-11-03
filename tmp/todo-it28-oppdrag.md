@@ -32,7 +32,7 @@ POC-en sender `Utbetalingsoppdrag` fra grunn-og-hjelpestonad med `fagSystem = "I
 - Grunn-og-hjelpestonad pinner `familie-kontrakter:felles` til samme versjon som forken: `4.0_20260611084408_a47ed94`. Oppdater begge samtidig.
 - Endepunkter vi bruker i POC-en: `POST /api/oppdrag`, `POST /api/status`, `POST /api/simulering/v1`.
 
-## Begrensning i testskiven i grunn-og-hjelpestonad
+## Begrensning i testversjonen av iverksettingen i grunn-og-hjelpestonad
 
 Testendepunktet `POST /api/oppdrag/iverksetting/{behandlingId}` lagrer ikke oppdraget og kjeder ikke mot tidligere oppdrag (ADR-0011). Det gir to følger i Q1:
 

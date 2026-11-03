@@ -7,7 +7,7 @@ import java.util.UUID
 /**
  * Sender oppdraget for en behandling til OS gjennom `familie-oppdrag-backend`.
  *
- * Første skive for å teste integrasjonen i dev: synkront kall med saksbehandlerens OBO-token, ingen lagring av
+ * Første versjon, for å teste integrasjonen i dev: synkront kall med saksbehandlerens OBO-token, ingen lagring av
  * oppdraget og ingen kjeding. Statusen hentes manuelt med [hentStatus]. Den ekte iverksettingen bør gå asynkront
  * med client credentials og polling av status, slik familie-ef-iverksett gjør.
  */
