@@ -59,16 +59,16 @@ object GjeldendeInfotrygdPerioder {
     private fun InfotrygdVedtakMedArv.tilPeriode(stønad: InfotrygdStonadMedArv): Periode<VedtakPåStønad>? {
         this.validerAtTomKommerEtterFom()
 
-        val datoOpphor = stønad.datoOpphor ?: return Periode(VedtakPåStønad(stønad.stonadId, this), datoInnvFom, datoInnvTom)
+        val datoOpphør = stønad.datoOpphor ?: return Periode(VedtakPåStønad(stønad.stonadId, this), datoInnvFom, datoInnvTom)
 
         // Dersom det er et opphør på samme dag som vedtaket starter, regner vi det som at hele vedtaket er opphørt, og tar det ikke med.
-        if (datoInnvFom == datoOpphor) return null
+        if (datoInnvFom == datoOpphør) return null
 
-        val tom = listOfNotNull(datoInnvTom, faktiskOpphørsdato(datoOpphor)).min()
+        val tom = listOfNotNull(datoInnvTom, faktiskOpphørsdato(datoOpphør)).min()
         if (tom <= datoInnvFom) {
             throw UgyldigInput(
                 "Vedtak $vedtakId starter ${datoInnvFom.format(DATOFORMAT)}, etter at stønaden opphørte " +
-                    "${datoOpphor.format(DATOFORMAT)}. Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
+                    "${datoOpphør.format(DATOFORMAT)}. Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
             )
         }
         return Periode(VedtakPåStønad(stønad.stonadId, this), datoInnvFom, tom)
