@@ -16,6 +16,4 @@ enum class SperretGruppeIDev(
     STRENGT_FORTROLIG_ADRESSE("a1b518e2-3947-478d-8929-e5d685c47cac", "strengt fortrolig adresse"),
     FORTROLIG_ADRESSE("2e1dc582-f762-4510-a660-88bf68fb7128", "fortrolig adresse"),
     EGNE_ANSATTE("dbe4ad45-320b-4e9a-aaa1-73cca4ee124d", "skjerming"),
-    ;
-
 }
