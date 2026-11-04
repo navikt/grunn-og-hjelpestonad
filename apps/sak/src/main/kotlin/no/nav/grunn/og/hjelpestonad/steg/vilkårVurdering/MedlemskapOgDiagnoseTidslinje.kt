@@ -4,11 +4,11 @@ import no.nav.familie.tidslinje.Tidslinje
 import no.nav.familie.tidslinje.utvidelser.kombinerMed
 import no.nav.familie.tidslinje.utvidelser.tilPerioder
 import no.nav.familie.tidslinje.utvidelser.verdiPåTidspunkt
+import no.nav.grunn.og.hjelpestonad.felles.periode.tomTidslinje
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.DiagnoseRegler
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.erOppfyltTidslinje
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
-import no.nav.grunn.og.hjelpestonad.vilkår.tomTidslinje
 import java.time.LocalDate
 
 fun List<VilkårMedlemskap>.erOppfyltTidslinje(diagnoser: List<VilkårDiagnose>): Tidslinje<Boolean> {

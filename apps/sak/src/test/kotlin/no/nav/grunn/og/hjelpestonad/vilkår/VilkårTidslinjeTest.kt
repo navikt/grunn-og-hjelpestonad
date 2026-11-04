@@ -2,6 +2,10 @@ package no.nav.grunn.og.hjelpestonad.vilkår
 
 import no.nav.familie.tidslinje.tilTidslinje
 import no.nav.familie.tidslinje.utvidelser.tilPerioder
+import no.nav.grunn.og.hjelpestonad.felles.periode.forkortetAv
+import no.nav.grunn.og.hjelpestonad.felles.periode.tilPeriode
+import no.nav.grunn.og.hjelpestonad.felles.periode.tilTidslinje
+import no.nav.grunn.og.hjelpestonad.felles.periode.tomTidslinje
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap

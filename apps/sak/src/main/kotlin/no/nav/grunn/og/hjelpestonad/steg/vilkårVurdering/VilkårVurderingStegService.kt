@@ -3,8 +3,8 @@ package no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
+import no.nav.grunn.og.hjelpestonad.felles.periode.Periodisert
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
-import no.nav.grunn.og.hjelpestonad.vilkår.Periodisert
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
 import no.nav.grunn.og.hjelpestonad.vilkår.rett.PeriodeMedRett
