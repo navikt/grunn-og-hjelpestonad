@@ -26,13 +26,5 @@ object VilkårVurderingValidering {
                     ),
                 )
             }
-            if (grunnlag.institusjon.isEmpty()) {
-                add(
-                    Valideringsfeil(
-                        VilkårType.IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM,
-                        "Du må vurdere opphold i institusjon eller lovregulert boform.",
-                    ),
-                )
-            }
         }
 }

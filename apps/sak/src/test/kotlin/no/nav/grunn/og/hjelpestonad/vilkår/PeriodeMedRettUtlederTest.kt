@@ -4,8 +4,6 @@ import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PeriodeMedRettUtleder
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingStegGrunnlag
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
-import no.nav.grunn.og.hjelpestonad.vilkår.institusjon.Oppholdstype
-import no.nav.grunn.og.hjelpestonad.vilkår.institusjon.VilkårInstitusjon
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import org.assertj.core.api.Assertions.assertThat
@@ -30,7 +28,6 @@ class PeriodeMedRettUtlederTest {
             utled(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
                 diagnoser = listOf(diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-12-31")),
-                institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
 
         assertThat(perioder).hasSize(1)
@@ -43,14 +40,13 @@ class PeriodeMedRettUtlederTest {
     fun `ett vilkår NEI i midten gir to perioder med rett`() {
         val perioder =
             utled(
-                medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
-                diagnoser = listOf(diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-12-31")),
-                institusjon =
+                medlemskap =
                     listOf(
-                        institusjon("2025-01-01", "2025-03-31"),
-                        institusjon("2025-04-01", "2025-05-31", vurdering = Vurdering.NEI),
-                        institusjon("2025-06-01", "2025-12-31"),
+                        medlemskap("2025-01-01", "2025-03-31"),
+                        medlemskap("2025-04-01", "2025-05-31", vurdering = Vurdering.NEI),
+                        medlemskap("2025-06-01", "2025-12-31"),
                     ),
+                diagnoser = listOf(diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-12-31")),
             )
 
         assertThat(perioder.map { it.fraOgMedDato to it.tilOgMedDato }).containsExactly(
@@ -69,7 +65,6 @@ class PeriodeMedRettUtlederTest {
                         medlemskap("2025-06-01", "2025-12-31"),
                     ),
                 diagnoser = listOf(diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-12-31")),
-                institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
 
         assertThat(perioder.map { it.fraOgMedDato to it.tilOgMedDato }).containsExactly(
@@ -84,7 +79,6 @@ class PeriodeMedRettUtlederTest {
             utled(
                 medlemskap = listOf(medlemskap(null, null)),
                 diagnoser = listOf(diagnose(DIABETES_TYPE_1, null, null)),
-                institusjon = listOf(institusjon(null, null)),
             )
 
         assertThat(perioder).hasSize(1)
@@ -102,7 +96,6 @@ class PeriodeMedRettUtlederTest {
                         diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-06-30"),
                         diagnose(STØYSKADE, "2025-01-01", "2025-12-31", vurdering = Vurdering.NEI),
                     ),
-                institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
 
         assertThatCode { PeriodeMedRettUtleder.utled(grunnlag) }.doesNotThrowAnyException()
@@ -122,32 +115,11 @@ class PeriodeMedRettUtlederTest {
                         diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-06-30"),
                         diagnose(DIABETES_TYPE_1, "2025-07-01", "2025-12-31"),
                     ),
-                institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
 
         assertThat(perioder.map { it.fraOgMedDato to it.tilOgMedDato }).containsExactly(
             LocalDate.of(2025, 1, 1) to LocalDate.of(2025, 12, 31),
         )
-    }
-
-    @Test
-    fun `opphold i institusjon uten unntak gir ingen rett i perioden`() {
-        val perioder =
-            utled(
-                medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
-                diagnoser = listOf(diagnose(DIABETES_TYPE_1, "2025-01-01", "2025-12-31")),
-                institusjon =
-                    listOf(
-                        institusjon(
-                            "2025-01-01",
-                            "2025-12-31",
-                            vurdering = Vurdering.NEI,
-                            oppholdstype = Oppholdstype.HELSE_OG_OMSORGSINSTITUSJON,
-                        ),
-                    ),
-            )
-
-        assertThat(perioder).isEmpty()
     }
 
     @Test
@@ -159,7 +131,6 @@ class PeriodeMedRettUtlederTest {
                 listOf(
                     VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
                     VilkårType.DIAGNOSE,
-                    VilkårType.IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM,
                 ),
             )
     }
@@ -170,7 +141,6 @@ class PeriodeMedRettUtlederTest {
             utled(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-03-31")),
                 diagnoser = listOf(diagnose(DIABETES_TYPE_1, "2025-04-01", "2025-06-30")),
-                institusjon = listOf(institusjon(null, null)),
             )
 
         assertThat(perioder).isEmpty()
@@ -186,7 +156,6 @@ class PeriodeMedRettUtlederTest {
                         medlemskap("2025-04-01", "2025-12-31", vurdering = Vurdering.NEI),
                     ),
                 diagnoser = listOf(diagnose(STØYSKADE, "2025-01-01", "2025-12-31", erYrkesskade = true)),
-                institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
 
         assertThat(perioder.map { it.fraOgMedDato to it.tilOgMedDato }).containsExactly(
@@ -200,7 +169,6 @@ class PeriodeMedRettUtlederTest {
             utled(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31", vurdering = Vurdering.NEI)),
                 diagnoser = listOf(diagnose(STØYSKADE, "2025-01-01", "2025-12-31", erYrkesskade = true)),
-                institusjon = listOf(institusjon("2025-01-01", "2025-12-31")),
             )
 
         assertThat(perioder).isEmpty()
@@ -209,18 +177,15 @@ class PeriodeMedRettUtlederTest {
     private fun utled(
         medlemskap: List<VilkårMedlemskap> = emptyList(),
         diagnoser: List<VilkårDiagnose> = emptyList(),
-        institusjon: List<VilkårInstitusjon> = emptyList(),
-    ) = PeriodeMedRettUtleder.utled(grunnlag(medlemskap, diagnoser, institusjon))
+    ) = PeriodeMedRettUtleder.utled(grunnlag(medlemskap, diagnoser))
 
     private fun grunnlag(
         medlemskap: List<VilkårMedlemskap> = emptyList(),
         diagnoser: List<VilkårDiagnose> = emptyList(),
-        institusjon: List<VilkårInstitusjon> = emptyList(),
     ) = VilkårVurderingStegGrunnlag(
         behandlingId = behandlingId,
         medlemskap = medlemskap,
         diagnoser = diagnoser,
-        institusjon = institusjon,
     )
 
     private fun medlemskap(
@@ -247,19 +212,6 @@ class PeriodeMedRettUtlederTest {
         tekst = "Tekst fra kodeverket",
         erYrkesskade = erYrkesskade,
         vurdering = vurdering,
-        fraOgMedDato = fraOgMedDato?.let { LocalDate.parse(it) },
-        tilOgMedDato = tilOgMedDato?.let { LocalDate.parse(it) },
-    )
-
-    private fun institusjon(
-        fraOgMedDato: String?,
-        tilOgMedDato: String?,
-        vurdering: Vurdering = Vurdering.JA,
-        oppholdstype: Oppholdstype? = null,
-    ) = VilkårInstitusjon(
-        behandlingId = behandlingId,
-        vurdering = vurdering,
-        oppholdstype = oppholdstype,
         fraOgMedDato = fraOgMedDato?.let { LocalDate.parse(it) },
         tilOgMedDato = tilOgMedDato?.let { LocalDate.parse(it) },
     )

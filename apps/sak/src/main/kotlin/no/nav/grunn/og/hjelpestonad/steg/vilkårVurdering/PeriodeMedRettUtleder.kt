@@ -1,11 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering
 
-import no.nav.familie.tidslinje.Tidslinje
 import no.nav.familie.tidslinje.filtrerIkkeNull
-import no.nav.familie.tidslinje.utvidelser.kombinerMed
 import no.nav.familie.tidslinje.utvidelser.slåSammenLikePerioder
 import no.nav.familie.tidslinje.utvidelser.tilPerioder
-import no.nav.grunn.og.hjelpestonad.vilkår.erOppfyltTidslinje
 import no.nav.grunn.og.hjelpestonad.vilkår.rett.PeriodeMedRett
 
 object PeriodeMedRettUtleder {
@@ -13,7 +10,8 @@ object PeriodeMedRettUtleder {
         val feil = VilkårVurderingValidering.valider(grunnlag)
         if (feil.isNotEmpty()) throw VilkårValideringFeil(feil)
 
-        return alleVilkårOppfyltTidslinje(grunnlag)
+        return grunnlag.medlemskap
+            .erOppfyltTidslinje(grunnlag.diagnoser)
             .slåSammenLikePerioder()
             .tilPerioder()
             .filtrerIkkeNull()
@@ -25,11 +23,4 @@ object PeriodeMedRettUtleder {
                 )
             }
     }
-
-    private fun alleVilkårOppfyltTidslinje(grunnlag: VilkårVurderingStegGrunnlag): Tidslinje<Boolean> =
-        grunnlag.medlemskap
-            .erOppfyltTidslinje(grunnlag.diagnoser)
-            .kombinerMed(grunnlag.institusjon.erOppfyltTidslinje()) { medlemskapOgDiagnose, institusjon ->
-                if (medlemskapOgDiagnose == true && institusjon == true) true else null
-            }
 }

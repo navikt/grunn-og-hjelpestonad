@@ -36,7 +36,7 @@ _Avoid_: Automatisk vurdering, maskinell vurdering, aksjonspunkt
 ## Vilkår og trygdetid
 
 **Vilkår**:
-De fire forholdene som vurderes ja eller nei per periode i en behandling: medlemskap, diagnose, nødvendige ekstrautgifter og institusjon. Fag regner også trygdetid som et vilkår, men det gjør ikke løsningen.
+De fire forholdene som vurderes ja eller nei per periode i en behandling: medlemskap, diagnose, nødvendige ekstrautgifter og institusjon. Fag regner også trygdetid som et vilkår, men det gjør ikke løsningen. Institusjon er tatt ut av løsningen inntil videre, se ADR-0006.
 
 **Inngangsvilkår**:
 Vilkårene uten skjønn, medlemskap og diagnose, som vurderes først. De andre vilkårene og trygdetiden vurderes bare i perioder der begge er oppfylt.

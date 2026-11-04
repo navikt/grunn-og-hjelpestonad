@@ -5,7 +5,7 @@ export type ClientOptions = {
 };
 
 export type Valideringsfeil = {
-    vilkårType: 'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN' | 'DIAGNOSE' | 'IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM';
+    vilkårType: 'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN' | 'DIAGNOSE';
     melding: string;
 };
 
@@ -302,28 +302,6 @@ export type VilkårMedlemskapResponse = {
     id: string;
     behandlingId: string;
     regelverk: 'NASJONALE_REGLER' | 'EØS_FORORDNINGEN';
-    vurdering: 'JA' | 'NEI';
-    begrunnelse: string;
-    fraOgMedDato?: string | null;
-    tilOgMedDato?: string | null;
-    erVilkårOppfylt: boolean;
-};
-
-export type VilkårInstitusjonRequest = {
-    id?: string | null;
-    oppholdstype?: 'HELSE_OG_OMSORGSINSTITUSJON' | 'SPESIALISTHELSETJENESTEN' | 'PSYKISK_HELSEVERN' | 'FENGSEL_ELLER_ANNEN_LOVREGULERT_BOFORM' | null;
-    unntakshjemmel?: 'EKSTRAUTGIFTER_IKKE_DEKKET_AV_INSTITUSJONEN' | 'KORTTIDSOPPHOLD' | 'BARN_UNDER_18_I_SPESIALISTHELSETJENESTEN' | 'ANNET_UNNTAK_I_FORSKRIFT' | null;
-    vurdering: 'JA' | 'NEI';
-    begrunnelse: string;
-    fraOgMedDato?: string | null;
-    tilOgMedDato?: string | null;
-};
-
-export type VilkårInstitusjonResponse = {
-    id: string;
-    behandlingId: string;
-    oppholdstype?: 'HELSE_OG_OMSORGSINSTITUSJON' | 'SPESIALISTHELSETJENESTEN' | 'PSYKISK_HELSEVERN' | 'FENGSEL_ELLER_ANNEN_LOVREGULERT_BOFORM' | null;
-    unntakshjemmel?: 'EKSTRAUTGIFTER_IKKE_DEKKET_AV_INSTITUSJONEN' | 'KORTTIDSOPPHOLD' | 'BARN_UNDER_18_I_SPESIALISTHELSETJENESTEN' | 'ANNET_UNNTAK_I_FORSKRIFT' | null;
     vurdering: 'JA' | 'NEI';
     begrunnelse: string;
     fraOgMedDato?: string | null;
@@ -803,36 +781,6 @@ export type LagreMedlemskapPeriodeResponses = {
 
 export type LagreMedlemskapPeriodeResponse = LagreMedlemskapPeriodeResponses[keyof LagreMedlemskapPeriodeResponses];
 
-export type HentInstitusjonPerioderData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/behandling/{behandlingId}/vilkar/institusjon';
-};
-
-export type HentInstitusjonPerioderResponses = {
-    200: Array<VilkårInstitusjonResponse>;
-};
-
-export type HentInstitusjonPerioderResponse = HentInstitusjonPerioderResponses[keyof HentInstitusjonPerioderResponses];
-
-export type LagreInstitusjonPeriodeData = {
-    body: VilkårInstitusjonRequest;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/behandling/{behandlingId}/vilkar/institusjon';
-};
-
-export type LagreInstitusjonPeriodeResponses = {
-    200: VilkårInstitusjonResponse;
-};
-
-export type LagreInstitusjonPeriodeResponse = LagreInstitusjonPeriodeResponses[keyof LagreInstitusjonPeriodeResponses];
-
 export type FullførStegData = {
     body?: never;
     path: {
@@ -1223,20 +1171,6 @@ export type SlettMedlemskapPeriodeData = {
 };
 
 export type SlettMedlemskapPeriodeResponses = {
-    200: unknown;
-};
-
-export type SlettInstitusjonPeriodeData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-        vilkårPeriodeId: string;
-    };
-    query?: never;
-    url: '/api/behandling/{behandlingId}/vilkar/institusjon/{vilkårPeriodeId}';
-};
-
-export type SlettInstitusjonPeriodeResponses = {
     200: unknown;
 };
 
