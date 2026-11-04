@@ -20,7 +20,7 @@ class StønaderService(
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     fun hentStønader(request: StonaderRequest): StonaderResponse {
         val stønader = stønaderRepository.hentStønader(request.personidenter, request.stønadstype)
-        val vedtakPerStønad = stønaderRepository.hentVedtak(stønader.map { it.stonadId }.toSet(), request.personidenter)
+        val vedtakPerStønad = stønaderRepository.hentVedtak(stønader.map { it.stønadId }.toSet(), request.personidenter)
         // Barnetabellene og evalueringen arver eierskapet fra vedtaket. Hent alltid vedtakIder fra hentVedtak,
         // som bare gir vedtak på personene i forespørselen.
         val vedtakIder =
@@ -35,11 +35,11 @@ class StønaderService(
         val evalueringer = evalueringService.hentEvalueringerForVedtak(vedtakIder)
 
         return StonaderResponse(
-            stonader =
+            stønader =
                 stønader.map { stønad ->
                     stønad.copy(
                         vedtak =
-                            vedtakPerStønad[stønad.stonadId].orEmpty().map { vedtak ->
+                            vedtakPerStønad[stønad.stønadId].orEmpty().map { vedtak ->
                                 vedtak.copy(
                                     endringer = endringer[vedtak.vedtakId].orEmpty(),
                                     delytelser = delytelser[vedtak.vedtakId].orEmpty(),

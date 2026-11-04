@@ -1,5 +1,5 @@
 import React from "react";
-import { BodyShort, Box, Heading, HStack, Table, Tag, VStack } from "@navikt/ds-react";
+import { BodyShort, Box, Heading, HStack, LocalAlert, Table, Tag, VStack } from "@navikt/ds-react";
 import type { InfotrygdGjeldendePerioderResponse } from "~/api/generated/types.gen";
 import { erMotstridende, ingenBryting, TomtFelt, UlikeVerdier, VerdiMedKilde } from "./celler";
 import { formaterDato, formaterPeriode } from "./formatering";
@@ -72,8 +72,16 @@ function PeriodeRad({ periode }: { periode: GjeldendePeriode }) {
   );
 }
 
-export function GjeldendeInfotrygdPerioder({ data }: { data: InfotrygdGjeldendePerioderResponse }) {
-  const perioder = data.perioder.toSorted(nyesteFomFørst);
+export function GjeldendeInfotrygdPerioder({
+  data,
+  feilmelding,
+}: {
+  data: InfotrygdGjeldendePerioderResponse | null;
+  feilmelding: string | null;
+}) {
+  if (data == null && feilmelding == null) return null;
+
+  const perioder = data?.perioder.toSorted(nyesteFomFørst) ?? [];
   const overskriftId = "infotrygd-gjeldende-perioder";
 
   return (
@@ -81,7 +89,11 @@ export function GjeldendeInfotrygdPerioder({ data }: { data: InfotrygdGjeldendeP
       <Heading level="2" size="small" id={overskriftId}>
         Gjeldende perioder
       </Heading>
-      {perioder.length === 0 ? (
+      {feilmelding ? (
+        <LocalAlert status="warning">
+          <LocalAlert.Content>{feilmelding}</LocalAlert.Content>
+        </LocalAlert>
+      ) : perioder.length === 0 ? (
         <BodyShort>Ingen gjeldende perioder på grunnstønad i Infotrygd</BodyShort>
       ) : (
         <Box overflowX="auto" tabIndex={0}>
@@ -98,7 +110,7 @@ export function GjeldendeInfotrygdPerioder({ data }: { data: InfotrygdGjeldendeP
             <Table.Body>
               {perioder.map((periode) => (
                 <PeriodeRad
-                  key={`${periode.stonadId}-${periode.vedtak.vedtakId}-${periode.fom}`}
+                  key={`${periode.stønadId}-${periode.vedtak.vedtakId}-${periode.fom}`}
                   periode={periode}
                 />
               ))}

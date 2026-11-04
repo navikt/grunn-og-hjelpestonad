@@ -15,8 +15,6 @@ import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingStegService
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
-import no.nav.grunn.og.hjelpestonad.vilkår.institusjon.VilkårInstitusjon
-import no.nav.grunn.og.hjelpestonad.vilkår.institusjon.VilkårInstitusjonService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
@@ -31,7 +29,6 @@ import kotlin.test.Test
 class VilkårVurderingStegServiceTest {
     private val vilkårMedlemskapService = mockk<VilkårMedlemskapService>(relaxed = true)
     private val vilkårDiagnoseService = mockk<VilkårDiagnoseService>(relaxed = true)
-    private val vilkårInstitusjonService = mockk<VilkårInstitusjonService>(relaxed = true)
     private val periodeMedRettRepository = mockk<PeriodeMedRettRepository>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
@@ -41,7 +38,6 @@ class VilkårVurderingStegServiceTest {
         VilkårVurderingStegService(
             vilkårMedlemskapService,
             vilkårDiagnoseService,
-            vilkårInstitusjonService,
             periodeMedRettRepository,
             behandlingService,
             ansvarligSaksbehandlerService,
@@ -88,7 +84,6 @@ class VilkårVurderingStegServiceTest {
             ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
             vilkårMedlemskapService.hentPerioder(behandlingId)
             vilkårDiagnoseService.hentPerioder(behandlingId)
-            vilkårInstitusjonService.hentPerioder(behandlingId)
             periodeMedRettRepository.deleteByBehandlingId(behandlingId)
             periodeMedRettRepository.insertAll(any())
             endringshistorikkService.registrerEndring(behandlingId, EndringType.VILKÅR_VURDERING_FULLFØRT, any())
@@ -182,15 +177,6 @@ class VilkårVurderingStegServiceTest {
                     behandlingId = behandlingId,
                     kode = "E109",
                     tekst = "Diabetes mellitus type 1 uten komplikasjoner",
-                    vurdering = Vurdering.JA,
-                    fraOgMedDato = LocalDate.of(2025, 1, 1),
-                    tilOgMedDato = LocalDate.of(2025, 12, 31),
-                ),
-            )
-        every { vilkårInstitusjonService.hentPerioder(behandlingId) } returns
-            listOf(
-                VilkårInstitusjon(
-                    behandlingId = behandlingId,
                     vurdering = Vurdering.JA,
                     fraOgMedDato = LocalDate.of(2025, 1, 1),
                     tilOgMedDato = LocalDate.of(2025, 12, 31),

@@ -83,16 +83,16 @@ class InfotrygdClientTest {
                             .withBody(
                                 """
                                 {
-                                    "stonader": [
+                                    "stønader": [
                                         {
-                                            "stonadId": 1,
+                                            "stønadId": 1,
                                             "personnr": "12345678901",
                                             "kodeRutine": "GS",
                                             "datoStart": "2020-01-01",
-                                            "kodeOpphor": null,
-                                            "datoOpphor": null,
+                                            "kodeOpphør": null,
+                                            "datoOpphør": null,
                                             "oppdragId": 10,
-                                            "tidspunktOpphort": null,
+                                            "tidspunktOpphørt": null,
                                             "tidspunktReg": "2020-01-01T12:00:00",
                                             "brukerid": "Z123456",
                                             "vedtak": [
@@ -106,7 +106,7 @@ class InfotrygdClientTest {
                                                     "datoInnvFom": "2020-01-01",
                                                     "datoInnvTom": null,
                                                     "datoMottattSak": "2019-12-15",
-                                                    "kodeVedtaksnivaa": "L",
+                                                    "kodeVedtaksnivå": "L",
                                                     "typeBeregning": "M",
                                                     "tidspunktReg": "2020-01-01T12:00:00",
                                                     "brukerid": "Z123456",
@@ -117,7 +117,7 @@ class InfotrygdClientTest {
                                                             "tidspunktReg": "2020-01-01T12:00:00",
                                                             "fom": "2020-01-01",
                                                             "tom": null,
-                                                            "belop": 1234.50,
+                                                            "beløp": 1234.50,
                                                             "typeSats": "M",
                                                             "typeUtbetaling": "J",
                                                             "brukerid": "Z123456",
@@ -139,7 +139,7 @@ class InfotrygdClientTest {
             val resultat = hentGrunnstønad()
 
             val vedtak =
-                resultat.stonader
+                resultat.stønader
                     .single()
                     .vedtak
                     .single()
@@ -157,11 +157,11 @@ class InfotrygdClientTest {
                     .willReturn(
                         aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBody("""{"stonader": []}"""),
+                            .withBody("""{"stønader": []}"""),
                     ),
             )
 
-            assertEquals(emptyList<Any>(), hentGrunnstønad().stonader)
+            assertEquals(emptyList<Any>(), hentGrunnstønad().stønader)
         }
 
         @Test
@@ -210,7 +210,7 @@ class InfotrygdClientTest {
                         aResponse()
                             .withFixedDelay(500)
                             .withHeader("Content-Type", "application/json")
-                            .withBody("""{"stonader": []}"""),
+                            .withBody("""{"stønader": []}"""),
                     ),
             )
             val timeoutClient =
@@ -233,7 +233,7 @@ class InfotrygdClientTest {
                     .willReturn(
                         aResponse()
                             .withHeader("Content-Type", "application/json")
-                            .withBody("""{"stonader": [{"diagnose1": "sensitive-value"}]}"""),
+                            .withBody("""{"stønader": [{"diagnose1": "sensitive-value"}]}"""),
                     ),
             )
 

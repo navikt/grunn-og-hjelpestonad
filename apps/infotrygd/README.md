@@ -91,7 +91,9 @@ Et diagram over tabellene og koblingene står i
   EF-appen.
 - **Opphørsdato:** `t_stonad.dato_opphor` er som regel siste dag med stønad. I
   dev er 98 672 opphørsdatoer for GS siste dag i en måned og 2 031 den 1. `sak`
-  tolker den 1. som første dag uten stønad, som EF.
+  tolker den 1. som første dag uten stønad, som EF. Saksbehandler har bekreftet
+  at opphør 01.01.2025 stanset utbetalingen for januar 2025, se
+  [ticket 03](../../.scratch/migrering/issues/03-avklar-perioder-og-utbetalt-belop-fra-infotrygd.md).
 
 ### Målt for grunnstønad
 
@@ -136,6 +138,15 @@ personen, og `feil` at kallet til tilgangsmaskinen feilet.
 Søk etter `logger_name:auditLogger` i team logs. Team logs er ikke en gyldig
 auditlogg for prod, se [ADR-0009](../../docs/adr/ADR-0009-tilgangskontroll-mot-person.md).
 
+### Sperre i dev
+
+Saksbehandlere med gruppen for strengt fortrolig adresse, fortrolig adresse eller
+skjerming får `403` på `stonader`, `stonad/eksisterer` og `saker/finn`, og ingen
+personer fra `stonad/migreringspersoner`. Tilgangsmaskinen spørres ikke. Det
+avviker fra EF-appen. Grunnen er at alle kan gi seg selv gruppene i dev, og
+Infotrygd i dev har skarpe data. Se
+[ADR-0015](../../docs/adr/ADR-0015-sperre-adressebeskyttelse-i-dev.md).
+
 ### Kontrakt mot sak
 
 [`openapi.json`](openapi.json) er kontrakten mellom infotrygd og sak. Sak
@@ -156,7 +167,12 @@ ligger ikke nær EF-appen. Svaret følger tabellene i stedet:
   stønadstype.
 - Svaret er et tre langs fremmednøklene: `t_stonad` → `t_vedtak` → `t_endring`,
   `t_delytelse` og `t_gh`. Klassene heter som tabellene og feltene som kolonnene,
-  i camelCase. `personnr` kommer fra `t_lopenr_fnr`.
+  i camelCase, med æøå der kolonnene har o eller aa: `stønadId`, `kodeOpphør`,
+  `datoOpphør`, `tidspunktOpphørt`, `kodeVedtaksnivå` og `beløp`. Klassenavnene
+  er uten æøå, fordi OpenAPI bare tillater `a-z`, `A-Z`, `0-9`, `.`, `-` og `_`
+  i skjemanavn. Et felt som begynner med æøå trenger `@JsonProperty` og
+  `@get:JvmName`, se `årsakskode` i `SakResponse.kt`. `personnr` kommer fra
+  `t_lopenr_fnr`.
 - Bare kolonnene vi trenger er med. Metadata fra replikeringen (`opprettet`,
   `oppdatert`, `db_splitt`) og løpenumre for andre personer er utelatt.
 - Rader filtreres bare bort på person, `kode_rutine` og endringskode. Vedtak

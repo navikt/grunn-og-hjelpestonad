@@ -66,7 +66,7 @@ fjernet fra tilkjent ytelse, og V46 dropper kolonnen.
     som henger sammen, er slått sammen
   - fom ikke er første dag eller tom ikke er siste dag i måneden
   - beløpet er 0
-  - siste periode slutter før datogrensen 2026-01-01. EF bruker 2019-01-01.
+  - siste periode slutter før datogrensen 2026-01-01. EF bruker 2019-01-01. TODO: Vi bør vurdere denne datoen på nytt når vi skal begynne å migrere.
   - fagsaken har en behandling som ikke er henlagt eller avslått
 
   Hele listen står i ticket 03.
