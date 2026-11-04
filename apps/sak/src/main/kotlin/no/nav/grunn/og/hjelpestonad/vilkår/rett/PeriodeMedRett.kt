@@ -1,7 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.vilkår.rett
 
+import no.nav.grunn.og.hjelpestonad.felles.periode.Periodisert
 import no.nav.grunn.og.hjelpestonad.felles.sporbar.Sporbar
-import no.nav.grunn.og.hjelpestonad.vilkår.Periodisert
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Embedded
 import org.springframework.data.relational.core.mapping.Table
