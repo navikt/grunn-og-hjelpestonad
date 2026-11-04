@@ -162,6 +162,40 @@ export const zAnsvarligSaksbehandlerResponse = z.object({
     ])
 });
 
+export const zSimulertPostering = z.object({
+    fagOmrådeKode: z.string().nullish(),
+    erFeilkonto: z.boolean().nullish(),
+    fom: z.iso.date().nullish(),
+    tom: z.iso.date().nullish(),
+    betalingType: z.string().nullish(),
+    beløp: z.number().nullish(),
+    posteringType: z.string().nullish(),
+    forfallsdato: z.iso.date().nullish(),
+    utenInntrekk: z.boolean().nullish(),
+    klassekode: z.string().nullish()
+});
+
+export const zSimuleringMottaker = z.object({
+    simulertPostering: z.array(zSimulertPostering),
+    mottakerNummer: z.string().nullish(),
+    mottakerType: z.string().nullish()
+});
+
+export const zDetaljertSimuleringResultat = z.object({
+    simuleringMottaker: z.array(zSimuleringMottaker)
+});
+
+export const zTestandel = z.object({
+    fom: z.iso.date(),
+    tom: z.iso.date(),
+    beløp: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
+export const zOppdragSimuleringResponse = z.object({
+    resultat: zDetaljertSimuleringResultat,
+    testandel: zTestandel.nullish()
+});
+
 export const zInfotrygdStonaderRequest = z.object({
     personident: z.string(),
     stønadstype: z.enum(['GRUNNSTØNAD', 'HJELPESTØNAD'])
@@ -631,6 +665,15 @@ export const zHentAnsvarligSaksbehandlerBody = zHentAnsvarligSaksbehandlerReques
  * OK
  */
 export const zHentAnsvarligSaksbehandlerResponse = zAnsvarligSaksbehandlerResponse;
+
+export const zSimulerMotOppdragPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zSimulerMotOppdragResponse = zOppdragSimuleringResponse;
 
 export const zLagIverksettVedtaksbrevTaskPath = z.object({
     behandlingId: z.uuid()

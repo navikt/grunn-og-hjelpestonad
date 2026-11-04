@@ -81,6 +81,7 @@ class EndepunktRegisterTest {
                 "IverksettVedtaksbrevController#distribuerVedtaksbrev",
                 "SimuleringController#simulerForBehandling",
                 "SimuleringController#hentSimuleringsresultat",
+                "OppdragSimuleringController#simulerMotOppdrag",
                 "OppgaveController#hentAnsvarligSaksbehandler",
                 "OppgaveController#fordelOppgave",
                 "PdlController#hentPerson",

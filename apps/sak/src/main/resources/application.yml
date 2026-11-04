@@ -97,6 +97,9 @@ integrasjoner:
     infotrygd:
         url: http://grunn-og-hjelp-infotrygd
         scope: api://dev-gcp.grunn-og-hjelp.grunn-og-hjelp-infotrygd/.default
+    oppdrag:
+        url: http://familie-oppdrag-backend.teamfamilie
+        scope: api://${nais.miljo}-gcp.teamfamilie.familie-oppdrag-backend/.default
     infotrygd-feed:
         url: http://grunn-og-hjelp-infotrygd-feed
         scope: api://${nais.miljo}-gcp.grunn-og-hjelp.grunn-og-hjelp-infotrygd-feed/.default
