@@ -101,15 +101,23 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         registrerEndring(behandlingId, endringstyper.slettet, periode)
     }
 
+    /** Typen perioden står under i endringshistorikken, for eksempel vilkårstypen. */
+    protected abstract val type: Enum<*>
+
+    /** Vurderingen som står i endringshistorikken. Perioder uten vurdering, som trygdetid, gir `null`. */
+    protected open fun vurdering(periode: P): Enum<*>? = null
+
     /**
-     * Detaljene havner i endringshistorikken og skal aldri inneholde helseopplysninger (GDPR artikkel 9)
-     * eller andre personopplysninger, som diagnosekode eller diagnosebeskrivelse.
-     *
-     * TODO(rød sone, ticket 02): Fellesdelen skal bygge detaljene av faste felter (type, vurdering hvis
-     * perioden har en, og periode), slik at underklassene ikke kan legge til fritekst. Til da bygger
-     * [no.nav.grunn.og.hjelpestonad.vilkår.VilkårPeriodeService] detaljene selv.
+     * Diagnose er helseopplysning etter GDPR artikkel 9 og skal aldri registreres i
+     * endringshistorikk eller logg. Detaljene bygges derfor bare av faste felter: navnet på typen,
+     * navnet på vurderingen hvis perioden har en, og periode. Underklassene gir bare enum-verdier,
+     * så ingen fritekst eller data fra perioden, som diagnosekode eller diagnosebeskrivelse, kan
+     * havne her. Ikke utvid detaljene med andre opplysninger om saken.
      */
-    protected abstract fun endringsdetaljer(periode: P): String
+    private fun endringsdetaljer(periode: P): String {
+        val typeOgVurdering = listOfNotNull(type.name, vurdering(periode)?.name).joinToString(": ")
+        return "$typeOgVurdering, Periode: ${formaterPeriode(periode)}"
+    }
 
     private fun registrerEndring(
         behandlingId: UUID,
@@ -121,7 +129,7 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         detaljer = endringsdetaljer(periode),
     )
 
-    protected fun formaterPeriode(periode: Periodisert): String {
+    private fun formaterPeriode(periode: Periodisert): String {
         if (periode.fraOgMedDato == null && periode.tilOgMedDato == null) {
             return "Hele behandlingsperioden"
         }

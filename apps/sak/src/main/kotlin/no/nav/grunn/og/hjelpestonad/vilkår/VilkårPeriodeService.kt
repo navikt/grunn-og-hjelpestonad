@@ -29,11 +29,7 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
 
     override val periodebeskrivelse = "vilkårsvurdering"
 
-    /**
-     * Diagnose er helseopplysning etter GDPR artikkel 9 og skal aldri registreres i
-     * endringshistorikk eller logg. Detaljer inneholder derfor bare vilkårstype, vurdering
-     * og periode. Ikke utvid feltet med diagnosekode, diagnosebeskrivelse eller andre
-     * opplysninger om saken.
-     */
-    override fun endringsdetaljer(periode: VILKÅR_PERIODE) = "$vilkårType: ${periode.vurdering}, Periode: ${formaterPeriode(periode)}"
+    final override val type: Enum<*> get() = vilkårType
+
+    final override fun vurdering(periode: VILKÅR_PERIODE): Enum<*> = periode.vurdering
 }
