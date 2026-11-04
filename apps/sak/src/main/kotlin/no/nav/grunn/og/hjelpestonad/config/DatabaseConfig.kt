@@ -2,7 +2,6 @@ package no.nav.grunn.og.hjelpestonad.config
 
 import no.nav.grunn.og.hjelpestonad.beslutter.ÅrsakUnderkjent
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
-import no.nav.grunn.og.hjelpestonad.iverksett.utbetaling.SimuleringResponse
 import org.postgresql.util.PGobject
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.flyway.autoconfigure.FlywayConfigurationCustomizer
@@ -44,8 +43,6 @@ open class DatabaseConfig(
         listOf(
             BrevRequestTilJsonbConverter(objectMapper),
             JsonbTilBrevRequestConverter(objectMapper),
-            SimuleringResponseTilJsonbConverter(objectMapper),
-            JsonbTilSimuleringResponseConverter(objectMapper),
             YearMonthTilDateConverter(),
             DateTilYearMonthConverter(),
         )
@@ -121,23 +118,5 @@ open class DatabaseConfig(
     @ReadingConverter
     class DateTilYearMonthConverter : Converter<Date, YearMonth> {
         override fun convert(source: Date): YearMonth = YearMonth.from(source.toLocalDate())
-    }
-
-    @WritingConverter
-    class SimuleringResponseTilJsonbConverter(
-        private val objectMapper: ObjectMapper,
-    ) : Converter<SimuleringResponse, PGobject> {
-        override fun convert(source: SimuleringResponse): PGobject =
-            PGobject().apply {
-                type = "jsonb"
-                value = objectMapper.writeValueAsString(source)
-            }
-    }
-
-    @ReadingConverter
-    class JsonbTilSimuleringResponseConverter(
-        private val objectMapper: ObjectMapper,
-    ) : Converter<PGobject, SimuleringResponse> {
-        override fun convert(source: PGobject): SimuleringResponse = objectMapper.readValue(source.value, SimuleringResponse::class.java)
     }
 }
