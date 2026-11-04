@@ -6,9 +6,12 @@ import ch.qos.logback.core.read.ListAppender
 import jakarta.servlet.Filter
 import no.nav.grunn.og.hjelpestonad.infotrygd.Application
 import no.nav.grunn.og.hjelpestonad.infotrygd.security.JwtTestHelper
+import no.nav.grunn.og.hjelpestonad.infotrygd.security.SperretGruppeIDev
 import no.nav.grunn.og.hjelpestonad.infotrygd.texas.TexasClient
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -181,6 +184,64 @@ class TilgangskontrollIntegrasjonTest {
             }.andExpect { status { isUnauthorized() } }
     }
 
+    @ParameterizedTest(name = "sperret saksbehandler med {0} får 403 før tilgangsmaskinen spørres")
+    @EnumSource(SperretGruppeIDev::class)
+    fun `sperret saksbehandler får 403 uten data og uten kall til tilgangsmaskinen`(sperret: SperretGruppeIDev) {
+        // Tilgangsmaskinen ville gitt tilgang. Testen beviser at sperren slår til før den spørres.
+        tilgangsmaskin.svar = { identer -> identer.map { Tilgangsvurdering(it, true, null) } }
+
+        hentStønader(sperretSaksbehandlerToken(sperret)).andExpect {
+            status { isForbidden() }
+            jsonPath("$.melding") { value(TilgangService.SPERRET_GRUPPE_I_DEV_MELDING) }
+            jsonPath("$.stønader") { doesNotExist() }
+        }
+        assertTrue(tilgangsmaskin.kall.isEmpty())
+    }
+
+    @ParameterizedTest(name = "sperret saksbehandler med {0} får 403 på eksisterer og saker/finn")
+    @EnumSource(SperretGruppeIDev::class)
+    fun `sperret saksbehandler får 403 på eksisterer og saker finn uten kall til tilgangsmaskinen`(sperret: SperretGruppeIDev) {
+        tilgangsmaskin.svar = { identer -> identer.map { Tilgangsvurdering(it, true, null) } }
+
+        listOf("/api/infotrygd/stonad/eksisterer", "/api/infotrygd/saker/finn").forEach { sti ->
+            mockMvc
+                .post(sti) {
+                    header(HttpHeaders.AUTHORIZATION, "Bearer ${sperretSaksbehandlerToken(sperret)}")
+                    contentType = MediaType.APPLICATION_JSON
+                    content = """{"personidenter":["$PERSON_1"]}"""
+                }.andExpect {
+                    status { isForbidden() }
+                    jsonPath("$.melding") { value(TilgangService.SPERRET_GRUPPE_I_DEV_MELDING) }
+                }
+        }
+        assertTrue(tilgangsmaskin.kall.isEmpty())
+    }
+
+    @ParameterizedTest(name = "sperret saksbehandler med {0} får ingen migreringspersoner")
+    @EnumSource(SperretGruppeIDev::class)
+    fun `sperret saksbehandler får ingen migreringspersoner uten kall til tilgangsmaskinen`(sperret: SperretGruppeIDev) {
+        tilgangsmaskin.svar = { identer -> identer.map { Tilgangsvurdering(it, true, null) } }
+
+        // Testdatabasen er tom her, så finnPersonerForMigrering gir ingen kandidater og filteret har ingenting å fjerne.
+        // Testen viser derfor at svaret er tomt og at tilgangsmaskinen ikke kalles. Den viser ikke at filteret virker på
+        // ekte kandidater.
+        mockMvc
+            .get("/api/infotrygd/stonad/migreringspersoner?antall=10") {
+                header(HttpHeaders.AUTHORIZATION, "Bearer ${sperretSaksbehandlerToken(sperret)}")
+            }.andExpect {
+                status { isOk() }
+                jsonPath("$.personidenter") { isEmpty() }
+            }
+        assertTrue(tilgangsmaskin.kall.isEmpty())
+    }
+
+    @ParameterizedTest(name = "token med bare {0} og ingen rollegruppe gir 401")
+    @EnumSource(SperretGruppeIDev::class)
+    fun `token med bare en sperret gruppe og ingen rollegruppe gir 401`(sperret: SperretGruppeIDev) {
+        hentStønader(bareSperretToken(sperret)).andExpect { status { isUnauthorized() } }
+        assertTrue(tilgangsmaskin.kall.isEmpty())
+    }
+
     private fun hentStønader(
         token: String,
         vararg personidenter: String = arrayOf(PERSON_1),
@@ -224,10 +285,20 @@ class TilgangskontrollIntegrasjonTest {
         @Bean
         open fun jwtDecoder(): JwtDecoder {
             val tokens: Map<String, Jwt> =
-                mapOf(
-                    SAKSBEHANDLER to JwtTestHelper.opprettSaksbehandlerToken(),
-                    UTEN_NAVIDENT to JwtTestHelper.opprettTokenUtenNavIdent(),
-                )
+                buildMap {
+                    put(SAKSBEHANDLER, JwtTestHelper.opprettSaksbehandlerToken())
+                    put(UTEN_NAVIDENT, JwtTestHelper.opprettTokenUtenNavIdent())
+                    SperretGruppeIDev.entries.forEach { sperret ->
+                        put(
+                            sperretSaksbehandlerToken(sperret),
+                            JwtTestHelper.opprettGyldigToken(azureGrupper = listOf(SAKSBEHANDLER_GRUPPE, sperret.gruppeId)),
+                        )
+                        put(
+                            bareSperretToken(sperret),
+                            JwtTestHelper.opprettGyldigToken(azureGrupper = listOf(sperret.gruppeId)),
+                        )
+                    }
+                }
             return JwtDecoder { token -> tokens[token] ?: throw BadJwtException("Ukjent testtoken") }
         }
     }
@@ -235,6 +306,11 @@ class TilgangskontrollIntegrasjonTest {
     companion object {
         private const val SAKSBEHANDLER = "saksbehandler"
         private const val UTEN_NAVIDENT = "uten-navident"
+        private const val SAKSBEHANDLER_GRUPPE = "7ce9d1d2-d149-4324-832b-8d459762a102"
+
+        private fun sperretSaksbehandlerToken(sperret: SperretGruppeIDev) = "sperret-${sperret.name}"
+
+        private fun bareSperretToken(sperret: SperretGruppeIDev) = "bare-sperret-${sperret.name}"
 
         private const val PERSON_1 = "12345678901"
         private const val PERSON_2 = "12345678902"
