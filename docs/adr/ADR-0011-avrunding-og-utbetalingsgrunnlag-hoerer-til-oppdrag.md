@@ -218,6 +218,11 @@ juridisk begrunnelse.
 - [ ] Fagsiden bekrefter at satsene i rundskrivet til § 6-3 under «Satser pr.
       1.1.2024» gjelder fra 1. januar 2024. Teksten sier «fra 1. juli 2023», som
       ser ut som en kopieringsfeil fra avsnittet før.
+- [x] Rundskrivet til § 6-3 har ikke noe avsnitt for 2001. Teamet har bestemt at
+      satsene fra 1.1.2000 gjelder ut 2001.
+- [x] For sats 2 fra 1.1.2012 sier rundskrivet 968 kroner i måneden, men
+      årsbeløpet 11 568 kroner gir 964 kroner. Teamet antar at månedsbeløpet er
+      riktig, som ADR-0014 sier for alle satsene.
 - [ ] Økonomi gir fagområde og klassekode for prod. Dev bruker `IT28` og
       `GHGSORMG`.
 - [ ] Økonomi bekrefter om OS motregner mellom Infotrygd og ny løsning når de
