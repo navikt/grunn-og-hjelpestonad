@@ -31,7 +31,7 @@ fun beregnAndeler(
 
 private fun BeløpsperioderResponse.tilAndelTilkjentYtelse(kildeBehandlingId: UUID) =
     AndelTilkjentYtelse(
-        beløp = this.beløp,
+        beløp = this.beløp.toBigDecimal(),
         fom = this.datoFra.atDay(1),
         tom = this.datoTil.atEndOfMonth(),
         kildeBehandlingId = kildeBehandlingId,

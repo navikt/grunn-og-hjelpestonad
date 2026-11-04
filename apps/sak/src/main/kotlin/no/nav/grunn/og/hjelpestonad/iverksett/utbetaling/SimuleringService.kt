@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.iverksett.utbetaling
 
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
+import no.nav.grunn.og.hjelpestonad.oppdrag.tilUtbetalingsbeløp
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -51,7 +52,7 @@ class SimuleringService(
             stønad = "GJENLEVENDE_BARNETILSYN",
             vedtakstidspunkt = LocalDateTime.now(),
             periodetype = Periodetype.MND,
-            perioder = andeler.map { Periode(fom = it.fom, tom = it.tom, beløp = it.beløp) },
+            perioder = andeler.map { Periode(fom = it.fom, tom = it.tom, beløp = tilUtbetalingsbeløp(it.beløp)) },
             saksbehandler = "Saksbehandler",
             beslutter = "beslutter",
             dryrun = true,
