@@ -138,6 +138,15 @@ personen, og `feil` at kallet til tilgangsmaskinen feilet.
 Søk etter `logger_name:auditLogger` i team logs. Team logs er ikke en gyldig
 auditlogg for prod, se [ADR-0009](../../docs/adr/ADR-0009-tilgangskontroll-mot-person.md).
 
+### Sperre i dev
+
+Saksbehandlere med gruppen for strengt fortrolig adresse, fortrolig adresse eller
+skjerming får `403` på `stonader`, `stonad/eksisterer` og `saker/finn`, og ingen
+personer fra `stonad/migreringspersoner`. Tilgangsmaskinen spørres ikke. Det
+avviker fra EF-appen. Grunnen er at alle kan gi seg selv gruppene i dev, og
+Infotrygd i dev har skarpe data. Se
+[ADR-0015](../../docs/adr/ADR-0015-sperre-adressebeskyttelse-i-dev.md).
+
 ### Kontrakt mot sak
 
 [`openapi.json`](openapi.json) er kontrakten mellom infotrygd og sak. Sak

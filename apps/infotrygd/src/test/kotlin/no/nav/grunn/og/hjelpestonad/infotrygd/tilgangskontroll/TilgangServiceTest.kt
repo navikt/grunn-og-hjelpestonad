@@ -4,13 +4,17 @@ import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
 import no.nav.grunn.og.hjelpestonad.infotrygd.security.JwtTestHelper
+import no.nav.grunn.og.hjelpestonad.infotrygd.security.SperretGruppeIDev
 import no.nav.grunn.og.hjelpestonad.infotrygd.texas.TexasClient
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.web.client.RestClient
 import java.net.URI
@@ -230,11 +234,96 @@ class TilgangServiceTest {
         assertTrue(auditLinjer().isEmpty())
     }
 
+    @ParameterizedTest
+    @EnumSource(SperretGruppeIDev::class)
+    fun `sperret gruppe gir avslag uten kall til tilgangsmaskinen selv om den ville gitt tilgang`(gruppe: SperretGruppeIDev) {
+        loggInnSaksbehandlerMedGruppe(gruppe.gruppeId)
+        tilgangsmaskin.svar = { identer -> identer.map { tilgang(it) } }
+
+        val feil = assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG) }
+
+        assertEquals(TilgangService.SPERRET_GRUPPE_I_DEV_MELDING, feil.melding)
+        assertTrue(tilgangsmaskin.kall.isEmpty())
+    }
+
+    @Test
+    fun `sperret gruppe gir auditlinje med utfall avslag`() {
+        loggInnSaksbehandlerMedGruppe(SperretGruppeIDev.FORTROLIG_ADRESSE.gruppeId)
+
+        assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG) }
+
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1 for å ${OPPSLAG.tekst}. Utfall: avslag"), auditLinjer())
+    }
+
+    @Test
+    fun `meldingen ved sperret gruppe inneholder ikke personidenter`() {
+        loggInnSaksbehandlerMedGruppe(SperretGruppeIDev.STRENGT_FORTROLIG_ADRESSE.gruppeId)
+
+        val feil = assertFailsWith<ManglerTilgangTilPersonFeil> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG) }
+
+        assertFalse(feil.melding.contains(PERSON_1))
+    }
+
+    @ParameterizedTest
+    @EnumSource(SperretGruppeIDev::class)
+    fun `filtrering med sperret gruppe gir ingen personer uten kall til tilgangsmaskinen`(gruppe: SperretGruppeIDev) {
+        loggInnSaksbehandlerMedGruppe(gruppe.gruppeId)
+        tilgangsmaskin.svar = { identer -> identer.map { tilgang(it) } }
+
+        assertEquals(emptySet(), tilgangService.filtrerPersonerMedTilgang(setOf(PERSON_1, PERSON_2)))
+        assertTrue(tilgangsmaskin.kall.isEmpty())
+    }
+
+    @Test
+    fun `ukjente grupper ved siden av saksbehandlergruppen sperrer ikke`() {
+        loggInnSaksbehandlerMedGruppe("00000000-0000-0000-0000-000000000000")
+        tilgangsmaskin.svar = { identer -> identer.map { tilgang(it) } }
+
+        tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG)
+
+        assertEquals(listOf(setOf(PERSON_1)), tilgangsmaskin.kall)
+    }
+
+    @Test
+    fun `token uten groups gir feil og ikke tilgang`() {
+        loggInn(JwtTestHelper.opprettTokenUtenGrupper())
+        tilgangsmaskin.svar = { identer -> identer.map { tilgang(it) } }
+
+        assertFailsWith<IllegalStateException> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG) }
+        assertFailsWith<IllegalStateException> { tilgangService.filtrerPersonerMedTilgang(setOf(PERSON_1)) }
+        assertTrue(tilgangsmaskin.kall.isEmpty())
+        assertEquals(listOf("$navIdent ba om tilgang til fnr: $PERSON_1 for å ${OPPSLAG.tekst}. Utfall: feil"), auditLinjer())
+    }
+
+    @Test
+    fun `token med overage gir feil og ikke tilgang`() {
+        val saksbehandlerToken = JwtTestHelper.opprettSaksbehandlerToken()
+        loggInn(
+            Jwt
+                .withTokenValue("overage")
+                .headers { it.putAll(saksbehandlerToken.headers) }
+                .claims { it.putAll(saksbehandlerToken.claims) }
+                .claim("_claim_names", mapOf("groups" to "src1"))
+                .build(),
+        )
+        tilgangsmaskin.svar = { identer -> identer.map { tilgang(it) } }
+
+        assertFailsWith<IllegalStateException> { tilgangService.validerTilgangTilPersoner(setOf(PERSON_1), OPPSLAG) }
+        assertFailsWith<IllegalStateException> { tilgangService.filtrerPersonerMedTilgang(setOf(PERSON_1)) }
+        assertTrue(tilgangsmaskin.kall.isEmpty())
+    }
+
     private fun auditLinjer(): List<String> = auditAppender.list.map { it.formattedMessage }
 
-    private fun loggInnSaksbehandler() {
-        SecurityContextHolder.getContext().authentication =
-            JwtAuthenticationToken(JwtTestHelper.opprettSaksbehandlerToken(), listOf(SimpleGrantedAuthority("ROLE_SAKSBEHANDLER")))
+    private fun loggInnSaksbehandler() = loggInn(JwtTestHelper.opprettSaksbehandlerToken())
+
+    private fun loggInnSaksbehandlerMedGruppe(gruppeId: String) {
+        val saksbehandlerGrupper = JwtTestHelper.opprettSaksbehandlerToken().getClaimAsStringList("groups").orEmpty()
+        loggInn(JwtTestHelper.opprettGyldigToken(azureGrupper = saksbehandlerGrupper + gruppeId))
+    }
+
+    private fun loggInn(jwt: Jwt) {
+        SecurityContextHolder.getContext().authentication = JwtAuthenticationToken(jwt, listOf(SimpleGrantedAuthority("ROLE_SAKSBEHANDLER")))
     }
 
     private fun tilgang(personident: String) = Tilgangsvurdering(personident, harTilgang = true, avvisningskode = null)
