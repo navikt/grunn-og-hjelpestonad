@@ -1,15 +1,11 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
-import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
-/**
- * En revurdering starter med vilkårene fra forrige iverksatte behandling, som i EF.
- */
 @Service
 class KopierVilkårService(
     private val vilkårMedlemskapService: VilkårMedlemskapService,
@@ -20,12 +16,8 @@ class KopierVilkårService(
         forrigeBehandlingId: UUID,
         behandlingId: UUID,
     ) {
-        val antallKopiert =
-            listOf(vilkårMedlemskapService, vilkårDiagnoseService)
-                .sumOf { it.kopierPerioder(fraBehandlingId = forrigeBehandlingId, tilBehandlingId = behandlingId).size }
-
-        if (antallKopiert == 0) {
-            throw Feil("Forrige behandling $forrigeBehandlingId har ingen vilkår som kan kopieres")
+        listOf(vilkårMedlemskapService, vilkårDiagnoseService).forEach {
+            it.kopierPerioder(fraBehandlingId = forrigeBehandlingId, tilBehandlingId = behandlingId)
         }
     }
 }

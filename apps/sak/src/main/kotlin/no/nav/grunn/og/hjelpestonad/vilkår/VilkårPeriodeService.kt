@@ -32,4 +32,7 @@ abstract class VilkårPeriodeService<VILKÅR_PERIODE : VilkårPeriode<VILKÅR_PE
     final override val type: Enum<*> get() = vilkårType
 
     final override fun vurdering(periode: VILKÅR_PERIODE): Enum<*> = periode.vurdering
+
+    /** Bare perioder vurdert til ja kopieres. */
+    final override fun skalKopieres(periode: VILKÅR_PERIODE) = periode.erVilkårOppfylt()
 }

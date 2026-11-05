@@ -18,7 +18,8 @@ import kotlin.test.Test
 /**
  * Detaljene i endringshistorikken bygges av fellesdelen, så en periode uten vurdering, slik
  * trygdetid blir i ticket 08, får bare type og periode. Vilkårene dekkes av testene for
- * medlemskap og diagnose.
+ * medlemskap og diagnose. Kopiering av perioder uten vurdering testes også her, fordi de
+ * kopieres alltid.
  */
 class PeriodeMedBegrunnelseServiceTest {
     private val repository = mockk<PeriodeMedBegrunnelseRepository<TestPeriode>>(relaxed = true)
@@ -63,6 +64,31 @@ class PeriodeMedBegrunnelseServiceTest {
         verify { endringshistorikkService.registrerEndring(behandlingId, OPPRETTET, any()) }
         verify { endringshistorikkService.registrerEndring(behandlingId, OPPDATERT, any()) }
         verify { endringshistorikkService.registrerEndring(behandlingId, SLETTET, any()) }
+    }
+
+    @Test
+    fun `periode uten vurdering kopieres alltid`() {
+        val nyBehandlingId = UUID.fromString("00000000-0000-0000-0000-000000000002")
+        every { repository.findByBehandlingId(behandlingId) } returns
+            listOf(
+                TestPeriode(
+                    behandlingId = behandlingId,
+                    begrunnelse = "Trygdetid 2020",
+                    fraOgMedDato = LocalDate.of(2020, 1, 1),
+                    tilOgMedDato = LocalDate.of(2020, 12, 31),
+                ),
+                TestPeriode(
+                    behandlingId = behandlingId,
+                    begrunnelse = "Trygdetid 2021",
+                    fraOgMedDato = LocalDate.of(2021, 1, 1),
+                    tilOgMedDato = LocalDate.of(2021, 12, 31),
+                ),
+            )
+
+        val kopier = service.kopierPerioder(fraBehandlingId = behandlingId, tilBehandlingId = nyBehandlingId)
+
+        assertThat(kopier).hasSize(2)
+        assertThat(kopier.map { it.behandlingId }).containsOnly(nyBehandlingId)
     }
 
     private enum class TestType { TESTPERIODE }
