@@ -11,7 +11,7 @@ Spec: [spec.md](../spec.md)
 - [ ] `POST /api/behandling/{behandlingId}/sats-og-trygdetid/fullfor` sjekker redigerbarhet og ansvarlig saksbehandler, henter vilkårene og trygdetiden, kaller utledningen og lagrer tilkjent ytelse.
 - [ ] Lagringen bruker tjenesten for beregning av tilkjent ytelse fra PR 116, med startmåned regnet ut som der. Utregningen fra barnetilsyn er erstattet av funksjonen fra ticket 09.
 - [ ] Servicen sletter og lagrer tilkjent ytelse på nytt i samme transaksjon, så gjentatte trykk gir samme resultat.
-- [ ] Ved opphør uten perioder lagres tilkjent ytelse uten andeler.
+- [ ] Når det ikke er rett i noen måned, hopper steg 1 over steg 2, se ADR-0014. I en revurdering må tilkjent ytelse uten andeler likevel lagres, slik at oppdrag stopper utbetalingen. Avgjør om fullføringen av steg 1 eller simuleringen lagrer den.
 - [ ] Vedtakssteget regner ikke ut tilkjent ytelse.
 - [ ] Valideringsfeil returneres med 400 i samme format som i steg 1, med lokal exception handler på kontrolleren.
 - [ ] Endringshistorikken får en ny endringstype for fullført sats og trygdetid, med antall andeler og datoer, uten diagnose.

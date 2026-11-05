@@ -86,7 +86,7 @@ class OppdragSimuleringServiceTest {
                 andelerTilkjentYtelse =
                     setOf(
                         AndelTilkjentYtelse(
-                            beløp = 2500,
+                            beløp = 2500.toBigDecimal(),
                             fom = LocalDate.of(2026, 1, 1),
                             tom = LocalDate.of(2026, 3, 31),
                             kildeBehandlingId = behandling.id,

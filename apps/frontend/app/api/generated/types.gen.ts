@@ -343,13 +343,6 @@ export type VilkårMedlemskapResponse = {
     erVilkårOppfylt: boolean;
 };
 
-export type PeriodeMedRettResponse = {
-    id: string;
-    behandlingId: string;
-    fraOgMedDato?: string | null;
-    tilOgMedDato?: string | null;
-};
-
 export type VilkårDiagnoseRequest = {
     id?: string | null;
     kode: string;
@@ -370,6 +363,16 @@ export type VilkårDiagnoseResponse = {
     fraOgMedDato?: string | null;
     tilOgMedDato?: string | null;
     erVilkårOppfylt: boolean;
+};
+
+export type InngangsvilkårResponse = {
+    perioder: Array<PeriodeMedOppfylteInngangsvilkårResponse>;
+    nesteSteg: 'SATS_OG_TRYGDETID' | 'SIMULERING';
+};
+
+export type PeriodeMedOppfylteInngangsvilkårResponse = {
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
 };
 
 export type MedlemskapFaktagrunnlagResponse = {
@@ -465,7 +468,7 @@ export type SimuleringResultatResponse = {
 export type BehandlingEndringResponse = {
     id: string;
     behandlingId: string;
-    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'ANGRET_SEND_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
+    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'ANGRET_SEND_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'INNGANGSVILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
     utførtAv: string;
     utførtTid: string;
     detaljer?: string | null;
@@ -830,27 +833,6 @@ export type LagreMedlemskapPeriodeResponses = {
 
 export type LagreMedlemskapPeriodeResponse = LagreMedlemskapPeriodeResponses[keyof LagreMedlemskapPeriodeResponses];
 
-export type FullførStegData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/behandling/{behandlingId}/vilkar/fullfor';
-};
-
-export type FullførStegErrors = {
-    400: VilkårValideringFeilResponse;
-};
-
-export type FullførStegError = FullførStegErrors[keyof FullførStegErrors];
-
-export type FullførStegResponses = {
-    200: Array<PeriodeMedRettResponse>;
-};
-
-export type FullførStegResponse = FullførStegResponses[keyof FullførStegResponses];
-
 export type HentDiagnosePerioderData = {
     body?: never;
     path: {
@@ -880,6 +862,27 @@ export type LagreDiagnosePeriodeResponses = {
 };
 
 export type LagreDiagnosePeriodeResponse = LagreDiagnosePeriodeResponses[keyof LagreDiagnosePeriodeResponses];
+
+export type FullførInngangsvilkårData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/inngangsvilkar/fullfor';
+};
+
+export type FullførInngangsvilkårErrors = {
+    400: VilkårValideringFeilResponse;
+};
+
+export type FullførInngangsvilkårError = FullførInngangsvilkårErrors[keyof FullførInngangsvilkårErrors];
+
+export type FullførInngangsvilkårResponses = {
+    200: InngangsvilkårResponse;
+};
+
+export type FullførInngangsvilkårResponse = FullførInngangsvilkårResponses[keyof FullførInngangsvilkårResponses];
 
 export type InnhentFaktagrunnlagFraPdlData = {
     body?: never;
@@ -1179,20 +1182,26 @@ export type HentTotrinnskontrollStatusResponses = {
 
 export type HentTotrinnskontrollStatusResponse = HentTotrinnskontrollStatusResponses[keyof HentTotrinnskontrollStatusResponses];
 
-export type HentPerioderMedRettData = {
+export type HentPerioderMedOppfylteInngangsvilkårData = {
     body?: never;
     path: {
         behandlingId: string;
     };
     query?: never;
-    url: '/api/behandling/{behandlingId}/perioder-med-rett';
+    url: '/api/behandling/{behandlingId}/inngangsvilkar/perioder';
 };
 
-export type HentPerioderMedRettResponses = {
-    200: Array<PeriodeMedRettResponse>;
+export type HentPerioderMedOppfylteInngangsvilkårErrors = {
+    400: VilkårValideringFeilResponse;
 };
 
-export type HentPerioderMedRettResponse = HentPerioderMedRettResponses[keyof HentPerioderMedRettResponses];
+export type HentPerioderMedOppfylteInngangsvilkårError = HentPerioderMedOppfylteInngangsvilkårErrors[keyof HentPerioderMedOppfylteInngangsvilkårErrors];
+
+export type HentPerioderMedOppfylteInngangsvilkårResponses = {
+    200: Array<PeriodeMedOppfylteInngangsvilkårResponse>;
+};
+
+export type HentPerioderMedOppfylteInngangsvilkårResponse = HentPerioderMedOppfylteInngangsvilkårResponses[keyof HentPerioderMedOppfylteInngangsvilkårResponses];
 
 export type HentMedlemskapFaktagrunnlagData = {
     body?: never;

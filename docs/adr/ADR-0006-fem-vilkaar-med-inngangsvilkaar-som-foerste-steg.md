@@ -46,7 +46,8 @@ endringshistorikk og kopiering til ny behandling.
 
 Medlemskap og diagnose vurderes i det første steget. De andre vilkårene og
 trygdetiden vurderes bare i perioder med oppfylte inngangsvilkår. Er det ingen
-slike perioder, blir det avslag uten flere vurderinger.
+slike perioder, er det ingen rett i noen måned, og de andre vilkårene vurderes
+ikke. Se ADR-0014 for hvilket steg saken går til.
 
 § 6-9 hører til inngangsvilkårene: er diagnosen en yrkesskade, lempes
 medlemskapskravet.

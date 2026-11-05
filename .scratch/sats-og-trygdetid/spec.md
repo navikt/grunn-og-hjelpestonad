@@ -28,7 +28,8 @@ Behandlingen får to steg før simulering:
 
 1. **Inngangsvilkår.** Saksbehandler vurderer medlemskap og diagnose. Når
    saksbehandler trykker Neste, regner systemet ut periodene med oppfylte
-   inngangsvilkår og avgjør om saken går videre, blir avslått eller opphører.
+   inngangsvilkår. Er det ingen rett i noen måned, hopper saken rett til
+   simulering.
 2. **Sats og trygdetid.** I periodene med oppfylte inngangsvilkår vurderer
    saksbehandler nødvendige ekstrautgifter, med sats 1–6 eller «nei», og legger
    inn trygdetid. Når saksbehandler trykker Neste, regner systemet ut og lagrer
@@ -52,12 +53,11 @@ er modellert sammen med ekstrautgiftene.
 4. Som saksbehandler vil jeg se periodene med oppfylte inngangsvilkår etter at
    jeg har trykket Neste, slik at jeg vet hvilke tidsrom jeg skal vurdere i neste
    steg.
-5. Som saksbehandler vil jeg gå rett til brev når en førstegangsbehandling ikke
-   har noen perioder med oppfylte inngangsvilkår, slik at jeg kan sende avslag
-   uten å fylle ut flere steg.
-6. Som saksbehandler vil jeg at en revurdering uten perioder med oppfylte
-   inngangsvilkår går til steg 2 med beskjed om at saken opphører, slik at
-   utbetalingen blir stoppet mot oppdrag.
+5. Som saksbehandler vil jeg gå rett til simulering når det ikke er rett i noen
+   måned, slik at jeg ikke fyller ut steg 2 uten grunn. Etter hvert skal en
+   førstegangsbehandling gå rett til brev, se ADR-0014.
+6. Som saksbehandler vil jeg at en revurdering uten rett i noen måned stopper
+   utbetalingen mot oppdrag.
 7. Som saksbehandler vil jeg at endringshistorikken viser «Vurdering av
    inngangsvilkår fullført», slik at jeg ser når steget ble fullført.
 8. Som saksbehandler vil jeg at periodene med oppfylte inngangsvilkår alltid
@@ -199,11 +199,12 @@ er modellert sammen med ekstrautgiftene.
 - Endepunktet skriver «Vurdering av inngangsvilkår fullført» i
   endringshistorikken med en ny endringstype. Detaljene inneholder bare antall
   perioder og datoer.
-- Responsen inneholder periodene og utfallet. Utfallet er én av tre verdier:
-  videre til sats og trygdetid, avslag eller opphør.
-- En ren funksjon avgjør utfallet. Er det perioder, går saken videre. Er det
-  ingen perioder og ingen tidligere iverksatt behandling, blir det avslag. Er
-  det ingen perioder i en revurdering, blir det opphør.
+- Responsen inneholder periodene og neste steg: sats og trygdetid eller
+  simulering.
+- En ren funksjon avgjør neste steg. Er det perioder, går saken til sats og
+  trygdetid. Er det ingen rett i noen måned, går saken til simulering, også i en
+  førstegangsbehandling. Neste steg sier ikke om saken blir innvilget, avslått
+  eller opphørt. Det avgjøres i vedtaket.
 - Valideringsfeil har samme format som i dag, med én feil per vilkårstype og
   egen exception handler på kontrolleren.
 
@@ -297,8 +298,9 @@ er modellert sammen med ekstrautgiftene.
 - Ny endringstype i endringshistorikken for fullført sats og trygdetid, med
   antall andeler og datoer, uten diagnose.
 - Valideringsfeil returneres med samme format som i steg 1.
-- I en revurdering med opphør og ingen perioder lagrer steget tilkjent ytelse
-  uten andeler, slik at oppdrag opphører.
+- Når det ikke er rett i noen måned, hoppes steg 2 over. I en revurdering må
+  tilkjent ytelse uten andeler likevel lagres, slik at oppdrag stopper
+  utbetalingen. Ticket 10 avgjør hvem som lagrer den.
 
 ### Tilkjent ytelse og oppdrag
 
@@ -337,8 +339,8 @@ er modellert sammen med ekstrautgiftene.
 ### Frontend
 
 - Steg 1 viser medlemskap og diagnose, kaller det nye endepunktet for
-  fullføring og navigerer etter utfallet: steg 2, brev ved avslag, eller steg 2
-  med beskjed om opphør.
+  fullføring og navigerer til steg 2, eller rett til simulering når det ikke er
+  rett i noen måned.
 - Steg 2 viser tidslinjen med perioder med oppfylte inngangsvilkår, listen over
   ekstrautgifter og listen over trygdetid. Listene er bygget som komponentene
   for inngangsvilkår, og perioder utenfor er markert.
@@ -371,8 +373,8 @@ uten Spring og uten mocks, og Spring-skallet testes tynt.
 
   Eksempelet i dokumentet om utledning av tilkjent ytelse blir en test.
   Forbilder: `PeriodeMedRettUtlederTest` og `MedlemskapOgDiagnoseTidslinjeTest`.
-- **Utfallet av inngangsvilkårene** (videre, avslag eller opphør) testes som ren
-  funksjon i samme stil.
+- **Neste steg etter inngangsvilkårene** (sats og trygdetid eller simulering)
+  testes som ren funksjon i samme stil.
 - **Listen over satsbeløp:** ingen overlapp, ingen hull per sats, første dato er
   1.1.1997, oppslag utenfor listen kaster feil, og stikkprøver mot rundskrivet.
 - **Servicene for ekstrautgifter og trygdetid:** lagring, overlapp,
