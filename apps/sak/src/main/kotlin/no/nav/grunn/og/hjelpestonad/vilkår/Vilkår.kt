@@ -1,9 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
-import no.nav.familie.tidslinje.Periode
-import no.nav.grunn.og.hjelpestonad.felles.sporbar.Sporbar
-import java.time.LocalDate
-import java.util.UUID
+import no.nav.grunn.og.hjelpestonad.felles.periode.PeriodeMedBegrunnelse
+import no.nav.grunn.og.hjelpestonad.felles.periode.PeriodeMedBegrunnelseRequest
 
 enum class VilkårType {
     /**
@@ -22,48 +20,12 @@ enum class Vurdering {
     NEI,
 }
 
-interface Periodisert {
-    val fraOgMedDato: LocalDate?
-    val tilOgMedDato: LocalDate?
-}
-
-fun <T : Periodisert> T.tilPeriode(): Periode<T> =
-    Periode(
-        fom = this.fraOgMedDato,
-        tom = this.tilOgMedDato,
-        verdi = this,
-    )
-
-interface VilkårPeriode<SELV : VilkårPeriode<SELV>> : Periodisert {
-    val id: UUID
-    val behandlingId: UUID
+interface VilkårPeriode<SELV : VilkårPeriode<SELV>> : PeriodeMedBegrunnelse<SELV> {
     val vurdering: Vurdering
-    val begrunnelse: String
-    val sporbar: Sporbar
-
-    /**
-     * Kopi med ny id, gitt behandling og ny sporbarhet. Brukes når en revurdering arver
-     * vilkårene fra forrige behandling. Vurdering, begrunnelse og periode følger med uendret.
-     */
-    fun kopierTilBehandling(behandlingId: UUID): SELV
 
     fun erVilkårOppfylt(): Boolean = vurdering == Vurdering.JA
-
-    /**
-     * Perioder med samme nøkkel ligger på samme tidslinje og forkorter hverandre ved overlapp.
-     * Standard er én tidslinje for hele vilkåret. Per diagnosekode for diagnosevilkåret.
-     */
-    fun tidslinjenøkkel(): Any = Unit
-
-    fun kopierMedTidsrom(
-        id: UUID,
-        fraOgMedDato: LocalDate?,
-        tilOgMedDato: LocalDate?,
-    ): SELV
 }
 
-interface VilkårPeriodeRequest : Periodisert {
-    val id: UUID?
+interface VilkårPeriodeRequest : PeriodeMedBegrunnelseRequest {
     val vurdering: Vurdering
-    val begrunnelse: String
 }

@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
+import no.nav.grunn.og.hjelpestonad.felles.periode.medNyPeriode
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.DiagnoseRegler
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk

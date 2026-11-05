@@ -3,7 +3,7 @@ package no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering
 import no.nav.familie.tidslinje.filtrerIkkeNull
 import no.nav.familie.tidslinje.utvidelser.slåSammenLikePerioder
 import no.nav.familie.tidslinje.utvidelser.tilPerioder
-import no.nav.grunn.og.hjelpestonad.vilkår.Periodisert
+import no.nav.grunn.og.hjelpestonad.felles.periode.Periodisert
 import java.time.LocalDate
 
 /**
