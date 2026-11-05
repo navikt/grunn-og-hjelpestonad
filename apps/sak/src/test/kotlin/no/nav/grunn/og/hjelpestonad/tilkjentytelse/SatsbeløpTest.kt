@@ -46,7 +46,10 @@ class SatsbeløpTest {
             .isInstanceOf(UgyldigInput::class.java)
     }
 
-    /** Forventede beløp er skrevet av fra rundskrivet til § 6-3, https://lovdata.no/nav/rundskriv/v1-06-03 */
+    /**
+     * Forventede beløp er skrevet av fra rundskrivet til § 6-3, https://lovdata.no/nav/rundskriv/v1-06-03.
+     * Unntaket er sats 2 i 2012: rundskrivet sier 968, men Infotrygd utbetalte 964, se ADR-0011.
+     */
     @ParameterizedTest(name = "sats {0} den {1} er {2} kroner")
     @CsvSource(
         "1, 1997-01-01, 480",
@@ -54,7 +57,7 @@ class SatsbeløpTest {
         "1, 1998-01-01, 491",
         "3, 2001-06-15, 1028",
         "4, 2004-07-01, 1611",
-        "2, 2012-05-01, 968",
+        "2, 2012-05-01, 964",
         "1, 2023-01-01, 705",
         "6, 2023-06-30, 3517",
         "1, 2023-07-01, 724",

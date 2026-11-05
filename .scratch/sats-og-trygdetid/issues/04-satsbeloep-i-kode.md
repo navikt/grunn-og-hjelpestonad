@@ -18,4 +18,4 @@ Spec: [spec.md](../spec.md)
 
 ## Comments
 
-Løst i `Satsbeløp.kt` og `SatsbeløpTest.kt` under `apps/sak/.../tilkjentytelse/`. Rundskrivet har ingen satser for 2001, og for sats 2 i 2012 stemmer ikke månedsbeløpet med årsbeløpet. Teamet har bestemt at satsene fra 2000 gjelder ut 2001, og antar at månedsbeløpet (968 kroner) er riktig for sats 2 i 2012. Begge er ført opp som avklarte aksjonspunkter i ADR-0011.
+Løst i `Satsbeløp.kt` og `SatsbeløpTest.kt` under `apps/sak/.../tilkjentytelse/`. Rundskrivet har ingen satser for 2001, og for sats 2 i 2012 stemmer ikke månedsbeløpet med årsbeløpet. Teamet har bestemt at satsene fra 2000 gjelder ut 2001, og bruker 964 kroner for sats 2 i 2012, som Infotrygd utbetalte, ikke 968 fra rundskrivet. Begge er ført opp som avklarte aksjonspunkter i ADR-0011.

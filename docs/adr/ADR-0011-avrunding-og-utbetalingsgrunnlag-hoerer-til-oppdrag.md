@@ -221,8 +221,11 @@ juridisk begrunnelse.
 - [x] Rundskrivet til § 6-3 har ikke noe avsnitt for 2001. Teamet har bestemt at
       satsene fra 1.1.2000 gjelder ut 2001.
 - [x] For sats 2 fra 1.1.2012 sier rundskrivet 968 kroner i måneden, men
-      årsbeløpet 11 568 kroner gir 964 kroner. Teamet antar at månedsbeløpet er
-      riktig, som ADR-0014 sier for alle satsene.
+      årsbeløpet 11 568 kroner gir 964 kroner. Infotrygd utbetalte 964 kroner:
+      saksbehandler sjekket en stønadsmottaker med full trygdetid, og i dev har
+      12 008 vedtak med sats 2, trygdetid 40 og delytelse fra 2012 beløpet 964.
+      Vedtakene med kortere trygdetid gir også 964 når beløpet regnes tilbake til
+      full trygdetid. Vi bruker 964, og rundskrivet har en skrivefeil.
 - [ ] Økonomi gir fagområde og klassekode for prod. Dev bruker `IT28` og
       `GHGSORMG`.
 - [ ] Økonomi bekrefter om OS motregner mellom Infotrygd og ny løsning når de
