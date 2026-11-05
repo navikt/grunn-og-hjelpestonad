@@ -109,8 +109,8 @@ object Satsbeløpene {
             Satsbeløp(sats = 4, månedsbeløp = 1833, gyldigFraOgMed = LocalDate.of(2011, 1, 1), gyldigTilOgMed = LocalDate.of(2011, 12, 31)),
             Satsbeløp(sats = 5, månedsbeløp = 2486, gyldigFraOgMed = LocalDate.of(2011, 1, 1), gyldigTilOgMed = LocalDate.of(2011, 12, 31)),
             Satsbeløp(sats = 6, månedsbeløp = 3105, gyldigFraOgMed = LocalDate.of(2011, 1, 1), gyldigTilOgMed = LocalDate.of(2011, 12, 31)),
-            // 1.1.2012. For sats 2 sier rundskrivet 968 kroner i måneden, men Infotrygd utbetalte 964 (11 568 / 12),
-            // se ADR-0011.
+            // 1.1.2012. For sats 2 stemmer ikke månedsbeløpet i rundskrivet (968) med årsbeløpet (11 568). Vi bruker
+            // årsbeløpet delt på 12 (964), som Infotrygd utbetalte, se ADR-0011.
             Satsbeløp(sats = 1, månedsbeløp = 631, gyldigFraOgMed = LocalDate.of(2012, 1, 1), gyldigTilOgMed = LocalDate.of(2012, 12, 31)),
             Satsbeløp(sats = 2, månedsbeløp = 964, gyldigFraOgMed = LocalDate.of(2012, 1, 1), gyldigTilOgMed = LocalDate.of(2012, 12, 31)),
             Satsbeløp(sats = 3, månedsbeløp = 1265, gyldigFraOgMed = LocalDate.of(2012, 1, 1), gyldigTilOgMed = LocalDate.of(2012, 12, 31)),

@@ -47,8 +47,8 @@ class SatsbeløpTest {
     }
 
     /**
-     * Forventede beløp er skrevet av fra rundskrivet til § 6-3, https://lovdata.no/nav/rundskriv/v1-06-03.
-     * Unntaket er sats 2 i 2012: rundskrivet sier 968, men Infotrygd utbetalte 964, se ADR-0011.
+     * Forventede beløp er månedsbeløpene i rundskrivet til § 6-3, https://lovdata.no/nav/rundskriv/v1-06-03.
+     * Unntaket er sats 2 i 2012, der beløpet er årsbeløpet i rundskrivet delt på 12, se ADR-0011.
      */
     @ParameterizedTest(name = "sats {0} den {1} er {2} kroner")
     @CsvSource(

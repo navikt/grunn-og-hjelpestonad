@@ -77,8 +77,9 @@ nærmeste beløp. En test sjekker at periodene ikke overlapper og ikke har hull.
 
 Vi bruker månedsbeløpet fra
 [rundskrivet til § 6-3](https://lovdata.no/nav/rundskriv/v1-06-03), ikke
-årsbeløpet delt på 12. Unntaket er sats 2 i 2012, der rundskrivet har feil
-månedsbeløp. Der bruker vi beløpet Infotrygd utbetalte, se ADR-0011.
+årsbeløpet delt på 12. Unntaket er sats 2 i 2012, der månedsbeløpet i
+rundskrivet ikke stemmer med årsbeløpet. Der bruker vi årsbeløpet delt på 12,
+som Infotrygd utbetalte, se ADR-0011.
 
 ### Tilkjent ytelse slettes når et vilkår eller trygdetiden endres
 

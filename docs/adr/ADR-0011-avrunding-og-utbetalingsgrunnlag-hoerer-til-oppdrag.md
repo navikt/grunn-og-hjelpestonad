@@ -225,7 +225,8 @@ juridisk begrunnelse.
       saksbehandler sjekket en stønadsmottaker med full trygdetid, og i dev har
       12 008 vedtak med sats 2, trygdetid 40 og delytelse fra 2012 beløpet 964.
       Vedtakene med kortere trygdetid gir også 964 når beløpet regnes tilbake til
-      full trygdetid. Vi bruker 964, og rundskrivet har en skrivefeil.
+      full trygdetid. Vi bruker årsbeløpet delt på 12, og månedsbeløpet i
+      rundskrivet er feil.
 - [ ] Økonomi gir fagområde og klassekode for prod. Dev bruker `IT28` og
       `GHGSORMG`.
 - [ ] Økonomi bekrefter om OS motregner mellom Infotrygd og ny løsning når de
