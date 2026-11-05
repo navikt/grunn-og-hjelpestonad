@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import { ErrorSummary, LocalAlert, VStack } from "@navikt/ds-react";
 import { VilkårProvider, useVilkårContext } from "~/komponenter/behandling/vilkår/VilkårContext";
 import { VilkårInnhold } from "~/komponenter/behandling/vilkår/VilkårInnhold";
-import { useFullførVilkårSteg } from "~/komponenter/behandling/vilkår/felles/useFullførVilkårSteg";
+import { useFullførInngangsvilkår } from "~/komponenter/behandling/vilkår/felles/useFullførInngangsvilkår";
 import type { Route } from "./+types/vilkår";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 import { StegNavigering } from "~/komponenter/behandling/StegNavigering";
@@ -26,9 +27,10 @@ export default function Vilkår() {
 function VilkårSide() {
   const feiloppsummeringRef = useRef<HTMLDivElement>(null);
 
+  const navigate = useNavigate();
   const { behandlingId } = useBehandlingContext();
   const { status: vilkårStatus } = useVilkårContext();
-  const { fullfør, laster, valideringsfeil, feilmelding } = useFullførVilkårSteg(behandlingId);
+  const { fullfør, laster, valideringsfeil, feilmelding } = useFullførInngangsvilkår(behandlingId);
 
   const { navigerTilNeste } = useStegNavigering(STEG_PATH);
 
@@ -38,7 +40,17 @@ function VilkårSide() {
     }
   }, [valideringsfeil]);
 
-  const håndterNeste = () => fullfør(navigerTilNeste);
+  const håndterNeste = () =>
+    fullfør((resultat) => {
+      switch (resultat.nesteSteg) {
+        case "SATS_OG_TRYGDETID":
+          navigerTilNeste();
+          return;
+        case "SIMULERING":
+          navigate("../simulering", { relative: "path" });
+          return;
+      }
+    });
 
   return (
     <VStack gap={"space-24"}>

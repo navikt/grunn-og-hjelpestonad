@@ -87,7 +87,8 @@ class EndepunktRegisterTest {
                 "PdlController#hentPerson",
                 "SafController#hentJournalPostForBrukerId",
                 "SafController#hentDokumentSomPdf",
-                "VilkårVurderingStegController#fullførSteg",
+                "InngangsvilkårStegController#fullførInngangsvilkår",
+                "InngangsvilkårStegController#hentPerioderMedOppfylteInngangsvilkår",
                 "VedtakController#hentVedtak",
                 "VedtakController#lagreVedtak",
                 "VedtakController#beregn",
@@ -98,7 +99,6 @@ class EndepunktRegisterTest {
                 "VilkårMedlemskapController#hentMedlemskapPerioder",
                 "VilkårMedlemskapController#lagreMedlemskapPeriode",
                 "VilkårMedlemskapController#slettMedlemskapPeriode",
-                "PeriodeMedRettController#hentPerioderMedRett",
                 "ÅrsakBehandlingController#hentÅrsakBehandling",
                 "ÅrsakBehandlingController#lagreÅrsakBehandling",
             )

@@ -1,8 +1,8 @@
 import React from "react";
 import { BodyShort, Box, Heading, Loader, LocalAlert, Timeline, VStack } from "@navikt/ds-react";
 import { CheckmarkCircleIcon, CircleSlashIcon } from "@navikt/aksel-icons";
-import type { PeriodeMedRettResponse } from "~/api/generated/types.gen";
-import { usePerioderMedRett } from "./usePerioderMedRett";
+import type { PeriodeMedOppfylteInngangsvilkårResponse } from "~/api/generated/types.gen";
+import { useInngangsvilkårPerioder } from "./useInngangsvilkårPerioder";
 
 const ÅPEN_ENDE_MARGIN_ÅR = 1;
 
@@ -10,19 +10,21 @@ type Segment = {
   id: string;
   start: Date;
   slutt: Date;
-  harRett: boolean;
+  oppfylt: boolean;
   fraTekst: string;
   tilTekst: string;
 };
 
-export const PerioderMedRettTidslinje: React.FC<{ behandlingId: string }> = ({ behandlingId }) => {
-  const { data: perioder, error, laster } = usePerioderMedRett(behandlingId);
+export const PerioderMedOppfylteInngangsvilkårTidslinje: React.FC<{
+  behandlingId: string;
+}> = ({ behandlingId }) => {
+  const { data: perioder, error, laster } = useInngangsvilkårPerioder(behandlingId);
 
   return (
     <Box shadow="dialog" background="neutral-soft" padding="space-24" borderRadius="4">
       <VStack gap="space-16">
         <Heading level="2" size="small">
-          Perioder med rett
+          Perioder med oppfylte inngangsvilkår
         </Heading>
         <TidslinjeInnhold perioder={perioder} error={error} laster={laster} />
       </VStack>
@@ -31,18 +33,20 @@ export const PerioderMedRettTidslinje: React.FC<{ behandlingId: string }> = ({ b
 };
 
 const TidslinjeInnhold: React.FC<{
-  perioder?: PeriodeMedRettResponse[];
+  perioder?: PeriodeMedOppfylteInngangsvilkårResponse[];
   error?: unknown;
   laster: boolean;
 }> = ({ perioder, error, laster }) => {
   if (laster) {
-    return <Loader size="medium" title="Henter perioder med rett" />;
+    return <Loader size="medium" title="Henter perioder med oppfylte inngangsvilkår" />;
   }
 
   if (error) {
     return (
       <LocalAlert status="error">
-        <LocalAlert.Content>Kunne ikke hente perioder med rett.</LocalAlert.Content>
+        <LocalAlert.Content>
+          Kunne ikke hente perioder med oppfylte inngangsvilkår.
+        </LocalAlert.Content>
       </LocalAlert>
     );
   }
@@ -50,24 +54,20 @@ const TidslinjeInnhold: React.FC<{
   const segmenter = utledSegmenter(perioder ?? []);
 
   if (segmenter.length === 0) {
-    return (
-      <BodyShort>
-        Ingen perioder med rett. Fullfør vilkårsvurderingen for å utlede periodene.
-      </BodyShort>
-    );
+    return <BodyShort>Ingen perioder med oppfylte inngangsvilkår.</BodyShort>;
   }
 
   return (
     <Timeline>
-      <Timeline.Row label="Rett til stønad">
+      <Timeline.Row label="Inngangsvilkår">
         {segmenter.map((segment) => (
           <Timeline.Period
             key={segment.id}
             start={segment.start}
             end={segment.slutt}
-            status={segment.harRett ? "success" : "neutral"}
+            status={segment.oppfylt ? "success" : "neutral"}
             statusLabel={statusTekst(segment)}
-            icon={segment.harRett ? <CheckmarkCircleIcon /> : <CircleSlashIcon />}
+            icon={segment.oppfylt ? <CheckmarkCircleIcon /> : <CircleSlashIcon />}
           >
             <VStack gap="space-8">
               <BodyShort weight="semibold">{statusTekst(segment)}</BodyShort>
@@ -83,10 +83,10 @@ const TidslinjeInnhold: React.FC<{
 };
 
 function statusTekst(segment: Segment): string {
-  return segment.harRett ? "Rett til stønad" : "Ingen rett til stønad";
+  return segment.oppfylt ? "Inngangsvilkår oppfylt" : "Inngangsvilkår ikke oppfylt";
 }
 
-function utledSegmenter(perioder: PeriodeMedRettResponse[]): Segment[] {
+function utledSegmenter(perioder: PeriodeMedOppfylteInngangsvilkårResponse[]): Segment[] {
   const vindu = utledVindu(perioder);
   const tidsrom = perioder
     .map((periode) => ({
@@ -100,16 +100,16 @@ function utledSegmenter(perioder: PeriodeMedRettResponse[]): Segment[] {
     const forrigePeriode = tidsrom[indeks - 1];
     const hull = utledHull(forrigePeriode?.slutt, start, indeks);
 
-    const medRett: Segment = {
-      id: periode.id,
+    const oppfyltSegment: Segment = {
+      id: `oppfylt-${indeks}`,
       start,
       slutt,
-      harRett: true,
+      oppfylt: true,
       fraTekst: periode.fraOgMedDato ? formaterDato(start) : "Fra fødsel",
       tilTekst: periode.tilOgMedDato ? formaterDato(slutt) : "løpende",
     };
 
-    return hull ? [hull, medRett] : [medRett];
+    return hull ? [hull, oppfyltSegment] : [oppfyltSegment];
   });
 }
 
@@ -126,16 +126,19 @@ function utledHull(
   if (start > slutt) return undefined;
 
   return {
-    id: `uten-rett-${indeks}`,
+    id: `ikke-oppfylt-${indeks}`,
     start,
     slutt,
-    harRett: false,
+    oppfylt: false,
     fraTekst: formaterDato(start),
     tilTekst: formaterDato(slutt),
   };
 }
 
-function utledVindu(perioder: PeriodeMedRettResponse[]): { start: Date; slutt: Date } {
+function utledVindu(perioder: PeriodeMedOppfylteInngangsvilkårResponse[]): {
+  start: Date;
+  slutt: Date;
+} {
   const iDag = iDagUtenTid();
   const kjenteDatoer = perioder
     .flatMap((periode) => [periode.fraOgMedDato, periode.tilOgMedDato])

@@ -391,13 +391,6 @@ export const zVilkårMedlemskapResponse = z.object({
     erVilkårOppfylt: z.boolean()
 });
 
-export const zPeriodeMedRettResponse = z.object({
-    id: z.uuid(),
-    behandlingId: z.uuid(),
-    fraOgMedDato: z.iso.date().nullish(),
-    tilOgMedDato: z.iso.date().nullish()
-});
-
 export const zVilkårDiagnoseRequest = z.object({
     id: z.uuid().nullish(),
     kode: z.string(),
@@ -418,6 +411,16 @@ export const zVilkårDiagnoseResponse = z.object({
     fraOgMedDato: z.iso.date().nullish(),
     tilOgMedDato: z.iso.date().nullish(),
     erVilkårOppfylt: z.boolean()
+});
+
+export const zPeriodeMedOppfylteInngangsvilkårResponse = z.object({
+    fraOgMedDato: z.iso.date().nullish(),
+    tilOgMedDato: z.iso.date().nullish()
+});
+
+export const zInngangsvilkårResponse = z.object({
+    perioder: z.array(zPeriodeMedOppfylteInngangsvilkårResponse),
+    nesteSteg: z.enum(['SATS_OG_TRYGDETID', 'SIMULERING'])
 });
 
 export const zOpplysningResponse = z.object({
@@ -546,6 +549,7 @@ export const zBehandlingEndringResponse = z.object({
         'VILKÅR_VURDERING_OPPDATERT',
         'VILKÅR_VURDERING_SLETTET',
         'VILKÅR_VURDERING_FULLFØRT',
+        'INNGANGSVILKÅR_VURDERING_FULLFØRT',
         'VEDTAK_LAGRET',
         'ÅRSAK_LAGRET',
         'ÅRSAK_OPPDATERT',
@@ -796,15 +800,6 @@ export const zLagreMedlemskapPeriodePath = z.object({
  */
 export const zLagreMedlemskapPeriodeResponse = zVilkårMedlemskapResponse;
 
-export const zFullførStegPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zFullførStegResponse = z.array(zPeriodeMedRettResponse);
-
 export const zHentDiagnosePerioderPath = z.object({
     behandlingId: z.uuid()
 });
@@ -824,6 +819,15 @@ export const zLagreDiagnosePeriodePath = z.object({
  * OK
  */
 export const zLagreDiagnosePeriodeResponse = zVilkårDiagnoseResponse;
+
+export const zFullførInngangsvilkårPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zFullførInngangsvilkårResponse = zInngangsvilkårResponse;
 
 export const zInnhentFaktagrunnlagFraPdlPath = z.object({
     behandlingId: z.uuid()
@@ -1002,14 +1006,14 @@ export const zHentTotrinnskontrollStatusPath = z.object({
  */
 export const zHentTotrinnskontrollStatusResponse = zTotrinnskontrollStatusResponse;
 
-export const zHentPerioderMedRettPath = z.object({
+export const zHentPerioderMedOppfylteInngangsvilkårPath = z.object({
     behandlingId: z.uuid()
 });
 
 /**
  * OK
  */
-export const zHentPerioderMedRettResponse = z.array(zPeriodeMedRettResponse);
+export const zHentPerioderMedOppfylteInngangsvilkårResponse = z.array(zPeriodeMedOppfylteInngangsvilkårResponse);
 
 export const zHentMedlemskapFaktagrunnlagPath = z.object({
     behandlingId: z.uuid()

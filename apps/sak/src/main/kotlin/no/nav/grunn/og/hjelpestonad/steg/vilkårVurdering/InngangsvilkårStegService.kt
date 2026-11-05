@@ -7,37 +7,41 @@ import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.vilkår.Periodisert
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
-import no.nav.grunn.og.hjelpestonad.vilkår.rett.PeriodeMedRett
-import no.nav.grunn.og.hjelpestonad.vilkår.rett.PeriodeMedRettRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+data class InngangsvilkårResultat(
+    val perioder: List<PeriodeMedOppfylteInngangsvilkår>,
+    val nesteSteg: NesteStegEtterInngangsvilkår,
+)
+
 @Service
-class VilkårVurderingStegService(
+class InngangsvilkårStegService(
     private val vilkårMedlemskapService: VilkårMedlemskapService,
     private val vilkårDiagnoseService: VilkårDiagnoseService,
-    private val periodeMedRettRepository: PeriodeMedRettRepository,
     private val behandlingService: BehandlingService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val endringshistorikkService: EndringshistorikkService,
 ) {
     @Transactional
-    fun fullførSteg(behandlingId: UUID): List<PeriodeMedRett> {
+    fun fullførSteg(behandlingId: UUID): InngangsvilkårResultat {
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
 
-        val perioderMedRett = PeriodeMedRettUtleder.utled(hentVilkårVurderingStegGrunnlag(behandlingId))
+        val grunnlag = hentGrunnlag(behandlingId)
+        val feil = VilkårVurderingValidering.valider(grunnlag)
+        if (feil.isNotEmpty()) throw VilkårValideringFeil(feil)
 
-        periodeMedRettRepository.deleteByBehandlingId(behandlingId)
-        val lagrede = periodeMedRettRepository.insertAll(perioderMedRett)
-
-        registrerEndringshistorikk(behandlingId, lagrede)
-        return lagrede
+        val perioder = PerioderMedOppfylteInngangsvilkårUtleder.utled(grunnlag)
+        registrerEndringshistorikk(behandlingId, perioder)
+        return InngangsvilkårResultat(perioder = perioder, nesteSteg = NesteStegEtterInngangsvilkår.utled(perioder))
     }
 
-    private fun hentVilkårVurderingStegGrunnlag(behandlingId: UUID) =
+    fun hentPerioder(behandlingId: UUID): List<PeriodeMedOppfylteInngangsvilkår> = PerioderMedOppfylteInngangsvilkårUtleder.utled(hentGrunnlag(behandlingId))
+
+    private fun hentGrunnlag(behandlingId: UUID) =
         VilkårVurderingStegGrunnlag(
             behandlingId = behandlingId,
             medlemskap = vilkårMedlemskapService.hentPerioder(behandlingId),
@@ -46,16 +50,16 @@ class VilkårVurderingStegService(
 
     private fun registrerEndringshistorikk(
         behandlingId: UUID,
-        perioderMedRett: List<PeriodeMedRett>,
+        perioder: List<PeriodeMedOppfylteInngangsvilkår>,
     ) = endringshistorikkService.registrerEndring(
         behandlingId = behandlingId,
-        endringType = EndringType.VILKÅR_VURDERING_FULLFØRT,
+        endringType = EndringType.INNGANGSVILKÅR_VURDERING_FULLFØRT,
         detaljer =
-            if (perioderMedRett.isEmpty()) {
-                "Ingen perioder med oppfylte vilkår"
+            if (perioder.isEmpty()) {
+                "Ingen perioder med oppfylte inngangsvilkår"
             } else {
-                "${perioderMedRett.size} perioder med oppfylte vilkår: " +
-                    perioderMedRett.joinToString(", ") { formaterPeriode(it) }
+                "${perioder.size} ${if (perioder.size == 1) "periode" else "perioder"} med oppfylte inngangsvilkår: " +
+                    perioder.joinToString(", ") { formaterPeriode(it) }
             },
     )
 
