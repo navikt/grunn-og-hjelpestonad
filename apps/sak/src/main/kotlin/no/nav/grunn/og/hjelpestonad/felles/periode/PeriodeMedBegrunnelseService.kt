@@ -40,6 +40,9 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
 
     protected open fun validerTidslinje(perioder: List<P>) = Unit
 
+    /** Om perioden skal kopieres til en ny behandling. Perioder uten vurdering, som trygdetid, kopieres alltid. */
+    protected open fun skalKopieres(periode: P): Boolean = true
+
     open fun hentPerioder(behandlingId: UUID): List<P> = repository.findByBehandlingId(behandlingId)
 
     @Transactional
@@ -47,7 +50,11 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         fraBehandlingId: UUID,
         tilBehandlingId: UUID,
     ): List<P> {
-        val kopier = repository.findByBehandlingId(fraBehandlingId).map { it.kopierTilBehandling(tilBehandlingId) }
+        val kopier =
+            repository
+                .findByBehandlingId(fraBehandlingId)
+                .filter { skalKopieres(it) }
+                .map { it.kopierTilBehandling(tilBehandlingId) }
         repository.insertAll(kopier)
         return kopier
     }
