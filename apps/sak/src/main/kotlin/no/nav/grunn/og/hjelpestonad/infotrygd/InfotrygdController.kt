@@ -40,7 +40,7 @@ class InfotrygdController(
         val response =
             infotrygdService.hentStønader(personident = request.personident, stønadstype = request.stønadstype)
 
-        logger.info("Hentet {} stønader fra Infotrygd, stønadstype={}", response.stonader.size, request.stønadstype)
+        logger.info("Hentet {} stønader fra Infotrygd, stønadstype={}", response.stønader.size, request.stønadstype)
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noStore())

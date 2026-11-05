@@ -211,6 +211,8 @@ beslutninger. Forkastet fordi appen ikke er i prod og ikke har egen tilgangslogi
       fjern team logs-linjen. Avgjør da om `stonad/migreringspersoner` skal
       auditlogges. Det blokkerer prod-manifestet for infotrygd.
 - [ ] Skriv ned hvor lenge team logs lagrer auditlinjene i dev.
+- [ ] Prod-manifest for infotrygd: sperren i ADR-0015 bruker dev-gruppe-ID-er og
+      skal ikke gjelde i prod.
 - [ ] Avgjør om `LESETILGANG` skal se evalueringen, eller om
       `/api/infotrygd/evaluering` i sak skal begrenses til `SAKSBEHANDLER` og
       `BESLUTTER`.

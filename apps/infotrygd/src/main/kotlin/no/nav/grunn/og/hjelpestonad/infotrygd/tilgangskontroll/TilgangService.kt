@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd.tilgangskontroll
 
 import no.nav.grunn.og.hjelpestonad.infotrygd.security.SikkerhetContext
+import no.nav.grunn.og.hjelpestonad.infotrygd.security.SperretGruppeIDev
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -15,6 +16,18 @@ class TilgangService(
     fun filtrerPersonerMedTilgang(personidenter: Set<String>): Set<String> {
         validerAntall(personidenter.size)
         if (personidenter.isEmpty()) return emptySet()
+
+        val sperredeGrupper = sperredeGrupperHosSaksbehandler()
+        if (sperredeGrupper.isNotEmpty()) {
+            logger.info("Filtrerte bort alle {} personer fordi saksbehandler har gruppe som er sperret i dev", personidenter.size)
+            secureLogger.info(
+                "Filtrerte bort alle {} personer fordi saksbehandler har gruppe som er sperret i dev, saksbehandler={}, grupper={}",
+                personidenter.size,
+                SikkerhetContext.hentSaksbehandler(),
+                sperredeGrupper.joinToString { it.beskrivelse },
+            )
+            return emptySet()
+        }
 
         val vurderinger = vurderMotTilgangsmaskin(personidenter)
         val medTilgang = personidenter.filterTo(LinkedHashSet()) { harTilgang(vurderinger[it]) }
@@ -42,6 +55,8 @@ class TilgangService(
         val saksbehandler = SikkerhetContext.hentSaksbehandler()
         val resultat =
             runCatching {
+                validerIngenSperredeGrupper()
+
                 val vurderingerFraTilgangsmaskin = vurderMotTilgangsmaskin(personidenter)
 
                 vurderingerFraTilgangsmaskin.validerIngenUtenSvar(personidenter)
@@ -58,6 +73,22 @@ class TilgangService(
         // Kaster avslag og feil videre. Uten denne linjen blir avslag til tilgang.
         resultat.getOrThrow()
     }
+
+    /** Se [SperretGruppeIDev] og ADR-0015. Meldingen sier ingenting om personen. */
+    private fun validerIngenSperredeGrupper() {
+        val sperredeGrupper = sperredeGrupperHosSaksbehandler()
+        if (sperredeGrupper.isEmpty()) return
+
+        logger.info("Saksbehandler har gruppe som er sperret i dev")
+        secureLogger.info(
+            "Saksbehandler har gruppe som er sperret i dev, saksbehandler={}, grupper={}",
+            SikkerhetContext.hentSaksbehandler(),
+            sperredeGrupper.joinToString { it.beskrivelse },
+        )
+        throw ManglerTilgangTilPersonFeil(SPERRET_GRUPPE_I_DEV_MELDING)
+    }
+
+    private fun sperredeGrupperHosSaksbehandler(): List<SperretGruppeIDev> = SperretGruppeIDev.entries.filter { it.gruppeId in SikkerhetContext.hentGrupper() }
 
     private fun Map<String, List<Tilgangsvurdering>>.validerIngenAvslag(
         personidenter: Set<String>,
@@ -113,5 +144,10 @@ class TilgangService(
 
         const val MANGLER_TILGANG_MELDING = "Du har ikke tilgang til denne personen"
         const val MANGLER_TILGANG_FLERE_MELDING = "Du har ikke tilgang til én eller flere av personene"
+
+        const val SPERRET_GRUPPE_I_DEV_MELDING =
+            "Du kan ikke slå opp personer i Infotrygd i dev, fordi du har tilgang til personer med fortrolig adresse " +
+                "(kode 7), strengt fortrolig adresse (kode 6) eller skjermede personer. Testmiljøet har ekte " +
+                "personopplysninger. Fjern disse tilgangene for å bruke Infotrygd i dev."
     }
 }

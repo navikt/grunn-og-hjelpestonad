@@ -79,14 +79,14 @@ class InfotrygdStonaderResponseTest {
         val response = medArv.tilInfotrygdStonaderResponse()
 
         assertThat(response.diagnosetekster).isEmpty()
-        assertThat(response.stonader).isEqualTo(medArv)
+        assertThat(response.stønader).isEqualTo(medArv)
     }
 
     private fun stønad(
         vararg vedtak: InfotrygdVedtakResponse,
         stønadId: Long = 1L,
     ) = InfotrygdStonadResponse(
-        stonadId = stønadId,
+        stønadId = stønadId,
         personnr = "12345678901",
         kodeRutine = "GS",
         datoStart = LocalDate.parse("2020-01-01"),
@@ -105,7 +105,7 @@ class InfotrygdStonaderResponseTest {
         kodeResultat = "I",
         datoInnvFom = LocalDate.parse("2020-01-01"),
         datoMottattSak = LocalDate.parse("2019-12-15"),
-        kodeVedtaksnivaa = "L",
+        kodeVedtaksnivå = "L",
         typeBeregning = "M",
         tidspunktReg = LocalDateTime.parse("2020-01-01T12:00:00"),
         brukerid = "Z123456",

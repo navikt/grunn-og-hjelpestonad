@@ -22,8 +22,8 @@ class OpenApiSkjemanavnTest(
         assertThat(egenskaper(skjemaer, "InfotrygdVedtakMedArv")).contains("tknr", "delytelser", "evaluering", "gh")
         assertThat(egenskaper(skjemaer, "VerdiMedKildeInfotrygdEvaluering")).contains("verdi", "arvetFraVedtak")
         assertThat(egenskaper(skjemaer, "VerdiMedKildeListInfotrygdGhResponse")).contains("verdi", "arvetFraVedtak")
-        assertThat(egenskaper(skjemaer, "InfotrygdStonadMedArv")).contains("stonadId", "vedtak")
-        assertThat(egenskaper(skjemaer, "GjeldendeInfotrygdPeriode")).contains("fom", "tom", "stonadId", "vedtak")
+        assertThat(egenskaper(skjemaer, "InfotrygdStonadMedArv")).contains("stønadId", "vedtak")
+        assertThat(egenskaper(skjemaer, "GjeldendeInfotrygdPeriode")).contains("fom", "tom", "stønadId", "vedtak")
     }
 
     @Suppress("UNCHECKED_CAST")

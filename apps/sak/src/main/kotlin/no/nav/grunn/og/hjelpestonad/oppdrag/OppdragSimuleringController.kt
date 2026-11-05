@@ -1,26 +1,26 @@
-package no.nav.grunn.og.hjelpestonad.vilkår.rett
+package no.nav.grunn.og.hjelpestonad.oppdrag
 
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
-import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
+/** Synkron simulering mot oppdrag. Brukes foreløpig for å teste integrasjonen fra simuleringsfanen. */
 @RestController
+@RequestMapping(path = ["/api/oppdrag/simulering"])
 @PreAuthorize("hasRole('SAKSBEHANDLER')")
-@RequestMapping("/api/behandling/{behandlingId}/perioder-med-rett")
-class PeriodeMedRettController(
-    private val periodeMedRettService: PeriodeMedRettService,
+class OppdragSimuleringController(
     private val tilgangService: TilgangService,
+    private val oppdragSimuleringService: OppdragSimuleringService,
 ) {
-    @GetMapping
-    fun hentPerioderMedRett(
+    @PostMapping("/{behandlingId}")
+    fun simulerMotOppdrag(
         @PathVariable behandlingId: UUID,
-    ): ResponseEntity<List<PeriodeMedRettResponse>> {
+    ): OppdragSimuleringResponse {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        return ResponseEntity.ok(periodeMedRettService.hentPerioderMedRett(behandlingId).map { it.tilResponse() })
+        return oppdragSimuleringService.simuler(behandlingId)
     }
 }

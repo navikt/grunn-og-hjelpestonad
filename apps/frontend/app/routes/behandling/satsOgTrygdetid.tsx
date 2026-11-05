@@ -4,7 +4,7 @@ import { VStack } from "@navikt/ds-react";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 import { StegNavigering } from "~/komponenter/behandling/StegNavigering";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
-import { PerioderMedRettTidslinje } from "~/komponenter/behandling/satsOgTrygdetid/PerioderMedRettTidslinje";
+import { PerioderMedOppfylteInngangsvilkårTidslinje } from "~/komponenter/behandling/satsOgTrygdetid/PerioderMedOppfylteInngangsvilkårTidslinje";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "Sats og trygdetid" }];
@@ -17,7 +17,7 @@ export default function SatsOgTrygdetid() {
 
   return (
     <VStack gap="space-24">
-      {behandlingId && <PerioderMedRettTidslinje behandlingId={behandlingId} />}
+      {behandlingId && <PerioderMedOppfylteInngangsvilkårTidslinje behandlingId={behandlingId} />}
 
       <StegNavigering stegPath={STEG_PATH} />
     </VStack>

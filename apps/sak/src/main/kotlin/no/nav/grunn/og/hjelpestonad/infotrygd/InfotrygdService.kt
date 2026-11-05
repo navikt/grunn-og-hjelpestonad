@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd
 
+import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.StonaderRequest
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -15,14 +16,14 @@ class InfotrygdService(
         stønadstype: StonaderRequest.Stønadstype,
     ): InfotrygdStonaderResponse =
         InfotrygdArv
-            .fyllVedtakMedVerdierFraTidligereVedtak(infotrygdClient.hentStønader(personident = personident, stønadstype = stønadstype).stonader)
+            .fyllVedtakMedVerdierFraTidligereVedtak(infotrygdClient.hentStønader(personident = personident, stønadstype = stønadstype).stønader)
             .tilInfotrygdStonaderResponse()
 
     fun hentGjeldendePerioder(
         personident: String,
         stønadstype: StonaderRequest.Stønadstype,
     ): InfotrygdGjeldendePerioderResponse {
-        val stønader = InfotrygdArv.fyllVedtakMedVerdierFraTidligereVedtak(infotrygdClient.hentStønader(personident = personident, stønadstype = stønadstype).stonader)
+        val stønader = InfotrygdArv.fyllVedtakMedVerdierFraTidligereVedtak(infotrygdClient.hentStønader(personident = personident, stønadstype = stønadstype).stønader)
 
         val utenforRekkefølge = GjeldendeInfotrygdPerioder.antallVedtakUtenforRekkefølge(stønader)
         if (utenforRekkefølge > 0) {
@@ -31,6 +32,7 @@ class InfotrygdService(
                 utenforRekkefølge,
                 stønadstype,
             )
+            throw UgyldigInput("Infotrygd har $utenforRekkefølge vedtak som er registrert før vedtaket med nærmeste lavere vedtakId, stønadstype=$stønadstype")
         }
 
         val perioder = GjeldendeInfotrygdPerioder.utled(stønader)

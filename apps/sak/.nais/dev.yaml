@@ -64,6 +64,8 @@ spec:
                     namespace: grunn-og-hjelp
                 -   application: grunn-og-hjelp-infotrygd-feed
                     namespace: grunn-og-hjelp
+                -   application: familie-oppdrag-backend
+                    namespace: teamfamilie
                     # Team Logs
                 -   application: logging
                     namespace: nais-system

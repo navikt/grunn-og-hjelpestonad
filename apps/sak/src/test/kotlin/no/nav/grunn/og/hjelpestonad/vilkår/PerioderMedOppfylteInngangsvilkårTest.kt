@@ -1,14 +1,12 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PeriodeMedRettUtleder
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingStegGrunnlag
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PerioderMedOppfylteInngangsvilkårUtleder
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VurderteInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.Test
@@ -17,13 +15,14 @@ private const val DIABETES_TYPE_1 = "E109"
 private const val STØYSKADE = "H833"
 
 /**
- * Sannhetstabellen for utledningen. Ren test uten Spring og uten mockk, jf. ADR-0004.
+ * Sannhetstabellen for perioder med oppfylte inngangsvilkår. Ren test uten Spring og uten mockk,
+ * jf. ADR-0006 og ADR-0008.
  */
-class PeriodeMedRettUtlederTest {
+class PerioderMedOppfylteInngangsvilkårTest {
     private val behandlingId = UUID.randomUUID()
 
     @Test
-    fun `alle vilkår oppfylt i samme periode gir én periode med rett`() {
+    fun `begge inngangsvilkår oppfylt i samme periode gir én periode`() {
         val perioder =
             utled(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
@@ -33,11 +32,10 @@ class PeriodeMedRettUtlederTest {
         assertThat(perioder).hasSize(1)
         assertThat(perioder.single().fraOgMedDato).isEqualTo(LocalDate.of(2025, 1, 1))
         assertThat(perioder.single().tilOgMedDato).isEqualTo(LocalDate.of(2025, 12, 31))
-        assertThat(perioder.single().behandlingId).isEqualTo(behandlingId)
     }
 
     @Test
-    fun `ett vilkår NEI i midten gir to perioder med rett`() {
+    fun `ett inngangsvilkår NEI i midten gir to perioder`() {
         val perioder =
             utled(
                 medlemskap =
@@ -56,7 +54,7 @@ class PeriodeMedRettUtlederTest {
     }
 
     @Test
-    fun `hull i ett vilkår gir ingen rett i hullet`() {
+    fun `hull i ett inngangsvilkår gir ingen periode i hullet`() {
         val perioder =
             utled(
                 medlemskap =
@@ -87,9 +85,9 @@ class PeriodeMedRettUtlederTest {
     }
 
     @Test
-    fun `to ulike diagnoser som overlapper kaster ikke, og gir rett når minst én er JA`() {
-        val grunnlag =
-            grunnlag(
+    fun `to ulike diagnoser som overlapper kaster ikke, og gir periode når minst én er JA`() {
+        val vurderteInngangsvilkår =
+            vurderteInngangsvilkår(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
                 diagnoser =
                     listOf(
@@ -98,15 +96,15 @@ class PeriodeMedRettUtlederTest {
                     ),
             )
 
-        assertThatCode { PeriodeMedRettUtleder.utled(grunnlag) }.doesNotThrowAnyException()
+        assertThatCode { PerioderMedOppfylteInngangsvilkårUtleder.utled(vurderteInngangsvilkår) }.doesNotThrowAnyException()
 
-        assertThat(PeriodeMedRettUtleder.utled(grunnlag).map { it.fraOgMedDato to it.tilOgMedDato }).containsExactly(
+        assertThat(PerioderMedOppfylteInngangsvilkårUtleder.utled(vurderteInngangsvilkår).map { it.fraOgMedDato to it.tilOgMedDato }).containsExactly(
             LocalDate.of(2025, 1, 1) to LocalDate.of(2025, 6, 30),
         )
     }
 
     @Test
-    fun `samme diagnose to ganger etter hverandre slås sammen til én periode med rett`() {
+    fun `samme diagnose to ganger etter hverandre slås sammen til én periode`() {
         val perioder =
             utled(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
@@ -123,20 +121,12 @@ class PeriodeMedRettUtlederTest {
     }
 
     @Test
-    fun `tomt grunnlag kaster VilkårValideringFeil i stedet for å gi tom liste`() {
-        assertThatThrownBy { PeriodeMedRettUtleder.utled(grunnlag()) }
-            .isInstanceOf(VilkårValideringFeil::class.java)
-            .extracting { (it as VilkårValideringFeil).feil.map { feil -> feil.vilkårType } }
-            .isEqualTo(
-                listOf(
-                    VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
-                    VilkårType.DIAGNOSE,
-                ),
-            )
+    fun `ingen vurderte perioder gir ingen perioder, fordi et tidsrom uten vurdering regnes som nei`() {
+        assertThat(utled()).isEmpty()
     }
 
     @Test
-    fun `vilkår uten overlappende periode gir ingen rett`() {
+    fun `inngangsvilkår uten overlappende periode gir ingen perioder`() {
         val perioder =
             utled(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-03-31")),
@@ -177,12 +167,12 @@ class PeriodeMedRettUtlederTest {
     private fun utled(
         medlemskap: List<VilkårMedlemskap> = emptyList(),
         diagnoser: List<VilkårDiagnose> = emptyList(),
-    ) = PeriodeMedRettUtleder.utled(grunnlag(medlemskap, diagnoser))
+    ) = PerioderMedOppfylteInngangsvilkårUtleder.utled(vurderteInngangsvilkår(medlemskap, diagnoser))
 
-    private fun grunnlag(
+    private fun vurderteInngangsvilkår(
         medlemskap: List<VilkårMedlemskap> = emptyList(),
         diagnoser: List<VilkårDiagnose> = emptyList(),
-    ) = VilkårVurderingStegGrunnlag(
+    ) = VurderteInngangsvilkår(
         behandlingId = behandlingId,
         medlemskap = medlemskap,
         diagnoser = diagnoser,

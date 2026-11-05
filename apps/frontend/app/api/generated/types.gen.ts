@@ -127,6 +127,40 @@ export type AnsvarligSaksbehandlerResponse = {
     rolle: 'INNLOGGET_SAKSBEHANDLER' | 'ANNEN_SAKSBEHANDLER' | 'IKKE_SATT';
 };
 
+export type DetaljertSimuleringResultat = {
+    simuleringMottaker: Array<SimuleringMottaker>;
+};
+
+export type OppdragSimuleringResponse = {
+    resultat: DetaljertSimuleringResultat;
+    testandel?: Testandel | null;
+};
+
+export type SimuleringMottaker = {
+    simulertPostering: Array<SimulertPostering>;
+    mottakerNummer?: string | null;
+    mottakerType?: string | null;
+};
+
+export type SimulertPostering = {
+    fagOmrådeKode?: string | null;
+    erFeilkonto?: boolean | null;
+    fom?: string | null;
+    tom?: string | null;
+    betalingType?: string | null;
+    beløp?: number | null;
+    posteringType?: string | null;
+    forfallsdato?: string | null;
+    utenInntrekk?: boolean | null;
+    klassekode?: string | null;
+};
+
+export type Testandel = {
+    fom: string;
+    tom: string;
+    beløp: number;
+};
+
 export type InfotrygdStonaderRequest = {
     personident: string;
     stønadstype: 'GRUNNSTØNAD' | 'HJELPESTØNAD';
@@ -136,7 +170,7 @@ export type InfotrygdDelytelseResponse = {
     typeDelytelse: string;
     tidspunktReg: string;
     fom: string;
-    belop: number;
+    beløp: number;
     typeSats: string;
     typeUtbetaling: string;
     brukerid: string;
@@ -168,21 +202,21 @@ export type InfotrygdKildevedtak = {
 };
 
 export type InfotrygdStonadMedArv = {
-    stonadId: number;
+    stønadId: number;
     personnr: string;
     kodeRutine: string;
     datoStart: string;
-    kodeOpphor?: string | null;
-    datoOpphor?: string | null;
+    kodeOpphør?: string | null;
+    datoOpphør?: string | null;
     oppdragId?: number | null;
-    tidspunktOpphort?: string | null;
+    tidspunktOpphørt?: string | null;
     tidspunktReg?: string | null;
     brukerid?: string | null;
     vedtak: Array<InfotrygdVedtakMedArv>;
 };
 
 export type InfotrygdStonaderResponse = {
-    stonader: Array<InfotrygdStonadMedArv>;
+    stønader: Array<InfotrygdStonadMedArv>;
     diagnosetekster: {
         [key: string]: string;
     };
@@ -198,7 +232,7 @@ export type InfotrygdVedtakMedArv = {
     datoInnvFom: string;
     datoInnvTom?: string | null;
     datoMottattSak: string;
-    kodeVedtaksnivaa: string;
+    kodeVedtaksnivå: string;
     typeBeregning: string;
     tidspunktReg: string;
     brukerid: string;
@@ -221,7 +255,7 @@ export type VerdiMedKildeListInfotrygdGhResponse = {
 export type GjeldendeInfotrygdPeriode = {
     fom: string;
     tom?: string | null;
-    stonadId: number;
+    stønadId: number;
     vedtak: InfotrygdVedtakMedArv;
 };
 
@@ -309,13 +343,6 @@ export type VilkårMedlemskapResponse = {
     erVilkårOppfylt: boolean;
 };
 
-export type PeriodeMedRettResponse = {
-    id: string;
-    behandlingId: string;
-    fraOgMedDato?: string | null;
-    tilOgMedDato?: string | null;
-};
-
 export type VilkårDiagnoseRequest = {
     id?: string | null;
     kode: string;
@@ -336,6 +363,16 @@ export type VilkårDiagnoseResponse = {
     fraOgMedDato?: string | null;
     tilOgMedDato?: string | null;
     erVilkårOppfylt: boolean;
+};
+
+export type InngangsvilkårResponse = {
+    perioder: Array<PeriodeMedOppfylteInngangsvilkårResponse>;
+    nesteSteg: 'SATS_OG_TRYGDETID' | 'SIMULERING';
+};
+
+export type PeriodeMedOppfylteInngangsvilkårResponse = {
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
 };
 
 export type MedlemskapFaktagrunnlagResponse = {
@@ -431,7 +468,7 @@ export type SimuleringResultatResponse = {
 export type BehandlingEndringResponse = {
     id: string;
     behandlingId: string;
-    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'ANGRET_SEND_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
+    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'ANGRET_SEND_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'INNGANGSVILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
     utførtAv: string;
     utførtTid: string;
     detaljer?: string | null;
@@ -574,6 +611,21 @@ export type HentAnsvarligSaksbehandlerResponses = {
 };
 
 export type HentAnsvarligSaksbehandlerResponse = HentAnsvarligSaksbehandlerResponses[keyof HentAnsvarligSaksbehandlerResponses];
+
+export type SimulerMotOppdragData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/oppdrag/simulering/{behandlingId}';
+};
+
+export type SimulerMotOppdragResponses = {
+    200: OppdragSimuleringResponse;
+};
+
+export type SimulerMotOppdragResponse = SimulerMotOppdragResponses[keyof SimulerMotOppdragResponses];
 
 export type LagIverksettVedtaksbrevTaskData = {
     body?: never;
@@ -781,27 +833,6 @@ export type LagreMedlemskapPeriodeResponses = {
 
 export type LagreMedlemskapPeriodeResponse = LagreMedlemskapPeriodeResponses[keyof LagreMedlemskapPeriodeResponses];
 
-export type FullførStegData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/behandling/{behandlingId}/vilkar/fullfor';
-};
-
-export type FullførStegErrors = {
-    400: VilkårValideringFeilResponse;
-};
-
-export type FullførStegError = FullførStegErrors[keyof FullførStegErrors];
-
-export type FullførStegResponses = {
-    200: Array<PeriodeMedRettResponse>;
-};
-
-export type FullførStegResponse = FullførStegResponses[keyof FullførStegResponses];
-
 export type HentDiagnosePerioderData = {
     body?: never;
     path: {
@@ -831,6 +862,27 @@ export type LagreDiagnosePeriodeResponses = {
 };
 
 export type LagreDiagnosePeriodeResponse = LagreDiagnosePeriodeResponses[keyof LagreDiagnosePeriodeResponses];
+
+export type FullførInngangsvilkårData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/inngangsvilkar/fullfor';
+};
+
+export type FullførInngangsvilkårErrors = {
+    400: VilkårValideringFeilResponse;
+};
+
+export type FullførInngangsvilkårError = FullførInngangsvilkårErrors[keyof FullførInngangsvilkårErrors];
+
+export type FullførInngangsvilkårResponses = {
+    200: InngangsvilkårResponse;
+};
+
+export type FullførInngangsvilkårResponse = FullførInngangsvilkårResponses[keyof FullførInngangsvilkårResponses];
 
 export type InnhentFaktagrunnlagFraPdlData = {
     body?: never;
@@ -1130,20 +1182,26 @@ export type HentTotrinnskontrollStatusResponses = {
 
 export type HentTotrinnskontrollStatusResponse = HentTotrinnskontrollStatusResponses[keyof HentTotrinnskontrollStatusResponses];
 
-export type HentPerioderMedRettData = {
+export type HentPerioderMedOppfylteInngangsvilkårData = {
     body?: never;
     path: {
         behandlingId: string;
     };
     query?: never;
-    url: '/api/behandling/{behandlingId}/perioder-med-rett';
+    url: '/api/behandling/{behandlingId}/inngangsvilkar/perioder';
 };
 
-export type HentPerioderMedRettResponses = {
-    200: Array<PeriodeMedRettResponse>;
+export type HentPerioderMedOppfylteInngangsvilkårErrors = {
+    400: VilkårValideringFeilResponse;
 };
 
-export type HentPerioderMedRettResponse = HentPerioderMedRettResponses[keyof HentPerioderMedRettResponses];
+export type HentPerioderMedOppfylteInngangsvilkårError = HentPerioderMedOppfylteInngangsvilkårErrors[keyof HentPerioderMedOppfylteInngangsvilkårErrors];
+
+export type HentPerioderMedOppfylteInngangsvilkårResponses = {
+    200: Array<PeriodeMedOppfylteInngangsvilkårResponse>;
+};
+
+export type HentPerioderMedOppfylteInngangsvilkårResponse = HentPerioderMedOppfylteInngangsvilkårResponses[keyof HentPerioderMedOppfylteInngangsvilkårResponses];
 
 export type HentMedlemskapFaktagrunnlagData = {
     body?: never;

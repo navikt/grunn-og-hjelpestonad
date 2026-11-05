@@ -66,7 +66,7 @@ internal class BeregnTilkjentYtelseServiceTest : SpringContextTest() {
         val andel = tilkjentYtelse.andelerTilkjentYtelse.single()
         assertThat(andel.fom).isEqualTo(LocalDate.of(2025, 1, 1))
         assertThat(andel.tom).isEqualTo(LocalDate.of(2025, 3, 31))
-        assertThat(andel.beløp).isGreaterThan(0)
+        assertThat(andel.beløp).isGreaterThan(BigDecimal.ZERO)
         assertThat(andel.kildeBehandlingId).isEqualTo(behandlingId)
     }
 

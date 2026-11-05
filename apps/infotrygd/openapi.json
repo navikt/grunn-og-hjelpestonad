@@ -216,7 +216,7 @@
             "type" : [ "string", "null" ],
             "format" : "date"
           },
-          "belop" : {
+          "beløp" : {
             "type" : "number"
           },
           "typeSats" : {
@@ -233,7 +233,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "belop", "brukerid", "fom", "tidspunktReg", "typeDelytelse", "typeSats", "typeUtbetaling" ]
+        "required" : [ "beløp", "brukerid", "fom", "tidspunktReg", "typeDelytelse", "typeSats", "typeUtbetaling" ]
       },
       "GhResponse" : {
         "type" : "object",
@@ -295,7 +295,7 @@
       "StonadResponse" : {
         "type" : "object",
         "properties" : {
-          "stonadId" : {
+          "stønadId" : {
             "type" : "integer",
             "format" : "int64"
           },
@@ -309,10 +309,10 @@
             "type" : "string",
             "format" : "date"
           },
-          "kodeOpphor" : {
+          "kodeOpphør" : {
             "type" : [ "string", "null" ]
           },
-          "datoOpphor" : {
+          "datoOpphør" : {
             "type" : [ "string", "null" ],
             "format" : "date"
           },
@@ -320,7 +320,7 @@
             "type" : [ "integer", "null" ],
             "format" : "int64"
           },
-          "tidspunktOpphort" : {
+          "tidspunktOpphørt" : {
             "type" : [ "string", "null" ],
             "format" : "date-time"
           },
@@ -338,19 +338,19 @@
             }
           }
         },
-        "required" : [ "datoStart", "kodeRutine", "personnr", "stonadId", "vedtak" ]
+        "required" : [ "datoStart", "kodeRutine", "personnr", "stønadId", "vedtak" ]
       },
       "StonaderResponse" : {
         "type" : "object",
         "properties" : {
-          "stonader" : {
+          "stønader" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/StonadResponse"
             }
           }
         },
-        "required" : [ "stonader" ]
+        "required" : [ "stønader" ]
       },
       "VedtakResponse" : {
         "type" : "object",
@@ -387,7 +387,7 @@
             "type" : "string",
             "format" : "date"
           },
-          "kodeVedtaksnivaa" : {
+          "kodeVedtaksnivå" : {
             "type" : "string"
           },
           "typeBeregning" : {
@@ -426,7 +426,7 @@
             } ]
           }
         },
-        "required" : [ "brukerid", "datoInnvFom", "datoMottattSak", "delytelser", "endringer", "gh", "kodeResultat", "kodeVedtaksnivaa", "saksblokk", "saksnr", "tidspunktReg", "tknr", "typeBeregning", "typeSak", "vedtakId" ]
+        "required" : [ "brukerid", "datoInnvFom", "datoMottattSak", "delytelser", "endringer", "gh", "kodeResultat", "kodeVedtaksnivå", "saksblokk", "saksnr", "tidspunktReg", "tknr", "typeBeregning", "typeSak", "vedtakId" ]
       },
       "PersonidenterRequest" : {
         "type" : "object",
@@ -540,7 +540,7 @@
             "type" : [ "string", "null" ],
             "format" : "date"
           },
-          "getårsakskode" : {
+          "årsakskode" : {
             "type" : "string"
           },
           "behandlendeEnhet" : {
@@ -556,7 +556,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "behandlendeEnhet", "getårsakskode", "id", "kapittelnr", "nivå", "personident", "region", "registrertAvEnhet", "resultat", "saksblokk", "saksnr", "tkNr", "type", "undervalg", "valg" ]
+        "required" : [ "behandlendeEnhet", "id", "kapittelnr", "nivå", "personident", "region", "registrertAvEnhet", "resultat", "saksblokk", "saksnr", "tkNr", "type", "undervalg", "valg", "årsakskode" ]
       },
       "InfotrygdSakerResponse" : {
         "type" : "object",
