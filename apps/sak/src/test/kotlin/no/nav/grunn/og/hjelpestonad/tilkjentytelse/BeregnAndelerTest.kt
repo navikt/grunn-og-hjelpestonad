@@ -37,7 +37,7 @@ internal class BeregnAndelerTest {
         val andel = andeler.single()
         assertThat(andel.fom).isEqualTo(LocalDate.of(2025, 1, 1))
         assertThat(andel.tom).isEqualTo(LocalDate.of(2025, 3, 31))
-        assertThat(andel.beløp).isGreaterThan(0)
+        assertThat(andel.beløp).isEqualByComparingTo(BigDecimal(3200))
         assertThat(andel.kildeBehandlingId).isEqualTo(kildeBehandlingId)
     }
 

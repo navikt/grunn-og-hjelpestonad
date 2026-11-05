@@ -6,6 +6,7 @@ import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Embedded
 import org.springframework.data.relational.core.mapping.MappedCollection
 import org.springframework.data.relational.core.mapping.Table
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
@@ -28,7 +29,7 @@ data class AndelTilkjentYtelse(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Column("belop")
-    val beløp: Int,
+    val beløp: BigDecimal,
     val fom: LocalDate,
     val tom: LocalDate,
     val kildeBehandlingId: UUID,

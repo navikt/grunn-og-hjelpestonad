@@ -4,6 +4,7 @@ import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import java.time.YearMonth
 import java.util.UUID
 
@@ -78,7 +79,7 @@ class StartmånedTest {
         fom: String,
         tom: String,
     ) = AndelTilkjentYtelse(
-        beløp = 1000,
+        beløp = BigDecimal(1000),
         fom = YearMonth.parse(fom).atDay(1),
         tom = YearMonth.parse(tom).atEndOfMonth(),
         kildeBehandlingId = behandlingId,
