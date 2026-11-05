@@ -30,19 +30,19 @@ class InngangsvilkårStegService(
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
 
-        val grunnlag = hentGrunnlag(behandlingId)
-        val feil = VilkårVurderingValidering.valider(grunnlag)
+        val vurderteInngangsvilkår = hentVurderteInngangsvilkår(behandlingId)
+        val feil = VilkårVurderingValidering.valider(vurderteInngangsvilkår)
         if (feil.isNotEmpty()) throw VilkårValideringFeil(feil)
 
-        val perioder = PerioderMedOppfylteInngangsvilkårUtleder.utled(grunnlag)
+        val perioder = PerioderMedOppfylteInngangsvilkårUtleder.utled(vurderteInngangsvilkår)
         registrerEndringshistorikk(behandlingId, perioder)
         return InngangsvilkårResultat(perioder = perioder, nesteSteg = NesteStegEtterInngangsvilkår.utled(perioder))
     }
 
-    fun hentPerioder(behandlingId: UUID): List<PeriodeMedOppfylteInngangsvilkår> = PerioderMedOppfylteInngangsvilkårUtleder.utled(hentGrunnlag(behandlingId))
+    fun hentPerioder(behandlingId: UUID): List<PeriodeMedOppfylteInngangsvilkår> = PerioderMedOppfylteInngangsvilkårUtleder.utled(hentVurderteInngangsvilkår(behandlingId))
 
-    private fun hentGrunnlag(behandlingId: UUID) =
-        VilkårVurderingStegGrunnlag(
+    private fun hentVurderteInngangsvilkår(behandlingId: UUID) =
+        VurderteInngangsvilkår(
             behandlingId = behandlingId,
             medlemskap = vilkårMedlemskapService.hentPerioder(behandlingId),
             diagnoser = vilkårDiagnoseService.hentPerioder(behandlingId),

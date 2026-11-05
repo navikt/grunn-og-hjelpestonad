@@ -15,9 +15,9 @@ data class PeriodeMedOppfylteInngangsvilkår(
 ) : Periodisert
 
 object PerioderMedOppfylteInngangsvilkårUtleder {
-    fun utled(grunnlag: VilkårVurderingStegGrunnlag): List<PeriodeMedOppfylteInngangsvilkår> =
-        grunnlag.medlemskap
-            .erOppfyltTidslinje(grunnlag.diagnoser)
+    fun utled(vurderteInngangsvilkår: VurderteInngangsvilkår): List<PeriodeMedOppfylteInngangsvilkår> =
+        vurderteInngangsvilkår.medlemskap
+            .erOppfyltTidslinje(vurderteInngangsvilkår.diagnoser)
             .slåSammenLikePerioder()
             .tilPerioder()
             .filtrerIkkeNull()

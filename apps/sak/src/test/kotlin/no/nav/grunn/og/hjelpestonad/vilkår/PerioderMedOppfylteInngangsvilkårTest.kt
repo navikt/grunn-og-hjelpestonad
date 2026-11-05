@@ -1,7 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PerioderMedOppfylteInngangsvilkårUtleder
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingStegGrunnlag
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VurderteInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
@@ -86,8 +86,8 @@ class PerioderMedOppfylteInngangsvilkårTest {
 
     @Test
     fun `to ulike diagnoser som overlapper kaster ikke, og gir periode når minst én er JA`() {
-        val grunnlag =
-            grunnlag(
+        val vurderteInngangsvilkår =
+            vurderteInngangsvilkår(
                 medlemskap = listOf(medlemskap("2025-01-01", "2025-12-31")),
                 diagnoser =
                     listOf(
@@ -96,9 +96,9 @@ class PerioderMedOppfylteInngangsvilkårTest {
                     ),
             )
 
-        assertThatCode { PerioderMedOppfylteInngangsvilkårUtleder.utled(grunnlag) }.doesNotThrowAnyException()
+        assertThatCode { PerioderMedOppfylteInngangsvilkårUtleder.utled(vurderteInngangsvilkår) }.doesNotThrowAnyException()
 
-        assertThat(PerioderMedOppfylteInngangsvilkårUtleder.utled(grunnlag).map { it.fraOgMedDato to it.tilOgMedDato }).containsExactly(
+        assertThat(PerioderMedOppfylteInngangsvilkårUtleder.utled(vurderteInngangsvilkår).map { it.fraOgMedDato to it.tilOgMedDato }).containsExactly(
             LocalDate.of(2025, 1, 1) to LocalDate.of(2025, 6, 30),
         )
     }
@@ -121,7 +121,7 @@ class PerioderMedOppfylteInngangsvilkårTest {
     }
 
     @Test
-    fun `tomt grunnlag gir ingen perioder, fordi et tidsrom uten vurdering regnes som nei`() {
+    fun `ingen vurderte perioder gir ingen perioder, fordi et tidsrom uten vurdering regnes som nei`() {
         assertThat(utled()).isEmpty()
     }
 
@@ -167,12 +167,12 @@ class PerioderMedOppfylteInngangsvilkårTest {
     private fun utled(
         medlemskap: List<VilkårMedlemskap> = emptyList(),
         diagnoser: List<VilkårDiagnose> = emptyList(),
-    ) = PerioderMedOppfylteInngangsvilkårUtleder.utled(grunnlag(medlemskap, diagnoser))
+    ) = PerioderMedOppfylteInngangsvilkårUtleder.utled(vurderteInngangsvilkår(medlemskap, diagnoser))
 
-    private fun grunnlag(
+    private fun vurderteInngangsvilkår(
         medlemskap: List<VilkårMedlemskap> = emptyList(),
         diagnoser: List<VilkårDiagnose> = emptyList(),
-    ) = VilkårVurderingStegGrunnlag(
+    ) = VurderteInngangsvilkår(
         behandlingId = behandlingId,
         medlemskap = medlemskap,
         diagnoser = diagnoser,
