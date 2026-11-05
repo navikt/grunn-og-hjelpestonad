@@ -255,7 +255,7 @@ er modellert sammen med ekstrautgiftene.
 ### Satsbeløp
 
 - En Kotlin-liste i et `object` med én rad per sats og gyldighetsperiode:
-  sats, månedsbeløp (`BigDecimal`), gyldig fra og med, gyldig til og med.
+  sats, månedsbeløp i hele kroner (`Int`), gyldig fra og med, gyldig til og med.
 - Hele historikken fra rundskrivet til § 6-3 fra 1.1.1997, med månedsbeløpet.
   Ikke årsbeløpet delt på 12.
 - Satsene fra 2024 legges inn med gyldighet fra 1.1.2024. Fag skal bekrefte
