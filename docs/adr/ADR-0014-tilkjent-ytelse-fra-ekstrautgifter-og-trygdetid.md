@@ -87,15 +87,28 @@ ligger i fellesdelen, ikke i `VilkårPeriodeService`, så den gjelder både
 vilkårene og trygdetiden. Et vedtak om innvilgelse og simuleringen stopper med
 en melding om å fullføre steg 2 hvis tilkjent ytelse mangler.
 
-### Avslag eller opphør når ingen perioder har oppfylte inngangsvilkår
+### Ingen rett i noen måned hopper over steg 2
 
-Backend avgjør utfallet og sender det med i svaret fra
+Backend avgjør neste steg og sender det med i svaret fra
 `POST /api/behandling/{behandlingId}/inngangsvilkar/fullfor`:
 
-| Situasjon | Utfall | Neste steg |
-|---|---|---|
-| Ingen tidligere iverksatt behandling | Avslag | Brev. Steg 2 og simulering hoppes over |
-| Revurdering | Opphør | Steg 2 viser at saken opphører. Neste regner ut tilkjent ytelse, slik at oppdrag kan opphøre |
+| Situasjon | Neste steg |
+|---|---|
+| Perioder med oppfylte inngangsvilkår | Sats og trygdetid |
+| Ingen rett i noen måned | Simulering. Steg 2 hoppes over |
+
+Ingen rett i noen måned går til simulering også i en førstegangsbehandling. Det
+holder løsningen enkel. Etter hvert bør en førstegangsbehandling gå rett til
+brev, fordi det ikke finnes noe å simulere mot oppdrag.
+
+Når steg 2 hoppes over, regner ikke steg 2 ut tilkjent ytelse. I en revurdering
+må tilkjent ytelse uten andeler likevel lagres, slik at oppdrag stopper
+utbetalingen. Hvem som lagrer den, avgjøres i ticket 10.
+
+Tidligere sa ADR-en at backend skulle skille mellom avslag og opphør i dette
+steget. Vi gikk bort fra det fordi begrepene beskriver vedtaket, ikke hva steg 1
+kan slutte. Hva avslag og opphør betyr i en revurdering, står åpent i
+aksjonspunktene.
 
 ### Vedtaket sjekkes mot tilkjent ytelse
 
@@ -167,5 +180,11 @@ betaler vi for mye.
 - [ ] Teamet bestemmer hvordan løpende saker får nye satsbeløp når Stortinget
       endrer satsene, for eksempel med en automatisk behandling for satsendring
       som i barnetrygd.
+- [ ] Fag avklarer hva avslag og opphør betyr i en revurdering: hvilken måned et
+      opphør gjelder fra, om en revurdering etter et opphør uten løpende ytelse
+      er avslag eller opphør, og hva avslag på høyere sats og delvis opphør
+      heter. Oppdater «Avslag» og «Opphør» i `CONTEXT.md` etterpå.
+- [ ] Førstegangsbehandlinger uten rett i noen måned går rett til brev i stedet
+      for til simulering.
 - [ ] Teamet bygger sjekken av vedtaksresultatet for revurderinger sammen med
       revurdering og opphør.
