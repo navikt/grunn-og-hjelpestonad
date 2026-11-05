@@ -46,7 +46,7 @@ class OppdragSimuleringService(
                 .hentTilkjentYtelse(behandlingId)
                 ?.andelerTilkjentYtelse
                 .orEmpty()
-                .filter { it.beløp != 0 }
+                .filter { tilUtbetalingsbeløp(it.beløp) != 0 }
 
         val testandel =
             if (andeler.isEmpty()) {
@@ -80,7 +80,7 @@ class OppdragSimuleringService(
 
         return OppdragSimuleringResponse(
             resultat = resultat,
-            testandel = testandel?.let { Testandel(fom = it.fom, tom = it.tom, beløp = it.beløp) },
+            testandel = testandel?.let { Testandel(fom = it.fom, tom = it.tom, beløp = tilUtbetalingsbeløp(it.beløp)) },
         )
     }
 
@@ -98,7 +98,7 @@ class OppdragSimuleringService(
             måned: YearMonth,
         ): AndelTilkjentYtelse =
             AndelTilkjentYtelse(
-                beløp = TESTANDEL_BELØP,
+                beløp = TESTANDEL_BELØP.toBigDecimal(),
                 fom = måned.atDay(1),
                 tom = måned.atEndOfMonth(),
                 kildeBehandlingId = behandlingId,

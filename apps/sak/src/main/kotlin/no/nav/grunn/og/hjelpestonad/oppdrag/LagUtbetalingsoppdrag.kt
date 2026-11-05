@@ -25,7 +25,7 @@ data class SimuleringsgrunnlagOppdrag(
  * Kjedingsstøtte mot tidligere andeler (tabellen `utbetalingsandel` i ADR-0011) er ikke bygget.
  */
 fun lagUtbetalingsoppdragForSimulering(grunnlag: SimuleringsgrunnlagOppdrag): Utbetalingsoppdrag {
-    if (grunnlag.andeler.none { it.beløp != 0 }) {
+    if (grunnlag.andeler.none { tilUtbetalingsbeløp(it.beløp) != 0 }) {
         throw UgyldigInput("Simulering krever minst én andel med beløp ulik 0")
     }
 
@@ -35,7 +35,7 @@ fun lagUtbetalingsoppdragForSimulering(grunnlag: SimuleringsgrunnlagOppdrag): Ut
                 id = andel.id.toString(),
                 fom = YearMonth.from(andel.fom),
                 tom = YearMonth.from(andel.tom),
-                beløp = andel.beløp,
+                beløp = tilUtbetalingsbeløp(andel.beløp),
                 personIdent = grunnlag.personIdent,
                 type = GrunnOgHjelpYtelsestype.GRUNNSTØNAD,
                 periodeId = null,
