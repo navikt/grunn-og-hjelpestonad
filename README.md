@@ -45,9 +45,12 @@ for Swagger og databasehåndtering.
 
 ```bash
 cd apps/frontend
-npm ci
+nvm install
+nvm use
+npm install --global pnpm@11.28.11
+pnpm install --frozen-lockfile
 sh hent-og-lagre-miljovariabler.sh   # Krever pålogget naisdevice
-npm run dev                          # http://localhost:8080
+pnpm run dev                       # http://localhost:8080
 ```
 
 Se [apps/frontend/README.md](apps/frontend/README.md) for oppsett av `@navikt`-pakker fra
