@@ -295,7 +295,8 @@ export const zGjeldendeInfotrygdPeriode = z.object({
     fom: z.iso.date(),
     tom: z.iso.date().nullish(),
     stønadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    vedtak: zInfotrygdVedtakMedArv
+    vedtak: zInfotrygdVedtakMedArv,
+    infotrygdBeløp: z.number()
 });
 
 export const zInfotrygdGjeldendePerioderResponse = z.object({
