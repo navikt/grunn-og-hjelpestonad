@@ -2,7 +2,7 @@
 
 **What to build:** En beslutning om hvordan vilkåret nødvendige ekstrautgifter modelleres: hva saksbehandler registrerer, hva systemet regner ut og hva som lagres. Svaret avgjør om koden for ticket 07 beholdes, og hva utledningen i ticket 09 får inn. Teamet og fag må avgjøre det sammen. Én utvikler eller en agent kan ikke avgjøre det alene.
 
-**Blocked by:** None (can start immediately). Spørsmålet om migrering trenger svaret fra ticket 18.
+**Blocked by:** None (can start immediately)
 
 **Status:** needs-info
 
@@ -137,9 +137,9 @@ Infotrygd har én hjemmelbokstav, én eller to diagnosekoder, én sats og Infotr
 - Hva oppretter migreringen? Avklart for C og D: én post med hjemmelbokstaven og diagnosene, med satsen fra Infotrygd som grunnlag, slik en standardsats har. Posten teller med årsbeløpet til satsen, så summen gir samme sats. Infotrygd-beløpet vises i oppsummeringen av vedtaket, men teller ikke som ekstrautgift (punkt 6 under «Avklart»). I D blir satsen også vedtatt sats.
 - Avklart: i en revurdering kan saksbehandler endre eller slette posten fra Infotrygd, som alle andre utgifter (punkt 5 under «Avklart»).
 - Hva ser saksbehandler når en migrert sak revurderes?
-- Hva gjør vi med hjemmelbokstav d og e fra før 2020, se ticket 18?
+- Finnes det løpende saker med bokstav d eller e, og skal migreringen ta dem med som de er? Bokstavene gir ikke grunnstønad i nye tilfeller fra 1. januar 2020, men eldre saker kan fortsatt ha dem. Forslag: migreringen tar dem med, men saksbehandler kan ikke velge dem i nye utgifter.
 
-**Avgjør:** teamet og fag. **Påvirker:** migrering/16, 18.
+**Avgjør:** teamet og fag. **Påvirker:** migrering/16.
 
 ## Konsekvenser for koden
 
