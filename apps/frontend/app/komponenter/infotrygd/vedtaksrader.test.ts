@@ -72,7 +72,7 @@ const gjeldendePeriode = (
   v: InfotrygdVedtakMedArv,
   fom: string,
   tom: string | null
-): GjeldendeInfotrygdPeriode => ({ fom, tom, stønadId: 1, vedtak: v });
+): GjeldendeInfotrygdPeriode => ({ fom, tom, stønadId: 1, vedtak: v, infotrygdBeløp: 1000 });
 
 function finn(rader: Vedtaksrad[], vedtakId: number): Vedtaksrad {
   const rad = rader.find((r) => r.vedtak.vedtakId === vedtakId);

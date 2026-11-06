@@ -257,6 +257,7 @@ export type GjeldendeInfotrygdPeriode = {
     tom?: string | null;
     stønadId: number;
     vedtak: InfotrygdVedtakMedArv;
+    infotrygdBeløp: number;
 };
 
 export type InfotrygdGjeldendePerioderResponse = {
