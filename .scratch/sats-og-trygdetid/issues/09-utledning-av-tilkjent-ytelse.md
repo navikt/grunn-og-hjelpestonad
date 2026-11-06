@@ -4,7 +4,7 @@
 
 🔴 Rød sone: kjernelogikk for hva søker får utbetalt. Gå gjennom reglene og testene nøye.
 
-**Blocked by:** 04, 07, 08
+**Blocked by:** 04, 07, 08, 15
 
 **Status:** ready-for-agent
 
@@ -24,3 +24,7 @@ Spec: [spec.md](../spec.md)
 - [ ] Eksempelet i dokumentet om utledning av tilkjent ytelse er en test.
 - [ ] Det er én test per regel over, og én test der økning og reduksjon skjer i samme måned.
 - [ ] Utledningen av perioder med oppfylte inngangsvilkår fra ticket 05 brukes, ikke kopieres.
+
+## Comments
+
+**2026-11-06:** Blokkert av ticket 15. Inndataene om ekstrautgifter, regelen om hull og valideringen over forutsetter `JA`/`NEI` og sats per periode. Det kan endre seg når modellen er valgt.
