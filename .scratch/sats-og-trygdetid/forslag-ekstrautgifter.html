@@ -1,0 +1,1089 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forslag: nødvendige ekstrautgifter i grunnstønad</title>
+<link rel="stylesheet" href="https://cdn.nav.no/aksel/@navikt/ds-css/8.0.0/index.min.css">
+<!--
+  Forslag til diskusjon med fag og teamet. Sakene er oppdiktet.
+  Bytt med ?variant=A|B|C|D&sak=1|2|3|4, eller piltastene.
+  Logikken i skriptet med id «satsberegning» er ren og uten DOM.
+-->
+<style>
+  body { background: var(--ax-bg-neutral-soft); color: var(--ax-text-neutral); }
+  .side { max-width: 1240px; margin: 0 auto; padding: var(--ax-space-32) var(--ax-space-24) 120px; }
+  .stack { display: flex; flex-direction: column; gap: var(--ax-space-16); }
+  .stack-24 { display: flex; flex-direction: column; gap: var(--ax-space-24); }
+  .stack-8 { display: flex; flex-direction: column; gap: var(--ax-space-8); }
+  .rad { display: flex; flex-wrap: wrap; gap: var(--ax-space-8); align-items: center; }
+  .to-kolonner { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--ax-space-24); align-items: start; }
+  @media (max-width: 960px) { .to-kolonner { grid-template-columns: 1fr; } }
+  .kort { background: var(--ax-bg-default); border: 1px solid var(--ax-border-neutral-subtle); border-radius: var(--ax-radius-12); padding: var(--ax-space-24); }
+  .kort--stille { background: var(--ax-bg-neutral-soft); }
+  .skjema-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--ax-space-16); align-items: end; }
+  .tall { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tabell-wrapper { overflow-x: auto; }
+  .kode { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.875rem; background: var(--ax-bg-neutral-soft); border: 1px solid var(--ax-border-neutral-subtle); border-radius: var(--ax-radius-8); padding: var(--ax-space-12); white-space: pre; overflow-x: auto; margin: 0; }
+  ul.liste, ol.liste { margin: 0; padding-left: 1.25rem; }
+  .liste li + li { margin-top: var(--ax-space-4); }
+  .liten { font-size: 0.875rem; }
+  .dempet { color: var(--ax-text-neutral-subtle); }
+  details.utvikler { border: 1px dashed var(--ax-border-neutral); border-radius: var(--ax-radius-8); padding: var(--ax-space-12); background: var(--ax-bg-default); }
+  details.utvikler summary { cursor: pointer; font-weight: 600; }
+  details.utvikler[open] summary { margin-bottom: var(--ax-space-8); }
+  blockquote { margin: 0; padding-left: var(--ax-space-16); border-left: 4px solid var(--ax-border-neutral-subtle); }
+  textarea.aksel-text-field__input { min-height: 4rem; width: 100%; }
+  .feil { color: var(--ax-text-danger); font-size: 0.875rem; }
+  .prototype-bar {
+    position: fixed; bottom: var(--ax-space-16); left: 50%; transform: translateX(-50%);
+    display: flex; gap: var(--ax-space-8); align-items: center;
+    background: #1b1b1b; color: #fff; border-radius: 999px; padding: var(--ax-space-8) var(--ax-space-16);
+    box-shadow: 0 6px 24px rgba(0,0,0,.35); z-index: 10; font: 600 0.875rem/1.2 system-ui, sans-serif;
+  }
+  .prototype-bar button { background: transparent; color: #fff; border: 1px solid #666; border-radius: 999px; padding: 4px 12px; cursor: pointer; font: inherit; }
+  .prototype-bar button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main class="side stack-24">
+
+  <header class="stack-8">
+    <span data-color="warning" data-variant="strong" class="aksel-tag aksel-tag--small aksel-body-short aksel-body-short--small" style="align-self:flex-start">Forslag til diskusjon. Sakene er oppdiktet</span>
+    <h1 class="aksel-heading aksel-heading--xlarge">Hvordan skal saksbehandler registrere nødvendige ekstrautgifter?</h1>
+    <p class="aksel-body-long aksel-body-long--large">
+      Vi har fire forslag til hva saksbehandler registrerer om ekstrautgiftene i en sak om grunnstønad, og hva systemet
+      regner ut. Siden viser hvert forslag på fire oppdiktede saker. Vi trenger fag og teamet for å velge.
+    </p>
+  </header>
+
+  <section class="kort stack" aria-labelledby="intro-tittel">
+    <h2 id="intro-tittel" class="aksel-heading aksel-heading--medium">Kort om grunnstønad</h2>
+    <p class="aksel-body-long aksel-body-long--medium">
+      Grunnstønad er en månedlig ytelse etter folketrygdloven kapittel 6. Den dekker helt eller delvis nødvendige
+      ekstrautgifter som en varig sykdom, skade eller lyte gir, for eksempel utgifter til bil, spesialkost eller klær som
+      slites fort.
+    </p>
+
+    <h3 class="aksel-heading aksel-heading--small">Vilkårene</h3>
+    <ul class="liste aksel-body-long aksel-body-long--medium">
+      <li><strong>Medlemskap.</strong> Søker må være medlem av folketrygden.</li>
+      <li><strong>Diagnose.</strong> Søker må ha en varig sykdom, skade eller lyte (§ 6-2). Medlemskap og diagnose kalles
+        inngangsvilkår og vurderes først. Er ett av dem ikke oppfylt, vurderer ikke saksbehandler resten.</li>
+      <li><strong>Nødvendige ekstrautgifter</strong> (§ 6-3) avgjør om søker har rett, og hvilken sats. Det er dette
+        vilkåret siden handler om.</li>
+      <li><strong>Institusjon</strong> (§ 6-8). Opphold på institusjon gir ikke rett, unntatt for ekstrautgifter
+        institusjonen ikke dekker. Vilkåret er ikke bygget ennå, og skal designes sammen med ekstrautgiftene.</li>
+    </ul>
+    <p class="aksel-body-long aksel-body-long--medium">
+      <strong>Trygdetid</strong> (§ 6-6) er ikke et vilkår. Har søker alderspensjon eller uføretrygd med mindre enn full
+      trygdetid, blir beløpet redusert med samme brøk, for eksempel 20/40. Søker beholder satsen.
+    </p>
+
+    <h3 class="aksel-heading aksel-heading--small">Hva ekstrautgiftene kan gå til</h3>
+    <p class="aksel-body-long aksel-body-long--medium">
+      § 6-3 første ledd lister formålene med bokstaver. Vi kaller bokstaven <strong>hjemmelbokstav</strong>.
+    </p>
+    <ul class="liste aksel-body-long aksel-body-long--medium" id="bokstavliste"></ul>
+    <p class="aksel-body-short aksel-body-short--small dempet">
+      Bokstav d (telefon) og e (proteser, støttebandasje o.l.) gir ikke grunnstønad i nye tilfeller fra 1. januar 2020.
+      Løpende saker fra før kan fortsatt ha dem.
+    </p>
+
+    <h3 class="aksel-heading aksel-heading--small">Fra ekstrautgifter til sats</h3>
+    <p class="aksel-body-long aksel-body-long--medium">
+      Grunnstønad har seks satser. Stortinget fastsetter et månedsbeløp for hver sats, vanligvis fra 1. januar. Beløpene
+      for 2027 under er oppdiktet. Vi bruker dem bare for å vise hva som skjer ved en satsendring.
+    </p>
+    <div class="tabell-wrapper">
+      <table class="aksel-table aksel-table--small">
+        <caption class="aksel-typo--visually-hidden">Satsbeløp</caption>
+        <thead class="aksel-table__header"><tr class="aksel-table__row">
+          <th class="aksel-table__header-cell aksel-label" scope="col">Sats</th>
+          <th class="aksel-table__header-cell aksel-label tall" scope="col">Per måned fra 2024</th>
+          <th class="aksel-table__header-cell aksel-label tall" scope="col">Per år fra 2024</th>
+          <th class="aksel-table__header-cell aksel-label tall" scope="col">Per måned fra 2027 (oppdiktet)</th>
+          <th class="aksel-table__header-cell aksel-label tall" scope="col">Per år fra 2027 (oppdiktet)</th>
+        </tr></thead>
+        <tbody class="aksel-table__body" id="satstabell"></tbody>
+      </table>
+    </div>
+    <ul class="liste aksel-body-long aksel-body-long--medium">
+      <li>Saksbehandler godkjenner de ekstrautgiftene som er nødvendige, og legger dem sammen. Rundskrivet til § 6-3:
+        «Dersom det foreligger ekstrautgifter til flere formål […] skal utgiftene legges sammen før satsen fastsettes.»</li>
+      <li>Søker får den høyeste satsen summen minst svarer til. Er summen under laveste sats, har søker ikke rett
+        (§ 6-3 tredje ledd).</li>
+      <li>Noen diagnoser gir en <strong>standardsats</strong> uten at søker må dokumentere utgiftene, for eksempel cøliaki
+        og ADHD med hyperaktivitet hos barn under 18 år. Standardsatsen legges sammen med de andre utgiftene. Her teller vi
+        den med årsbeløpet til satsen. Det er ikke avklart.</li>
+    </ul>
+    <p class="aksel-body-long aksel-body-long--medium">
+      <strong>Eksempel.</strong> Søker har 6 000 kr i året i utgifter til strøm til rullestol og 7 900 kr til klær. Summen
+      er 13 900 kr. Sats 2 er 13 752 kr i året og sats 3 er 18 024 kr, så søker får sats 2.
+    </p>
+
+    <h3 class="aksel-heading aksel-heading--small">Dette er avklart</h3>
+    <ul class="liste aksel-body-long aksel-body-long--medium">
+      <li><strong>Satsen regnes ikke ut på nytt når Stortinget endrer satsbeløpene.</strong> Søker beholder satsen og
+        får det nye beløpet for den. Satsen endres bare når vilkårene vurderes på nytt, eller når en standardsats endres
+        med alderen, for eksempel når standardsatsen for cøliaki går fra sats 2 til sats 1.</li>
+      <li><strong>En satsendring kan treffe vurderingsperioden.</strong> Saksbehandler vurderer fra tre måneder før
+        søknaden, og saken blir ofte ikke behandlet med en gang. Går perioden over en satsendring, kan satsen i teorien gå
+        ned fra satsendringen. En saksbehandler sier det slik:
+        <blockquote class="aksel-body-long aksel-body-long--small">I praksis vil dette svært sjelden skje, siden 1)
+          differansen ved en slik satsjustering normalt er ubetydelig, og 2) vi har så stor grad av skjønnsmessige
+          vurderinger på størrelsen på ekstrautgifter […] at vi mest sannsynlig i dette tilfellet ville ha vurdert denne til
+          sats 2 hele veien.</blockquote>
+      </li>
+      <li><strong>Løpende saker skal flyttes fra Infotrygd.</strong> Infotrygd har én hjemmelbokstav, én eller to
+        diagnoser og én sats per periode, og beløpet som utbetales hver måned. Den har ikke beløpene for selve
+        ekstrautgiftene. Migreringen tar med satsen fra siste periode i Infotrygd.</li>
+    </ul>
+
+    <h3 class="aksel-heading aksel-heading--small">Dette skal vi bestemme</h3>
+    <p class="aksel-body-long aksel-body-long--medium">Hva saksbehandler registrerer, og hva systemet regner ut. Fire forslag:</p>
+    <ul class="liste aksel-body-long aksel-body-long--medium">
+      <li><strong>A. Sats direkte.</strong> Saksbehandler legger sammen utgiftene selv, velger sats per periode og skriver
+        regnestykket i begrunnelsen.</li>
+      <li><strong>B. Sats med kobling.</strong> Som A, men saksbehandler krysser også av for hjemmelbokstaver og diagnoser
+        per periode.</li>
+      <li><strong>C. Utgiftsposter.</strong> Saksbehandler registrerer hver godkjent utgift med hjemmelbokstav, diagnoser,
+        beløp og periode. Systemet legger sammen og finner satsen.</li>
+      <li><strong>D. Utgiftsposter og vedtatt sats.</strong> Som C, men satsen systemet finner, er et forslag.
+        Saksbehandler bekrefter forslaget eller velger en annen sats med begrunnelse. Den vedtatte satsen lagres.</li>
+    </ul>
+  </section>
+
+  <section class="kort stack" aria-labelledby="sak-tittel">
+    <h2 id="sak-tittel" class="aksel-heading aksel-heading--medium">Velg sak</h2>
+    <div class="aksel-toggle-group__wrapper">
+      <div class="aksel-toggle-group aksel-toggle-group--small" role="radiogroup" aria-labelledby="sak-tittel" id="sakvelger"></div>
+    </div>
+    <p id="sak-beskrivelse" class="aksel-body-long aksel-body-long--medium"></p>
+    <div>
+      <h3 class="aksel-heading aksel-heading--xsmall">Diagnoser som er vurdert til ja</h3>
+      <ul id="sak-diagnoser" class="liste aksel-body-short aksel-body-short--medium"></ul>
+    </div>
+    <div id="migrert-valg" class="stack"></div>
+  </section>
+
+  <section class="stack" aria-label="Forslag">
+    <div class="aksel-tabs aksel-tabs--medium">
+      <div class="aksel-tabs__tablist-wrapper">
+        <div class="aksel-tabs__tablist" role="tablist" aria-orientation="horizontal" aria-label="Forslag" id="faner"></div>
+      </div>
+      <div class="aksel-tabs__tabpanel" role="tabpanel" tabindex="0" id="fanepanel" style="padding-top: var(--ax-space-24)"></div>
+    </div>
+  </section>
+
+  <section class="kort stack" aria-labelledby="sammenligning-tittel">
+    <h2 id="sammenligning-tittel" class="aksel-heading aksel-heading--medium">Sammenligning</h2>
+    <div class="tabell-wrapper">
+      <table class="aksel-table aksel-table--small">
+        <thead class="aksel-table__header">
+          <tr class="aksel-table__row">
+            <th class="aksel-table__header-cell aksel-label" scope="col"><span class="aksel-typo--visually-hidden">Egenskap</span></th>
+            <th class="aksel-table__header-cell aksel-label" scope="col">A. Sats direkte</th>
+            <th class="aksel-table__header-cell aksel-label" scope="col">B. Sats med kobling</th>
+            <th class="aksel-table__header-cell aksel-label" scope="col">C. Utgiftsposter</th>
+            <th class="aksel-table__header-cell aksel-label" scope="col">D. Utgiftsposter og vedtatt sats</th>
+          </tr>
+        </thead>
+        <tbody class="aksel-table__body" id="sammenligning"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="kort stack" aria-labelledby="sporsmal-tittel">
+    <h2 id="sporsmal-tittel" class="aksel-heading aksel-heading--medium">Spørsmål vi trenger svar på</h2>
+    <ol class="liste aksel-body-long aksel-body-long--medium">
+      <li>Hvilket forslag velger vi?</li>
+      <li>Skal det være høyst én utgift per hjemmelbokstav i en periode, slik at to transportutgifter blir ett samlet beløp?</li>
+      <li>Må hver utgift knyttes til minst én diagnose? Kan én utgift knyttes til flere diagnoser?</li>
+      <li>Hvor skriver saksbehandler om utgifter søker har krevd, men som ikke er nødvendige? Hvordan skiller vedtaksbrevet
+        mellom «summen er under laveste sats» og «utgiften er ikke nødvendig»?</li>
+      <li>Må saksbehandler begrunne en annen sats enn forslaget? Skal systemet dele perioden ved en
+        satsendring i vurderingsperioden, eller foreslå én sats for hele perioden?</li>
+      <li>Registreres beløpet per måned eller per år, og som netto ekstrautgift eller som brutto med fradrag for vanlige
+        utgifter?</li>
+      <li>Er en standardsats en utgift som teller med årsbeløpet til satsen? Skal systemet foreslå standardsatsen ut fra
+        diagnose og alder, og dele perioden ved aldersgrensene? Står endringen ved aldersgrensen i vedtaket fra start, eller
+        lager systemet en automatisk behandling når søker når grensen?</li>
+      <li>Hvordan passer transport etter fylte 70 år (§ 6-3 fjerde ledd) og institusjon (§ 6-8) inn i forslaget?</li>
+    </ol>
+  </section>
+</main>
+
+<nav class="prototype-bar" aria-label="Bytt forslag">
+  <button type="button" id="forrige" aria-label="Forrige forslag">←</button>
+  <span id="variant-etikett" aria-live="polite"></span>
+  <button type="button" id="neste" aria-label="Neste forslag">→</button>
+</nav>
+
+<script id="satsberegning">
+// Ren logikk uten DOM.
+const Satsberegning = (() => {
+  const ALLE_SATSBELØP = [
+    { fraOgMed: "2024-01-01", månedsbeløp: [752, 1146, 1502, 2212, 2997, 3744], oppdiktet: false },
+    { fraOgMed: "2027-01-01", månedsbeløp: [775, 1180, 1547, 2278, 3087, 3856], oppdiktet: true },
+  ];
+
+  const plussDager = (iso, n) => {
+    const d = new Date(`${iso}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0, 10);
+  };
+  const gjelder = (p, dato) => p.fraOgMed <= dato && (p.tilOgMed === null || dato <= p.tilOgMed);
+  const overlapper = (a, b) =>
+    a.fraOgMed <= (b.tilOgMed ?? "9999-12-31") && b.fraOgMed <= (a.tilOgMed ?? "9999-12-31");
+
+  /** Satsbeløpene saksbehandler kjenner når saken behandles. Senere satsendringer endrer ikke vedtatt sats. */
+  function kjentPå(dato) {
+    const kjente = ALLE_SATSBELØP.filter((s) => s.fraOgMed <= dato);
+    return kjente.map((s, i) => ({ ...s, tilOgMed: kjente[i + 1] ? plussDager(kjente[i + 1].fraOgMed, -1) : null }));
+  }
+
+  function årsbeløp(sats, dato, liste) {
+    const periode = liste.find((p) => gjelder(p, dato));
+    if (!periode) throw new Error(`Finner ikke satsbeløp for ${dato}`);
+    return periode.månedsbeløp[sats - 1] * 12;
+  }
+
+  /** Høyeste sats summen minst svarer til (§ 6-3 tredje ledd). null betyr ingen rett. */
+  function satsForSum(sum, dato, liste) {
+    let sats = null;
+    for (let s = 1; s <= 6; s++) if (sum >= årsbeløp(s, dato, liste)) sats = s;
+    return sats;
+  }
+
+  /**
+   * Årsbeløpet en utgift teller med. En standardsats og en utgift fra Infotrygd har en sats som grunnlag og teller
+   * med årsbeløpet til satsen. Trygdetid brukes først etter at satsen er satt, aldri på ekstrautgiftene.
+   */
+  function beløpForPost(post, dato, liste) {
+    if (post.grunnlag === "STANDARDSATS") return årsbeløp(post.standardsats, dato, liste);
+    if (post.grunnlag === "MIGRERT") return årsbeløp(post.infotrygdSats, dato, liste);
+    return post.årsbeløp;
+  }
+
+  /**
+   * Deler tiden der en godkjent utgift starter eller slutter, eller satsbeløpene endres, og finner sum og sats
+   * i hver del. Like naboperioder slås sammen.
+   */
+  function utledForslag(poster, { behandlet }) {
+    const liste = kjentPå(behandlet);
+    const godkjente = poster.filter((p) => p.status === "GODKJENT");
+    if (godkjente.length === 0) return [];
+    const start = godkjente.map((p) => p.fraOgMed).sort()[0];
+    const grenser = new Set([start]);
+    godkjente.forEach((p) => {
+      grenser.add(p.fraOgMed);
+      if (p.tilOgMed) grenser.add(plussDager(p.tilOgMed, 1));
+    });
+    liste.forEach((s) => s.fraOgMed > start && grenser.add(s.fraOgMed));
+    const sortert = [...grenser].sort();
+
+    const deler = sortert.map((fraOgMed, i) => {
+      const tilOgMed = sortert[i + 1] ? plussDager(sortert[i + 1], -1) : null;
+      const linjer = godkjente.filter((p) => gjelder(p, fraOgMed))
+        .map((post) => ({ post, beløp: beløpForPost(post, fraOgMed, liste) }));
+      const sum = linjer.reduce((acc, l) => acc + l.beløp, 0);
+      return { fraOgMed, tilOgMed, linjer, sum, sats: satsForSum(sum, fraOgMed, liste), laveste: årsbeløp(1, fraOgMed, liste) };
+    }).filter((d) => d.linjer.length > 0);
+
+    const nøkkel = (d) => JSON.stringify([d.sats, d.sum, d.linjer.map((l) => l.post.id)]);
+    return deler.reduce((acc, d) => {
+      const forrige = acc.at(-1);
+      if (forrige && nøkkel(forrige) === nøkkel(d) && forrige.tilOgMed && plussDager(forrige.tilOgMed, 1) === d.fraOgMed) {
+        forrige.tilOgMed = d.tilOgMed;
+      } else acc.push({ ...d });
+      return acc;
+    }, []);
+  }
+
+  return { ALLE_SATSBELØP, kjentPå, årsbeløp, utledForslag, plussDager, overlapper };
+})();
+</script>
+
+<script>
+// ---------- Data ----------
+const BOKSTAVER = {
+  a: "Drift av tekniske hjelpemidler",
+  b: "Transport, herunder drift av egen bil",
+  c: "Hold av førerhund",
+  f: "Fordyret kosthold",
+  g: "Slitasje på klær og sengetøy",
+  h: "Hold av servicehund",
+};
+
+const SAKER = {
+  1: {
+    navn: "Cøliaki og bil",
+    beskrivelse: "Søker er født 15.06.1995 og søkte 15.02.2026. Saksbehandler vurderer fra 01.11.2025. Søker har cøliaki og får standardsats for kosthold. Hun har også multippel sklerose og revmatoid artritt, og har økte utgifter til bil på grunn av begge. Hun fyller 31 år i juni 2026, og standardsatsen for cøliaki går da ned fra sats 2 til sats 1.",
+    diagnoser: { "K90.0": "Cøliaki", G35: "Multippel sklerose", "M05.9": "Revmatoid artritt" },
+    behandlet: "2026-04-10",
+    vurderingFra: "2025-11-01",
+    poster: [
+      { id: "1a", bokstav: "f", diagnoser: ["K90.0"], grunnlag: "STANDARDSATS", standardsats: 2, status: "GODKJENT", fraOgMed: "2025-11-01", tilOgMed: "2026-05-31", begrunnelse: "Standardsats for cøliaki, 5 til 30 år." },
+      { id: "1b", bokstav: "f", diagnoser: ["K90.0"], grunnlag: "STANDARDSATS", standardsats: 1, status: "GODKJENT", fraOgMed: "2026-06-01", tilOgMed: null, begrunnelse: "Standardsats for cøliaki fra 31 år." },
+      { id: "1c", bokstav: "b", diagnoser: ["G35", "M05.9"], grunnlag: "DOKUMENTERT", årsbeløp: 15000, status: "GODKJENT", fraOgMed: "2025-11-01", tilOgMed: null, begrunnelse: "Økte utgifter til drift av egen bil. Søker kan ikke bruke kollektivtransport på grunn av MS og revmatoid artritt." },
+    ],
+  },
+  2: {
+    navn: "Satsendring i vurderingsperioden",
+    beskrivelse: "Søker har cerebral parese og søkte 20.02.2027. Saksbehandler vurderer fra 01.11.2026. Søker har utgifter til strøm til elektrisk seng og rullestol, og til klær som slites. Summen gir sats 2 med satsbeløpene for 2026, men bare sats 1 med de oppdiktede satsbeløpene for 2027.",
+    diagnoser: { "G80.9": "Cerebral parese, uspesifisert" },
+    behandlet: "2027-03-05",
+    vurderingFra: "2026-11-01",
+    hint: "Forslaget gir sats 2 til og med desember 2026 og sats 1 fra januar 2027, fordi satsbeløpene øker. Saksbehandler kan velge sats 2 for hele perioden og begrunne det, for eksempel med at beløpene er skjønn og at forskjellen er liten.",
+    poster: [
+      { id: "2a", bokstav: "a", diagnoser: ["G80.9"], grunnlag: "DOKUMENTERT", årsbeløp: 6000, status: "GODKJENT", fraOgMed: "2026-11-01", tilOgMed: null, begrunnelse: "Strøm til elektrisk seng og rullestol." },
+      { id: "2b", bokstav: "g", diagnoser: ["G80.9"], grunnlag: "DOKUMENTERT", årsbeløp: 7900, status: "GODKJENT", fraOgMed: "2026-11-01", tilOgMed: null, begrunnelse: "Slitasje på klær fra rullestol." },
+    ],
+  },
+  3: {
+    navn: "Barn med ADHD og epilepsi",
+    beskrivelse: "Søker er født 20.03.2014, og foreldrene søkte 20.01.2026. Saksbehandler vurderer fra 01.10.2025. Søker har ADHD med hyperaktivitet, som gir standardsats for klesslitasje til 18 år, og epilepsi med utgifter til transport. Foreldrene har også krevd strøm til en tyngdedyne. Saksbehandler har vurdert at den utgiften ikke er nødvendig.",
+    diagnoser: { "F90.0": "Forstyrrelse av aktivitet og oppmerksomhet", "G40.9": "Epilepsi, uspesifisert" },
+    behandlet: "2026-03-01",
+    vurderingFra: "2025-10-01",
+    poster: [
+      { id: "3a", bokstav: "g", diagnoser: ["F90.0"], grunnlag: "STANDARDSATS", standardsats: 1, status: "GODKJENT", fraOgMed: "2025-10-01", tilOgMed: "2032-03-19", begrunnelse: "Standardsats for barn under 18 år med ADHD med hyperaktivitet." },
+      { id: "3b", bokstav: "b", diagnoser: ["G40.9"], grunnlag: "DOKUMENTERT", årsbeløp: 6000, status: "GODKJENT", fraOgMed: "2025-10-01", tilOgMed: null, begrunnelse: "Transport til behandling og oppfølging." },
+      { id: "3c", bokstav: "a", diagnoser: ["F90.0"], grunnlag: "DOKUMENTERT", årsbeløp: 2400, status: "IKKE_GODKJENT", fraOgMed: "2025-10-01", tilOgMed: null, begrunnelse: "Strøm til tyngdedyne. Ikke en nødvendig ekstrautgift." },
+    ],
+  },
+  4: {
+    navn: "Migrert fra Infotrygd",
+    beskrivelse: "Søker har hatt grunnstønad i Infotrygd siden 2019 med hjemmelbokstav b, sats 3 og diagnosene multippel sklerose og hemiplegi. Søker har uføretrygd med trygdetid 20/40, så Infotrygd utbetaler 751 kr i måneden, halve satsbeløpet. Saken migreres i november 2026, og periodene starter 01.10.2026. I desember 2026 melder søker om nye utgifter til klær, og saken revurderes.",
+    diagnoser: { G35: "Multippel sklerose", "G81.9": "Hemiplegi, uspesifisert" },
+    migrert: { fraOgMed: "2026-10-01", sats: 3, bokstav: "b", trygdetid: 20, infotrygdBeløp: 751 },
+    faser: {
+      MIGRERING: { behandlet: "2026-11-05", vurderingFra: "2026-10-01" },
+      REVURDERING: { behandlet: "2026-12-15", vurderingFra: "2026-12-01" },
+    },
+    poster: [
+      { id: "4a", bokstav: "b", diagnoser: ["G35", "G81.9"], grunnlag: "MIGRERT", infotrygdSats: 3, trygdetid: 20, status: "GODKJENT", fraOgMed: "2026-10-01", tilOgMed: null, begrunnelse: "Fra Infotrygd: hjemmelbokstav b, sats 3." },
+    ],
+    revurderingPoster: [
+      { id: "4b", bokstav: "g", diagnoser: ["G81.9"], grunnlag: "DOKUMENTERT", årsbeløp: 3000, status: "GODKJENT", fraOgMed: "2026-12-01", tilOgMed: null, begrunnelse: "Slitasje på klær fra gåstol og ortose." },
+    ],
+  },
+};
+
+
+const VARIANTER = [
+  { nøkkel: "A", navn: "Sats direkte" },
+  { nøkkel: "B", navn: "Sats med kobling" },
+  { nøkkel: "C", navn: "Utgiftsposter" },
+  { nøkkel: "D", navn: "Utgiftsposter og vedtatt sats" },
+];
+
+const SAMMENLIGNING = [
+  ["Saksbehandler registrerer", "Ja eller nei og sats per periode", "Som A, og hjemmelbokstaver og diagnoser per periode", "Hver godkjent utgift med hjemmelbokstav, diagnoser, beløp og periode", "Som C, og bekrefter eller endrer satsen systemet foreslår"],
+  ["Hvem finner satsen", "Saksbehandler, utenfor systemet", "Saksbehandler, utenfor systemet", "Systemet", "Systemet foreslår, saksbehandler bestemmer"],
+  ["Satsen står seg når Stortinget endrer satsbeløpene", "Ja", "Ja", "Nei, den regnes ut på nytt", "Ja"],
+  ["Saksbehandler kan velge en annen sats enn summen gir", "Ja", "Ja", "Nei", "Ja, med begrunnelse"],
+  ["Kobling mellom utgift og diagnose", "Bare i fritekst", "Per periode, ikke per utgift", "Per utgift", "Per utgift"],
+  ["Når én utgift endres", "Saksbehandler deler perioden og regner på nytt", "Saksbehandler deler perioden og regner på nytt", "Systemet deler periodene", "Systemet deler periodene og foreslår ny sats"],
+  ["Sak migrert fra Infotrygd", "Passer: én sats per periode", "Passer: én bokstav og diagnosene per periode", "Passer i migreringen når utgiften fra Infotrygd får satsen som grunnlag. Ved revurdering regnes også tidligere perioder ut på nytt", "Passer: satsen fra Infotrygd blir vedtatt sats"],
+  ["Lagrer beløpene", "Nei", "Nei", "Ja", "Ja"],
+  ["Arbeid", "Lite", "Lite", "Stort", "Stort"],
+];
+
+// ---------- Hjelpere ----------
+const kr = (n) => `${Math.round(n).toLocaleString("nb-NO")} kr`;
+const dato = (iso) => (iso ? iso.split("-").reverse().join(".") : "løpende");
+const periode = (fra, til) => `${dato(fra)} – ${dato(til)}`;
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let løpenummer = 0;
+const nyId = (p) => `${p}-${++løpenummer}`;
+const liste = (ord) => new Intl.ListFormat("nb", { type: "conjunction" }).format(ord);
+
+const tag = (tekst, farge, variant = "moderate") =>
+  `<span data-color="${farge}" data-variant="${variant}" class="aksel-tag aksel-tag--small aksel-body-short aksel-body-short--small">${esc(tekst)}</span>`;
+const satsTag = (sats) => (sats ? tag(`Sats ${sats}`, "success", "strong") : tag("Ingen rett", "danger", "strong"));
+const knapp = (tekst, variant = "secondary", attr = "") =>
+  `<button type="button" data-variant="${variant}" class="aksel-button aksel-button--small" ${attr}><span class="aksel-label aksel-label--small">${esc(tekst)}</span></button>`;
+
+function select({ label, verdi, valg, attr = "", skjultLabel = false }) {
+  const i = nyId("select");
+  return `<div class="aksel-form-field aksel-form-field--small">
+    <label for="${i}" class="aksel-form-field__label aksel-label aksel-label--small ${skjultLabel ? "aksel-typo--visually-hidden" : ""}">${esc(label)}</label>
+    <div class="aksel-select__container">
+      <select id="${i}" class="aksel-select__input aksel-body-short aksel-body-short--small" ${attr}>
+        ${valg.map(([v, t]) => `<option value="${esc(v)}" ${String(v) === String(verdi) ? "selected" : ""}>${esc(t)}</option>`).join("")}
+      </select>
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 24 24" class="aksel-select__chevron" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M5.97 9.47a.75.75 0 0 1 1.06 0L12 14.44l4.97-4.97a.75.75 0 1 1 1.06 1.06l-5.5 5.5a.75.75 0 0 1-1.06 0l-5.5-5.5a.75.75 0 0 1 0-1.06" clip-rule="evenodd"></path></svg>
+    </div>
+  </div>`;
+}
+
+function tekstfelt({ label, verdi = "", type = "text", attr = "" }) {
+  const i = nyId("felt");
+  return `<div class="aksel-form-field aksel-form-field--small">
+    <label for="${i}" class="aksel-form-field__label aksel-label aksel-label--small">${esc(label)}</label>
+    <input id="${i}" type="${type}" value="${esc(verdi)}" class="aksel-text-field__input aksel-body-short aksel-body-short--small" ${attr}/>
+  </div>`;
+}
+
+function avkrysninger({ legend, valg, valgte, attr = "" }) {
+  const i = nyId("cg");
+  return `<fieldset aria-labelledby="${i}" class="aksel-checkbox-group aksel-checkbox-group--small aksel-fieldset aksel-fieldset--small">
+    <legend id="${i}" class="aksel-fieldset__legend aksel-label aksel-label--small">${esc(legend)}</legend>
+    <div class="aksel-checkboxes">
+      ${valg.map(([v, t]) => {
+        const c = nyId("cb");
+        return `<div class="aksel-checkbox aksel-checkbox--small">
+          <div class="aksel-checkbox__input-wrapper" data-standalone="false">
+            <input id="${c}" class="aksel-checkbox__input" type="checkbox" value="${esc(v)}" ${valgte.includes(v) ? "checked" : ""} ${attr}/>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13 10" fill="none" aria-hidden="true" class="aksel-checkbox__icon"><path d="M4.03524 6.41478L10.4752 0.404669C11.0792 -0.160351 12.029 -0.130672 12.5955 0.47478C13.162 1.08027 13.1296 2.03007 12.5245 2.59621L5.02111 9.59934C4.74099 9.85904 4.37559 10 4.00025 10C3.60651 10 3.22717 9.84621 2.93914 9.56111L0.439143 7.06111C-0.146381 6.47558 -0.146381 5.52542 0.439143 4.93989C1.02467 4.35437 1.97483 4.35437 2.56036 4.93989L4.03524 6.41478Z" fill="currentColor"></path></svg>
+          </div>
+          <label for="${c}" class="aksel-checkbox__label aksel-body-short aksel-body-short--small">${esc(t)}</label>
+        </div>`;
+      }).join("")}
+    </div>
+  </fieldset>`;
+}
+
+function alert({ farge = "info", tittel, innhold }) {
+  return `<div class="aksel-base-alert" data-size="small" data-color="${farge}" data-variant="moderate" data-global="false">
+    <div data-color="${farge}" class="aksel-base-alert__header"><h4 class="aksel-base-alert__title aksel-body-short aksel-body-short--medium aksel-typo--semibold">${esc(tittel)}</h4></div>
+    <div data-color="accent" class="aksel-base-alert__content aksel-body-long aksel-body-long--small">${innhold}</div>
+  </div>`;
+}
+
+function periodekort({ tittel, tagger, svar }) {
+  return `<div class="aksel-form-summary">
+    <div class="aksel-form-summary__header"><div class="rad"><h4 class="aksel-heading aksel-heading--small">${esc(tittel)}</h4>${tagger}</div></div>
+    <dl class="aksel-form-summary__answers">
+      ${svar.map(([l, v]) => `<div data-color="accent" class="aksel-form-summary__answer"><dt class="aksel-label">${esc(l)}</dt><dd class="aksel-form-summary__value aksel-body-long aksel-body-long--medium">${v}</dd></div>`).join("")}
+    </dl>
+  </div>`;
+}
+
+const punktliste = (punkter) => `<ul class="liste">${punkter.map((p) => `<li>${p}</li>`).join("")}</ul>`;
+const utvikler = (innhold) => `<details class="utvikler aksel-body-short aksel-body-short--small"><summary>For utviklere: hva lagres</summary><pre class="kode">${innhold}</pre></details>`;
+const diagnoseTekst = (sak, kode) => `${kode} ${sak.diagnoser[kode] ?? ""}`;
+const bokstavTekst = (b) => `${b}) ${BOKSTAVER[b]}`;
+
+// ---------- Tilstand ----------
+const params = new URLSearchParams(location.search);
+const tilstand = {
+  variant: VARIANTER.some((v) => v.nøkkel === params.get("variant")) ? params.get("variant") : "A",
+  sak: SAKER[params.get("sak")] ? params.get("sak") : "1",
+  fase: "MIGRERING",
+  poster: {},
+  overstyring: {},
+  nyPost: null,
+  feil: "",
+};
+const tilstandsnøkkel = () => `${tilstand.sak}:${SAKER[tilstand.sak].faser ? tilstand.fase : "-"}`;
+const behandling = (sak) => (sak.faser ? sak.faser[tilstand.fase] : sak);
+function posterFor() {
+  const sak = SAKER[tilstand.sak];
+  const startposter = sak.faser && tilstand.fase === "REVURDERING" ? [...sak.poster, ...sak.revurderingPoster] : sak.poster;
+  return (tilstand.poster[tilstandsnøkkel()] ??= structuredClone(startposter));
+}
+const overstyringFor = () => (tilstand.overstyring[tilstandsnøkkel()] ??= {});
+</script>
+
+<script>
+// ---------- Felles for forslagene ----------
+function linjeTekst(sak, { post, beløp }) {
+  const diagnoser = post.diagnoser.map((d) => sak.diagnoser[d] ?? d).join(" og ");
+  const hva = post.grunnlag === "STANDARDSATS" ? `standardsats ${post.standardsats}`
+    : post.grunnlag === "MIGRERT" ? `sats ${post.infotrygdSats} fra Infotrygd`
+    : "dokumentert";
+  return `${bokstavTekst(post.bokstav)} (${diagnoser}, ${hva}): ${kr(beløp)}`;
+}
+
+function regnestykke(sak, del) {
+  const konklusjon = del.sats
+    ? `Sum ${kr(del.sum)} i året gir sats ${del.sats}.`
+    : `Sum ${kr(del.sum)} i året er under laveste sats (${kr(del.laveste)}).`;
+  return `${del.linjer.map((l) => linjeTekst(sak, l)).join(". ")}. ${konklusjon}`;
+}
+
+/**
+ * Periodene saksbehandler vedtar. En migrert sak har en fast periode med satsen fra Infotrygd, eller fra
+ * migreringen når saken revurderes. Resten følger forslaget.
+ */
+function vedtattRader(sak, forslag) {
+  if (!sak.migrert) return forslag.map((d) => ({ ...d, fast: false }));
+  const grense = tilstand.fase === "REVURDERING" ? sak.faser.REVURDERING.vurderingFra : null;
+  const innenfor = forslag.filter((d) => !grense || d.fraOgMed < grense);
+  const fast = {
+    fraOgMed: sak.migrert.fraOgMed,
+    tilOgMed: grense ? Satsberegning.plussDager(grense, -1) : null,
+    linjer: innenfor[0]?.linjer ?? [],
+    sum: innenfor[0]?.sum ?? 0,
+    sats: innenfor[0]?.sats ?? null,
+    laveste: innenfor[0]?.laveste ?? 0,
+    fast: true,
+    fastSats: sak.migrert.sats,
+    kilde: grense ? "Vedtatt i migreringen" : "Fra Infotrygd",
+  };
+  const resten = grense ? forslag.filter((d) => d.fraOgMed >= grense).map((d) => ({ ...d, fast: false })) : [];
+  return [fast, ...resten];
+}
+
+function årsbeløpForVisning(post, satsliste) {
+  if (post.grunnlag === "STANDARDSATS") return Satsberegning.årsbeløp(post.standardsats, post.fraOgMed, satsliste);
+  if (post.grunnlag === "MIGRERT") return Satsberegning.årsbeløp(post.infotrygdSats, post.fraOgMed, satsliste);
+  return post.årsbeløp;
+}
+
+function grunnlagTekst(post) {
+  if (post.grunnlag === "STANDARDSATS") return `Standardsats ${post.standardsats}`;
+  if (post.grunnlag === "MIGRERT") return post.infotrygdSats === SAKER[tilstand.sak].migrert?.sats
+    ? `Sats ${post.infotrygdSats} fra Infotrygd, som en standardsats`
+    : `Sats ${post.infotrygdSats}, endret fra sats ${SAKER[tilstand.sak].migrert?.sats} fra Infotrygd`;
+  return "Dokumentert";
+}
+
+function migrertForklaring(variant) {
+  const sak = SAKER[tilstand.sak];
+  if (!sak.migrert) return "";
+  const tekst = {
+    A: "Migreringen lager én periode med ja og sats 3, og tar med Infotrygd-beløpet. Når saken revurderes, må saksbehandler anslå de gamle ekstrautgiftene selv, fordi Infotrygd bare har beløpet som utbetales.",
+    B: "Migreringen lager én periode med ja, sats 3, hjemmelbokstav b og begge diagnosene. Det er det Infotrygd har. Ved revurdering må saksbehandler anslå de gamle utgiftene selv.",
+    C: "En migrering vurderer ikke vilkårene, så utgiften fra Infotrygd har satsen som grunnlag, som en standardsats. Da gir summen samme sats. C lagrer ingen sats, så når saken revurderes, regnes også perioden før revurderingen ut på nytt. Velg revurdering og slett utgiften fra Infotrygd for å se hva det gir.",
+    D: "Satsen fra Infotrygd blir vedtatt sats. Forslaget vises ved siden av, så saksbehandler ser om utgiftene og satsen stemmer. Ved revurdering gjelder forslaget fra datoen for de nye utgiftene.",
+  }[variant];
+  return alert({ farge: "info", tittel: "Saken er migrert fra Infotrygd", innhold: esc(tekst) });
+}
+
+/**
+ * Hva som vedtas per periode: sats, satsbeløp, trygdetid og beløpet søker får per måned. For en migrert sak
+ * vises også Infotrygd-beløpet, så saksbehandler ser om beløpet endres.
+ */
+function vedtaksoppsummering(sak, beh, rader) {
+  const satsliste = Satsberegning.kjentPå(beh.behandlet);
+  const trygdetid = sak.migrert?.trygdetid ?? 40;
+  const sammen = rader.reduce((acc, r) => {
+    const forrige = acc.at(-1);
+    if (forrige && forrige.sats === r.sats && forrige.tilOgMed && Satsberegning.plussDager(forrige.tilOgMed, 1) === r.fraOgMed) forrige.tilOgMed = r.tilOgMed;
+    else acc.push({ ...r });
+    return acc;
+  }, []);
+  const deler = sammen.flatMap((r) => {
+    const grenser = satsliste.map((s) => s.fraOgMed).filter((d) => d > r.fraOgMed && (r.tilOgMed === null || d <= r.tilOgMed));
+    const starter = [r.fraOgMed, ...grenser];
+    return starter.map((fra, i) => ({ fraOgMed: fra, tilOgMed: starter[i + 1] ? Satsberegning.plussDager(starter[i + 1], -1) : r.tilOgMed, sats: r.sats }));
+  });
+  const celle = (innhold, klasse = "") => `<td class="aksel-table__data-cell aksel-body-short aksel-body-short--small ${klasse}">${innhold}</td>`;
+  const tabellrader = deler.map((d) => {
+    const satsbeløp = d.sats ? Satsberegning.årsbeløp(d.sats, d.fraOgMed, satsliste) / 12 : null;
+    const beløp = satsbeløp ? (satsbeløp * trygdetid) / 40 : 0;
+    const infotrygd = sak.migrert
+      ? celle(`${kr(sak.migrert.infotrygdBeløp)} ${beløp === sak.migrert.infotrygdBeløp ? tag("Likt", "success") : tag("Endret", "warning")}`, "tall")
+      : "";
+    return `<tr class="aksel-table__row">
+      ${celle(periode(d.fraOgMed, d.tilOgMed))}
+      ${celle(satsTag(d.sats))}
+      ${celle(satsbeløp ? kr(satsbeløp) : "–", "tall")}
+      ${celle(`${trygdetid}/40`, "tall")}
+      ${celle(`<strong>${kr(beløp)}</strong>`, "tall")}
+      ${infotrygd}
+    </tr>`;
+  }).join("");
+
+  return `<div class="stack-8">
+    <h4 class="aksel-heading aksel-heading--xsmall">Dette vedtas</h4>
+    <p class="aksel-body-short aksel-body-short--small dempet">Beløp per måned er satsbeløpet ganget med trygdetiden, før avrunding.${sak.migrert ? " Infotrygd-beløpet er det Infotrygd utbetaler i dag." : ""}</p>
+    <div class="tabell-wrapper">
+      <table class="aksel-table aksel-table--small">
+        <caption class="aksel-typo--visually-hidden">Dette vedtas</caption>
+        <thead class="aksel-table__header"><tr class="aksel-table__row">
+          <th class="aksel-table__header-cell aksel-label" scope="col">Periode</th>
+          <th class="aksel-table__header-cell aksel-label" scope="col">Sats</th>
+          <th class="aksel-table__header-cell aksel-label tall" scope="col">Satsbeløp per måned</th>
+          <th class="aksel-table__header-cell aksel-label tall" scope="col">Trygdetid</th>
+          <th class="aksel-table__header-cell aksel-label tall" scope="col">Beløp per måned</th>
+          ${sak.migrert ? '<th class="aksel-table__header-cell aksel-label tall" scope="col">Infotrygd-beløp per måned</th>' : ""}
+        </tr></thead>
+        <tbody class="aksel-table__body">${tabellrader || `<tr class="aksel-table__row"><td colspan="6" class="aksel-table__data-cell aksel-body-short aksel-body-short--small">Ingen perioder.</td></tr>`}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ---------- A og B ----------
+function radeneForAB(sak, beh) {
+  const forslag = Satsberegning.utledForslag(posterFor(), { behandlet: beh.behandlet });
+  return vedtattRader(sak, forslag);
+}
+const abOppsummering = (sak, beh) =>
+  radeneForAB(sak, beh).map((r) => ({ fraOgMed: r.fraOgMed, tilOgMed: r.tilOgMed, sats: r.fast ? r.fastSats : r.sats }));
+
+function variantA(sak, beh) {
+  const kort = radeneForAB(sak, beh).map((rad) => {
+    const sats = rad.fast ? rad.fastSats : rad.sats;
+    const begrunnelse = rad.fast
+      ? `Migrert fra Infotrygd: hjemmelbokstav ${sak.migrert.bokstav}, sats ${sak.migrert.sats}. Infotrygd har ikke beløpene for selve ekstrautgiftene, bare beløpet som utbetales.`
+      : regnestykke(sak, rad);
+    return periodekort({
+      tittel: periode(rad.fraOgMed, rad.tilOgMed),
+      tagger: sats ? tag("Oppfylt", "success", "strong") : tag("Ikke oppfylt", "danger", "strong"),
+      svar: [...(sats ? [["Sats", `Sats ${sats}`]] : []), ["Begrunnelse", esc(begrunnelse)]],
+    });
+  }).join("");
+
+  return `<div class="to-kolonner">
+    <div class="stack">
+      <h3 class="aksel-heading aksel-heading--small">Nødvendige ekstrautgifter</h3>
+      <p class="aksel-body-short aksel-body-short--small dempet">Saksbehandler legger sammen utgiftene selv, svarer ja eller nei per periode, velger sats og skriver regnestykket i begrunnelsen. Hver gang en utgift starter eller slutter, må saksbehandler lage en ny periode.</p>
+      ${migrertForklaring("A")}
+      ${kort}
+      ${vedtaksoppsummering(sak, beh, abOppsummering(sak, beh))}
+    </div>
+    <aside class="stack">
+      ${alert({ farge: "success", tittel: "Fordeler", innhold: punktliste(["Minst arbeid.", "Samme modell som de andre vilkårene.", "Én sats per periode, som i Infotrygd. Migrering er enkelt."]) })}
+      ${alert({ farge: "warning", tittel: "Ulemper", innhold: punktliste(["Hjemmelbokstav og diagnose står bare i fritekst. Brev og statistikk kan ikke bruke dem.", "Ingen kan sjekke at satsen stemmer med utgiftene.", "Endres én utgift, må saksbehandler dele perioden og regne ut summen på nytt."]) })}
+      ${utvikler(`ekstrautgifter (én rad per periode)
+  vurdering    JA | NEI
+  sats         1–6, tom ved NEI
+  begrunnelse  fritekst
+  fra_og_med, til_og_med`)}
+    </aside>
+  </div>`;
+}
+
+function variantB(sak, beh) {
+  const kort = radeneForAB(sak, beh).map((rad) => {
+    const sats = rad.fast ? rad.fastSats : rad.sats;
+    const bokstaver = rad.fast && tilstand.fase === "MIGRERING" ? [sak.migrert.bokstav] : [...new Set(rad.linjer.map((l) => l.post.bokstav))].sort();
+    const diagnoser = [...new Set(rad.linjer.flatMap((l) => l.post.diagnoser))];
+    return periodekort({
+      tittel: periode(rad.fraOgMed, rad.tilOgMed),
+      tagger: sats ? tag("Oppfylt", "success", "strong") : tag("Ikke oppfylt", "danger", "strong"),
+      svar: [
+        ...(sats ? [["Sats", `Sats ${sats}`]] : []),
+        ["Hjemmel", `§ 6-3 første ledd bokstav ${liste(bokstaver)}`],
+        ["Diagnoser", diagnoser.map((d) => esc(diagnoseTekst(sak, d))).join("<br>")],
+        ["Begrunnelse", esc(rad.fast ? "Migrert fra Infotrygd. Infotrygd har ikke beløpene for selve ekstrautgiftene, bare beløpet som utbetales." : regnestykke(sak, rad))],
+      ],
+    });
+  }).join("");
+
+  const første = radeneForAB(sak, beh)[0];
+  const skjema = første ? `<div class="kort stack">
+      <h4 class="aksel-heading aksel-heading--xsmall">Slik ser skjemaet ut for én periode</h4>
+      <div style="max-width: 200px">${select({ label: "Sats", verdi: første.fast ? første.fastSats : første.sats ?? "", valg: [["", "Velg sats"], ...[1, 2, 3, 4, 5, 6].map((s) => [s, `Sats ${s}`])] })}</div>
+      ${avkrysninger({ legend: "Hvilke ekstrautgifter gjelder vurderingen?", valg: Object.entries(BOKSTAVER).map(([b, t]) => [b, `${b}) ${t}`]), valgte: [...new Set(første.linjer.map((l) => l.post.bokstav))] })}
+      ${avkrysninger({ legend: "Hvilke diagnoser gir ekstrautgiftene?", valg: Object.entries(sak.diagnoser).map(([k, t]) => [k, `${k} ${t}`]), valgte: [...new Set(første.linjer.flatMap((l) => l.post.diagnoser))] })}
+    </div>` : "";
+
+  return `<div class="to-kolonner">
+    <div class="stack">
+      <h3 class="aksel-heading aksel-heading--small">Nødvendige ekstrautgifter</h3>
+      <p class="aksel-body-short aksel-body-short--small dempet">Som A, men saksbehandler krysser også av for hjemmelbokstaver og diagnoser per periode.</p>
+      ${migrertForklaring("B")}
+      ${skjema}
+      ${kort}
+      ${vedtaksoppsummering(sak, beh, abOppsummering(sak, beh))}
+    </div>
+    <aside class="stack">
+      ${alert({ farge: "success", tittel: "Fordeler", innhold: punktliste(["Lite arbeid på toppen av A.", "Hjemmelbokstav og diagnose kan brukes i brev og statistikk.", "Passer med det Infotrygd har: bokstav, diagnoser og sats per periode."]) })}
+      ${alert({ farge: "warning", tittel: "Ulemper", innhold: punktliste(["Beløpene lagres ikke, så ingen kan sjekke satsen.", "Vi vet ikke hvilken diagnose som gir hvilken utgift.", "Saksbehandler deler fortsatt periodene selv."]) })}
+      ${utvikler(`ekstrautgifter (som A)
+  vurdering, sats, begrunnelse, datoer
+  hjemmelbokstaver   {a, b, c, f, g, h}
+
+ekstrautgifter_diagnose
+  ekstrautgifter_id → ekstrautgifter
+  diagnosekode`)}
+    </aside>
+  </div>`;
+}
+</script>
+
+<script>
+// ---------- C og D: utgiftene ----------
+function utgiftsseksjon(sak, beh) {
+  const poster = posterFor();
+  const satsliste = Satsberegning.kjentPå(beh.behandlet);
+  const n = tilstand.nyPost ?? { bokstav: "h", diagnoser: [Object.keys(sak.diagnoser)[0]], grunnlag: "DOKUMENTERT", årsbeløp: 5000, standardsats: 1, fraOgMed: beh.vurderingFra, tilOgMed: "", status: "GODKJENT", begrunnelse: "" };
+  const låst = Boolean(sak.migrert) && tilstand.fase === "MIGRERING";
+
+  const rader = poster.map((p) => {
+    const beløp = årsbeløpForVisning(p, satsliste);
+    let beløpCelle = `<span class="dempet">${kr(beløp)}</span>`;
+    if (!låst && p.grunnlag === "DOKUMENTERT") {
+      beløpCelle = `<label class="aksel-typo--visually-hidden" for="belop-${p.id}">Beløp per år for ${esc(BOKSTAVER[p.bokstav])}</label>
+         <input id="belop-${p.id}" data-post="${p.id}" data-felt="årsbeløp" type="number" step="100" min="0" value="${p.årsbeløp}" class="aksel-text-field__input aksel-body-short aksel-body-short--small" style="width: 8rem; text-align: right"/>`;
+    } else if (!låst && p.grunnlag === "MIGRERT") {
+      beløpCelle = `<div class="stack-8" style="align-items: flex-end">${select({ label: `Sats for utgiften fra Infotrygd, ${BOKSTAVER[p.bokstav]}`, skjultLabel: true, verdi: p.infotrygdSats, valg: [1, 2, 3, 4, 5, 6].map((s) => [s, `Sats ${s}`]), attr: `data-post="${p.id}" data-felt="infotrygdSats"` })}<span class="dempet">${kr(beløp)}</span></div>`;
+    }
+    return `<tr class="aksel-table__row">
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${esc(bokstavTekst(p.bokstav))}<div class="dempet liten">${esc(p.begrunnelse)}</div></td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${p.diagnoser.map((d) => esc(diagnoseTekst(sak, d))).join("<br>")}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${esc(grunnlagTekst(p))}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small tall">${beløpCelle}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small tall dempet">${kr(beløp / 12)}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${periode(p.fraOgMed, p.tilOgMed)}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${p.status === "GODKJENT" ? tag("Godkjent", "success") : tag("Ikke godkjent", "danger")}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${låst ? "" : knapp("Slett", "tertiary", `data-handling="slett-post" data-post="${p.id}" aria-label="Slett ${esc(BOKSTAVER[p.bokstav])} fra ${dato(p.fraOgMed)}"`)}</td>
+    </tr>`;
+  }).join("");
+
+  const skjema = låst
+    ? alert({ farge: "info", tittel: "Migreringsbehandlingen tar med det Infotrygd har", innhold: "Saksbehandler kan ikke legge til, endre eller slette noe i en migreringsbehandling. Det kan gjøres i en revurdering." })
+    : `<form class="kort stack" novalidate>
+    <h4 class="aksel-heading aksel-heading--xsmall">Legg til utgift</h4>
+    <div class="skjema-grid">
+      ${select({ label: "Hjemmel", verdi: n.bokstav, valg: Object.entries(BOKSTAVER).map(([b, t]) => [b, `${b}) ${t}`]), attr: 'data-ny="bokstav"' })}
+      ${select({ label: "Grunnlag", verdi: n.grunnlag, valg: [["DOKUMENTERT", "Dokumenterte utgifter"], ["STANDARDSATS", "Standardsats"]], attr: 'data-ny="grunnlag"' })}
+      ${n.grunnlag === "STANDARDSATS"
+        ? select({ label: "Standardsats", verdi: n.standardsats, valg: [1, 2, 3, 4, 5, 6].map((s) => [s, `Sats ${s}`]), attr: 'data-ny="standardsats"' })
+        : tekstfelt({ label: "Godkjent beløp per år", type: "number", verdi: n.årsbeløp, attr: 'data-ny="årsbeløp" min="0" step="100"' })}
+      ${tekstfelt({ label: "Fra og med", type: "date", verdi: n.fraOgMed, attr: `data-ny="fraOgMed" min="${beh.vurderingFra}"` })}
+      ${tekstfelt({ label: "Til og med", type: "date", verdi: n.tilOgMed, attr: `data-ny="tilOgMed" min="${beh.vurderingFra}"` })}
+      ${select({ label: "Vurdering", verdi: n.status, valg: [["GODKJENT", "Godkjent"], ["IKKE_GODKJENT", "Ikke godkjent"]], attr: 'data-ny="status"' })}
+    </div>
+    ${avkrysninger({ legend: "Hvilke diagnoser gir utgiften?", valg: Object.entries(sak.diagnoser).map(([k, t]) => [k, `${k} ${t}`]), valgte: n.diagnoser, attr: "data-ny-diagnose" })}
+    ${tekstfelt({ label: "Begrunnelse", verdi: n.begrunnelse, attr: 'data-ny="begrunnelse"' })}
+    <div class="rad">${knapp("Legg til", "primary", 'data-handling="legg-til-post"')}${knapp("Tilbakestill saken", "tertiary", 'data-handling="tilbakestill"')}</div>
+    <p class="feil" aria-live="polite">${esc(tilstand.feil)}</p>
+  </form>`;
+
+  return `<div class="stack">
+    <h3 class="aksel-heading aksel-heading--small">Ekstrautgifter</h3>
+    <p class="aksel-body-short aksel-body-short--small dempet">Saksbehandler registrerer hver utgift søker har krevd, med hjemmelbokstav, diagnoser, beløp per år og periode. Bare godkjente utgifter telles med. Høyst én utgift per hjemmelbokstav i samme periode: har søker to utgifter til transport, legger saksbehandler dem sammen og forklarer det i begrunnelsen. Endre et beløp eller legg til en utgift og se satsen endre seg.</p>
+    <div class="tabell-wrapper">
+      <table class="aksel-table aksel-table--small">
+        <caption class="aksel-typo--visually-hidden">Ekstrautgifter</caption>
+        <thead class="aksel-table__header"><tr class="aksel-table__row">
+          <th class="aksel-table__header-cell aksel-label" scope="col">Hjemmel</th>
+          <th class="aksel-table__header-cell aksel-label" scope="col">Diagnoser</th>
+          <th class="aksel-table__header-cell aksel-label" scope="col">Grunnlag</th>
+          <th class="aksel-table__header-cell aksel-label tall" scope="col">Per år</th>
+          <th class="aksel-table__header-cell aksel-label tall" scope="col">Per måned</th>
+          <th class="aksel-table__header-cell aksel-label" scope="col">Periode</th>
+          <th class="aksel-table__header-cell aksel-label" scope="col">Vurdering</th>
+          <th class="aksel-table__header-cell aksel-label" scope="col"><span class="aksel-typo--visually-hidden">Handlinger</span></th>
+        </tr></thead>
+        <tbody class="aksel-table__body">${rader || `<tr class="aksel-table__row"><td colspan="8" class="aksel-table__data-cell aksel-body-short aksel-body-short--small">Ingen ekstrautgifter.</td></tr>`}</tbody>
+      </table>
+    </div>
+    ${skjema}
+  </div>`;
+}
+
+const utgifterCelle = (sak, del) => del.linjer.map(({ post, beløp }) => `${post.bokstav}) ${esc(BOKSTAVER[post.bokstav])}: ${kr(beløp)}`).join("<br>") || '<span class="dempet">Ingen</span>';
+
+// ---------- C ----------
+function variantC(sak, beh) {
+  const forslag = Satsberegning.utledForslag(posterFor(), { behandlet: beh.behandlet });
+  const dekkerStart = (d) => d.fraOgMed <= sak.migrert?.fraOgMed && (d.tilOgMed === null || d.tilOgMed >= sak.migrert?.fraOgMed);
+  const endretUtenVurdering = sak.migrert && tilstand.fase === "REVURDERING"
+    && (forslag.find(dekkerStart)?.sats !== sak.migrert.sats
+      || forslag.some((d) => d.fraOgMed < beh.vurderingFra && d.sats !== sak.migrert.sats));
+  const varsel = endretUtenVurdering
+    ? alert({ farge: "danger", tittel: "Satsen fra Infotrygd er endret uten vurdering", innhold: `Perioden før ${dato(beh.vurderingFra)} er ikke vurdert på nytt, men har fått en annen sats enn sats ${sak.migrert.sats} fra Infotrygd. C lagrer ingen sats som kan hindre det.` })
+    : "";
+  const rader = forslag.map((d) => `<tr class="aksel-table__row">
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${periode(d.fraOgMed, d.tilOgMed)}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${utgifterCelle(sak, d)}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small tall">${kr(d.sum)}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${satsTag(d.sats)}</td>
+    </tr>`).join("");
+
+  return `<div class="stack-24">
+    ${migrertForklaring("C")}
+    ${varsel}
+    <div class="to-kolonner">
+      ${utgiftsseksjon(sak, beh)}
+      <aside class="stack">
+        ${alert({ farge: "success", tittel: "Fordeler", innhold: punktliste(["Følger rundskrivet: legg sammen, finn så satsen.", "Hver utgift har sin egen periode, og systemet deler periodene.", "Hjemmelbokstav og diagnoser henger sammen per utgift.", "Systemet kan foreslå standardsats ut fra diagnose og alder."]) })}
+        ${alert({ farge: "warning", tittel: "Ulemper", innhold: punktliste(["Satsen regnes ut på nytt hver gang, også når Stortinget endrer satsbeløpene. Da kan en løpende sak få lavere sats uten at noen har vurdert vilkårene.", "Saksbehandler kan ikke velge en annen sats enn summen gir, selv om beløpene er skjønn.", "Slettes eller endres utgiften fra Infotrygd i en revurdering, endres også satsen for perioder ingen har vurdert på nytt.", "Ja eller nei følger av summen. Saksbehandler svarer ikke selv."]) })}
+        ${utvikler(`utgiftspost
+  hjemmelbokstav  a | b | c | f | g | h
+  grunnlag        DOKUMENTERT | STANDARDSATS | MIGRERT
+  arsbelop        ved DOKUMENTERT
+  standardsats    ved STANDARDSATS
+  status          GODKJENT | IKKE_GODKJENT
+  begrunnelse, fra_og_med, til_og_med
+
+utgiftspost_diagnose
+  utgiftspost_id → utgiftspost
+  diagnosekode
+
+Satsen regnes ut og lagres ikke.`)}
+      </aside>
+    </div>
+    <div class="kort stack">
+      <h3 class="aksel-heading aksel-heading--small">Sats</h3>
+      <p class="aksel-body-short aksel-body-short--small dempet">Systemet regner ut satsen fra de godkjente utgiftene hver gang. Det finnes ingen lagret sats, så nye satsbeløp kan gi en annen sats.</p>
+      <div class="tabell-wrapper">
+        <table class="aksel-table aksel-table--small">
+          <caption class="aksel-typo--visually-hidden">Utledet sats per periode</caption>
+          <thead class="aksel-table__header"><tr class="aksel-table__row">
+            <th class="aksel-table__header-cell aksel-label" scope="col">Periode</th>
+            <th class="aksel-table__header-cell aksel-label" scope="col">Utgifter per år</th>
+            <th class="aksel-table__header-cell aksel-label tall" scope="col">Sum per år</th>
+            <th class="aksel-table__header-cell aksel-label" scope="col">Sats</th>
+          </tr></thead>
+          <tbody class="aksel-table__body" aria-live="polite">${rader || `<tr class="aksel-table__row"><td colspan="4" class="aksel-table__data-cell aksel-body-short aksel-body-short--small">Ingen godkjente utgifter.</td></tr>`}</tbody>
+        </table>
+      </div>
+      ${vedtaksoppsummering(sak, beh, forslag.map((d) => ({ fraOgMed: d.fraOgMed, tilOgMed: d.tilOgMed, sats: d.sats })))}
+    </div>
+  </div>`;
+}
+</script>
+
+<script>
+// ---------- D ----------
+function variantD(sak, beh) {
+  const forslag = Satsberegning.utledForslag(posterFor(), { behandlet: beh.behandlet });
+  const ov = overstyringFor();
+  const rader = vedtattRader(sak, forslag).map((r) => {
+    if (r.fast) return { ...r, vedtattSats: r.fastSats };
+    const o = ov[r.fraOgMed];
+    const vedtattSats = o ? (o.sats === "0" ? null : Number(o.sats)) : r.sats;
+    return { ...r, vedtattSats, begrunnelse: o?.begrunnelse ?? "" };
+  });
+
+  const tabellrader = rader.map((r) => {
+    let forslagCelle = satsTag(r.sats);
+    let vedtattCelle;
+    let begrunnelseCelle;
+    if (r.fast) {
+      if (r.sats !== r.fastSats) forslagCelle += ` ${tag("Avviker fra vedtatt sats", "warning")}`;
+      vedtattCelle = `<div class="rad">${satsTag(r.fastSats)} ${tag(r.kilde, "neutral")}</div>`;
+      begrunnelseCelle = `<span class="dempet">${esc(r.kilde)}</span>`;
+    } else {
+      vedtattCelle = select({
+        label: `Vedtatt sats for ${periode(r.fraOgMed, r.tilOgMed)}`,
+        skjultLabel: true,
+        verdi: r.vedtattSats ?? "0",
+        valg: [["0", "Ingen rett"], ...[1, 2, 3, 4, 5, 6].map((s) => [s, `Sats ${s}`])],
+        attr: `data-overstyr="${r.fraOgMed}"`,
+      });
+      if (r.vedtattSats === r.sats) {
+        begrunnelseCelle = '<span class="dempet">Følger forslaget</span>';
+      } else {
+        const i = nyId("begr");
+        begrunnelseCelle = `<label for="${i}" class="aksel-label aksel-label--small">Hvorfor en annen sats enn forslaget?</label>
+          <textarea id="${i}" data-begrunnelse="${r.fraOgMed}" class="aksel-text-field__input aksel-body-short aksel-body-short--small">${esc(r.begrunnelse)}</textarea>
+          ${r.begrunnelse.trim() ? "" : '<p class="feil">Skriv hvorfor du velger en annen sats enn forslaget.</p>'}`;
+      }
+    }
+    return `<tr class="aksel-table__row">
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${periode(r.fraOgMed, r.tilOgMed)}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${utgifterCelle(sak, r)}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small tall">${kr(r.sum)}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small">${forslagCelle}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small" style="min-width: 10rem">${vedtattCelle}</td>
+      <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small" style="min-width: 14rem">${begrunnelseCelle}</td>
+    </tr>`;
+  }).join("");
+
+  const oppsummering = vedtaksoppsummering(sak, beh, rader.map((r) => ({ fraOgMed: r.fraOgMed, tilOgMed: r.tilOgMed, sats: r.vedtattSats })));
+
+  return `<div class="stack-24">
+    ${migrertForklaring("D")}
+    <div class="to-kolonner">
+      ${utgiftsseksjon(sak, beh)}
+      <aside class="stack">
+        ${alert({ farge: "success", tittel: "Fordeler", innhold: punktliste(["Følger rundskrivet: legg sammen, finn så satsen.", "Den vedtatte satsen lagres og endres ikke når Stortinget endrer satsbeløpene.", "Saksbehandler kan sette samme sats for hele perioden når beløpene er skjønn.", "Saker fra Infotrygd beholder satsen derfra.", "Hjemmelbokstav og diagnoser henger sammen per utgift."]) })}
+        ${alert({ farge: "warning", tittel: "Ulemper", innhold: punktliste(["Mest arbeid av de fire.", "Forslag og vedtatt sats kan sprike, så en annen sats må begrunnes.", "En sak fra Infotrygd har bare satsen, ikke de faktiske ekstrautgiftene, til saksbehandler registrerer dem i en revurdering."]) })}
+        ${utvikler(`utgiftspost og utgiftspost_diagnose (som C)
+
+vedtatt_sats (én rad per periode)
+  vurdering       JA | NEI
+  sats            1–6, tom ved NEI
+  foreslatt_sats  1–6 eller tom
+  begrunnelse     påkrevd når sats ≠ forslag
+  fra_og_med, til_og_med
+
+vedtatt_sats har samme felter som
+tabellen i A, pluss forslaget.`)}
+      </aside>
+    </div>
+    <div class="kort stack">
+      <h3 class="aksel-heading aksel-heading--small">Forslag og vedtatt sats</h3>
+      <p class="aksel-body-short aksel-body-short--small dempet">Systemet foreslår en sats per periode ut fra de godkjente utgiftene. Saksbehandler bekrefter forslaget eller velger en annen sats og begrunner det.</p>
+      ${sak.hint ? alert({ farge: "info", tittel: "Satsendring i vurderingsperioden", innhold: esc(sak.hint) }) : ""}
+      <div class="tabell-wrapper">
+        <table class="aksel-table aksel-table--small">
+          <caption class="aksel-typo--visually-hidden">Forslag og vedtatt sats per periode</caption>
+          <thead class="aksel-table__header"><tr class="aksel-table__row">
+            <th class="aksel-table__header-cell aksel-label" scope="col">Periode</th>
+            <th class="aksel-table__header-cell aksel-label" scope="col">Utgifter per år</th>
+            <th class="aksel-table__header-cell aksel-label tall" scope="col">Sum per år</th>
+            <th class="aksel-table__header-cell aksel-label" scope="col">Forslag</th>
+            <th class="aksel-table__header-cell aksel-label" scope="col">Vedtatt sats</th>
+            <th class="aksel-table__header-cell aksel-label" scope="col">Begrunnelse</th>
+          </tr></thead>
+          <tbody class="aksel-table__body">${tabellrader || `<tr class="aksel-table__row"><td colspan="6" class="aksel-table__data-cell aksel-body-short aksel-body-short--small">Ingen godkjente utgifter.</td></tr>`}</tbody>
+        </table>
+      </div>
+      ${oppsummering}
+      ${alert({ farge: "info", tittel: "Etter vedtaket", innhold: "Endrer Stortinget satsbeløpene, beholder søker satsen og får det nye beløpet for den. Satsen endres bare når vilkårene vurderes på nytt, eller når en standardsats endres med alderen. Perioder som allerede står i tabellen over, som overgangen ved 31 år i sak 1, er en del av vedtaket." })}
+    </div>
+  </div>`;
+}
+
+// ---------- Rendering ----------
+function toggleGruppe({ label, valg, valgt, data }) {
+  const id = nyId("tg");
+  return `<div class="stack-8"><span id="${id}" class="aksel-label aksel-label--small">${esc(label)}</span>
+    <div class="aksel-toggle-group__wrapper"><div class="aksel-toggle-group aksel-toggle-group--small" role="radiogroup" aria-labelledby="${id}">
+      ${valg.map(([v, t]) => `<button class="aksel-toggle-group__button" type="button" role="radio" aria-checked="${v === valgt}" data-selected="${v === valgt}" tabindex="${v === valgt ? 0 : -1}" data-${data}="${v}">
+        <span class="aksel-toggle-group__button-inner aksel-body-short aksel-body-short--small">${esc(t)}</span></button>`).join("")}
+    </div></div></div>`;
+}
+
+function render() {
+  const sak = SAKER[tilstand.sak];
+  const beh = behandling(sak);
+
+  document.getElementById("sakvelger").innerHTML = Object.entries(SAKER).map(([k, s]) =>
+    `<button class="aksel-toggle-group__button" type="button" role="radio" aria-checked="${k === tilstand.sak}" data-selected="${k === tilstand.sak}" tabindex="${k === tilstand.sak ? 0 : -1}" data-sak="${k}">
+      <span class="aksel-toggle-group__button-inner aksel-body-short aksel-body-short--small">${k}. ${esc(s.navn)}</span></button>`).join("");
+  document.getElementById("sak-beskrivelse").textContent = sak.beskrivelse;
+  document.getElementById("sak-diagnoser").innerHTML = Object.entries(sak.diagnoser).map(([k, t]) => `<li>${esc(k)} ${esc(t)}</li>`).join("");
+
+  document.getElementById("migrert-valg").innerHTML = sak.faser ? `
+    ${toggleGruppe({ label: "Behandling", valg: [["MIGRERING", "Migrering, november 2026"], ["REVURDERING", "Revurdering, desember 2026"]], valgt: tilstand.fase, data: "fase" })}
+    <p class="aksel-body-short aksel-body-short--small">I C og D har utgiften fra Infotrygd sats 3 som grunnlag, slik en standardsats har, og teller med årsbeløpet til satsen. Trygdetiden brukes først etter at satsen er satt, så den påvirker ikke ekstrautgiftene.
+      ${tilstand.fase === "MIGRERING"
+        ? "En migreringsbehandling vurderer ikke vilkårene på nytt og tar med det Infotrygd har, nøyaktig som det er. Søker får samme sats og samme beløp som i Infotrygd."
+        : "I revurderingen kan saksbehandler endre satsen på utgiften fra Infotrygd, slette den eller registrere de faktiske utgiftene i stedet."}</p>` : "";
+
+  document.getElementById("faner").innerHTML = VARIANTER.map((v) => {
+    const aktiv = v.nøkkel === tilstand.variant;
+    return `<button class="aksel-tabs__tab aksel-tabs__tab--medium" type="button" role="tab" id="fane-${v.nøkkel}" aria-controls="fanepanel" aria-selected="${aktiv}" data-state="${aktiv ? "active" : "inactive"}" tabindex="${aktiv ? 0 : -1}" data-variant-knapp="${v.nøkkel}">
+      <span class="aksel-tabs__tab-inner aksel-body-short aksel-body-short--medium"><span>${v.nøkkel}. ${esc(v.navn)}</span></span></button>`;
+  }).join("");
+  const panel = document.getElementById("fanepanel");
+  panel.setAttribute("aria-labelledby", `fane-${tilstand.variant}`);
+  panel.innerHTML = { A: variantA, B: variantB, C: variantC, D: variantD }[tilstand.variant](sak, beh);
+
+  document.getElementById("sammenligning").innerHTML = SAMMENLIGNING.map(([rad, ...verdier]) =>
+    `<tr class="aksel-table__row"><th scope="row" class="aksel-table__header-cell aksel-label">${esc(rad)}</th>
+      ${verdier.map((t, i) => `<td class="aksel-table__data-cell aksel-body-short aksel-body-short--small" ${"ABCD"[i] === tilstand.variant ? 'style="background: var(--ax-bg-accent-soft)"' : ""}>${esc(t)}</td>`).join("")}</tr>`).join("");
+
+  const v = VARIANTER.find((x) => x.nøkkel === tilstand.variant);
+  document.getElementById("variant-etikett").textContent = `${v.nøkkel} (${v.navn}) · sak ${tilstand.sak}`;
+  history.replaceState(null, "", `${location.pathname}?${new URLSearchParams({ variant: tilstand.variant, sak: tilstand.sak })}`);
+}
+
+function byttVariant(steg) {
+  const i = VARIANTER.findIndex((v) => v.nøkkel === tilstand.variant);
+  tilstand.variant = VARIANTER[(i + steg + VARIANTER.length) % VARIANTER.length].nøkkel;
+  render();
+}
+
+function lesNyPost() {
+  const n = { diagnoser: [] };
+  document.querySelectorAll("[data-ny]").forEach((el) => (n[el.dataset.ny] = el.value));
+  document.querySelectorAll("[data-ny-diagnose]:checked").forEach((el) => n.diagnoser.push(el.value));
+  return n;
+}
+
+function valider(n, poster) {
+  if (!n.fraOgMed) return "Velg fra og med-dato.";
+  if (n.tilOgMed && n.tilOgMed < n.fraOgMed) return "Til og med må være etter fra og med.";
+  if (n.diagnoser.length === 0) return "Velg minst én diagnose.";
+  if (n.status === "IKKE_GODKJENT" && !n.begrunnelse.trim()) return "Skriv hvorfor utgiften ikke er godkjent.";
+  const ny = { fraOgMed: n.fraOgMed, tilOgMed: n.tilOgMed || null };
+  if (poster.some((p) => p.bokstav === n.bokstav && Satsberegning.overlapper(p, ny)))
+    return `Det finnes allerede en utgift med bokstav ${n.bokstav} i perioden. Legg beløpet inn i den utgiften, og forklar sammensetningen i begrunnelsen.`;
+  return "";
+}
+
+// ---------- Hendelser ----------
+document.addEventListener("click", (e) => {
+  const sakKnapp = e.target.closest("[data-sak]");
+  if (sakKnapp) { tilstand.sak = sakKnapp.dataset.sak; tilstand.nyPost = null; tilstand.feil = ""; render(); return; }
+  const variantKnapp = e.target.closest("[data-variant-knapp]");
+  if (variantKnapp) { tilstand.variant = variantKnapp.dataset.variantKnapp; render(); return; }
+  const faseKnapp = e.target.closest("[data-fase]");
+  if (faseKnapp) { tilstand.fase = faseKnapp.dataset.fase; tilstand.nyPost = null; tilstand.feil = ""; render(); return; }
+
+  const handling = e.target.closest("[data-handling]")?.dataset.handling;
+  if (!handling) return;
+  const poster = posterFor();
+  if (handling === "tilbakestill") {
+    delete tilstand.poster[tilstandsnøkkel()];
+    delete tilstand.overstyring[tilstandsnøkkel()];
+    tilstand.nyPost = null; tilstand.feil = ""; render();
+  }
+  if (handling === "slett-post") {
+    const id = e.target.closest("[data-post]").dataset.post;
+    tilstand.poster[tilstandsnøkkel()] = poster.filter((p) => p.id !== id);
+    render();
+  }
+  if (handling === "legg-til-post") {
+    const n = lesNyPost();
+    tilstand.nyPost = n;
+    tilstand.feil = valider(n, poster);
+    if (!tilstand.feil) {
+      poster.push({
+        id: nyId("post"), bokstav: n.bokstav, diagnoser: n.diagnoser, grunnlag: n.grunnlag,
+        årsbeløp: Number(n.årsbeløp ?? 0), standardsats: Number(n.standardsats ?? 1), status: n.status,
+        fraOgMed: n.fraOgMed, tilOgMed: n.tilOgMed || null, begrunnelse: n.begrunnelse,
+      });
+      poster.sort((a, b) => a.fraOgMed.localeCompare(b.fraOgMed));
+      tilstand.nyPost = null;
+    }
+    render();
+  }
+});
+
+document.addEventListener("change", (e) => {
+  if (e.target.matches("[data-ny]") && e.target.dataset.ny === "grunnlag") { tilstand.nyPost = lesNyPost(); render(); return; }
+  if (e.target.matches("[data-felt='årsbeløp']") || e.target.matches("[data-felt='infotrygdSats']")) {
+    const felt = e.target.dataset.felt;
+    const post = posterFor().find((p) => p.id === e.target.dataset.post);
+    post[felt] = Math.max(0, Number(e.target.value) || 0);
+    render();
+    document.querySelector(`[data-post="${post.id}"][data-felt="${felt}"]`)?.focus();
+    return;
+  }
+  if (e.target.matches("[data-overstyr]")) {
+    const nøkkel = e.target.dataset.overstyr;
+    const ov = overstyringFor();
+    ov[nøkkel] = { sats: e.target.value, begrunnelse: ov[nøkkel]?.begrunnelse ?? "" };
+    render();
+    document.querySelector(`[data-overstyr="${nøkkel}"]`)?.focus();
+    return;
+  }
+  if (e.target.matches("[data-begrunnelse]")) render();
+});
+
+document.addEventListener("input", (e) => {
+  if (e.target.matches("[data-begrunnelse]")) {
+    const ov = overstyringFor();
+    const nøkkel = e.target.dataset.begrunnelse;
+    ov[nøkkel] = { ...(ov[nøkkel] ?? {}), begrunnelse: e.target.value };
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest("input, textarea, select, [contenteditable]")) return;
+  if (e.key === "ArrowLeft") byttVariant(-1);
+  if (e.key === "ArrowRight") byttVariant(1);
+});
+document.getElementById("forrige").addEventListener("click", () => byttVariant(-1));
+document.getElementById("neste").addEventListener("click", () => byttVariant(1));
+
+// ---------- Faste deler av introduksjonen ----------
+document.getElementById("bokstavliste").innerHTML = Object.entries(BOKSTAVER).map(([b, t]) => `<li><strong>${b})</strong> ${esc(t)}</li>`).join("");
+const [fra2024, fra2027] = Satsberegning.ALLE_SATSBELØP;
+document.getElementById("satstabell").innerHTML = [1, 2, 3, 4, 5, 6].map((s) => `<tr class="aksel-table__row">
+  <th scope="row" class="aksel-table__header-cell aksel-label">Sats ${s}</th>
+  <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small tall">${kr(fra2024.månedsbeløp[s - 1])}</td>
+  <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small tall">${kr(fra2024.månedsbeløp[s - 1] * 12)}</td>
+  <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small tall dempet">${kr(fra2027.månedsbeløp[s - 1])}</td>
+  <td class="aksel-table__data-cell aksel-body-short aksel-body-short--small tall dempet">${kr(fra2027.månedsbeløp[s - 1] * 12)}</td>
+</tr>`).join("");
+
+render();
+</script>
+</body>
+</html>

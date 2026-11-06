@@ -1,6 +1,8 @@
 # ADR-0006: Fem vilkår, med inngangsvilkår som første steg
 
 **Dato:** 2026-09-29
+**Endret:** 2026-11-06. Modellen for nødvendige ekstrautgifter er tatt ut og
+avklares i ticket 15.
 **Status:** Foreslått
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 **Erstatter delvis:** [ADR-0003](ADR-0003-vilkaarsmodell-for-grunnstoenad.md),
@@ -81,9 +83,14 @@ endringshistorikken.
 Steget etter inngangsvilkårene heter «Sats og trygdetid». Saksbehandler
 vurderer ett vilkår og legger inn trygdetiden:
 
-- **Nødvendige ekstrautgifter** (`VilkårEkstrautgifter`) har `vurdering`
-  (`JA`/`NEI`) og `sats` (1–6). Satsen er påkrevd ved `JA` og tom ved `NEI`.
-  `NEI` gir ingen rett i perioden, med § 6-3 tredje ledd som hjemmel.
+- **Nødvendige ekstrautgifter**: hvordan vilkåret modelleres, er ikke bestemt.
+  Det avklarer teamet og fag i
+  [ticket 15](../../.scratch/sats-og-trygdetid/issues/15-avklar-modellen-for-noedvendige-ekstrautgifter.md).
+  Uansett modell gjelder dette: de godkjente ekstrautgiftene legges sammen før
+  satsen fastsettes, en sum under laveste sats gir ingen rett i perioden
+  (§ 6-3 tredje ledd), og satsen regnes ikke ut på nytt når Stortinget endrer
+  satsbeløpene. Satsen endres bare når vilkårene vurderes på nytt, eller når en
+  standardsats endres med alderen.
 - **Trygdetid** har en teller fra 0 til 40 og en kilde, men ingen `JA`/`NEI`.
   Søker kan ha rett uansett trygdetid. Til trygdetiden hentes fra andre
   systemer, legger saksbehandler den inn for hånd med begrunnelse.
@@ -106,7 +113,8 @@ krever skjønn, og modellen er ikke ferdig. Vi fjerner derfor alt for
 institusjon: tabellen `vilkar_institusjon`, `VilkårType`-verdien, koden og
 skjermbildet. Verdiene i `Oppholdstype` og `Unntakshjemmel` var heller aldri
 sjekket med fag, se ADR-0003. Koden finnes i git-historikken. Når vilkåret
-kommer tilbake, designer vi det sammen med ekstrautgiftene.
+kommer tilbake, designer vi det sammen med ekstrautgiftene, se
+[ticket 17](../../.scratch/sats-og-trygdetid/issues/17-avklar-institusjon-sammen-med-ekstrautgiftene.md).
 
 Uten institusjonsvilkåret kan løsningen innvilge grunnstønad til noen som bor på
 institusjon. Løsningen kan derfor ikke tas i bruk i prod før vilkåret er på
@@ -156,8 +164,11 @@ vilkår måtte den ha unntak fra «er oppfylt», fra regelen om å kopiere bare
 
 ## Aksjonspunkter
 
+- [ ] Teamet og fag avgjør modellen for nødvendige ekstrautgifter i ticket 15.
+      Beslutningen skrives i en ny ADR som erstatter punktet om ekstrautgifter
+      under «Steg 2 er nødvendige ekstrautgifter og trygdetid».
 - [ ] Institusjon må tilbake i løsningen før prod, designet sammen med
-      nødvendige ekstrautgifter.
+      nødvendige ekstrautgifter (ticket 17).
 
 ## Konsekvenser
 

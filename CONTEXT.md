@@ -47,6 +47,14 @@ En periode der både medlemskap og diagnose er oppfylt.
 **Nødvendige ekstrautgifter**:
 Vilkåret som avgjør om søker har rett i en periode med oppfylte inngangsvilkår, og i så fall hvilken sats. Er ekstrautgiftene under laveste sats, er vilkåret ikke oppfylt, jf. § 6-3 tredje ledd.
 
+**Hjemmelbokstav**:
+Bokstaven i folketrygdloven § 6-3 første ledd som sier hva en nødvendig ekstrautgift går til: a) drift av tekniske hjelpemidler, b) transport, herunder drift av egen bil, c) hold av førerhund, f) fordyret kosthold, g) slitasje på klær og sengetøy og h) hold av servicehund. Bokstav d (telefon) og e (proteser, støttebandasje o.l.) gir ikke grunnstønad i nye tilfeller fra 1. januar 2020.
+_Avoid_: Formål (alene), utgiftstype
+
+**Standardsats**:
+En sats som enkelte diagnoser gir uten individuell prøving av ekstrautgiftene, fordi personer med diagnosen regnes som en ensartet gruppe med like høye ekstrautgifter. Et eksempel er fordyret kosthold ved cøliaki. Diagnosene, aldersgrensene og satsene står i [rundskrivet til § 6-3](https://lovdata.no/nav/rundskriv/r06-00). En standardsats legges sammen med andre godkjente ekstrautgifter når satsen fastsettes.
+_Avoid_: Fast sats, direkte plassert sats
+
 **Trygdetid**:
 Søkers trygdetid per periode, som en teller fra 0 til 40 og kilden alderspensjon, uføretrygd eller ingen. Ikke et vilkår: den har ingen ja/nei-vurdering, kan ikke gi avslag og reduserer bare tilkjent ytelse etter § 6-6. Har samme livsløp som vilkårene, med periode, begrunnelse og endringshistorikk.
 _Avoid_: Trygdetidsvilkår, vilkåret trygdetid
