@@ -27,5 +27,3 @@ Fylles ut når ticket 15 er avgjort: hva saksbehandler registrerer, hvilke tabel
 ## Comments
 
 **2026-11-06:** Satt på vent til modellen er avklart i ticket 15.
-
-**2026-11-06:** Koden for variant A (ja eller nei og sats per periode, med V52) er fjernet fra branchen `noedvendige-ekstrautgifter`. Den ligger i en lokal stash med navnet «ticket 07: vilkåret nødvendige ekstrautgifter (variant A, fjernet 2026-11-06)» og kan hentes med `git checkout <stash> -- apps`. V52 ble aldri deployet, så neste ledige Flyway-nummer er fortsatt V52. Velger teamet D, kan tabellen derfra være et utgangspunkt for den vedtatte satsen per periode.

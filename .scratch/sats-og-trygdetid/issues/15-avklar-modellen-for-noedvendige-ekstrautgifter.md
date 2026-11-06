@@ -35,7 +35,7 @@ Spec: [spec.md](../spec.md). Bakgrunn: ADR-0006, ADR-0014 og ADR-0008. Varianten
 | Lagres | Vurdering og sats | Vurdering, sats, bokstaver og diagnoser | Utgiftene. Satsen utledes og lagres ikke | Utgiftene og den vedtatte satsen |
 | Migrert sak fra Infotrygd | Passer: én sats per periode | Passer: én bokstav og diagnosene per periode | Passer i migreringen når utgiften fra Infotrygd har satsen som grunnlag. Ved revurdering regnes også tidligere perioder ut på nytt | Passer: satsen fra Infotrygd blir vedtatt sats og endres bare fra perioden som revurderes |
 | Satsen står seg når satsbeløpene endres | Ja | Ja | Nei, den utledes på nytt | Ja |
-| Arbeid | Lite: koden finnes i en stash, se ticket 07 | Lite | Stort | Stort, men tabellen fra A kan bli den vedtatte satsen |
+| Arbeid | Lite | Lite | Stort | Stort, men den vedtatte satsen kan lagres i en tabell som i A |
 
 C kan migrere saker når utgiften fra Infotrygd har satsen som grunnlag, men oppfyller ikke punkt 2 og 5 under «Avklart». C lagrer ingen sats. Nye satsbeløp eller en endret utgift kan derfor gi en annen sats også i perioder ingen har vurdert på nytt, for eksempel når saksbehandler erstatter posten fra Infotrygd i en revurdering. Med en lagret sats blir C til D.
 
@@ -143,6 +143,6 @@ Infotrygd har én hjemmelbokstav, én eller to diagnosekoder, én sats og Infotr
 
 ## Konsekvenser for koden
 
-Koden for variant A er fjernet fra branchen `noedvendige-ekstrautgifter` og ligger i en lokal stash, se ticket 07. Den har tabellen `vilkar_ekstrautgifter` (V52) med `vurdering` og `sats`, servicen, endepunktene, kopieringen av JA-rader og listen i steg 2. V52 ble aldri deployet. Velger vi A, kan koden hentes tilbake. Velger vi D, kan tabellen bli den vedtatte satsen per periode, med postene i en ny tabell.
+Ingen kode for vilkåret er merget. Velger vi D, kan den vedtatte satsen lagres per periode i en tabell som i A, med `vurdering` og `sats`, og postene i en egen tabell.
 
 ## Comments
