@@ -45,14 +45,14 @@ class StønaderRepository(
             .param("kodeRutine", stønadstype.kodeRutine)
             .query { rs, _ ->
                 StonadResponse(
-                    stonadId = rs.getLong("stonad_id"),
+                    stønadId = rs.getLong("stonad_id"),
                     personnr = rs.tekst("personnr"),
                     kodeRutine = rs.tekst("kode_rutine"),
                     datoStart = rs.dato("dato_start"),
-                    kodeOpphor = rs.tekstEllerNull("kode_opphor"),
-                    datoOpphor = rs.datoEllerNull("dato_opphor"),
+                    kodeOpphør = rs.tekstEllerNull("kode_opphor"),
+                    datoOpphør = rs.datoEllerNull("dato_opphor"),
                     oppdragId = rs.longEllerNull("oppdrag_id"),
-                    tidspunktOpphort = rs.tidspunktEllerNull("tidspunkt_opphort"),
+                    tidspunktOpphørt = rs.tidspunktEllerNull("tidspunkt_opphort"),
                     tidspunktReg = rs.tidspunktEllerNull("tidspunkt_reg"),
                     brukerid = rs.tekstEllerNull("brukerid"),
                 )
@@ -122,7 +122,7 @@ class StønaderRepository(
                         datoInnvFom = rs.dato("dato_innv_fom"),
                         datoInnvTom = rs.datoEllerNull("dato_innv_tom"),
                         datoMottattSak = rs.dato("dato_mottatt_sak"),
-                        kodeVedtaksnivaa = rs.tekst("kode_vedtaksnivaa"),
+                        kodeVedtaksnivå = rs.tekst("kode_vedtaksnivaa"),
                         typeBeregning = rs.tekst("type_beregning"),
                         tidspunktReg = rs.tidspunkt("tidspunkt_reg"),
                         brukerid = rs.tekst("brukerid"),
@@ -175,7 +175,7 @@ class StønaderRepository(
                         tidspunktReg = rs.tidspunkt("tidspunkt_reg"),
                         fom = rs.dato("fom"),
                         tom = rs.datoEllerNull("tom"),
-                        belop = rs.getBigDecimal("belop"),
+                        beløp = rs.getBigDecimal("belop"),
                         typeSats = rs.tekst("type_sats"),
                         typeUtbetaling = rs.tekst("type_utbetaling"),
                         brukerid = rs.tekst("brukerid"),

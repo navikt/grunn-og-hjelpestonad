@@ -19,8 +19,8 @@ flowchart TD
         medlemskap{"Medlem i trygden?<br/>ftrl. kap. 2, § 6-1 a<br/>Lempes ved yrkesskade, § 6-9"}
     end
 
-    subgraph neste["Neste steg (ikke bestemt)"]
-        institusjon{"Opphold i institusjon?<br/>§ 6-8"}
+    subgraph neste["Steg 2: Sats og trygdetid"]
+        institusjon{"Opphold i institusjon?<br/>§ 6-8<br/>Ikke i løsningen ennå"}
         unntak{"Ekstrautgifter institusjonen<br/>ikke dekker?"}
         ekstrautgifter{"Nødvendige ekstrautgifter<br/>over laveste sats?<br/>§ 6-3"}
         sats["Sats 1–6<br/>Fra regninger, eller fast sats for diagnosen"]
@@ -92,7 +92,36 @@ lege, spesialist eller medisinsk ekspert.
 Alt periodiseres: faktagrunnlaget, hvert vilkår og tilkjent ytelse.
 Tilkjent ytelse er tidslinjen av sats × trygdetidsbrøk i periodene der søker
 har rett. Satsen og trygdetidsbrøken kan endre seg underveis, for eksempel når
-søker får alderspensjon eller får nye ekstrautgifter.
+søker får alderspensjon eller får nye ekstrautgifter. Hvordan periodene blir
+til måneder etter § 22-12, står i
+[utledning av tilkjent ytelse](../tilkjent-ytelse/utledning-av-tilkjent-ytelse.md).
+
+## Kopiering til ny behandling
+
+En ny behandling starter med vilkårene fra forrige iverksatte behandling. Bare
+perioder vurdert til ja blir kopiert. Det gjelder medlemskap, diagnose og
+nødvendige ekstrautgifter. Trygdetid har ingen ja/nei-vurdering, så alle
+trygdetidsperiodene blir kopiert. Perioder som ikke blir kopiert, er hull i den
+nye behandlingen, og saksbehandler må vurdere dem på nytt.
+
+Barnetrygd gjør det samme. Når `familie-ba-sak` kopierer fra forrige vedtatte
+behandling, beholder den bare vilkårsresultater med `Resultat.OPPFYLT`:
+
+```kotlin
+private fun List<VilkårResultat>.filtrerVilkårÅKopiere(kopieringSkjerFraForrigeBehandling: Boolean): List<VilkårResultat> =
+    if (kopieringSkjerFraForrigeBehandling) {
+        this.filter { it.resultat == Resultat.OPPFYLT }
+    } else {
+        this
+    }
+```
+
+Kilde: `VilkårsvurderingUtils.kt`, kalt fra `flyttResultaterTilInitielt`, i
+[familie-ba-sak på commit `f42e0e6`](https://github.com/navikt/familie-ba-sak/blob/f42e0e6236684ab2f7ef1ffbd84c0b957e105995/src/main/kotlin/no/nav/familie/ba/sak/kjerne/vilkårsvurdering/VilkårsvurderingUtils.kt#L433-L438).
+«Endre migreringsdato» filtrerer også på `erOppfylt()`. Unntaket er
+automatiske behandlinger som satsendring og månedlig valutajustering. De bruker
+`tilKopiForNyBehandling` og kopierer uten å filtrere på resultat. Vi har ingen
+slike behandlinger ennå.
 
 ## Åpne spørsmål
 

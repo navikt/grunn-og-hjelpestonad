@@ -115,7 +115,7 @@ export function InfotrygdVedtak({
   data: InfotrygdStonaderResponse;
   gjeldendePerioder?: readonly GjeldendeInfotrygdPeriode[];
 }) {
-  const rader = lagVedtaksrader(data.stonader, gjeldendePerioder);
+  const rader = lagVedtaksrader(data.stønader, gjeldendePerioder);
   const overskriftId = "infotrygd-alle-vedtak";
 
   return (

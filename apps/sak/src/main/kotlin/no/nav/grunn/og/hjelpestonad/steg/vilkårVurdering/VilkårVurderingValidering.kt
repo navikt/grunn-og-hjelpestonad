@@ -8,9 +8,9 @@ data class Valideringsfeil(
 )
 
 object VilkårVurderingValidering {
-    fun valider(grunnlag: VilkårVurderingStegGrunnlag): List<Valideringsfeil> =
+    fun valider(vurderteInngangsvilkår: VurderteInngangsvilkår): List<Valideringsfeil> =
         buildList {
-            if (grunnlag.medlemskap.isEmpty()) {
+            if (vurderteInngangsvilkår.medlemskap.isEmpty()) {
                 add(
                     Valideringsfeil(
                         VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
@@ -18,19 +18,11 @@ object VilkårVurderingValidering {
                     ),
                 )
             }
-            if (grunnlag.diagnoser.isEmpty()) {
+            if (vurderteInngangsvilkår.diagnoser.isEmpty()) {
                 add(
                     Valideringsfeil(
                         VilkårType.DIAGNOSE,
                         "Du må vurdere om det foreligger en varig sykdom, skade eller lyte.",
-                    ),
-                )
-            }
-            if (grunnlag.institusjon.isEmpty()) {
-                add(
-                    Valideringsfeil(
-                        VilkårType.IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM,
-                        "Du må vurdere opphold i institusjon eller lovregulert boform.",
                     ),
                 )
             }

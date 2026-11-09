@@ -14,28 +14,26 @@ import java.time.format.DateTimeFormatter
 data class GjeldendeInfotrygdPeriode(
     val fom: LocalDate,
     val tom: LocalDate?,
-    val stonadId: Long,
+    val stønadId: Long,
     val vedtak: InfotrygdVedtakMedArv,
 )
 
-/**
- * Hvert vedtak blir én periode fra datoInnvFom til datoInnvTom. Vedtakene legges på tidslinjen etter stigende
- * vedtakId, og et vedtak overskriver de eldre i hele sin periode, på tvers av stønadene. Et vedtak med tom
- * før eller lik fom gir [UgyldigInput].
- */
 object GjeldendeInfotrygdPerioder {
     fun utled(stønader: List<InfotrygdStonadMedArv>): List<GjeldendeInfotrygdPeriode> {
-        val tidslinjer =
+        val perioder =
             stønader
-                .flatMap { stønad -> stønad.vedtak.map { VedtakPåStønad(stønad.stonadId, it) } }
-                .sortedBy { it.vedtak.vedtakId }
-                .onEach { it.vedtak.validerPeriode() }
-                .map { Periode(it, it.vedtak.datoInnvFom, it.vedtak.datoInnvTom).tilTidslinje() }
+                .flatMap { stønad -> stønad.vedtak.map { vedtak -> stønad to vedtak } }
+                .sortedBy { (_, vedtak) -> vedtak.vedtakId }
+                .mapNotNull { (stønad, vedtak) -> vedtak.tilPeriode(stønad) }
 
-        if (tidslinjer.isEmpty()) return emptyList()
+        validerLøpendeVedtakPåHøystÉnStønad(perioder)
+        validerIkkeVedtakAvsluttetMenStønadErLøpende(stønader)
+
+        if (perioder.isEmpty()) return emptyList()
 
         // Ett vedtak om gangen: tilTidslinje() på alle vedtakene samtidig kaster ved overlapp.
-        return tidslinjer
+        return perioder
+            .map { it.tilTidslinje() }
             .reduce { eldre, nyere -> nyere.kombinerMed(eldre) { ny, gammel -> ny ?: gammel } }
             .slåSammenLikePerioder()
             .tilPerioder()
@@ -44,16 +42,13 @@ object GjeldendeInfotrygdPerioder {
                 GjeldendeInfotrygdPeriode(
                     fom = checkNotNull(it.fom) { "Gjeldende periode mangler fom" },
                     tom = it.tom,
-                    stonadId = it.verdi.stonadId,
+                    stønadId = it.verdi.stønadId,
                     vedtak = it.verdi.vedtak,
                 )
             }
     }
 
-    /**
-     * Antall vedtak som er registrert før vedtaket med nærmeste lavere vedtakId. Brukes til å logge om
-     * antakelsen bak rekkefølgen, at vedtakId stiger med registreringstidspunktet, holder.
-     */
+    // Det er ingen tilfeller der vedtakId er mindre mens tidspunktReg er større enn et annet vedtak i infotrygd dev.
     fun antallVedtakUtenforRekkefølge(stønader: List<InfotrygdStonadMedArv>): Int =
         stønader
             .flatMap { it.vedtak }
@@ -61,7 +56,25 @@ object GjeldendeInfotrygdPerioder {
             .zipWithNext()
             .count { (forrige, neste) -> neste.tidspunktReg < forrige.tidspunktReg }
 
-    private fun InfotrygdVedtakMedArv.validerPeriode() {
+    private fun InfotrygdVedtakMedArv.tilPeriode(stønad: InfotrygdStonadMedArv): Periode<VedtakPåStønad>? {
+        this.validerAtTomKommerEtterFom()
+
+        val datoOpphør = stønad.datoOpphør ?: return Periode(VedtakPåStønad(stønad.stønadId, this), datoInnvFom, datoInnvTom)
+
+        // Dersom det er et opphør på samme dag som vedtaket starter, regner vi det som at hele vedtaket er opphørt, og tar det ikke med.
+        if (datoInnvFom == datoOpphør) return null
+
+        val tom = listOfNotNull(datoInnvTom, faktiskOpphørsdato(datoOpphør)).min()
+        if (tom <= datoInnvFom) {
+            throw UgyldigInput(
+                "Vedtak $vedtakId starter ${datoInnvFom.format(DATOFORMAT)}, etter at stønaden opphørte " +
+                    "${datoOpphør.format(DATOFORMAT)}. Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
+            )
+        }
+        return Periode(VedtakPåStønad(stønad.stønadId, this), datoInnvFom, tom)
+    }
+
+    private fun InfotrygdVedtakMedArv.validerAtTomKommerEtterFom() {
         val tom = datoInnvTom ?: return
         if (tom <= datoInnvFom) {
             throw UgyldigInput(
@@ -71,10 +84,47 @@ object GjeldendeInfotrygdPerioder {
         }
     }
 
+    private fun validerLøpendeVedtakPåHøystÉnStønad(perioder: List<Periode<VedtakPåStønad>>) {
+        val stønaderMedLøpendeVedtak =
+            perioder
+                .filter { it.tom == null }
+                .map { it.verdi.stønadId }
+                .distinct()
+                .sorted()
+        if (stønaderMedLøpendeVedtak.size >= 2) {
+            throw UgyldigInput(
+                "Personen har løpende vedtak på flere stønader i Infotrygd (${stønaderMedLøpendeVedtak.joinToString(", ")}). " +
+                    "Vi har ikke bestemt hvordan slike saker skal tolkes. Kontakt teamet.",
+            )
+        }
+    }
+
+    private fun validerIkkeVedtakAvsluttetMenStønadErLøpende(stønader: List<InfotrygdStonadMedArv>) {
+        val (stønad, sisteVedtak) =
+            stønader
+                .flatMap { stønad -> stønad.vedtak.map { vedtak -> stønad to vedtak } }
+                .maxByOrNull { (_, vedtak) -> vedtak.vedtakId } ?: return
+        val vedtakTom = sisteVedtak.datoInnvTom ?: return
+
+        // Ønsker bare å kaste feil dersom dette treffer saker som nylig er avsluttet.
+        if (stønad.erLøpende() && !sisteVedtak.erLøpende() && vedtakTom >= DATOGRENSE_FOR_MIGRERING) {
+            throw UgyldigInput(
+                "Stønad ${stønad.stønadId} er ikke opphørt, men siste vedtak ${sisteVedtak.vedtakId} sluttet ${vedtakTom.format(DATOFORMAT)}. " +
+                    "Vi har ikke bestemt hvordan slike saker skal tolkes. Kontakt teamet.",
+            )
+        }
+    }
+
+    /** Opphør den 1. i måneden betyr at stønaden gjaldt ut måneden før. */
+    private fun faktiskOpphørsdato(datoOpphør: LocalDate): LocalDate = if (datoOpphør.dayOfMonth == 1) datoOpphør.minusDays(1) else datoOpphør
+
     private val DATOFORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
+    /** Se ADR-0013. EF bruker 2019-01-01. Vi bør se på denne på nytt når vi begynner med migrering */
+    private val DATOGRENSE_FOR_MIGRERING: LocalDate = LocalDate.of(2026, 1, 1)
+
     private data class VedtakPåStønad(
-        val stonadId: Long,
+        val stønadId: Long,
         val vedtak: InfotrygdVedtakMedArv,
     )
 }

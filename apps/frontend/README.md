@@ -13,7 +13,10 @@ Installering av avhengigheter:
 
 ```bash
 cd apps/frontend
-npm ci
+nvm install
+nvm use
+npm install --global pnpm@11.28.11
+pnpm install --frozen-lockfile
 ```
 
 #### Installering av @navikt pakker
@@ -45,7 +48,7 @@ sh hent-og-lagre-miljovariabler.sh
 ### 3. Start utviklingsserver
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Applikasjonen er tilgjengelig på http://localhost:8080/. Første sidevisning fullfører Authorization Code Flow automatisk mot mock-serveren.
@@ -53,7 +56,7 @@ Applikasjonen er tilgjengelig på http://localhost:8080/. Første sidevisning fu
 ## API-typer fra OpenAPI
 For å generere typefiler fra backend kan du kjøre:
 ```bash
-npm run generate:api
+pnpm run generate:api
 ```
 
 Typene hentes fra `http://localhost:8082/v3/api-docs`. Overstyr med

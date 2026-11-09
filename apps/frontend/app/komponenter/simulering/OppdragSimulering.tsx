@@ -39,9 +39,11 @@ export const OppdragSimulering: React.FC<{ behandlingId: string }> = ({ behandli
       <Heading size="small" level="2">
         Simulering mot Oppdrag (test)
       </Heading>
-      <Button variant="secondary" loading={simulerer} onClick={() => void simuler()}>
-        Simuler mot Oppdrag
-      </Button>
+      <div>
+        <Button variant="secondary" loading={simulerer} onClick={() => void simuler()}>
+          Simuler mot Oppdrag
+        </Button>
+      </div>
 
       {feilmelding && (
         <LocalAlert status="error">

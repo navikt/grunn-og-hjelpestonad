@@ -13,6 +13,7 @@ Spec: [spec.md](../spec.md)
 - [ ] Endepunktet tar låsen fra ticket 17, leser Infotrygd på nytt og kjører valideringen fra ticket 14 inne i låsen. Det bruker ikke data fra forhåndsvisningen.
 - [ ] Finnes migreringen allerede, returneres den eksisterende behandlingen.
 - [ ] Alle vilkår opprettes som oppfylt og markeres som maskinelt opprettet, som `VurderingService.opprettVilkårForMigrering` i EF. Sats og trygdetidsbrøk kommer fra Infotrygd etter svaret i ticket 03.
+- [ ] Vilkårene starter i måneden før startmåned. Etter § 22-12 gir det rett fra og med startmåned. Starter de i startmåned, opphører den første revurderingen startmåned. Starter de tidligere, flytter revurderingen startmåned bakover og tar over måneder Infotrygd har utbetalt for. Se [migrering og § 22-12](../../../docs/tilkjent-ytelse/utledning-av-tilkjent-ytelse.md#migrering-og--22-12).
 - [ ] Faktagrunnlaget fra Infotrygd lagres på behandlingen etter mønsteret i ADR-0007, med kilde `INFOTRYGD`.
 - [ ] Vedtak og tilkjent ytelse lages fra perioden. Startmåned er første måned fra valideringen.
 - [ ] Kontroll 1 og sjekken av simuleringen fra ticket 15 kjøres. Ved avvik rulles alt tilbake, og saksbehandler får en funksjonell feil med måned og beløp.

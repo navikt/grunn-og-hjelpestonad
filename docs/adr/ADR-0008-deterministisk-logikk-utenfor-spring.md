@@ -153,6 +153,7 @@ Kriteriet krever en vurdering. Uten en test kan regelen gli ut over tid.
 - [x] Gjør `DiagnosekodeService` om til `object Icd10`.
 - [x] Flytt `VilkårDiagnoseService.valider` og `perioderSomIkkeKanOverlappe` til
       `DiagnoseRegler`. Hva som er «samme diagnose», er en regel fag kan endre.
-- [ ] Flytt `VilkårInstitusjonService.valider` og `nyPeriode` til rene
+- [ ] ~~Flytt `VilkårInstitusjonService.valider` og `nyPeriode` til rene
       funksjoner. `nyPeriode` nuller felt når vurderingen er `JA`, og det er en
-      regel.
+      regel.~~ Utgår: institusjon er tatt ut av løsningen, se ADR-0006. Følg
+      regelen når vilkåret kommer tilbake.

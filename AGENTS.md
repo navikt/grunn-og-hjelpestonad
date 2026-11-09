@@ -1,7 +1,7 @@
 # Frontend
-(`apps/frontend`): React 19 + React Router 8 (framework mode med `ssr: false`, Express-server for API-proxy og statiske filer) i TypeScript, med Aksel (`@navikt/ds-react` 8) som designsystem, React Compiler slått på i `vite.config.ts` og API-klient generert fra backendens OpenAPI med `@hey-api/openapi-ts` (`npm run generate:api`).
+(`apps/frontend`): React 19 + React Router 8 (framework mode med `ssr: false`, Express-server for API-proxy og statiske filer) i TypeScript, med Aksel (`@navikt/ds-react` 8) som designsystem, React Compiler slått på i `vite.config.ts` og API-klient generert fra backendens OpenAPI med `@hey-api/openapi-ts` (`pnpm run generate:api`). Bruk pnpm-versjonen i `packageManager` og `pnpm install --frozen-lockfile`.
 - Bruk aksel-builder skill når du skal jobbe med aksel-komponenter i frontend. For eksmpel når du lager skjemaer.
-- `npm run typecheck` feiler med `EPERM ... open '.env'` fordi `.env` er blokkert av content exclusion. Kjør `npx tsc` direkte i stedet.
+- `pnpm run typecheck` feiler med `EPERM ... open '.env'` fordi `.env` er blokkert av content exclusion. Kjør `pnpm exec tsc` direkte i stedet.
 
 # Backend
 (`apps/sak`): Kotlin 2.4 på Java 25 med Spring Boot 4 (web, security/OAuth2, Data JDBC), PostgreSQL med Flyway-migrasjoner, springdoc-openapi for API-spesifikasjonen, og bygg med Maven.
@@ -27,5 +27,4 @@ Standardrollene (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-hum
 ### Ordliste
 
 Ordlisten heter `CONTEXT.md` (på rot), ikke `GLOSSARY.md`. Les og oppdater den der en skill nevner `GLOSSARY.md`. ADR-er ligger i `docs/adr/`.
-
 

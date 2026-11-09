@@ -2,8 +2,11 @@ package no.nav.grunn.og.hjelpestonad.vilkår
 
 import no.nav.familie.tidslinje.tilTidslinje
 import no.nav.familie.tidslinje.utvidelser.tilPerioder
+import no.nav.grunn.og.hjelpestonad.felles.periode.forkortetAv
+import no.nav.grunn.og.hjelpestonad.felles.periode.tilPeriode
+import no.nav.grunn.og.hjelpestonad.felles.periode.tilTidslinje
+import no.nav.grunn.og.hjelpestonad.felles.periode.tomTidslinje
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
-import no.nav.grunn.og.hjelpestonad.vilkår.institusjon.VilkårInstitusjon
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapRequest
@@ -79,21 +82,12 @@ class VilkårTidslinjeTest {
                 fraOgMedDato = LocalDate.of(2025, 1, 1),
                 tilOgMedDato = LocalDate.of(2025, 6, 30),
             )
-        val institusjon =
-            VilkårInstitusjon(
-                behandlingId = UUID.randomUUID(),
-                vurdering = Vurdering.NEI,
-                fraOgMedDato = LocalDate.of(2025, 1, 1),
-                tilOgMedDato = LocalDate.of(2025, 6, 30),
-            )
 
         assertThat(listOf(medlemskap).tilTidslinje().tilPerioder().map { it.verdi }).containsExactly(medlemskap)
         assertThat(listOf(diagnose).tilTidslinje().tilPerioder().map { it.verdi }).containsExactly(diagnose)
-        assertThat(listOf(institusjon).tilTidslinje().tilPerioder().map { it.verdi }).containsExactly(institusjon)
 
         assertThat(listOf(medlemskap).erOppfyltTidslinje().tilPerioder().map { it.verdi }).containsExactly(true)
         assertThat(listOf(diagnose).erOppfyltTidslinje().tilPerioder().map { it.verdi }).containsExactly(true)
-        assertThat(listOf(institusjon).erOppfyltTidslinje().tilPerioder().map { it.verdi }).containsExactly(false)
     }
 
     @Test

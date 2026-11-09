@@ -66,7 +66,7 @@ class OppdragClientTest {
                 andeler =
                     listOf(
                         AndelTilkjentYtelse(
-                            beløp = 1234,
+                            beløp = 1234.toBigDecimal(),
                             fom = LocalDate.of(2026, 1, 1),
                             tom = LocalDate.of(2026, 6, 30),
                             kildeBehandlingId = UUID.randomUUID(),

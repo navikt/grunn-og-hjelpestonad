@@ -1,8 +1,4 @@
-import type {
-  VilkårDiagnoseResponse,
-  VilkårInstitusjonResponse,
-  VilkårMedlemskapResponse,
-} from "~/api/generated/types.gen";
+import type { VilkårDiagnoseResponse, VilkårMedlemskapResponse } from "~/api/generated/types.gen";
 import { feilmeldingFra } from "./felles/feilmeldingFra";
 import type { PerioderResult } from "./felles/usePerioder";
 
@@ -14,13 +10,11 @@ export interface VilkårStatus {
 export function lagVilkårStatus({
   medlemskapsPerioder,
   diagnosePerioder,
-  institusjonsPerioder,
 }: {
   medlemskapsPerioder: PerioderResult<VilkårMedlemskapResponse>;
   diagnosePerioder: PerioderResult<VilkårDiagnoseResponse>;
-  institusjonsPerioder: PerioderResult<VilkårInstitusjonResponse>;
 }): VilkårStatus {
-  const periodeResultater = [medlemskapsPerioder, diagnosePerioder, institusjonsPerioder];
+  const periodeResultater = [medlemskapsPerioder, diagnosePerioder];
   const førsteFeil = periodeResultater.find((resultat) => resultat.error)?.error;
 
   return {

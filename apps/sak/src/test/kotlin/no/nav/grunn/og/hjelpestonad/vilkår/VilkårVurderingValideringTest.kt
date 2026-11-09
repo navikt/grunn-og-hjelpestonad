@@ -1,9 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingStegGrunnlag
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingValidering
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VurderteInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
-import no.nav.grunn.og.hjelpestonad.vilkår.institusjon.VilkårInstitusjon
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import org.assertj.core.api.Assertions.assertThat
@@ -19,35 +18,28 @@ class VilkårVurderingValideringTest {
 
     @Test
     fun `komplett vilkårsvurdering gir ingen feil`() {
-        val feil = VilkårVurderingValidering.valider(komplettGrunnlag())
+        val feil = VilkårVurderingValidering.valider(alleInngangsvilkårVurdert())
 
         assertThat(feil).isEmpty()
     }
 
     @Test
     fun `R1 - manglende medlemskapsvurdering gir feil på medlemskapsvilkåret`() {
-        val feil = VilkårVurderingValidering.valider(komplettGrunnlag().copy(medlemskap = emptyList()))
+        val feil = VilkårVurderingValidering.valider(alleInngangsvilkårVurdert().copy(medlemskap = emptyList()))
 
         assertThat(feil.map { it.vilkårType }).containsExactly(VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN)
     }
 
     @Test
     fun `R1 - manglende diagnosevurdering gir feil på diagnosevilkåret`() {
-        val feil = VilkårVurderingValidering.valider(komplettGrunnlag().copy(diagnoser = emptyList()))
+        val feil = VilkårVurderingValidering.valider(alleInngangsvilkårVurdert().copy(diagnoser = emptyList()))
 
         assertThat(feil.map { it.vilkårType }).containsExactly(VilkårType.DIAGNOSE)
     }
 
     @Test
-    fun `R1 - manglende institusjonsvurdering gir feil på institusjonsvilkåret`() {
-        val feil = VilkårVurderingValidering.valider(komplettGrunnlag().copy(institusjon = emptyList()))
-
-        assertThat(feil.map { it.vilkårType }).containsExactly(VilkårType.IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM)
-    }
-
-    @Test
-    fun `R1 - tomt grunnlag gir én feil per vilkår`() {
-        val feil = VilkårVurderingValidering.valider(VilkårVurderingStegGrunnlag(behandlingId, emptyList(), emptyList(), emptyList()))
+    fun `R1 - ingen vurderte perioder gir én feil per vilkår`() {
+        val feil = VilkårVurderingValidering.valider(VurderteInngangsvilkår(behandlingId, emptyList(), emptyList()))
 
         assertThat(feil.map { it.vilkårType }).containsExactlyInAnyOrder(*VilkårType.entries.toTypedArray())
         assertThat(feil.map { it.melding }).doesNotContainNull()
@@ -55,18 +47,18 @@ class VilkårVurderingValideringTest {
 
     @Test
     fun `R3 - manglende begrunnelse ved NEI er ikke en feil`() {
-        val grunnlag =
-            komplettGrunnlag().copy(
-                institusjon = listOf(institusjon(vurdering = Vurdering.NEI, begrunnelse = "")),
+        val vurderteInngangsvilkår =
+            alleInngangsvilkårVurdert().copy(
+                diagnoser = listOf(diagnose(vurdering = Vurdering.NEI, begrunnelse = "")),
             )
 
-        assertThat(VilkårVurderingValidering.valider(grunnlag)).isEmpty()
+        assertThat(VilkårVurderingValidering.valider(vurderteInngangsvilkår)).isEmpty()
     }
 
     @Test
     fun `R4 - hull mellom vilkårsperiodene er ikke en feil`() {
-        val grunnlag =
-            komplettGrunnlag().copy(
+        val vurderteInngangsvilkår =
+            alleInngangsvilkårVurdert().copy(
                 medlemskap =
                     listOf(
                         medlemskap(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 3, 31)),
@@ -74,35 +66,33 @@ class VilkårVurderingValideringTest {
                     ),
             )
 
-        assertThat(VilkårVurderingValidering.valider(grunnlag)).isEmpty()
+        assertThat(VilkårVurderingValidering.valider(vurderteInngangsvilkår)).isEmpty()
     }
 
     @Test
     fun `alle vilkår vurdert til NEI er ikke en feil, men et avslagsløp`() {
-        val grunnlag =
-            VilkårVurderingStegGrunnlag(
+        val vurderteInngangsvilkår =
+            VurderteInngangsvilkår(
                 behandlingId = behandlingId,
                 medlemskap = listOf(medlemskap(vurdering = Vurdering.NEI)),
                 diagnoser = listOf(diagnose(vurdering = Vurdering.NEI)),
-                institusjon = listOf(institusjon(vurdering = Vurdering.NEI)),
             )
 
-        assertThat(VilkårVurderingValidering.valider(grunnlag)).isEmpty()
+        assertThat(VilkårVurderingValidering.valider(vurderteInngangsvilkår)).isEmpty()
     }
 
     @Test
     fun `feilmeldingene røper ikke diagnoseopplysninger`() {
-        val feil = VilkårVurderingValidering.valider(VilkårVurderingStegGrunnlag(behandlingId, emptyList(), emptyList(), emptyList()))
+        val feil = VilkårVurderingValidering.valider(VurderteInngangsvilkår(behandlingId, emptyList(), emptyList()))
 
         assertThat(feil.map { it.melding }).noneMatch { it.contains("Diabetes", ignoreCase = true) || it.contains("E109") }
     }
 
-    private fun komplettGrunnlag() =
-        VilkårVurderingStegGrunnlag(
+    private fun alleInngangsvilkårVurdert() =
+        VurderteInngangsvilkår(
             behandlingId = behandlingId,
             medlemskap = listOf(medlemskap()),
             diagnoser = listOf(diagnose()),
-            institusjon = listOf(institusjon()),
         )
 
     private fun medlemskap(
@@ -117,19 +107,13 @@ class VilkårVurderingValideringTest {
         tilOgMedDato = tilOgMedDato,
     )
 
-    private fun diagnose(vurdering: Vurdering = Vurdering.JA) =
-        VilkårDiagnose(
-            behandlingId = behandlingId,
-            kode = "E109",
-            tekst = "Diabetes mellitus type 1 uten komplikasjoner",
-            vurdering = vurdering,
-        )
-
-    private fun institusjon(
+    private fun diagnose(
         vurdering: Vurdering = Vurdering.JA,
-        begrunnelse: String = "Bor hjemme",
-    ) = VilkårInstitusjon(
+        begrunnelse: String = "Diagnosen er dokumentert",
+    ) = VilkårDiagnose(
         behandlingId = behandlingId,
+        kode = "E109",
+        tekst = "Diabetes mellitus type 1 uten komplikasjoner",
         vurdering = vurdering,
         begrunnelse = begrunnelse,
     )

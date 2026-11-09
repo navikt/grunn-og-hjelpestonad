@@ -16,18 +16,20 @@ data class InfotrygdKildevedtak(
 
 /** Samme felt som [InfotrygdStonadResponse], med vedtak som har fått arv. */
 data class InfotrygdStonadMedArv(
-    val stonadId: Long,
+    val stønadId: Long,
     val personnr: String,
     val kodeRutine: String,
     val datoStart: LocalDate,
-    val kodeOpphor: String?,
-    val datoOpphor: LocalDate?,
+    val kodeOpphør: String?,
+    val datoOpphør: LocalDate?,
     val oppdragId: Long?,
-    val tidspunktOpphort: LocalDateTime?,
+    val tidspunktOpphørt: LocalDateTime?,
     val tidspunktReg: LocalDateTime?,
     val brukerid: String?,
     val vedtak: List<InfotrygdVedtakMedArv>,
-)
+) {
+    fun erLøpende() = datoOpphør == null
+}
 
 /** Vedtakets egen verdi ([arvetFraVedtak] er null), eller en verdi arvet fra vedtaket i [arvetFraVedtak]. */
 data class VerdiMedKilde<T : Any>(
@@ -47,10 +49,10 @@ data class InfotrygdVedtakMedArv(
     val typeSak: String,
     val kodeResultat: String,
     val datoInnvFom: LocalDate,
-    /** Tom betyr at vedtaket er løpende. */
+    /** Null betyr at vedtaket er løpende. */
     val datoInnvTom: LocalDate?,
     val datoMottattSak: LocalDate,
-    val kodeVedtaksnivaa: String,
+    val kodeVedtaksnivå: String,
     val typeBeregning: String,
     val tidspunktReg: LocalDateTime,
     val brukerid: String,
@@ -59,7 +61,9 @@ data class InfotrygdVedtakMedArv(
     /** Trygdetid og sats fra t_gh. Aldri en tom liste. */
     val gh: VerdiMedKilde<List<InfotrygdGhResponse>>?,
     val evaluering: VerdiMedKilde<InfotrygdEvaluering>?,
-)
+) {
+    fun erLøpende() = datoInnvTom == null
+}
 
 /**
  * Et vedtak uten egen verdi for gh, ev eller delytelse arver verdien fra vedtaket med nærmeste lavere vedtakId som har en egen verdi.
@@ -95,14 +99,14 @@ object InfotrygdArv {
 
     private fun InfotrygdStonadResponse.tilStønadMedArv(vedtak: List<InfotrygdVedtakMedArv>) =
         InfotrygdStonadMedArv(
-            stonadId = stonadId,
+            stønadId = stønadId,
             personnr = personnr,
             kodeRutine = kodeRutine,
             datoStart = datoStart,
-            kodeOpphor = kodeOpphor,
-            datoOpphor = datoOpphor,
+            kodeOpphør = kodeOpphør,
+            datoOpphør = datoOpphør,
             oppdragId = oppdragId,
-            tidspunktOpphort = tidspunktOpphort,
+            tidspunktOpphørt = tidspunktOpphørt,
             tidspunktReg = tidspunktReg,
             brukerid = brukerid,
             vedtak = vedtak,
@@ -121,7 +125,7 @@ object InfotrygdArv {
         datoInnvFom = datoInnvFom,
         datoInnvTom = datoInnvTom,
         datoMottattSak = datoMottattSak,
-        kodeVedtaksnivaa = kodeVedtaksnivaa,
+        kodeVedtaksnivå = kodeVedtaksnivå,
         typeBeregning = typeBeregning,
         tidspunktReg = tidspunktReg,
         brukerid = brukerid,

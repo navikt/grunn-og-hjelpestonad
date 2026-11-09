@@ -3,11 +3,7 @@
 import * as z from 'zod';
 
 export const zValideringsfeil = z.object({
-    vilkårType: z.enum([
-        'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN',
-        'DIAGNOSE',
-        'IKKE_OPPHOLD_I_INSTITUSJON_ELLER_LOVREGULERT_BOFORM'
-    ]),
+    vilkårType: z.enum(['MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN', 'DIAGNOSE']),
     melding: z.string()
 });
 
@@ -216,7 +212,7 @@ export const zInfotrygdDelytelseResponse = z.object({
     typeDelytelse: z.string(),
     tidspunktReg: z.iso.datetime({ local: true }),
     fom: z.iso.date(),
-    belop: z.number(),
+    beløp: z.number(),
     typeSats: z.string(),
     typeUtbetaling: z.string(),
     brukerid: z.string(),
@@ -273,7 +269,7 @@ export const zInfotrygdVedtakMedArv = z.object({
     datoInnvFom: z.iso.date(),
     datoInnvTom: z.iso.date().nullish(),
     datoMottattSak: z.iso.date(),
-    kodeVedtaksnivaa: z.string(),
+    kodeVedtaksnivå: z.string(),
     typeBeregning: z.string(),
     tidspunktReg: z.iso.datetime({ local: true }),
     brukerid: z.string(),
@@ -284,28 +280,28 @@ export const zInfotrygdVedtakMedArv = z.object({
 });
 
 export const zInfotrygdStonadMedArv = z.object({
-    stonadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
+    stønadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
     personnr: z.string(),
     kodeRutine: z.string(),
     datoStart: z.iso.date(),
-    kodeOpphor: z.string().nullish(),
-    datoOpphor: z.iso.date().nullish(),
+    kodeOpphør: z.string().nullish(),
+    datoOpphør: z.iso.date().nullish(),
     oppdragId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }).nullish(),
-    tidspunktOpphort: z.iso.datetime({ local: true }).nullish(),
+    tidspunktOpphørt: z.iso.datetime({ local: true }).nullish(),
     tidspunktReg: z.iso.datetime({ local: true }).nullish(),
     brukerid: z.string().nullish(),
     vedtak: z.array(zInfotrygdVedtakMedArv)
 });
 
 export const zInfotrygdStonaderResponse = z.object({
-    stonader: z.array(zInfotrygdStonadMedArv),
+    stønader: z.array(zInfotrygdStonadMedArv),
     diagnosetekster: z.record(z.string(), z.string())
 });
 
 export const zGjeldendeInfotrygdPeriode = z.object({
     fom: z.iso.date(),
     tom: z.iso.date().nullish(),
-    stonadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
+    stønadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
     vedtak: zInfotrygdVedtakMedArv
 });
 
@@ -402,55 +398,6 @@ export const zVilkårMedlemskapResponse = z.object({
     erVilkårOppfylt: z.boolean()
 });
 
-export const zVilkårInstitusjonRequest = z.object({
-    id: z.uuid().nullish(),
-    oppholdstype: z.enum([
-        'HELSE_OG_OMSORGSINSTITUSJON',
-        'SPESIALISTHELSETJENESTEN',
-        'PSYKISK_HELSEVERN',
-        'FENGSEL_ELLER_ANNEN_LOVREGULERT_BOFORM'
-    ]).nullish(),
-    unntakshjemmel: z.enum([
-        'EKSTRAUTGIFTER_IKKE_DEKKET_AV_INSTITUSJONEN',
-        'KORTTIDSOPPHOLD',
-        'BARN_UNDER_18_I_SPESIALISTHELSETJENESTEN',
-        'ANNET_UNNTAK_I_FORSKRIFT'
-    ]).nullish(),
-    vurdering: z.enum(['JA', 'NEI']),
-    begrunnelse: z.string(),
-    fraOgMedDato: z.iso.date().nullish(),
-    tilOgMedDato: z.iso.date().nullish()
-});
-
-export const zVilkårInstitusjonResponse = z.object({
-    id: z.uuid(),
-    behandlingId: z.uuid(),
-    oppholdstype: z.enum([
-        'HELSE_OG_OMSORGSINSTITUSJON',
-        'SPESIALISTHELSETJENESTEN',
-        'PSYKISK_HELSEVERN',
-        'FENGSEL_ELLER_ANNEN_LOVREGULERT_BOFORM'
-    ]).nullish(),
-    unntakshjemmel: z.enum([
-        'EKSTRAUTGIFTER_IKKE_DEKKET_AV_INSTITUSJONEN',
-        'KORTTIDSOPPHOLD',
-        'BARN_UNDER_18_I_SPESIALISTHELSETJENESTEN',
-        'ANNET_UNNTAK_I_FORSKRIFT'
-    ]).nullish(),
-    vurdering: z.enum(['JA', 'NEI']),
-    begrunnelse: z.string(),
-    fraOgMedDato: z.iso.date().nullish(),
-    tilOgMedDato: z.iso.date().nullish(),
-    erVilkårOppfylt: z.boolean()
-});
-
-export const zPeriodeMedRettResponse = z.object({
-    id: z.uuid(),
-    behandlingId: z.uuid(),
-    fraOgMedDato: z.iso.date().nullish(),
-    tilOgMedDato: z.iso.date().nullish()
-});
-
 export const zVilkårDiagnoseRequest = z.object({
     id: z.uuid().nullish(),
     kode: z.string(),
@@ -471,6 +418,16 @@ export const zVilkårDiagnoseResponse = z.object({
     fraOgMedDato: z.iso.date().nullish(),
     tilOgMedDato: z.iso.date().nullish(),
     erVilkårOppfylt: z.boolean()
+});
+
+export const zPeriodeMedOppfylteInngangsvilkårResponse = z.object({
+    fraOgMedDato: z.iso.date().nullish(),
+    tilOgMedDato: z.iso.date().nullish()
+});
+
+export const zInngangsvilkårResponse = z.object({
+    perioder: z.array(zPeriodeMedOppfylteInngangsvilkårResponse),
+    nesteSteg: z.enum(['SATS_OG_TRYGDETID', 'SIMULERING'])
 });
 
 export const zOpplysningResponse = z.object({
@@ -586,6 +543,7 @@ export const zBehandlingEndringResponse = z.object({
         'VILKÅR_VURDERING_OPPDATERT',
         'VILKÅR_VURDERING_SLETTET',
         'VILKÅR_VURDERING_FULLFØRT',
+        'INNGANGSVILKÅR_VURDERING_FULLFØRT',
         'VEDTAK_LAGRET',
         'ÅRSAK_LAGRET',
         'ÅRSAK_OPPDATERT',
@@ -836,35 +794,6 @@ export const zLagreMedlemskapPeriodePath = z.object({
  */
 export const zLagreMedlemskapPeriodeResponse = zVilkårMedlemskapResponse;
 
-export const zHentInstitusjonPerioderPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zHentInstitusjonPerioderResponse = z.array(zVilkårInstitusjonResponse);
-
-export const zLagreInstitusjonPeriodeBody = zVilkårInstitusjonRequest;
-
-export const zLagreInstitusjonPeriodePath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zLagreInstitusjonPeriodeResponse = zVilkårInstitusjonResponse;
-
-export const zFullførStegPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zFullførStegResponse = z.array(zPeriodeMedRettResponse);
-
 export const zHentDiagnosePerioderPath = z.object({
     behandlingId: z.uuid()
 });
@@ -884,6 +813,15 @@ export const zLagreDiagnosePeriodePath = z.object({
  * OK
  */
 export const zLagreDiagnosePeriodeResponse = zVilkårDiagnoseResponse;
+
+export const zFullførInngangsvilkårPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zFullførInngangsvilkårResponse = zInngangsvilkårResponse;
 
 export const zInnhentFaktagrunnlagFraPdlPath = z.object({
     behandlingId: z.uuid()
@@ -1062,14 +1000,14 @@ export const zHentTotrinnskontrollStatusPath = z.object({
  */
 export const zHentTotrinnskontrollStatusResponse = zTotrinnskontrollStatusResponse;
 
-export const zHentPerioderMedRettPath = z.object({
+export const zHentPerioderMedOppfylteInngangsvilkårPath = z.object({
     behandlingId: z.uuid()
 });
 
 /**
  * OK
  */
-export const zHentPerioderMedRettResponse = z.array(zPeriodeMedRettResponse);
+export const zHentPerioderMedOppfylteInngangsvilkårResponse = z.array(zPeriodeMedOppfylteInngangsvilkårResponse);
 
 export const zHentMedlemskapFaktagrunnlagPath = z.object({
     behandlingId: z.uuid()
@@ -1081,11 +1019,6 @@ export const zHentMedlemskapFaktagrunnlagPath = z.object({
 export const zHentMedlemskapFaktagrunnlagResponse = zMedlemskapFaktagrunnlagResponse;
 
 export const zSlettMedlemskapPeriodePath = z.object({
-    behandlingId: z.uuid(),
-    vilkårPeriodeId: z.uuid()
-});
-
-export const zSlettInstitusjonPeriodePath = z.object({
     behandlingId: z.uuid(),
     vilkårPeriodeId: z.uuid()
 });

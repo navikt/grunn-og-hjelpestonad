@@ -68,7 +68,7 @@ class LagUtbetalingsoppdragTest {
         tom: String = "2025-12-31",
     ) = AndelTilkjentYtelse(
         id = UUID.randomUUID(),
-        beløp = beløp,
+        beløp = beløp.toBigDecimal(),
         fom = LocalDate.parse(fom),
         tom = LocalDate.parse(tom),
         kildeBehandlingId = UUID.fromString("00000000-0000-0000-0000-000000000002"),

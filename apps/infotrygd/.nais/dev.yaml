@@ -91,6 +91,9 @@ spec:
                     - id: 7ce9d1d2-d149-4324-832b-8d459762a102 # Saksbehandler
                     - id: 84c4a287-abd6-46c1-bf93-dbf90f1a326d # Beslutter
                     - id: a181921e-2a55-4198-896b-0086cc805278 # Lesetilgang
+                    - id: a1b518e2-3947-478d-8929-e5d685c47cac # 0000-GA-Strengt_Fortrolig_Adresse (sperret i dev, se ADR-0015)
+                    - id: 2e1dc582-f762-4510-a660-88bf68fb7128 # 0000-GA-Fortrolig_Adresse (sperret i dev, se ADR-0015)
+                    - id: dbe4ad45-320b-4e9a-aaa1-73cca4ee124d # 0000-GA-Egne_ansatte (sperret i dev, se ADR-0015)
                 extra:
                     - "NAVident"
                     - "azp_name"

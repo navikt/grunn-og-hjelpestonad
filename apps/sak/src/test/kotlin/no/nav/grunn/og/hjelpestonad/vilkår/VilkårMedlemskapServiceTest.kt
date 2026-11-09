@@ -24,7 +24,7 @@ import java.util.UUID
 import kotlin.test.Test
 
 /**
- * Dekker livssyklusen som ligger i [VilkårPeriodeService] og deles av alle tre vilkårene.
+ * Dekker livssyklusen som ligger i [VilkårPeriodeService] og deles av alle vilkårene.
  * Medlemskap er valgt som representant fordi det ikke har vilkårsspesifikke særregler.
  */
 class VilkårMedlemskapServiceTest {

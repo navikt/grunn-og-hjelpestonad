@@ -43,7 +43,7 @@ class UtbetalingsoppdragService(
                 .hentTilkjentYtelse(behandlingId)
                 ?.andelerTilkjentYtelse
                 .orEmpty()
-                .filter { it.beløp != 0 }
+                .filter { tilUtbetalingsbeløp(it.beløp) != 0 }
 
         val testandel =
             if (andeler.isEmpty()) {
@@ -71,7 +71,7 @@ class UtbetalingsoppdragService(
 
         return UtbetalingsoppdragForBehandling(
             utbetalingsoppdrag = utbetalingsoppdrag,
-            testandel = testandel?.let { Testandel(fom = it.fom, tom = it.tom, beløp = it.beløp) },
+            testandel = testandel?.let { Testandel(fom = it.fom, tom = it.tom, beløp = tilUtbetalingsbeløp(it.beløp)) },
         )
     }
 
@@ -97,7 +97,7 @@ class UtbetalingsoppdragService(
             måned: YearMonth,
         ): AndelTilkjentYtelse =
             AndelTilkjentYtelse(
-                beløp = TESTANDEL_BELØP,
+                beløp = TESTANDEL_BELØP.toBigDecimal(),
                 fom = måned.atDay(1),
                 tom = måned.atEndOfMonth(),
                 kildeBehandlingId = behandlingId,
