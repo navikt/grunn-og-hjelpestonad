@@ -6,11 +6,11 @@ import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
-import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientException
+import org.springframework.web.client.RestClientResponseException
 import org.springframework.web.client.body
 
 /** Klient mot `familie-oppdrag-backend` (teamfamilie), som sender videre til Oppdragsystemet (OS). */
@@ -30,7 +30,7 @@ class OppdragClient(
     fun simuler(utbetalingsoppdrag: Utbetalingsoppdrag): DetaljertSimuleringResultat {
         logger.info("Simulerer mot oppdrag: saksnummer={}, {} perioder", utbetalingsoppdrag.saksnummer, utbetalingsoppdrag.utbetalingsperiode.size)
 
-        val data = post<DetaljertSimuleringResultat>(SIMULERING_PATH, utbetalingsoppdrag, "Simulering mot oppdrag").dataVedSuksess("Simulering mot oppdrag")
+        val data = post<DetaljertSimuleringResultat>(SIMULERING_PATH, utbetalingsoppdrag, "Simulering mot oppdrag").data
 
         logger.info(
             "Simulering mot oppdrag vellykket: {} mottakere, {} posteringer",
@@ -47,69 +47,70 @@ class OppdragClient(
     fun iverksett(utbetalingsoppdrag: Utbetalingsoppdrag) {
         logger.info("Iverksetter mot oppdrag: saksnummer={}, {} perioder", utbetalingsoppdrag.saksnummer, utbetalingsoppdrag.utbetalingsperiode.size)
 
-        post<String>(IVERKSETT_PATH, utbetalingsoppdrag, "Iverksetting mot oppdrag") { status ->
-            if (status.value() == HttpStatus.CONFLICT.value()) {
-                logger.warn("Oppdrag er allerede sendt: saksnummer={}", utbetalingsoppdrag.saksnummer)
-                Feil("Oppdrag er allerede sendt for denne behandlingen", HttpStatus.CONFLICT)
-            } else {
-                null
-            }
-        }.dataVedSuksess("Iverksetting mot oppdrag")
+        post<String>(
+            IVERKSETT_PATH,
+            utbetalingsoppdrag,
+            "Iverksetting mot oppdrag",
+            kjenteFeil = mapOf(HttpStatus.CONFLICT to "Oppdrag er allerede sendt for denne behandlingen"),
+        )
 
         logger.info("Oppdrag lagt på kø: saksnummer={}", utbetalingsoppdrag.saksnummer)
     }
 
     fun hentStatus(oppdragId: OppdragId): OppdragStatusSvar {
-        val ressurs =
-            post<String>(STATUS_PATH, oppdragId, "Henting av oppdragsstatus") { status ->
-                if (status.value() == HttpStatus.NOT_FOUND.value()) {
-                    Feil("Fant ikke oppdrag for behandlingen", HttpStatus.NOT_FOUND)
-                } else {
-                    null
-                }
-            }
-        val status = ressurs.dataVedSuksess("Henting av oppdragsstatus")
-        logger.info("Oppdragsstatus for fagsystem={}, behandlingsId={}: {}", oppdragId.fagsystem, oppdragId.behandlingsId, status)
-        return OppdragStatusSvar(status = status, melding = ressurs?.melding?.takeIf { it.isNotBlank() })
+        val svar =
+            post<String>(
+                STATUS_PATH,
+                oppdragId,
+                "Henting av oppdragsstatus",
+                kjenteFeil = mapOf(HttpStatus.NOT_FOUND to "Fant ikke oppdrag for behandlingen"),
+            )
+        logger.info("Oppdragsstatus for fagsystem={}, behandlingsId={}: {}", oppdragId.fagsystem, oppdragId.behandlingsId, svar.data)
+        return OppdragStatusSvar(status = svar.data, melding = svar.melding?.takeIf { it.isNotBlank() })
     }
 
-    /** [håndterHttpFeil] kan gi en egen [Feil] for kjente statuskoder. Andre feil blir bad gateway. */
+    /** Kjente HTTP-statuskoder i [kjenteFeil] gir egen [Feil] og warn-logg. Andre HTTP-feil, nettverksfeil og ugyldige svar gir bad gateway. */
     private inline fun <reified T : Any> post(
         path: String,
         body: Any,
         handling: String,
-        håndterHttpFeil: (HttpStatusCode) -> Feil? = { null },
-    ): Ressurs<T>? {
+        kjenteFeil: Map<HttpStatus, String> = emptyMap(),
+    ): VellykketSvar<T> {
         val oboToken = texasClient.hentOboToken(targetAudience = scope)
-        return try {
-            restClient
-                .post()
-                .uri(path)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers { it.setBearerAuth(oboToken) }
-                .body(body)
-                .retrieve()
-                .body<Ressurs<T>>()
-        } catch (e: HttpStatusCodeException) {
-            secureLogger.error("$handling feilet, status={}, body={}", e.statusCode.value(), e.responseBodyAsString, e)
-            håndterHttpFeil(e.statusCode)?.let { throw it }
-            logger.error("$handling feilet, status={}", e.statusCode.value())
-            throw Feil("$handling feilet med status ${e.statusCode.value()}", HttpStatus.BAD_GATEWAY, e)
-        } catch (e: Exception) {
-            logger.error("$handling feilet, type={}", e.javaClass.simpleName)
-            secureLogger.error("$handling feilet", e)
-            throw Feil("$handling feilet", HttpStatus.BAD_GATEWAY, e)
-        }
-    }
+        val ressurs =
+            try {
+                restClient
+                    .post()
+                    .uri(path)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers { it.setBearerAuth(oboToken) }
+                    .body(body)
+                    .retrieve()
+                    .body<Ressurs<T>>()
+            } catch (e: RestClientResponseException) {
+                HttpStatus.resolve(e.statusCode.value())?.let { status ->
+                    kjenteFeil[status]?.let { melding ->
+                        logger.warn("{} ga status {}", handling, status.value())
+                        throw Feil(melding, status, e)
+                    }
+                }
+                logger.error("{} feilet, status={}", handling, e.statusCode.value())
+                secureLogger.error("{} feilet, status={}, body={}", handling, e.statusCode.value(), e.responseBodyAsString, e)
+                throw Feil("$handling feilet med status ${e.statusCode.value()}", HttpStatus.BAD_GATEWAY, e)
+            } catch (e: RestClientException) {
+                logger.error("{} feilet, type={}", handling, e.javaClass.simpleName)
+                secureLogger.error("{} feilet", handling, e)
+                throw Feil("$handling feilet", HttpStatus.BAD_GATEWAY, e)
+            }
 
-    private fun <T : Any> Ressurs<T>?.dataVedSuksess(handling: String): T {
-        val data = this?.data
-        if (this?.status != SUKSESS || data == null) {
-            logger.error("$handling ga status={}", this?.status)
-            secureLogger.error("$handling ga status={}, melding={}", this?.status, this?.melding)
-            throw Feil("$handling feilet med status ${this?.status ?: "tomt svar"}", HttpStatus.BAD_GATEWAY)
+        val data = ressurs?.data
+        if (ressurs == null || ressurs.status != SUKSESS || data == null) {
+            val status = ressurs?.status ?: "tomt svar"
+            logger.error("{} ga status={}", handling, status)
+            secureLogger.error("{} ga status={}, melding={}", handling, status, ressurs?.melding)
+            throw Feil("$handling feilet med status $status", HttpStatus.BAD_GATEWAY)
         }
-        return data
+        return VellykketSvar(data = data, melding = ressurs.melding)
     }
 
     companion object {
@@ -119,3 +120,8 @@ class OppdragClient(
         private const val SUKSESS = "SUKSESS"
     }
 }
+
+private data class VellykketSvar<T>(
+    val data: T,
+    val melding: String?,
+)

@@ -18,7 +18,9 @@ class OppdragIverksettingService(
     private val meterRegistry: MeterRegistry,
 ) {
     fun iverksett(behandlingId: UUID): OppdragIverksettingResponse {
-        val (utbetalingsoppdrag, testandel) = utbetalingsoppdragService.lagUtbetalingsoppdrag(behandlingId)
+        val utbetalingsoppdragForBehandling = utbetalingsoppdragService.lagUtbetalingsoppdrag(behandlingId)
+        val utbetalingsoppdrag = utbetalingsoppdragForBehandling.utbetalingsoppdrag
+        val testandel = utbetalingsoppdragForBehandling.testandel
 
         runCatching { oppdragClient.iverksett(utbetalingsoppdrag) }
             .onSuccess { tellIverksetting("ok") }

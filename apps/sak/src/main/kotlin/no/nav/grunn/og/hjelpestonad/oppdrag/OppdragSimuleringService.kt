@@ -12,7 +12,9 @@ class OppdragSimuleringService(
     private val meterRegistry: MeterRegistry,
 ) {
     fun simuler(behandlingId: UUID): OppdragSimuleringResponse {
-        val (utbetalingsoppdrag, testandel) = utbetalingsoppdragService.lagUtbetalingsoppdrag(behandlingId)
+        val utbetalingsoppdragForBehandling = utbetalingsoppdragService.lagUtbetalingsoppdrag(behandlingId)
+        val utbetalingsoppdrag = utbetalingsoppdragForBehandling.utbetalingsoppdrag
+        val testandel = utbetalingsoppdragForBehandling.testandel
 
         val resultat =
             runCatching { oppdragClient.simuler(utbetalingsoppdrag) }

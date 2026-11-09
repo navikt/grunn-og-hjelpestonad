@@ -1,15 +1,9 @@
-import { BodyShort, Button, Heading, HStack, LocalAlert, Table, VStack } from "@navikt/ds-react";
+import { BodyShort, Button, Heading, LocalAlert, Table, VStack } from "@navikt/ds-react";
 import React, { useState } from "react";
-import { useRouteLoaderData } from "react-router";
 import { simulerMotOppdrag } from "~/api/generated/sdk.gen";
 import type { OppdragSimuleringResponse } from "~/api/generated/types.gen";
 import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 import { formaterDato } from "~/komponenter/infotrygd/formatering";
-import {
-  OppdragIverksettingResultat,
-  useOppdragIverksetting,
-} from "~/komponenter/simulering/OppdragIverksetting";
-import type { Oppsett } from "~/server/types";
 import { formaterBelop, formaterIsoMånedÅr } from "~/utils/utils";
 
 /**
@@ -20,10 +14,6 @@ export const OppdragSimulering: React.FC<{ behandlingId: string }> = ({ behandli
   const [resultat, settResultat] = useState<OppdragSimuleringResponse | null>(null);
   const [feilmelding, settFeilmelding] = useState<string | null>(null);
   const [simulerer, settSimulerer] = useState(false);
-  const iverksetting = useOppdragIverksetting(behandlingId);
-  const { env } = useRouteLoaderData<Oppsett>("root") ?? {};
-  // Iverksettingsendepunktet finnes bare i dev og lokalt.
-  const visIverksetting = env === "development" || env === "lokalt";
 
   const simuler = async () => {
     settSimulerer(true);
@@ -47,35 +37,11 @@ export const OppdragSimulering: React.FC<{ behandlingId: string }> = ({ behandli
   return (
     <VStack gap="space-16">
       <Heading size="small" level="2">
-        {visIverksetting
-          ? "Simulering og iverksetting mot Oppdrag (test)"
-          : "Simulering mot Oppdrag (test)"}
+        Simulering mot Oppdrag (test)
       </Heading>
-      <HStack gap="space-8">
-        <Button variant="secondary" loading={simulerer} onClick={() => void simuler()}>
-          Simuler mot Oppdrag
-        </Button>
-        {visIverksetting && (
-          <>
-            <Button
-              variant="secondary"
-              loading={iverksetting.iverksetter}
-              onClick={() => void iverksetting.iverksett()}
-            >
-              Iverksett mot Oppdrag
-            </Button>
-            <Button
-              variant="tertiary"
-              loading={iverksetting.henterStatus}
-              onClick={() => void iverksetting.hentStatus()}
-            >
-              Hent status fra Oppdrag
-            </Button>
-          </>
-        )}
-      </HStack>
-
-      {visIverksetting && <OppdragIverksettingResultat tilstand={iverksetting} />}
+      <Button variant="secondary" loading={simulerer} onClick={() => void simuler()}>
+        Simuler mot Oppdrag
+      </Button>
 
       {feilmelding && (
         <LocalAlert status="error">
