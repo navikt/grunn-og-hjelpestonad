@@ -1,7 +1,7 @@
 services:
     # PostgreSQL (mock-profil)
     postgres:
-        image: postgres:17
+        image: postgres:18
         container_name: grunn-og-hjelpestonad-postgres-1
         profiles: ["mock"]
         ports:
@@ -11,7 +11,7 @@ services:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: test
         volumes:
-            - postgres-data:/var/lib/postgresql/data
+            - postgres-data:/var/lib/postgresql
         labels:
             - "com.docker.compose.project=grunn-og-hjelpestonad"
         healthcheck:
