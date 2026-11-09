@@ -1,6 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -24,7 +26,7 @@ class OppdragIverksettingService(
 
         runCatching { oppdragClient.iverksett(utbetalingsoppdrag) }
             .onSuccess { tellIverksetting("ok") }
-            .onFailure { tellIverksetting("feilet") }
+            .onFailure { e -> tellIverksetting(if ((e as? Feil)?.httpStatus == HttpStatus.CONFLICT) "allerede_sendt" else "feilet") }
             .getOrThrow()
 
         return OppdragIverksettingResponse(

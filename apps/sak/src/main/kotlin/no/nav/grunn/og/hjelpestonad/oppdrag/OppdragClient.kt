@@ -91,6 +91,7 @@ class OppdragClient(
                 HttpStatus.resolve(e.statusCode.value())?.let { status ->
                     kjenteFeil[status]?.let { melding ->
                         logger.warn("{} ga status {}", handling, status.value())
+                        secureLogger.warn("{} ga status {}, body={}", handling, status.value(), e.responseBodyAsString)
                         throw Feil(melding, status, e)
                     }
                 }

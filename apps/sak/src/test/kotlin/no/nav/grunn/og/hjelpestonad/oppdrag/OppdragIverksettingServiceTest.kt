@@ -49,12 +49,22 @@ class OppdragIverksettingServiceTest {
     }
 
     @Test
-    fun `feil fra klienten sendes videre og telles`() {
+    fun `409 fra klienten sendes videre og telles som allerede sendt`() {
         every { utbetalingsoppdragService.lagUtbetalingsoppdrag(behandlingId) } returns UtbetalingsoppdragForBehandling(utbetalingsoppdrag, null)
         every { oppdragClient.iverksett(utbetalingsoppdrag) } throws Feil("Oppdrag er allerede sendt", HttpStatus.CONFLICT)
 
         assertThatThrownBy { service.iverksett(behandlingId) }
             .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.CONFLICT) }
+        assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "allerede_sendt").count()).isEqualTo(1.0)
+    }
+
+    @Test
+    fun `annen feil fra klienten sendes videre og telles som feilet`() {
+        every { utbetalingsoppdragService.lagUtbetalingsoppdrag(behandlingId) } returns UtbetalingsoppdragForBehandling(utbetalingsoppdrag, null)
+        val feil = Feil("Oppdragstjenesten er utilgjengelig", HttpStatus.BAD_GATEWAY)
+        every { oppdragClient.iverksett(utbetalingsoppdrag) } throws feil
+
+        assertThatThrownBy { service.iverksett(behandlingId) }.isSameAs(feil)
         assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "feilet").count()).isEqualTo(1.0)
     }
 
