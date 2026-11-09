@@ -226,7 +226,7 @@ nærmeste lavere vedtakId» i loggene.
 - [ ] Få en Infotrygd-ekspert til å bekrefte at et eldre vedtak gjelder igjen
       etter at et nyere slutter.
 - [ ] Kutt ved opphør og de nye feilene (ticket 26).
-- [x] Infotrygd-beløp (ticket 27). Sammenslåingen er flyttet til ticket 14.
+- [x] Infotrygd-beløp (ticket 27). Vi slår ikke sammen like perioder.
 - [ ] Finn ut hvordan vedtak som faller bort ved opphør, løpende vedtak på flere
       stønader og delytelser som ikke stemmer med vedtaket, skal tolkes.
 - [ ] Spør en Infotrygd-ekspert hvorfor en maskinell satsomregning (`MS`) kan
