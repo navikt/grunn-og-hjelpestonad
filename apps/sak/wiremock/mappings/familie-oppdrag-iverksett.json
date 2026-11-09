@@ -1,0 +1,15 @@
+{
+  "name": "familie-oppdrag-backend - iverksett",
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/oppdrag"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"data\":\"Oppdrag sendt OK\",\"status\":\"SUKSESS\",\"melding\":\"Innhenting av data var vellykket\"}"
+  },
+  "priority": 10
+}

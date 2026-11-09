@@ -42,24 +42,22 @@ spring:
             max-lifetime: 90000
             minimum-idle: 1
 
-    # Kafka konfigurasjon
-    #    TODO lånt fra historisk, sjekk opp
     kafka:
-        bootstrap-servers: ${KAFKA_BROKERS:localhost:9092}
-        security:
-            protocol: SSL
-        ssl:
-            trust-store-type: JKS
-            trust-store-location: file:${KAFKA_TRUSTSTORE_PATH:}
-            trust-store-password: ${KAFKA_CREDSTORE_PASSWORD:}
-            key-store-type: PKCS12
-            key-store-location: file:${KAFKA_KEYSTORE_PATH:}
-            key-store-password: ${KAFKA_CREDSTORE_PASSWORD:}
+        bootstrap-servers: ${KAFKA_BROKERS}
+        properties:
+            security:
+                protocol: SSL
+            ssl:
+                keystore:
+                    type: PKCS12
+                    location: ${KAFKA_KEYSTORE_PATH}
+                    password: ${KAFKA_CREDSTORE_PASSWORD}
+                truststore:
+                    type: PKCS12
+                    location: ${KAFKA_TRUSTSTORE_PATH}
+                    password: ${KAFKA_CREDSTORE_PASSWORD}
         producer:
-            key-serializer: org.apache.kafka.common.serialization.StringSerializer
-            value-serializer: org.apache.kafka.common.serialization.StringSerializer
-        consumer:
-            group-id: ${spring.application.name}
+            acks: all
 
 # Management og health endepunkter
 management:
@@ -143,12 +141,6 @@ springdoc:
             use-pkce-with-authorization-code-grant: true
             client-id: ${azure.app.client.id}
             scope-separator: ","
-
-app:
-    utbetaling:
-        utbetaling-topic: etterlatte.utbetaling-bs.v1
-        simulering-response-topic: helved.dryrun-respons.v1
-        status-topic: helved.status.v1
 
 # Task-prosessering (efterlatte-prosessering)
 efterlatte-prosessering:

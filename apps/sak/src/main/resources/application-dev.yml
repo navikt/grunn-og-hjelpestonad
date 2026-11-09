@@ -2,9 +2,11 @@ nais:
     miljo: dev
 
 oppdrag:
-    simulering:
-        # Midlertidig: simuler med en testandel når behandlingen mangler tilkjent ytelse.
-        bruk-testandel-hvis-mangler: true
+    # Midlertidig: simuler og iverksett med en testandel når behandlingen mangler tilkjent ytelse.
+    bruk-testandel-hvis-mangler: true
+    iverksetting:
+        # Midlertidig: endepunkt for å teste iverksetting mot oppdrag. Skal ikke settes i prod.
+        testendepunkt-aktivert: true
 
 unleash:
     enabled: true
