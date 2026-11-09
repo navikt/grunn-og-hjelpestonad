@@ -137,11 +137,10 @@ object GjeldendeInfotrygdPerioder {
                     "Vedtak ${vedtak.vedtakId} gjelder ${periodetekst(vedtak.datoInnvFom, tom)}, men har ingen delytelse med beløpet i Infotrygd. " +
                         "Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
                 )
-        // Vedtaket avgjør perioden, og delytelsen trengs bare for beløpet. Starter delytelsen senere eller slutter den
+        // Vedtaket, ikke delytelsen, avgjør tidsrommet perioden gjelder for. Delytelsen trengs kun for beløpet. Starter delytelsen senere eller slutter den
         // tidligere enn vedtaket, vet vi ikke beløpet for resten av vedtaket, og vi kaster derfor feil. At den slutter
         // senere, skyldes kuttet ved opphør: Infotrygd setter tom på vedtaket, men ikke på delytelsen. Det godtar vi i
         // tidligere perioder. I siste periode, som migreringen bygger på, krever vi foreløpig lik periode.
-        // Målingen står under «Delytelsen i siste periode» i ADR-0012.
         val godkjentPeriode =
             if (erISistePeriode) {
                 delytelse.fom == vedtak.datoInnvFom && delytelse.tom == tom
