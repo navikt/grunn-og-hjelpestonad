@@ -465,10 +465,12 @@ class GjeldendeInfotrygdPerioderTest {
                     ),
                 )
 
-            assertThat(perioder.map { it.vedtak.vedtakId to it.infotrygdBeløp.toPlainString() }).containsExactly(
-                1L to "720",
-                2L to "744",
-                1L to "720",
+            assertThat(
+                perioder.map { listOf(it.fom.toString(), it.tom?.toString(), it.vedtak.vedtakId, it.infotrygdBeløp.toPlainString()) },
+            ).containsExactly(
+                listOf("2020-01-01", "2021-12-31", 1L, "720"),
+                listOf("2022-01-01", "2022-12-31", 2L, "744"),
+                listOf("2023-01-01", null, 1L, "720"),
             )
         }
 
