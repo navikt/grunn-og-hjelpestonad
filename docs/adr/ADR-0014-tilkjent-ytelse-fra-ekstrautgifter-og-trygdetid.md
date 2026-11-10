@@ -22,13 +22,11 @@ til nærmeste hele krone. Reglene er oppsummert i
 
 ## Beslutning
 
-> **Merknad 2026-11-06:** Modellen for nødvendige ekstrautgifter er ikke
-> bestemt, se ADR-0006 og
-> [ticket 15](../../.scratch/sats-og-trygdetid/issues/15-avklar-modellen-for-noedvendige-ekstrautgifter.md).
-> Fire steder bygger denne ADR-en på at ekstrautgiftene har `JA`/`NEI` og sats
-> per periode: inndataene til utledningen, at hull betyr «nei», kravet om minst
-> én vurdert ekstrautgiftsperiode og kopieringen av `JA`-rader. De kan endres
-> når modellen er valgt. Resten gjelder uansett modell.
+> **Merknad 2026-11-09:** Modellen for nødvendige ekstrautgifter står i
+> [ADR-0016](ADR-0016-ekstrautgifter-som-sats-med-kobling.md), som erstatter
+> merknaden fra 2026-11-06. Modellen har `JA`/`NEI` og sats per periode, så
+> inndataene til utledningen, at hull betyr «nei», kravet om minst én vurdert
+> ekstrautgiftsperiode og kopieringen av `JA`-rader gjelder som skrevet.
 
 ### Tilkjent ytelse regnes ut og lagres når steg 2 fullføres
 
@@ -184,9 +182,9 @@ betaler vi for mye.
 
 ## Aksjonspunkter
 
-- [ ] Gå gjennom inndataene til utledningen, hull, kravet om minst én vurdert
+- [x] Gå gjennom inndataene til utledningen, hull, kravet om minst én vurdert
       ekstrautgiftsperiode og kopieringen når modellen for ekstrautgifter er
-      valgt i ticket 15.
+      valgt i ticket 15. Se ADR-0016.
 - [ ] Fag bekrefter at § 22-12 skal leses bokstavelig, også når retten oppstår
       den 1. i en måned.
 - [ ] Fag bekrefter om trygdetid 0/40 kan forekomme.
