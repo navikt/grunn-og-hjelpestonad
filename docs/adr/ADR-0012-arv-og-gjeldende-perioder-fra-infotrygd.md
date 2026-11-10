@@ -1,20 +1,8 @@
 # ADR-0012: Arv og gjeldende perioder fra Infotrygd
 
-**Dato:** 2026-10-27, endret 2026-10-30 og 2026-11-02
+**Dato:** 2026-10-27, endret 2026-10-30, 2026-11-02 og 2026-11-06
 **Status:** Foreslått
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
-
-Endringen 2026-10-30 kommer fra
-[ticket 03](../../.scratch/migrering/issues/03-avklar-perioder-og-utbetalt-belop-fra-infotrygd.md):
-kutt ved opphør, nye feil, sammenslåing og Infotrygd-beløp. Migreringen
-([ADR-0013](ADR-0013-migrering-fra-infotrygd-som-i-ef.md)) bruker de samme
-periodene. Ticket 26 og 27 bygger endringen, så koden følger ikke ADR-en før de
-er ferdige.
-
-Endringen 2026-11-02: vedtak som er opphørt fra start, tas ikke med. Opphør
-den 1. i måneden er første dag uten stønad, som i EF. Saksbehandler har bekreftet
-det, se
-[ticket 03](../../.scratch/migrering/issues/03-avklar-perioder-og-utbetalt-belop-fra-infotrygd.md).
 
 ## Kontekst
 
@@ -78,24 +66,25 @@ migreringen vil gjøre.
    `UgyldigInput`: «Stønad {stønadId} er ikke opphørt, men siste vedtak
    {vedtakId} sluttet {tom}. Vi har ikke bestemt hvordan slike saker skal
    tolkes. Kontakt teamet.»
-6. Mangler vedtaket delytelse, eller dekker delytelsen mindre enn
-   vedtaksperioden etter kuttet, gir oppslaget `UgyldigInput`. I den siste
-   gjeldende perioden gir det samme feil når delytelsen har en annen periode
-   enn vedtaket, også når den dekker mer. I tidligere perioder er en delytelse
-   som dekker mer, ikke en feil. Meldingen: «Vedtak {vedtakId} gjelder
+6. Mangler vedtaket delytelse, har det flere delytelser, eller dekker delytelsen
+   mindre enn vedtaksperioden etter kuttet, gir oppslaget `UgyldigInput`. I den
+   siste gjeldende perioden gir det samme feil når delytelsen har en annen
+   periode enn vedtaket, også når den dekker mer. I tidligere perioder er en
+   delytelse som dekker mer, ikke en feil. Bare vedtak som er med i minst én
+   gjeldende periode, sjekkes, og de sjekkes mot hele vedtaksperioden etter
+   kuttet. Meldingen når perioden avviker: «Vedtak {vedtakId} gjelder
    {fom}–{tom}, men delytelsen med beløpet i Infotrygd gjelder
    {delytelseFom}–{delytelseTom}. Vi har ikke bestemt hvordan slike vedtak skal
    tolkes. Kontakt teamet.»
 7. Vedtakene legges på tidslinjen etter stigende `vedtakId`. Et vedtak
    overskriver de eldre i hele sin periode, på tvers av stønadene. Etter at et
    nyere vedtak slutter, gjelder det eldre igjen.
-8. Perioder som følger etter hverandre, slås sammen når Infotrygd-beløp, sats,
-   trygdetid, diagnose og hjemmelbokstav er like.
-9. Tidsrom uten vedtak er ikke med i svaret.
+8. Tidsrom uten vedtak er ikke med i svaret.
 
 Hver periode har `fom`, `tom`, `stønadId`, hele vedtaket med arv og
-Infotrygd-beløpet. Beløpet kommer fra grunnstønad-delytelsen på vedtaket, og
-vedtaket avgjør perioden.
+`infotrygdBeløp`. Beløpet kommer fra delytelsen på vedtaket, og vedtaket avgjør
+perioden. `/stonader` gir én stønadstype, så delytelsen er `MG` for grunnstønad
+og `MH` for hjelpestønad.
 
 Sats og trygdetid kommer fra raden i `gh` med nyest `tidspunktReg`.
 
@@ -206,6 +195,23 @@ Ingen nye Nais-ressurser.
   migrering som har gått galt.
 - Feilmeldingene har vedtakId og stønadId, ikke fnr.
 
+### Delytelsen i siste periode
+
+Målt i dev 2026-11-06. Spørringen står i
+[ticket 27](../../.scratch/migrering/issues/27-gjeldende-perioder-med-infotrygd-belop.md).
+
+- 1 818 av 147 482 personer som kan migreres, har en delytelse som slutter
+  senere enn vedtaket i siste periode. Ticket 03 målte 1 942 før vedtak som er
+  opphørt fra start, ble tatt ut.
+- Alle 1 818 har et vedtak som er kuttet ved opphør. Infotrygd setter tom på
+  vedtaket, men ikke på delytelsen.
+- Ingen av dem har stønad i dag. Siste periode sluttet mellom 2026-01-01 og
+  2026-11-05.
+
+Feilen fanger altså et kjent mønster i Infotrygd, ikke avvik vi ikke forstår.
+Målingen telte bare delytelser som slutter senere. Om noen også starter på en
+annen dag enn vedtaket, er ikke målt.
+
 ### Risiko
 
 Hvis `vedtakId` ikke stiger med tiden, overskriver et eldre vedtak et nyere.
@@ -220,7 +226,7 @@ nærmeste lavere vedtakId» i loggene.
 - [ ] Få en Infotrygd-ekspert til å bekrefte at et eldre vedtak gjelder igjen
       etter at et nyere slutter.
 - [ ] Kutt ved opphør og de nye feilene (ticket 26).
-- [ ] Sammenslåing og Infotrygd-beløp (ticket 27).
+- [x] Infotrygd-beløp (ticket 27). Vi slår ikke sammen like perioder.
 - [ ] Finn ut hvordan vedtak som faller bort ved opphør, løpende vedtak på flere
       stønader og delytelser som ikke stemmer med vedtaket, skal tolkes.
 - [ ] Spør en Infotrygd-ekspert hvorfor en maskinell satsomregning (`MS`) kan
@@ -231,3 +237,6 @@ nærmeste lavere vedtakId» i loggene.
       for januar 2025. Se ticket 03.
 - [ ] Mål vedtak som faller bort ved opphør på nytt. Tallene under
       «Konsekvenser» er målt før vedtak som er opphørt fra start, ble tatt ut.
+- [ ] Avgjør om delytelsen skal kuttes ved opphør før den sammenlignes med
+      vedtaket i siste periode. Da går de 1 818 personene under «Delytelsen i
+      siste periode» videre til sjekkene i migreringen.

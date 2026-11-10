@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd
 
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
+import no.nav.grunn.og.hjelpestonad.infotrygd.InfotrygdTestdata.delytelse
 import no.nav.grunn.og.hjelpestonad.infotrygd.InfotrygdTestdata.evaluering
 import no.nav.grunn.og.hjelpestonad.infotrygd.InfotrygdTestdata.stønad
 import no.nav.grunn.og.hjelpestonad.infotrygd.InfotrygdTestdata.vedtak
@@ -119,10 +120,16 @@ class GjeldendeInfotrygdPerioderTest {
 
     @Nested
     inner class KuttVedOpphør {
+        // Delytelsen i siste periode må ha samme periode som vedtaket etter kuttet, se InfotrygdBeløp.
         @Test
         fun `opphør midt i et vedtak kutter tom ved opphørsdatoen`() {
             val perioder =
-                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphør = LocalDate.parse("2021-06-15")))
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2020-01-01", delytelser = listOf(delytelse(fom = "2020-01-01", tom = "2021-06-15"))),
+                        datoOpphør = LocalDate.parse("2021-06-15"),
+                    ),
+                )
 
             assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2021-06-15", 1))
         }
@@ -130,7 +137,12 @@ class GjeldendeInfotrygdPerioderTest {
         @Test
         fun `opphør den 1 i måneden gir tom siste dag i måneden før`() {
             val perioder =
-                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphør = LocalDate.parse("2021-06-01")))
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2020-01-01", delytelser = listOf(delytelse(fom = "2020-01-01", tom = "2021-05-31"))),
+                        datoOpphør = LocalDate.parse("2021-06-01"),
+                    ),
+                )
 
             assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2021-05-31", 1))
         }
@@ -138,7 +150,12 @@ class GjeldendeInfotrygdPerioderTest {
         @Test
         fun `opphør siste dag i måneden brukes som den er`() {
             val perioder =
-                utled(stønad(vedtak(vedtakId = 1, fom = "2020-01-01"), datoOpphør = LocalDate.parse("2021-06-30")))
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2020-01-01", delytelser = listOf(delytelse(fom = "2020-01-01", tom = "2021-06-30"))),
+                        datoOpphør = LocalDate.parse("2021-06-30"),
+                    ),
+                )
 
             assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", "2021-06-30", 1))
         }
@@ -162,7 +179,12 @@ class GjeldendeInfotrygdPerioderTest {
                 utled(
                     stønad(
                         vedtak(vedtakId = 1, fom = "2020-01-01"),
-                        vedtak(vedtakId = 2, fom = "2021-01-01", tom = "2025-12-31"),
+                        vedtak(
+                            vedtakId = 2,
+                            fom = "2021-01-01",
+                            tom = "2025-12-31",
+                            delytelser = listOf(delytelse(fom = "2021-01-01", tom = "2022-06-30")),
+                        ),
                         datoOpphør = LocalDate.parse("2022-06-30"),
                     ),
                 )
@@ -337,6 +359,9 @@ class GjeldendeInfotrygdPerioderTest {
                     listOf(stønad(vedtak(vedtakId = 1, fom = "2022-01-01"), datoOpphør = LocalDate.parse("2021-07-01"))),
                     listOf(stønad(vedtak(vedtakId = 1), stønadId = 10), stønad(vedtak(vedtakId = 2), stønadId = 20)),
                     listOf(stønad(vedtak(vedtakId = 1, fom = "2025-01-01", tom = "2026-06-30"))),
+                    listOf(stønad(vedtak(vedtakId = 1, delytelser = emptyList()))),
+                    listOf(stønad(vedtak(vedtakId = 1, delytelser = listOf(delytelse(), delytelse())))),
+                    listOf(stønad(vedtak(vedtakId = 1, fom = "2020-01-01", delytelser = listOf(delytelse(fom = "2020-01-01", tom = "2020-12-31"))))),
                 )
 
             tilfeller.forEach { stønader ->
@@ -421,6 +446,173 @@ class GjeldendeInfotrygdPerioderTest {
                 ?.arvetFraVedtak
                 ?.vedtakId,
         ).isEqualTo(1)
+    }
+
+    @Nested
+    inner class InfotrygdBeløp {
+        @Test
+        fun `hver periode har beløpet fra delytelsen på vedtaket som gjelder`() {
+            val perioder =
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2020-01-01", delytelser = listOf(delytelse(fom = "2020-01-01", beløp = "720"))),
+                        vedtak(
+                            vedtakId = 2,
+                            fom = "2022-01-01",
+                            tom = "2022-12-31",
+                            delytelser = listOf(delytelse(fom = "2022-01-01", tom = "2022-12-31", beløp = "744")),
+                        ),
+                    ),
+                )
+
+            assertThat(
+                perioder.map { listOf(it.fom.toString(), it.tom?.toString(), it.vedtak.vedtakId, it.infotrygdBeløp.toPlainString()) },
+            ).containsExactly(
+                listOf("2020-01-01", "2021-12-31", 1L, "720"),
+                listOf("2022-01-01", "2022-12-31", 2L, "744"),
+                listOf("2023-01-01", null, 1L, "720"),
+            )
+        }
+
+        @Test
+        fun `tilstøtende vedtak med like beløp beholdes som to perioder`() {
+            val perioder =
+                utled(
+                    stønad(
+                        vedtak(
+                            vedtakId = 1,
+                            fom = "2020-01-01",
+                            tom = "2020-12-31",
+                            delytelser = listOf(delytelse(fom = "2020-01-01", tom = "2020-12-31", beløp = "720")),
+                        ),
+                        vedtak(vedtakId = 2, fom = "2021-01-01", delytelser = listOf(delytelse(fom = "2021-01-01", beløp = "720"))),
+                    ),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(
+                Forenklet("2020-01-01", "2020-12-31", 1),
+                Forenklet("2021-01-01", null, 2),
+            )
+            assertThat(perioder.map { it.infotrygdBeløp.toPlainString() }).containsExactly("720", "720")
+        }
+
+        @Test
+        fun `delytelse som slutter før vedtaket gir feil, også i en tidligere periode`() {
+            assertThatThrownBy {
+                utled(
+                    stønad(
+                        vedtak(
+                            vedtakId = 4711,
+                            fom = "2020-01-01",
+                            tom = "2021-12-31",
+                            delytelser = listOf(delytelse(fom = "2020-01-01", tom = "2021-06-30")),
+                        ),
+                        vedtak(vedtakId = 4712, fom = "2022-01-01"),
+                    ),
+                )
+            }.isInstanceOf(UgyldigInput::class.java)
+                .hasMessage(
+                    "Vedtak 4711 gjelder 01.01.2020–31.12.2021, men delytelsen med beløpet i Infotrygd gjelder " +
+                        "01.01.2020–30.06.2021. Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
+                )
+        }
+
+        @Test
+        fun `delytelse som starter etter vedtaket gir feil, og løpende perioder skrives med fra`() {
+            assertThatThrownBy {
+                utled(stønad(vedtak(vedtakId = 4711, fom = "2020-01-01", delytelser = listOf(delytelse(fom = "2020-02-01")))))
+            }.isInstanceOf(UgyldigInput::class.java)
+                .hasMessage(
+                    "Vedtak 4711 gjelder fra 01.01.2020, men delytelsen med beløpet i Infotrygd gjelder fra 01.02.2020. " +
+                        "Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
+                )
+        }
+
+        @Test
+        fun `delytelse som varer lenger enn vedtaket i en tidligere periode gir beløpet, og vedtaket avgjør perioden`() {
+            val perioder =
+                utled(
+                    stønad(
+                        vedtak(
+                            vedtakId = 1,
+                            fom = "2020-01-01",
+                            tom = "2021-12-31",
+                            delytelser = listOf(delytelse(fom = "2019-07-01", beløp = "720")),
+                        ),
+                        vedtak(vedtakId = 2, fom = "2022-01-01", delytelser = listOf(delytelse(fom = "2022-01-01", beløp = "744"))),
+                    ),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(
+                Forenklet("2020-01-01", "2021-12-31", 1),
+                Forenklet("2022-01-01", null, 2),
+            )
+            assertThat(perioder.map { it.infotrygdBeløp.toPlainString() }).containsExactly("720", "744")
+        }
+
+        @Test
+        fun `delytelse som varer lenger enn vedtaket i den siste perioden gir feil`() {
+            assertThatThrownBy {
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2020-01-01", tom = "2021-12-31"),
+                        vedtak(vedtakId = 4711, fom = "2022-01-01", delytelser = listOf(delytelse(fom = "2022-01-01"))),
+                        datoOpphør = LocalDate.parse("2022-06-30"),
+                    ),
+                )
+            }.isInstanceOf(UgyldigInput::class.java)
+                .hasMessage(
+                    "Vedtak 4711 gjelder 01.01.2022–30.06.2022, men delytelsen med beløpet i Infotrygd gjelder fra 01.01.2022. " +
+                        "Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
+                )
+        }
+
+        @Test
+        fun `vedtak uten delytelse gir feil`() {
+            assertThatThrownBy {
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 4711, fom = "2020-01-01", tom = "2021-12-31", delytelser = emptyList()),
+                        vedtak(vedtakId = 4712, fom = "2022-01-01"),
+                    ),
+                )
+            }.isInstanceOf(UgyldigInput::class.java)
+                .hasMessage(
+                    "Vedtak 4711 gjelder 01.01.2020–31.12.2021, men har ingen delytelse med beløpet i Infotrygd. " +
+                        "Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
+                )
+        }
+
+        @Test
+        fun `vedtak med flere delytelser gir feil, også når beløpet er likt`() {
+            assertThatThrownBy {
+                utled(
+                    stønad(
+                        vedtak(
+                            vedtakId = 4711,
+                            fom = "2020-01-01",
+                            delytelser = listOf(delytelse(fom = "2020-01-01"), delytelse(fom = "2020-01-01")),
+                        ),
+                    ),
+                )
+            }.isInstanceOf(UgyldigInput::class.java)
+                .hasMessage(
+                    "Vedtak 4711 har 2 delytelser i Infotrygd, ikke én. Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
+                )
+        }
+
+        @Test
+        fun `vedtak som er helt overskrevet av et nyere, sjekkes ikke`() {
+            val perioder =
+                utled(
+                    stønad(
+                        vedtak(vedtakId = 1, fom = "2020-01-01", tom = "2020-12-31", delytelser = emptyList()),
+                        vedtak(vedtakId = 2, fom = "2020-01-01"),
+                    ),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(Forenklet("2020-01-01", null, 2))
+        }
     }
 
     @Nested

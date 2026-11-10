@@ -30,7 +30,7 @@ flowchart TD
     T24["24 Unik indeks mot<br/>to åpne behandlinger"]
     T25["25 Opphav og maskinelt<br/>merke på vilkår"]
     T26["26 Gjeldende perioder<br/>kuttes ved opphør"]
-    T27["27 Sammenslåtte perioder<br/>med Infotrygd-beløp"]
+    T27["27 Gjeldende perioder<br/>med Infotrygd-beløp"]
 
     OKO{{"Økonomi: motregner OS?"}}
     OPP{{"Oppdrag-delen<br/>(ADR-0011)"}}

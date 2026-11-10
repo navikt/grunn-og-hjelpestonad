@@ -62,8 +62,8 @@ fjernet fra tilkjent ytelse, og V46 dropper kolonnen.
   periode med beløp, som i EF.
 - Migreringen stoppes blant annet hvis:
   - personen har en åpen sak i Infotrygd, utenom klage og anke
-  - det er mer enn én gjeldende periode fremover i tid, etter at like perioder
-    som henger sammen, er slått sammen
+  - det er mer enn én gjeldende periode fremover i tid. EF slår sammen like
+    perioder som henger sammen først. Det gjør ikke vi.
   - fom ikke er første dag eller tom ikke er siste dag i måneden
   - beløpet er 0
   - siste periode slutter før datogrensen 2026-01-01. EF bruker 2019-01-01. TODO: Vi bør vurdere denne datoen på nytt når vi skal begynne å migrere.
