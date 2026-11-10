@@ -473,6 +473,28 @@ class GjeldendeInfotrygdPerioderTest {
         }
 
         @Test
+        fun `tilstøtende vedtak med like beløp beholdes som to perioder`() {
+            val perioder =
+                utled(
+                    stønad(
+                        vedtak(
+                            vedtakId = 1,
+                            fom = "2020-01-01",
+                            tom = "2020-12-31",
+                            delytelser = listOf(delytelse(fom = "2020-01-01", tom = "2020-12-31", beløp = "720")),
+                        ),
+                        vedtak(vedtakId = 2, fom = "2021-01-01", delytelser = listOf(delytelse(fom = "2021-01-01", beløp = "720"))),
+                    ),
+                )
+
+            assertThat(perioder.forenklet()).containsExactly(
+                Forenklet("2020-01-01", "2020-12-31", 1),
+                Forenklet("2021-01-01", null, 2),
+            )
+            assertThat(perioder.map { it.infotrygdBeløp.toPlainString() }).containsExactly("720", "720")
+        }
+
+        @Test
         fun `delytelse som slutter før vedtaket gir feil, også i en tidligere periode`() {
             assertThatThrownBy {
                 utled(

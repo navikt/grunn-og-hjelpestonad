@@ -1,6 +1,6 @@
 # 27: Gjeldende perioder med Infotrygd-beløp
 
-**What to build:** Saksbehandler ser gjeldende perioder fra Infotrygd med Infotrygd-beløp, akkurat slik migreringen vil bruke dem. Da kan saksbehandler se i oppslaget om migreringen blir riktig. Periodene slås ikke sammen her, se kommentaren 2026-11-06.
+**What to build:** Saksbehandler ser gjeldende perioder fra Infotrygd med Infotrygd-beløp, akkurat slik migreringen vil bruke dem. Da kan saksbehandler se i oppslaget om migreringen blir riktig. Perioder fra ulike vedtak slås ikke sammen her, se kommentaren 2026-11-06.
 
 **Blocked by:** 26. Begge endrer reglene for gjeldende perioder.
 
@@ -29,7 +29,7 @@ Spec: [spec.md](../spec.md). Beslutningene står i [ticket 03](03-avklar-periode
 
 **2026-11-06:** Avklart før implementering:
 
-- Gjeldende perioder slås ikke sammen, verken i oppslaget eller i migreringen. Hver periode har fortsatt ett vedtak, slik at saksbehandler ser hvilket vedtak som gjelder. Migreringen bruker bare siste periode, så sammenslåing endrer bare sperren for mer enn én periode fremover i tid. Uten den stopper migreringen i flere tilfeller, og det er tryggest. Regelen for sats og trygdetid fra `t_gh` hører til ticket 16.
+- Gjeldende perioder fra ulike vedtak slås ikke sammen, verken i oppslaget eller i migreringen. Hver periode har fortsatt ett vedtak, slik at saksbehandler ser hvilket vedtak som gjelder. Tidslinjens `slåSammenLikePerioder()` slår bare sammen tilstøtende deler med samme `VedtakPåStønad`. Hele vedtaket inngår i sammenligningen, så ulike vedtak beholdes som egne perioder også når beløpene er like. Migreringen bruker bare siste periode, så sammenslåing endrer bare sperren for mer enn én periode fremover i tid. Uten den stopper migreringen i flere tilfeller, og det er tryggest. Regelen for sats og trygdetid fra `t_gh` hører til ticket 16.
 - Delytelsen sammenlignes med hele vedtaket etter kuttet ved opphør, ikke med delen av vedtaket som gjelder i tidslinjen. Bare vedtak som er med i minst én gjeldende periode, sjekkes. Et vedtak som er helt overskrevet av et nyere, gir ingen feil.
 - Et vedtak med flere delytelser gir feil, også når beløpene er like. Teksten er «Vedtak {vedtakId} har {antall} delytelser i Infotrygd, ikke én. Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.» Et vedtak uten delytelse gir «Vedtak {vedtakId} gjelder {fom}–{tom}, men har ingen delytelse med beløpet i Infotrygd. Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.»
 - Koden filtrerer ikke på `type_delytelse`. `/stonader` gir én stønadstype, og alle delytelsene har da samme type: `MG` for grunnstønad og `MH` for hjelpestønad.

@@ -38,6 +38,8 @@ object GjeldendeInfotrygdPerioder {
             perioder
                 .map { it.tilTidslinje() }
                 .reduce { eldre, nyere -> nyere.kombinerMed(eldre) { ny, gammel -> ny ?: gammel } }
+                // Slår bare sammen tilstøtende deler med samme VedtakPåStønad. Hele vedtaket inngår i sammenligningen,
+                // så ulike vedtak beholdes som egne perioder, også når beløpene er like.
                 .slåSammenLikePerioder()
                 .tilPerioder()
                 .filtrerIkkeNull()
