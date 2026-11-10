@@ -55,16 +55,7 @@ Løpende saker skal migreres fra Infotrygd. Referanseappene håndterer også det
   og ytelsestype. Har flere behandlinger samme `periode_id`, gjelder den første, fordi
   en senere behandling kan ha avkortet perioden. Spørringen virker også når siste
   behandling opphørte alle andelene.
-- Rekkefølgen på oppdragene på en fagsak er `opprettet_tid`, som i EF og BA. Vi godtar
-  to svakheter:
-  - Kolonnen er uten tidssone, så rekkefølgen kan bli feil i timen som gjentas når
-    klokka stilles til vintertid. OS er stengt da, og et nytt oppdrag krever at det
-    forrige er kvittert.
-  - `LOCALTIMESTAMP` er starten på transaksjonen. Lager to behandlinger oppdrag på
-    samme fagsak samtidig, kan den som ventet på låsen, få et tidligere tidspunkt.
-    Fagsaken har bare én åpen behandling, så det skjer bare hvis en stoppet task
-    startes på nytt eller testendepunktet brukes. Når behandlingen først blir
-    `FERDIGSTILT` ved `KVITTERT_OK`, kan det ikke skje.
+- Rekkefølgen på oppdragene på en fagsak er `opprettet_tid`, som i EF og BA.
 - All kode for oppdrag ligger i pakken `no.nav.grunn.og.hjelpestonad.oppdrag`.
 
 > **Erstattet av [ADR-0013](ADR-0013-migrering-fra-infotrygd-som-i-ef.md):**
