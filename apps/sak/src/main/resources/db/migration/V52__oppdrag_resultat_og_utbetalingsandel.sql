@@ -6,9 +6,7 @@ CREATE TABLE oppdrag_resultat
     utbetalingsoppdrag JSONB        NOT NULL,
     status             VARCHAR(50)  NOT NULL,
     kvitteringsmelding TEXT,
-    -- clock_timestamp og ikke LOCALTIMESTAMP: LOCALTIMESTAMP er starten på transaksjonen, som kan ligge før låsen på
-    -- fagsaken ble tatt. Rekkefølgen brukes til å finne forrige oppdrag på fagsaken.
-    opprettet_tid      TIMESTAMP(6) NOT NULL DEFAULT clock_timestamp(),
+    opprettet_tid      TIMESTAMP(6) NOT NULL DEFAULT LOCALTIMESTAMP,
     endret_tid         TIMESTAMP(3) NOT NULL DEFAULT LOCALTIMESTAMP
 );
 
