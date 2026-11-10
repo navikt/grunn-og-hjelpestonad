@@ -4,7 +4,6 @@ import no.nav.grunn.og.hjelpestonad.felles.periode.PeriodeMedBegrunnelseRequest
 import java.time.LocalDate
 import java.util.UUID
 
-/** Uten sporbarhet og uten vurdering. Teller og kilde er det saksbehandler registrerer. */
 data class TrygdetidResponse(
     val id: UUID,
     val behandlingId: UUID,

@@ -38,7 +38,6 @@ data class Trygdetid(
     ) = copy(id = id, fraOgMedDato = fraOgMedDato, tilOgMedDato = tilOgMedDato)
 }
 
-/** Regler for trygdetid. Rene funksjoner uten Spring, jf. ADR-0008. */
 object TrygdetidRegler {
     const val MAKS_TELLER = 40
 
