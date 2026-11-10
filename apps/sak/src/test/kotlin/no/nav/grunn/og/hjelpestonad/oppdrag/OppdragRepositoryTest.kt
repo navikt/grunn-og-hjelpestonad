@@ -18,7 +18,6 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.transaction.IllegalTransactionStateException
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.support.TransactionTemplate
@@ -37,9 +36,6 @@ internal class OppdragRepositoryTest : SpringContextTest() {
 
     @Autowired
     private lateinit var fagsakPersonRepository: FagsakPersonRepository
-
-    @Autowired
-    private lateinit var jdbcTemplate: JdbcTemplate
 
     @Autowired
     private lateinit var transactionManager: PlatformTransactionManager
@@ -117,18 +113,6 @@ internal class OppdragRepositoryTest : SpringContextTest() {
         oppdragRepository.insert(oppdragResultat(andre, oppdrag(andre), setOf(andel(andre).copy(periodeId = 2))))
 
         assertThat(oppdragRepository.finnSisteAndelPerKjede(fagsak.id, andre.id).single().periodeId).isEqualTo(1L)
-    }
-
-    @Test
-    fun `rekkefølgen følger lagring og ikke opprettet tid`() {
-        val fagsak = opprettFagsak()
-        val første = opprettBehandling(fagsak)
-        val andre = opprettBehandling(fagsak)
-        oppdragRepository.insert(oppdragResultat(første, oppdrag(første), setOf(andel(første))))
-        oppdragRepository.insert(oppdragResultat(andre, oppdrag(andre), setOf(andel(andre))))
-        jdbcTemplate.update("UPDATE oppdrag_resultat SET opprettet_tid = opprettet_tid - INTERVAL '1 hour' WHERE behandling_id = ?", andre.id)
-
-        assertThat(oppdragRepository.finnForrigeAndeler(fagsak.id, UUID.randomUUID()).single().kildeBehandlingId).isEqualTo(andre.id)
     }
 
     @Test

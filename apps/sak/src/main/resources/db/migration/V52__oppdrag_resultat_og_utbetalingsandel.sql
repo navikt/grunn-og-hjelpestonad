@@ -6,12 +6,13 @@ CREATE TABLE oppdrag_resultat
     utbetalingsoppdrag JSONB        NOT NULL,
     status             VARCHAR(50)  NOT NULL,
     kvitteringsmelding TEXT,
-    rekkefolge         BIGINT       GENERATED ALWAYS AS IDENTITY NOT NULL UNIQUE,
-    opprettet_tid      TIMESTAMP(3) NOT NULL DEFAULT LOCALTIMESTAMP,
+    -- clock_timestamp og ikke LOCALTIMESTAMP: LOCALTIMESTAMP er starten på transaksjonen, som kan ligge før låsen på
+    -- fagsaken ble tatt. Rekkefølgen brukes til å finne forrige oppdrag på fagsaken.
+    opprettet_tid      TIMESTAMP(6) NOT NULL DEFAULT clock_timestamp(),
     endret_tid         TIMESTAMP(3) NOT NULL DEFAULT LOCALTIMESTAMP
 );
 
-CREATE INDEX oppdrag_resultat_fagsak_id_idx ON oppdrag_resultat (fagsak_id, rekkefolge);
+CREATE INDEX oppdrag_resultat_fagsak_id_idx ON oppdrag_resultat (fagsak_id, opprettet_tid);
 
 -- Alle løpende andeler etter behandlingen, med kjedefeltene fra utbetalingsgeneratoren.
 -- Uendrede andeler lagres på nytt for hver behandling, med samme periode_id.
