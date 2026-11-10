@@ -12,6 +12,7 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
+import no.nav.grunn.og.hjelpestonad.oppdrag.IverksettOppdragTask
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
@@ -152,6 +153,16 @@ class BeslutterService(
         if (vedtak?.resultatType == ResultatType.INNVILGET) {
             taskService.opprett(SendVedtakTilInfotrygdFeedTask.TYPE, behandlingId)
         }
+
+        if (vedtak?.resultatType in RESULTATER_SOM_ENDRER_UTBETALING) {
+            taskService.opprett(
+                IverksettOppdragTask.TYPE,
+                IverksettOppdragTask.IverksettOppdragTaskData(
+                    behandlingId = behandlingId,
+                    saksbehandlerId = totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId),
+                ),
+            )
+        }
     }
 
     private fun validerUnderkjennelse(dto: BeslutteVedtakRequest): Pair<ÅrsakUnderkjent, String> {
@@ -215,5 +226,10 @@ class BeslutterService(
                     "Behandlingen kan ikke sendes til beslutter på nytt før eksisterende oppgave er ferdigstilt.",
             )
         }
+    }
+
+    companion object {
+        /** Vedtak som kan gi nye andeler eller opphøre andeler i OS. */
+        private val RESULTATER_SOM_ENDRER_UTBETALING = setOf(ResultatType.INNVILGET, ResultatType.OPPHØR)
     }
 }
