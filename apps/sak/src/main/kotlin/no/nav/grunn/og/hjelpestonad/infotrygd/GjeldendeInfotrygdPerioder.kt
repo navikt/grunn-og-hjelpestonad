@@ -4,7 +4,6 @@ import no.nav.familie.tidslinje.Periode
 import no.nav.familie.tidslinje.filtrerIkkeNull
 import no.nav.familie.tidslinje.tilTidslinje
 import no.nav.familie.tidslinje.utvidelser.kombinerMed
-import no.nav.familie.tidslinje.utvidelser.slåSammenLikePerioder
 import no.nav.familie.tidslinje.utvidelser.tilPerioder
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.InfotrygdDelytelseResponse
@@ -38,9 +37,6 @@ object GjeldendeInfotrygdPerioder {
             perioder
                 .map { it.tilTidslinje() }
                 .reduce { eldre, nyere -> nyere.kombinerMed(eldre) { ny, gammel -> ny ?: gammel } }
-                // Slår bare sammen tilstøtende deler med samme VedtakPåStønad. Hele vedtaket inngår i sammenligningen,
-                // så ulike vedtak beholdes som egne perioder, også når beløpene er like.
-                .slåSammenLikePerioder()
                 .tilPerioder()
                 .filtrerIkkeNull()
 
