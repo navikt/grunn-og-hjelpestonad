@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.config
 
+import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.beslutter.ÅrsakUnderkjent
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import org.postgresql.util.PGobject
@@ -43,6 +44,8 @@ open class DatabaseConfig(
         listOf(
             BrevRequestTilJsonbConverter(objectMapper),
             JsonbTilBrevRequestConverter(objectMapper),
+            UtbetalingsoppdragTilJsonbConverter(objectMapper),
+            JsonbTilUtbetalingsoppdragConverter(objectMapper),
             YearMonthTilDateConverter(),
             DateTilYearMonthConverter(),
         )
@@ -80,6 +83,24 @@ open class DatabaseConfig(
         private val objectMapper: ObjectMapper,
     ) : Converter<PGobject, BrevRequest> {
         override fun convert(source: PGobject): BrevRequest = objectMapper.readValue(source.value, BrevRequest::class.java)
+    }
+
+    @WritingConverter
+    class UtbetalingsoppdragTilJsonbConverter(
+        private val objectMapper: ObjectMapper,
+    ) : Converter<Utbetalingsoppdrag, PGobject> {
+        override fun convert(source: Utbetalingsoppdrag): PGobject =
+            PGobject().apply {
+                type = "jsonb"
+                value = objectMapper.writeValueAsString(source)
+            }
+    }
+
+    @ReadingConverter
+    class JsonbTilUtbetalingsoppdragConverter(
+        private val objectMapper: ObjectMapper,
+    ) : Converter<PGobject, Utbetalingsoppdrag> {
+        override fun convert(source: PGobject): Utbetalingsoppdrag = objectMapper.readValue(source.value, Utbetalingsoppdrag::class.java)
     }
 
     @Bean
