@@ -71,11 +71,7 @@ open class DatabaseConfig(
     class BrevRequestTilJsonbConverter(
         private val objectMapper: ObjectMapper,
     ) : Converter<BrevRequest, PGobject> {
-        override fun convert(source: BrevRequest): PGobject =
-            PGobject().apply {
-                type = "jsonb"
-                value = objectMapper.writeValueAsString(source)
-            }
+        override fun convert(source: BrevRequest): PGobject = jsonb(objectMapper.writeValueAsString(source))
     }
 
     @ReadingConverter
@@ -89,11 +85,7 @@ open class DatabaseConfig(
     class UtbetalingsoppdragTilJsonbConverter(
         private val objectMapper: ObjectMapper,
     ) : Converter<Utbetalingsoppdrag, PGobject> {
-        override fun convert(source: Utbetalingsoppdrag): PGobject =
-            PGobject().apply {
-                type = "jsonb"
-                value = objectMapper.writeValueAsString(source)
-            }
+        override fun convert(source: Utbetalingsoppdrag): PGobject = jsonb(objectMapper.writeValueAsString(source))
     }
 
     @ReadingConverter
@@ -141,3 +133,10 @@ open class DatabaseConfig(
         override fun convert(source: Date): YearMonth = YearMonth.from(source.toLocalDate())
     }
 }
+
+/** `type` er navnet på Postgres-typen. Driveren har ingen enum for den, så en skrivefeil gir først feil når raden lagres. */
+private fun jsonb(json: String) =
+    PGobject().apply {
+        type = "jsonb"
+        value = json
+    }
