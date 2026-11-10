@@ -24,6 +24,7 @@ ADR: [ADR-0011](../../../docs/adr/ADR-0011-avrunding-og-utbetalingsgrunnlag-hoer
 ## Kjente begrensninger
 
 - Et avvist oppdrag stopper alle nye oppdrag på fagsaken. Det finnes ingen måte å rette det på ennå, verken i koden eller i et skjermbilde.
+- Godkjenning setter behandlingen til `FERDIGSTILT` med én gang, før oppdraget er kvittert. En revurdering kan derfor godkjennes mens forrige oppdrag fortsatt ligger på kø. Da får `IverksettOppdragTask` 409 fra sperren, feiler tre ganger og stopper. Noen må starte den på nytt når forrige oppdrag er kvittert. Det løses når behandlingen først blir `FERDIGSTILT` ved `KVITTERT_OK`, som i EF.
 - Testendepunktet oppretter ingen statustask. Etter et kall må noen hente status med GET-endepunktet, ellers stopper neste oppdrag på fagsaken.
 - Avvist oppdrag eller manglende kvittering etter 100 forsøk gir en stoppet task. Saksbehandler ser ingenting, og ingen får varsel.
 - Statustasken poller hvert 15. minutt på hverdager mellom 06 og 21, som i familie-ba-sak, men tar ikke hensyn til helligdager. Én helligdag bruker 60 av de 100 forsøkene, så to helligdager på rad (jul, påske) stopper tasken før OS åpner.
