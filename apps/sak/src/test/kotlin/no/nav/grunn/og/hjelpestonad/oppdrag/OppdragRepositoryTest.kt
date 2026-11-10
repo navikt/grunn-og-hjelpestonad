@@ -185,7 +185,7 @@ internal class OppdragRepositoryTest : SpringContextTest() {
                         ),
                     ),
             ),
-        )
+        ).utbetalingsoppdrag
 
     private fun andel(behandling: Behandling) =
         Utbetalingsandel(

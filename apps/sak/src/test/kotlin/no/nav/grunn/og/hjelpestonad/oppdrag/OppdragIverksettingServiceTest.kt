@@ -34,7 +34,7 @@ class OppdragIverksettingServiceTest {
                 vedtaksdato = LocalDate.of(2026, 11, 15),
                 andeler = listOf(AndelTilkjentYtelse(beløp = 1000.toBigDecimal(), fom = testandel.fom, tom = testandel.tom, kildeBehandlingId = behandlingId)),
             ),
-        )
+        ).utbetalingsoppdrag
 
     @Test
     fun `iverksetter oppdraget og svarer med saksnummer og behandlings-ID fra oppdraget`() {

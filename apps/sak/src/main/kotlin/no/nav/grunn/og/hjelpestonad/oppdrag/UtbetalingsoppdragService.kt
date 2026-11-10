@@ -70,7 +70,7 @@ class UtbetalingsoppdragService(
             )
 
         return UtbetalingsoppdragForBehandling(
-            utbetalingsoppdrag = utbetalingsoppdrag,
+            utbetalingsoppdrag = utbetalingsoppdrag.utbetalingsoppdrag,
             testandel = testandel?.let { Testandel(fom = it.fom, tom = it.tom, beløp = tilUtbetalingsbeløp(it.beløp)) },
         )
     }

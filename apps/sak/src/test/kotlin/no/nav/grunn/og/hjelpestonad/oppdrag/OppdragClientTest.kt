@@ -73,7 +73,7 @@ class OppdragClientTest {
                         ),
                     ),
             ),
-        )
+        ).utbetalingsoppdrag
 
     @BeforeEach
     fun setup() {
