@@ -132,7 +132,7 @@ object GjeldendeInfotrygdPerioder {
             )
         }
         val delytelse =
-            vedtak.delytelser.singleOrNull()
+            vedtak.delytelser.firstOrNull()
                 ?: throw UgyldigInput(
                     "Vedtak ${vedtak.vedtakId} gjelder ${periodetekst(vedtak.datoInnvFom, tom)}, men har ingen delytelse med beløpet i Infotrygd. " +
                         "Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
