@@ -198,7 +198,7 @@ Ingen nye Nais-ressurser.
 ### Delytelsen i siste periode
 
 Målt i dev 2026-11-06. Spørringen står i
-[ticket 27](../../.scratch/migrering/issues/27-sammenslaatte-gjeldende-perioder-med-infotrygd-belop.md).
+[ticket 27](../../.scratch/migrering/issues/27-gjeldende-perioder-med-infotrygd-belop.md).
 
 - 1 818 av 147 482 personer som kan migreres, har en delytelse som slutter
   senere enn vedtaket i siste periode. Ticket 03 målte 1 942 før vedtak som er
