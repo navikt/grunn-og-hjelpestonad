@@ -3,7 +3,11 @@
 import * as z from 'zod';
 
 export const zValideringsfeil = z.object({
-    vilkårType: z.enum(['MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN', 'DIAGNOSE']),
+    vilkårType: z.enum([
+        'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN',
+        'DIAGNOSE',
+        'NØDVENDIGE_EKSTRAUTGIFTER'
+    ]),
     melding: z.string()
 });
 
@@ -385,6 +389,56 @@ export const zVilkårMedlemskapResponse = z.object({
     behandlingId: z.uuid(),
     regelverk: z.enum(['NASJONALE_REGLER', 'EØS_FORORDNINGEN']),
     vurdering: z.enum(['JA', 'NEI']),
+    begrunnelse: z.string(),
+    fraOgMedDato: z.iso.date().nullish(),
+    tilOgMedDato: z.iso.date().nullish(),
+    erVilkårOppfylt: z.boolean()
+});
+
+export const zEkstrautgift = z.object({
+    hjemmelbokstav: z.enum([
+        'A',
+        'B',
+        'C',
+        'D',
+        'E',
+        'F',
+        'G',
+        'H'
+    ]),
+    diagnosekoder: z.array(z.string())
+});
+
+export const zVilkårEkstrautgifterRequest = z.object({
+    id: z.uuid().nullish(),
+    vurdering: z.enum(['JA', 'NEI']),
+    sats: z.enum([
+        'SATS_1',
+        'SATS_2',
+        'SATS_3',
+        'SATS_4',
+        'SATS_5',
+        'SATS_6'
+    ]).nullish(),
+    ekstrautgifter: z.array(zEkstrautgift),
+    begrunnelse: z.string(),
+    fraOgMedDato: z.iso.date().nullish(),
+    tilOgMedDato: z.iso.date().nullish()
+});
+
+export const zVilkårEkstrautgifterResponse = z.object({
+    id: z.uuid(),
+    behandlingId: z.uuid(),
+    vurdering: z.enum(['JA', 'NEI']),
+    sats: z.enum([
+        'SATS_1',
+        'SATS_2',
+        'SATS_3',
+        'SATS_4',
+        'SATS_5',
+        'SATS_6'
+    ]).nullish(),
+    ekstrautgifter: z.array(zEkstrautgift),
     begrunnelse: z.string(),
     fraOgMedDato: z.iso.date().nullish(),
     tilOgMedDato: z.iso.date().nullish(),
@@ -800,6 +854,26 @@ export const zLagreMedlemskapPeriodePath = z.object({
  */
 export const zLagreMedlemskapPeriodeResponse = zVilkårMedlemskapResponse;
 
+export const zHentEkstrautgifterPerioderPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zHentEkstrautgifterPerioderResponse = z.array(zVilkårEkstrautgifterResponse);
+
+export const zLagreEkstrautgifterPeriodeBody = zVilkårEkstrautgifterRequest;
+
+export const zLagreEkstrautgifterPeriodePath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zLagreEkstrautgifterPeriodeResponse = zVilkårEkstrautgifterResponse;
+
 export const zHentDiagnosePerioderPath = z.object({
     behandlingId: z.uuid()
 });
@@ -1025,6 +1099,11 @@ export const zHentMedlemskapFaktagrunnlagPath = z.object({
 export const zHentMedlemskapFaktagrunnlagResponse = zMedlemskapFaktagrunnlagResponse;
 
 export const zSlettMedlemskapPeriodePath = z.object({
+    behandlingId: z.uuid(),
+    vilkårPeriodeId: z.uuid()
+});
+
+export const zSlettEkstrautgifterPeriodePath = z.object({
     behandlingId: z.uuid(),
     vilkårPeriodeId: z.uuid()
 });
