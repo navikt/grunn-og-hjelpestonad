@@ -43,7 +43,7 @@ object GjeldendeInfotrygdPerioder {
                 .filtrerIkkeNull()
 
         return gjeldendePerioder.mapIndexed { indeks, periode ->
-            val delytelse = periode.verdi.hentValidertDeltydelse(erISistePeriode = indeks == gjeldendePerioder.lastIndex)
+            val delytelse = periode.verdi.hentValidertDelytelse(erISistePeriode = indeks == gjeldendePerioder.lastIndex)
             GjeldendeInfotrygdPeriode(
                 fom = checkNotNull(periode.fom) { "Gjeldende periode mangler fom" },
                 tom = periode.tom,
@@ -124,7 +124,7 @@ object GjeldendeInfotrygdPerioder {
     /** Opphør den 1. i måneden betyr at stønaden gjaldt ut måneden før. */
     private fun faktiskOpphørsdato(datoOpphør: LocalDate): LocalDate = if (datoOpphør.dayOfMonth == 1) datoOpphør.minusDays(1) else datoOpphør
 
-    private fun VedtakPåStønad.hentValidertDeltydelse(erISistePeriode: Boolean): InfotrygdDelytelseResponse {
+    private fun VedtakPåStønad.hentValidertDelytelse(erISistePeriode: Boolean): InfotrygdDelytelseResponse {
         if (vedtak.delytelser.size > 1) {
             throw UgyldigInput(
                 "Vedtak ${vedtak.vedtakId} har ${vedtak.delytelser.size} delytelser i Infotrygd, ikke én. " +
