@@ -73,7 +73,7 @@ interface OppdragRepository :
         """
         SELECT status FROM oppdrag_resultat
         WHERE fagsak_id = :fagsakId AND behandling_id <> :unntattBehandlingId
-        ORDER BY rekkefolge DESC
+        ORDER BY opprettet_tid DESC
         LIMIT 1
         """,
     )
@@ -89,7 +89,7 @@ interface OppdragRepository :
         WHERE ua.behandling_id = (
             SELECT o.behandling_id FROM oppdrag_resultat o
             WHERE o.fagsak_id = :fagsakId AND o.behandling_id <> :unntattBehandlingId
-            ORDER BY o.rekkefolge DESC
+            ORDER BY o.opprettet_tid DESC
             LIMIT 1
         )
         ORDER BY ua.fom
@@ -110,7 +110,7 @@ interface OppdragRepository :
          SELECT id, behandling_id, fom, tom, belop, ytelsestype, periode_id, forrige_periode_id, kilde_behandling_id
         FROM (
             SELECT ua.*, ROW_NUMBER() OVER (
-                 PARTITION BY ua.ytelsestype ORDER BY ua.periode_id DESC, o.rekkefolge ASC
+                 PARTITION BY ua.ytelsestype ORDER BY ua.periode_id DESC, o.opprettet_tid ASC
             ) AS rn
             FROM utbetalingsandel ua
             JOIN oppdrag_resultat o ON o.behandling_id = ua.behandling_id
