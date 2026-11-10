@@ -261,7 +261,7 @@ class VilkårDiagnoseServiceTest {
             ),
         )
 
-        assertThat(detaljer.captured).isEqualTo("${VilkårType.DIAGNOSE}: ${Vurdering.JA}, Periode: 01.01.2025 – 30.06.2025")
+        assertThat(detaljer.captured).isEqualTo("${VilkårType.DIAGNOSE}, Vurdering: ${Vurdering.JA}, Periode: 01.01.2025 – 30.06.2025")
         assertThat(detaljer.captured).doesNotContain(DIABETES_TYPE_1).doesNotContain("Diabetes")
     }
 }

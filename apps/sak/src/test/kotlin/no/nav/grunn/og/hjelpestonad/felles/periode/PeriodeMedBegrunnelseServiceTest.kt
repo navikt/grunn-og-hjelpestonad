@@ -130,7 +130,8 @@ class PeriodeMedBegrunnelseServiceTest {
             Endringstyper(opprettet = OPPRETTET, oppdatert = OPPDATERT, slettet = SLETTET),
         ) {
         override val periodebeskrivelse = "testperiode"
-        override val type: Enum<*> = TestType.TESTPERIODE
+
+        override fun endringsdetalj(periode: TestPeriode) = TestType.TESTPERIODE.name
 
         override fun nyPeriode(
             behandlingId: UUID,

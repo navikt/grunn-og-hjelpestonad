@@ -52,7 +52,11 @@ class VilkårDiagnoseService(
         )
     }
 
-    override fun valider(request: VilkårDiagnoseRequest) = DiagnoseRegler.valider(request)
+    override fun valider(
+        request: VilkårDiagnoseRequest,
+        behandlingId: UUID,
+        eksisterendePeriode: VilkårDiagnose?,
+    ) = DiagnoseRegler.valider(request)
 
     override fun validerTidslinje(perioder: List<VilkårDiagnose>) = DiagnoseRegler.validerMaksEnYrkesskadePeriode(perioder)
 

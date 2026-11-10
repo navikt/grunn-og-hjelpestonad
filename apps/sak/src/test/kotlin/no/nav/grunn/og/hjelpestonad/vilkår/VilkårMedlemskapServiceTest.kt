@@ -215,7 +215,7 @@ class VilkårMedlemskapServiceTest {
         )
 
         assertThat(detaljer.captured).isEqualTo(
-            "${VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN}: ${Vurdering.JA}, Periode: 01.01.2025 – 30.06.2025",
+            "${VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN}, Vurdering: ${Vurdering.JA}, Periode: 01.01.2025 – 30.06.2025",
         )
     }
 
