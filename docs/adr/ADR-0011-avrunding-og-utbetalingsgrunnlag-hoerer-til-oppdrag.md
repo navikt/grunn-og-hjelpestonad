@@ -55,6 +55,14 @@ Løpende saker skal migreres fra Infotrygd. Referanseappene håndterer også det
   og ytelsestype. Har flere behandlinger samme `periode_id`, gjelder den første, fordi
   en senere behandling kan ha avkortet perioden. Spørringen virker også når siste
   behandling opphørte alle andelene.
+- Forrige behandling er siste behandling på fagsaken med `oppdrag_resultat`. En
+  behandling som ikke endrer utbetalingen, får status `INGEN_ENDRING`. Andelene lagres,
+  men ingenting sendes til OS.
+- Fagsaken låses med `SELECT ... FOR UPDATE` mens oppdraget lages og lagres. Oppdraget
+  committes før det sendes, og et nytt forsøk sender det lagrede oppdraget.
+- Et nytt oppdrag lages bare når forrige oppdrag på fagsaken har status `KVITTERT_OK`
+  eller `INGEN_ENDRING`. Ellers vet vi ikke om OS har andelene vi kjeder mot. Sjekken
+  kan fjernes når en behandling først blir `FERDIGSTILT` ved `KVITTERT_OK`, som i EF.
 - All kode for oppdrag ligger i pakken `no.nav.grunn.og.hjelpestonad.oppdrag`.
 
 > **Erstattet av [ADR-0013](ADR-0013-migrering-fra-infotrygd-som-i-ef.md):**

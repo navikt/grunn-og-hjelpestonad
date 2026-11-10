@@ -79,6 +79,7 @@ class OppdragClientTest {
     fun setup() {
         client = lagKlient()
         every { texasClient.hentOboToken(SCOPE) } returns "gyldig-token"
+        every { texasClient.hentMaskinToken(SCOPE) } returns "app-token"
     }
 
     @AfterEach
@@ -153,6 +154,7 @@ class OppdragClientTest {
         assertEquals(0, BigDecimal(1234).compareTo(postering.beløp))
         assertEquals("IT28", postering.fagOmrådeKode)
         verify(exactly = 1) { texasClient.hentOboToken(SCOPE) }
+        verify(exactly = 0) { texasClient.hentMaskinToken(any()) }
         wireMockServer.verify(
             postRequestedFor(urlEqualTo(PATH))
                 .withHeader("Authorization", equalTo("Bearer gyldig-token"))
@@ -203,14 +205,16 @@ class OppdragClientTest {
     }
 
     @Test
-    fun `iverksett sender oppdraget med OBO-token til api oppdrag`() {
+    fun `iverksett sender oppdraget med apptoken til api oppdrag`() {
         stubSvar("""{"data": "Oppdrag sendt OK", "status": "SUKSESS", "melding": "Innhenting av data var vellykket"}""", path = IVERKSETT_PATH)
 
-        client.iverksett(utbetalingsoppdrag)
+        val utfall = client.iverksett(utbetalingsoppdrag)
 
+        assertEquals(IverksettUtfall.SENDT, utfall)
+        verify(exactly = 0) { texasClient.hentOboToken(any()) }
         wireMockServer.verify(
             postRequestedFor(urlEqualTo(IVERKSETT_PATH))
-                .withHeader("Authorization", equalTo("Bearer gyldig-token"))
+                .withHeader("Authorization", equalTo("Bearer app-token"))
                 .withRequestBody(matchingJsonPath("$.fagSystem", equalTo("IT28")))
                 .withRequestBody(matchingJsonPath("$.saksnummer", equalTo("2")))
                 .withRequestBody(matchingJsonPath("$.utbetalingsperiode[0].behandlingId", equalTo("1"))),
@@ -218,12 +222,10 @@ class OppdragClientTest {
     }
 
     @Test
-    fun `iverksett gir conflict når oppdraget er sendt før`() {
+    fun `iverksett gir ALLEREDE_SENDT når oppdraget er sendt før`() {
         stubSvar("""{"data": null, "status": "FEILET", "melding": "Oppdrag er allerede sendt for saksnr 2."}""", status = 409, path = IVERKSETT_PATH)
 
-        val feil = assertThrows(Feil::class.java) { client.iverksett(utbetalingsoppdrag) }
-
-        assertEquals(HttpStatus.CONFLICT, feil.httpStatus)
+        assertEquals(IverksettUtfall.ALLEREDE_SENDT, client.iverksett(utbetalingsoppdrag))
     }
 
     @Test
@@ -244,7 +246,7 @@ class OppdragClientTest {
         assertEquals(OppdragStatusSvar(status = "KVITTERT_OK", melding = "Oppdrag behandlet"), svar)
         wireMockServer.verify(
             postRequestedFor(urlEqualTo(STATUS_PATH))
-                .withHeader("Authorization", equalTo("Bearer gyldig-token"))
+                .withHeader("Authorization", equalTo("Bearer app-token"))
                 .withRequestBody(matchingJsonPath("$.fagsystem", equalTo("IT28")))
                 .withRequestBody(matchingJsonPath("$.personIdent", equalTo("12345678910")))
                 .withRequestBody(matchingJsonPath("$.behandlingsId", equalTo("1"))),

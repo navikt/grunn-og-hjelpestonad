@@ -13,7 +13,13 @@ import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
 import org.springframework.web.client.body
 
-/** Klient mot `familie-oppdrag-backend` (teamfamilie), som sender videre til Oppdragsystemet (OS). */
+/**
+ * Klient mot `familie-oppdrag-backend` (teamfamilie), som sender videre til Oppdragsystemet (OS).
+ *
+ * Simulering bruker saksbehandlerens OBO-token. Iverksetting og status bruker apptoken (client credentials), fordi de
+ * kjøres fra tasker uten innlogget bruker. Tokenet sier derfor ikke hvem som behandlet saken. Det står i
+ * `saksbehandlerId` i oppdraget, som `familie-oppdrag-backend` sender til OS både som saksbehandler og som attestant.
+ */
 @Service
 class OppdragClient(
     private val texasClient: TexasClient,
@@ -30,7 +36,7 @@ class OppdragClient(
     fun simuler(utbetalingsoppdrag: Utbetalingsoppdrag): DetaljertSimuleringResultat {
         logger.info("Simulerer mot oppdrag: saksnummer={}, {} perioder", utbetalingsoppdrag.saksnummer, utbetalingsoppdrag.utbetalingsperiode.size)
 
-        val data = post<DetaljertSimuleringResultat>(SIMULERING_PATH, utbetalingsoppdrag, "Simulering mot oppdrag").data
+        val data = post<DetaljertSimuleringResultat>(SIMULERING_PATH, utbetalingsoppdrag, "Simulering mot oppdrag", Token.OBO).data
 
         logger.info(
             "Simulering mot oppdrag vellykket: {} mottakere, {} posteringer",
@@ -43,18 +49,31 @@ class OppdragClient(
     /**
      * Sender oppdraget til OS. Et vellykket svar betyr bare at `familie-oppdrag-backend` har lagt oppdraget på køen.
      * Kvitteringen fra OS kommer asynkront, og må leses med [hentStatus].
+     *
+     * 409 betyr at `familie-oppdrag-backend` har et oppdrag med samme ID fra før, ikke at innholdet er likt. Det gir
+     * [IverksettUtfall.ALLEREDE_SENDT]. Vi sender bare oppdrag vi har lagret, så et nytt forsøk sender samme innhold.
      */
-    fun iverksett(utbetalingsoppdrag: Utbetalingsoppdrag) {
+    fun iverksett(utbetalingsoppdrag: Utbetalingsoppdrag): IverksettUtfall {
         logger.info("Iverksetter mot oppdrag: saksnummer={}, {} perioder", utbetalingsoppdrag.saksnummer, utbetalingsoppdrag.utbetalingsperiode.size)
 
-        post<String>(
-            IVERKSETT_PATH,
-            utbetalingsoppdrag,
-            "Iverksetting mot oppdrag",
-            kjenteFeil = mapOf(HttpStatus.CONFLICT to "Oppdrag er allerede sendt for denne behandlingen"),
-        )
+        try {
+            post<String>(
+                IVERKSETT_PATH,
+                utbetalingsoppdrag,
+                "Iverksetting mot oppdrag",
+                Token.APP,
+                kjenteFeil = mapOf(HttpStatus.CONFLICT to "Oppdrag er allerede sendt for denne behandlingen"),
+            )
+        } catch (e: Feil) {
+            if (e.httpStatus == HttpStatus.CONFLICT) {
+                logger.warn("Oppdrag var allerede sendt: saksnummer={}", utbetalingsoppdrag.saksnummer)
+                return IverksettUtfall.ALLEREDE_SENDT
+            }
+            throw e
+        }
 
         logger.info("Oppdrag lagt på kø: saksnummer={}", utbetalingsoppdrag.saksnummer)
+        return IverksettUtfall.SENDT
     }
 
     fun hentStatus(oppdragId: OppdragId): OppdragStatusSvar {
@@ -63,6 +82,7 @@ class OppdragClient(
                 STATUS_PATH,
                 oppdragId,
                 "Henting av oppdragsstatus",
+                Token.APP,
                 kjenteFeil = mapOf(HttpStatus.NOT_FOUND to "Fant ikke oppdrag for behandlingen"),
             )
         logger.info("Oppdragsstatus for fagsystem={}, behandlingsId={}: {}", oppdragId.fagsystem, oppdragId.behandlingsId, svar.data)
@@ -74,16 +94,21 @@ class OppdragClient(
         path: String,
         body: Any,
         handling: String,
+        token: Token,
         kjenteFeil: Map<HttpStatus, String> = emptyMap(),
     ): VellykketSvar<T> {
-        val oboToken = texasClient.hentOboToken(targetAudience = scope)
+        val bearerToken =
+            when (token) {
+                Token.OBO -> texasClient.hentOboToken(targetAudience = scope)
+                Token.APP -> texasClient.hentMaskinToken(targetAudience = scope)
+            }
         val ressurs =
             try {
                 restClient
                     .post()
                     .uri(path)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .headers { it.setBearerAuth(oboToken) }
+                    .headers { it.setBearerAuth(bearerToken) }
                     .body(body)
                     .retrieve()
                     .body<Ressurs<T>>()
@@ -120,6 +145,16 @@ class OppdragClient(
         private const val STATUS_PATH = "/api/status"
         private const val SUKSESS = "SUKSESS"
     }
+}
+
+enum class IverksettUtfall {
+    SENDT,
+    ALLEREDE_SENDT,
+}
+
+private enum class Token {
+    OBO,
+    APP,
 }
 
 private data class VellykketSvar<T>(

@@ -2,8 +2,6 @@ package no.nav.grunn.og.hjelpestonad.oppdrag
 
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
@@ -12,14 +10,12 @@ import no.nav.grunn.og.hjelpestonad.fagsak.FagsakRepository
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakService
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.Fagsak
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
@@ -34,6 +30,7 @@ class UtbetalingsoppdragServiceTest {
     private val fagsakRepository = mockk<FagsakRepository>()
     private val fagsakService = mockk<FagsakService>()
     private val tilkjentYtelseService = mockk<TilkjentYtelseService>()
+    private val oppdragRepository = mockk<OppdragRepository>()
 
     private val fagsak = Fagsak(fagsakPersonId = java.util.UUID.randomUUID(), eksternId = 2L, stønadstype = StønadType.BARNETILSYN)
     private val behandling =
@@ -47,16 +44,11 @@ class UtbetalingsoppdragServiceTest {
 
     @BeforeEach
     fun setup() {
-        mockkObject(SikkerhetContext)
-        every { SikkerhetContext.hentSaksbehandler() } returns "Z123456"
         every { behandlingService.hentBehandlingEllerKast(behandling.id) } returns behandling
         every { fagsakRepository.findById(fagsak.id) } returns Optional.of(fagsak)
         every { fagsakService.hentAktivIdent(fagsak.id) } returns "12345678910"
-    }
-
-    @AfterEach
-    fun tearDown() {
-        unmockkObject(SikkerhetContext)
+        every { oppdragRepository.finnForrigeAndeler(fagsak.id, behandling.id) } returns emptyList()
+        every { oppdragRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns emptyList()
     }
 
     private fun service(brukTestandelHvisMangler: Boolean) =
@@ -65,6 +57,7 @@ class UtbetalingsoppdragServiceTest {
             fagsakRepository = fagsakRepository,
             fagsakService = fagsakService,
             tilkjentYtelseService = tilkjentYtelseService,
+            oppdragRepository = oppdragRepository,
             brukTestandelHvisMangler = brukTestandelHvisMangler,
             clock = clock,
         )
@@ -86,7 +79,7 @@ class UtbetalingsoppdragServiceTest {
                     ),
             )
 
-        val resultat = service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id)
+        val resultat = service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id, "Z123456")
 
         assertThat(resultat.testandel).isNull()
         assertThat(
@@ -100,7 +93,7 @@ class UtbetalingsoppdragServiceTest {
     fun `lager oppdrag med testandel når tilkjent ytelse mangler og testandel er slått på`() {
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns null
 
-        val resultat = service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id)
+        val resultat = service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id, "Z123456")
 
         assertThat(resultat.testandel).isEqualTo(Testandel(fom = LocalDate.of(2026, 11, 1), tom = LocalDate.of(2026, 11, 30), beløp = 1000))
         assertThat(
@@ -114,7 +107,7 @@ class UtbetalingsoppdragServiceTest {
     fun `kaster bad request når tilkjent ytelse mangler og testandel er slått av`() {
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns null
 
-        assertThatThrownBy { service(brukTestandelHvisMangler = false).lagUtbetalingsoppdrag(behandling.id) }
+        assertThatThrownBy { service(brukTestandelHvisMangler = false).lagUtbetalingsoppdrag(behandling.id, "Z123456") }
             .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST) }
     }
 
@@ -124,7 +117,7 @@ class UtbetalingsoppdragServiceTest {
         val service = service(brukTestandelHvisMangler = true)
 
         val oppdragId = service.lagOppdragId(behandling.id)
-        val oppdrag = service.lagUtbetalingsoppdrag(behandling.id).utbetalingsoppdrag
+        val oppdrag = service.lagUtbetalingsoppdrag(behandling.id, "Z123456").utbetalingsoppdrag
 
         assertThat(oppdragId).isEqualTo(OppdragId(fagsystem = "IT28", personIdent = "12345678910", behandlingsId = "1"))
         assertThat(oppdragId.fagsystem).isEqualTo(oppdrag.fagSystem)
@@ -136,4 +129,76 @@ class UtbetalingsoppdragServiceTest {
                 .toString(),
         )
     }
+
+    @Test
+    fun `tilkjent ytelse uten andeler opphører kjeden når fagsaken har en`() {
+        val sisteAndel =
+            Utbetalingsandel(
+                fom = LocalDate.of(2026, 1, 1),
+                tom = LocalDate.of(2026, 6, 30),
+                beløp = 1000,
+                ytelsestype = GrunnOgHjelpYtelsestype.GRUNNSTØNAD,
+                periodeId = 0,
+                forrigePeriodeId = null,
+                kildeBehandlingId = forrigeBehandlingId,
+            )
+        every { oppdragRepository.finnForrigeAndeler(fagsak.id, behandling.id) } returns listOf(sisteAndel)
+        every { oppdragRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns listOf(sisteAndel)
+        every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns tilkjentYtelseUtenAndeler()
+
+        val resultat = service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id, "Z123456")
+
+        assertThat(resultat.testandel).isNull()
+        assertThat(
+            resultat.utbetalingsoppdrag.utbetalingsperiode
+                .single()
+                .opphør
+                ?.opphørDatoFom,
+        ).isEqualTo(LocalDate.of(2026, 1, 1))
+    }
+
+    @Test
+    fun `tilkjent ytelse uten andeler og uten kjede gir bad request i simulering når testandel er slått av`() {
+        every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns tilkjentYtelseUtenAndeler()
+
+        assertThatThrownBy { service(brukTestandelHvisMangler = false).lagUtbetalingsoppdrag(behandling.id, "Z123456") }
+            .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST) }
+    }
+
+    @Test
+    fun `simulering uten endring mot forrige behandling gir bad request`() {
+        val forrige =
+            Utbetalingsandel(
+                fom = LocalDate.of(2026, 1, 1),
+                tom = LocalDate.of(2026, 3, 31),
+                beløp = 2500,
+                ytelsestype = GrunnOgHjelpYtelsestype.GRUNNSTØNAD,
+                periodeId = 0,
+                forrigePeriodeId = null,
+                kildeBehandlingId = forrigeBehandlingId,
+            )
+        every { oppdragRepository.finnForrigeAndeler(fagsak.id, behandling.id) } returns listOf(forrige)
+        every { oppdragRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns listOf(forrige)
+        every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns
+            TilkjentYtelse(
+                behandlingId = behandling.id,
+                startmåned = YearMonth.of(2026, 1),
+                andelerTilkjentYtelse =
+                    setOf(
+                        AndelTilkjentYtelse(
+                            beløp = 2500.toBigDecimal(),
+                            fom = LocalDate.of(2026, 1, 1),
+                            tom = LocalDate.of(2026, 3, 31),
+                            kildeBehandlingId = forrigeBehandlingId,
+                        ),
+                    ),
+            )
+
+        assertThatThrownBy { service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id, "Z123456") }
+            .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST) }
+    }
+
+    private val forrigeBehandlingId = java.util.UUID.randomUUID()
+
+    private fun tilkjentYtelseUtenAndeler() = TilkjentYtelse(behandlingId = behandling.id, startmåned = YearMonth.of(2026, 1), andelerTilkjentYtelse = emptySet())
 }

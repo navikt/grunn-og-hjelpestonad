@@ -65,6 +65,23 @@ interface OppdragRepository :
     @Transactional(propagation = Propagation.MANDATORY)
     fun låsFagsak(fagsakId: UUID): UUID?
 
+    /**
+     * Status på siste oppdrag på fagsaken, eller `null` når fagsaken ikke har noe oppdrag. Brukes til å stoppe et nytt
+     * oppdrag til det forrige er kvittert. Fjernes når behandlingen først blir `FERDIGSTILT` ved `KVITTERT_OK`.
+     */
+    @Query(
+        """
+        SELECT status FROM oppdrag_resultat
+        WHERE fagsak_id = :fagsakId AND behandling_id <> :unntattBehandlingId
+        ORDER BY rekkefolge DESC
+        LIMIT 1
+        """,
+    )
+    fun finnStatusPåSisteOppdrag(
+        fagsakId: UUID,
+        unntattBehandlingId: UUID,
+    ): String?
+
     /** Andelene til siste behandling på fagsaken som har et oppdrag, også når den ikke endret noe. */
     @Query(
         """
