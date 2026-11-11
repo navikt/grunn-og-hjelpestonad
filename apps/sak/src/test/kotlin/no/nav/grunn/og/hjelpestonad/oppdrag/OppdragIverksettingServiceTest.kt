@@ -20,9 +20,9 @@ import java.util.UUID
 class OppdragIverksettingServiceTest {
     private val utbetalingsoppdragService = mockk<UtbetalingsoppdragService>()
     private val oppdragClient = mockk<OppdragClient>()
-    private val oppdragRepository = mockk<OppdragRepository>()
+    private val oppdragResultatRepository = mockk<OppdragResultatRepository>()
     private val meterRegistry = SimpleMeterRegistry()
-    private val service = OppdragIverksettingService(utbetalingsoppdragService, oppdragClient, oppdragRepository, meterRegistry)
+    private val service = OppdragIverksettingService(utbetalingsoppdragService, oppdragClient, oppdragResultatRepository, meterRegistry)
 
     private val behandlingId = UUID.randomUUID()
     private val testandel = Testandel(fom = LocalDate.of(2026, 11, 1), tom = LocalDate.of(2026, 11, 30), beløp = 1000)
@@ -51,7 +51,7 @@ class OppdragIverksettingServiceTest {
 
     @BeforeEach
     fun setup() {
-        every { oppdragRepository.oppdaterStatus(any(), any(), any()) } just runs
+        every { oppdragResultatRepository.oppdaterStatus(any(), any(), any()) } just runs
     }
 
     @Test
@@ -64,7 +64,7 @@ class OppdragIverksettingServiceTest {
         assertThat(resultat?.sendt).isTrue()
         assertThat(resultat?.testandel).isEqualTo(testandel)
         verify(exactly = 1) { oppdragClient.iverksett(utbetalingsoppdrag) }
-        verify(exactly = 1) { oppdragRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, null) }
+        verify(exactly = 1) { oppdragResultatRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, null) }
         assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "ok").count()).isEqualTo(1.0)
     }
 
@@ -76,7 +76,7 @@ class OppdragIverksettingServiceTest {
         val resultat = service.iverksett(behandlingId, "Z999999")
 
         assertThat(resultat?.sendt).isTrue()
-        verify(exactly = 1) { oppdragRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, null) }
+        verify(exactly = 1) { oppdragResultatRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, null) }
         assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "allerede_sendt").count()).isEqualTo(1.0)
     }
 
@@ -87,7 +87,7 @@ class OppdragIverksettingServiceTest {
 
         service.iverksett(behandlingId, "Z999999")
 
-        verify(exactly = 0) { oppdragRepository.oppdaterStatus(any(), any(), any()) }
+        verify(exactly = 0) { oppdragResultatRepository.oppdaterStatus(any(), any(), any()) }
     }
 
     @Test
@@ -116,7 +116,7 @@ class OppdragIverksettingServiceTest {
         every { oppdragClient.iverksett(utbetalingsoppdrag) } throws feil
 
         assertThatThrownBy { service.iverksett(behandlingId, "Z999999") }.isSameAs(feil)
-        verify(exactly = 0) { oppdragRepository.oppdaterStatus(any(), any(), any()) }
+        verify(exactly = 0) { oppdragResultatRepository.oppdaterStatus(any(), any(), any()) }
         assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "feilet").count()).isEqualTo(1.0)
     }
 
@@ -127,11 +127,11 @@ class OppdragIverksettingServiceTest {
             OppdragId(fagsystem = "IT28", personIdent = "10987654321", behandlingsId = "11")
         val sendtMed = OppdragId(fagsystem = "IT28", personIdent = "12345678910", behandlingsId = "11")
         every { oppdragClient.hentStatus(sendtMed) } returns OppdragStatusSvar(status = "KVITTERT_OK", melding = "Oppdrag behandlet")
-        every { oppdragRepository.findById(behandlingId) } returns Optional.of(oppdragResultat(OppdragStatus.LAGT_PÅ_KØ))
+        every { oppdragResultatRepository.findById(behandlingId) } returns Optional.of(oppdragResultat(OppdragStatus.LAGT_PÅ_KØ))
 
         assertThat(service.hentStatus(behandlingId).status).isEqualTo("KVITTERT_OK")
         verify(exactly = 1) { oppdragClient.hentStatus(sendtMed) }
-        verify(exactly = 1) { oppdragRepository.oppdaterStatus(behandlingId, "KVITTERT_OK", "Oppdrag behandlet") }
+        verify(exactly = 1) { oppdragResultatRepository.oppdaterStatus(behandlingId, "KVITTERT_OK", "Oppdrag behandlet") }
     }
 
     @Test
@@ -139,10 +139,10 @@ class OppdragIverksettingServiceTest {
         val oppdragId = OppdragId(fagsystem = "IT28", personIdent = "12345678910", behandlingsId = "11")
         every { utbetalingsoppdragService.lagOppdragId(behandlingId) } returns oppdragId
         every { oppdragClient.hentStatus(oppdragId) } returns OppdragStatusSvar(status = "KVITTERT_OK", melding = null)
-        every { oppdragRepository.findById(behandlingId) } returns Optional.empty()
+        every { oppdragResultatRepository.findById(behandlingId) } returns Optional.empty()
 
         service.hentStatus(behandlingId)
 
-        verify(exactly = 0) { oppdragRepository.oppdaterStatus(any(), any(), any()) }
+        verify(exactly = 0) { oppdragResultatRepository.oppdaterStatus(any(), any(), any()) }
     }
 }

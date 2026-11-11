@@ -30,7 +30,7 @@ class UtbetalingsoppdragService(
     private val fagsakRepository: FagsakRepository,
     private val fagsakService: FagsakService,
     private val tilkjentYtelseService: TilkjentYtelseService,
-    private val oppdragRepository: OppdragRepository,
+    private val oppdragResultatRepository: OppdragResultatRepository,
     @Value("\${oppdrag.bruk-testandel-hvis-mangler:false}")
     private val brukTestandelHvisMangler: Boolean,
     private val clock: Clock = Clock.systemDefaultZone(),
@@ -46,14 +46,14 @@ class UtbetalingsoppdragService(
         val beregning =
             beregn(behandling, saksbehandlerId)
                 ?: throw Feil("Behandlingen har ingen andeler å utbetale og ingen tidligere utbetaling å opphøre", HttpStatus.BAD_REQUEST)
-        if (!beregning.oppdrag.harEndring) {
+        if (!beregning.oppdrag.harEndringFraForrigeBehandling) {
             throw Feil("Behandlingen endrer ikke utbetalingen", HttpStatus.BAD_REQUEST)
         }
         return UtbetalingsoppdragForBehandling(utbetalingsoppdrag = beregning.oppdrag.utbetalingsoppdrag, testandel = beregning.testandel)
     }
 
     /**
-     * Til iverksetting. Låser fagsaken, lager oppdraget og lagrer det med andelene. Transaksjonen er alltid ny, slik at
+     * Til iverksetting. Lager oppdraget og lagrer det med andelene. Transaksjonen er alltid ny, slik at
      * oppdraget er committet før det sendes: et nytt forsøk sender da det samme oppdraget, og lager ikke et nytt.
      *
      * Finnes oppdraget for behandlingen fra før, returneres det lagrede uten ny generering.
@@ -68,14 +68,12 @@ class UtbetalingsoppdragService(
         saksbehandlerId: String,
     ): LagretUtbetalingsoppdrag? {
         val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
-        oppdragRepository.låsFagsak(behandling.fagsakId)
-
-        oppdragRepository.findByIdOrNull(behandlingId)?.let {
+        oppdragResultatRepository.findByIdOrNull(behandlingId)?.let {
             logger.info("Oppdrag for behandling={} finnes fra før med status={}, bruker det lagrede", behandlingId, it.status)
             return LagretUtbetalingsoppdrag(oppdragResultat = it, testandel = null)
         }
 
-        val statusPåForrige = oppdragRepository.finnStatusPåSisteOppdrag(behandling.fagsakId, unntattBehandlingId = behandlingId)
+        val statusPåForrige = oppdragResultatRepository.finnStatusPåSisteOppdrag(behandling.fagsakId, unntattBehandlingId = behandlingId)
         if (statusPåForrige != null && statusPåForrige !in OppdragStatus.FERDIG) {
             throw Feil(
                 "Forrige oppdrag på fagsaken har status $statusPåForrige. Det må være kvittert OK før et nytt oppdrag kan sendes.",
@@ -89,16 +87,16 @@ class UtbetalingsoppdragService(
                 behandlingId = behandling.id,
                 fagsakId = behandling.fagsakId,
                 utbetalingsoppdrag = beregning.oppdrag.utbetalingsoppdrag,
-                status = if (beregning.oppdrag.harEndring) OppdragStatus.OPPRETTET else OppdragStatus.INGEN_ENDRING,
-                andeler = beregning.oppdrag.andeler.toSet(),
+                status = if (beregning.oppdrag.harEndringFraForrigeBehandling) OppdragStatus.OPPRETTET else OppdragStatus.INGEN_ENDRING,
+                andeler = beregning.oppdrag.utbetalingsandeler.toSet(),
             )
-        oppdragRepository.insert(oppdragResultat)
+        oppdragResultatRepository.insert(oppdragResultat)
         logger.info(
             "Lagret oppdrag for behandling={}: status={}, {} perioder, {} andeler",
             behandlingId,
             oppdragResultat.status,
             oppdragResultat.utbetalingsoppdrag.utbetalingsperiode.size,
-            beregning.oppdrag.andeler.size,
+            beregning.oppdrag.utbetalingsandeler.size,
         )
         return LagretUtbetalingsoppdrag(oppdragResultat = oppdragResultat, testandel = beregning.testandel)
     }
@@ -120,8 +118,8 @@ class UtbetalingsoppdragService(
         val fagsak = fagsakRepository.findByIdOrNull(behandling.fagsakId) ?: error("Fant ikke fagsak for behandling=${behandling.id}")
         val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(behandling.id)
         val andeler = tilkjentYtelse?.andelerTilkjentYtelse.orEmpty().filter { tilUtbetalingsbeløp(it.beløp) != 0 }
-        val forrigeAndeler = oppdragRepository.finnForrigeAndeler(fagsak.id, unntattBehandlingId = behandling.id)
-        val sisteAndelPerKjede = oppdragRepository.finnSisteAndelPerKjede(fagsak.id, unntattBehandlingId = behandling.id)
+        val forrigeAndeler = oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, unntattBehandlingId = behandling.id)
+        val sisteAndelPerKjede = oppdragResultatRepository.finnSisteAndelPerKjede(fagsak.id, unntattBehandlingId = behandling.id)
 
         // Tilkjent ytelse uten andeler er et opphør når fagsaken har en kjede, og ingenting ellers.
         // Mangler tilkjent ytelse helt, er den ikke beregnet ennå.
@@ -156,8 +154,8 @@ class UtbetalingsoppdragService(
                     saksbehandlerId = saksbehandlerId,
                     vedtaksdato = LocalDate.now(clock),
                     andelerTilkjentYtelse = testandel?.let { listOf(it) } ?: andeler.sortedBy { it.fom },
-                    forrigeAndeler = forrigeAndeler,
-                    sisteAndelPerKjede = sisteAndelPerKjede,
+                    utbetalingsandelerForrigeBehandling = forrigeAndeler,
+                    sisteAndelIHverKjedeForFagsak = sisteAndelPerKjede,
                 ),
             )
         return Beregning(

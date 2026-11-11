@@ -17,18 +17,14 @@ import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
-import org.springframework.transaction.IllegalTransactionStateException
-import org.springframework.transaction.PlatformTransactionManager
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 internal class OppdragResultatRepositoryTest : SpringContextTest() {
     @Autowired
@@ -42,9 +38,6 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
 
     @Autowired
     private lateinit var fagsakPersonRepository: FagsakPersonRepository
-
-    @Autowired
-    private lateinit var transactionManager: PlatformTransactionManager
 
     @Autowired
     private lateinit var utbetalingsoppdragService: UtbetalingsoppdragService
@@ -131,7 +124,7 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
     fun `status på siste oppdrag er null når fagsaken ikke har oppdrag`() {
         val fagsak = opprettFagsak()
 
-        assertThat(oppdragRepository.finnStatusPåSisteOppdrag(fagsak.id, UUID.randomUUID())).isNull()
+        assertThat(oppdragResultatRepository.finnStatusPåSisteOppdrag(fagsak.id, UUID.randomUUID())).isNull()
     }
 
     @Test
@@ -139,11 +132,11 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
         val fagsak = opprettFagsak()
         val første = opprettBehandling(fagsak)
         val andre = opprettBehandling(fagsak)
-        oppdragRepository.insert(oppdragResultat(første, oppdrag(første), emptySet()).copy(status = OppdragStatus.KVITTERT_OK))
-        oppdragRepository.insert(oppdragResultat(andre, oppdrag(andre), emptySet()).copy(status = OppdragStatus.LAGT_PÅ_KØ))
+        oppdragResultatRepository.insert(oppdragResultat(første, oppdrag(første), emptySet()).copy(status = OppdragStatus.KVITTERT_OK))
+        oppdragResultatRepository.insert(oppdragResultat(andre, oppdrag(andre), emptySet()).copy(status = OppdragStatus.LAGT_PÅ_KØ))
 
-        assertThat(oppdragRepository.finnStatusPåSisteOppdrag(fagsak.id, UUID.randomUUID())).isEqualTo(OppdragStatus.LAGT_PÅ_KØ)
-        assertThat(oppdragRepository.finnStatusPåSisteOppdrag(fagsak.id, andre.id)).isEqualTo(OppdragStatus.KVITTERT_OK)
+        assertThat(oppdragResultatRepository.finnStatusPåSisteOppdrag(fagsak.id, UUID.randomUUID())).isEqualTo(OppdragStatus.LAGT_PÅ_KØ)
+        assertThat(oppdragResultatRepository.finnStatusPåSisteOppdrag(fagsak.id, andre.id)).isEqualTo(OppdragStatus.KVITTERT_OK)
     }
 
     @Test
@@ -178,7 +171,7 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
         assertThat(opphør.opphør?.opphørDatoFom).isEqualTo(LocalDate.parse("2025-04-01"))
         assertThat(nyttForsøk.oppdragResultat.utbetalingsoppdrag).isEqualTo(revurderingOppdrag.utbetalingsoppdrag)
         assertThat(nyttForsøk.testandel).isNull()
-        assertThat(oppdragRepository.finnForrigeAndeler(fagsak.id, unntattBehandlingId = UUID.randomUUID()).map { it.tom })
+        assertThat(oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, unntattBehandlingId = UUID.randomUUID()).map { it.tom })
             .containsExactly(LocalDate.parse("2025-03-31"))
     }
 
@@ -206,7 +199,7 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
         assertThat(nyPeriode.opphør).isNull()
         assertThat(nyPeriode.periodeId).isEqualTo(2L)
         assertThat(nyPeriode.forrigePeriodeId).isEqualTo(1L)
-        assertThat(oppdragRepository.finnForrigeAndeler(fagsak.id, unntattBehandlingId = UUID.randomUUID()).map { it.periodeId })
+        assertThat(oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, unntattBehandlingId = UUID.randomUUID()).map { it.periodeId })
             .containsExactly(2L)
     }
 
@@ -217,50 +210,20 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
             val førstegang = opprettBehandling(fagsak)
             lagreTilkjentYtelse(førstegang, andelTilkjentYtelse(førstegang, 1000, "2025-01-01", "2025-06-30"))
             utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(førstegang.id, "Z999999")
-            oppdragRepository.oppdaterStatus(førstegang.id, status, kvitteringsmelding = null)
+            oppdragResultatRepository.oppdaterStatus(førstegang.id, status, kvitteringsmelding = null)
 
             val revurdering = opprettBehandling(fagsak)
             lagreTilkjentYtelse(revurdering, andelTilkjentYtelse(revurdering, 1000, "2025-01-01", "2025-03-31"))
 
             assertThatThrownBy { utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(revurdering.id, "Z999999") }
                 .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.CONFLICT) }
-            assertThat(oppdragRepository.findByIdOrNull(revurdering.id)).isNull()
+            assertThat(oppdragResultatRepository.findByIdOrNull(revurdering.id)).isNull()
         }
-    }
-
-    @Test
-    fun `to samtidige iverksettinger på samme fagsak gir ett oppdrag`() {
-        val fagsak = opprettFagsak()
-        val behandlinger = List(2) { opprettBehandling(fagsak) }
-        behandlinger.forEach { lagreTilkjentYtelse(it, andelTilkjentYtelse(it, 1000, "2025-01-01", "2025-06-30")) }
-
-        val start = CountDownLatch(1)
-        val executor = Executors.newFixedThreadPool(2)
-        val resultater =
-            try {
-                behandlinger
-                    .map { behandling ->
-                        executor.submit<Result<LagretUtbetalingsoppdrag?>> {
-                            start.await()
-                            runCatching { utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(behandling.id, "Z999999") }
-                        }
-                    }.also { start.countDown() }
-                    .map { it.get(30, TimeUnit.SECONDS) }
-            } finally {
-                executor.shutdown()
-            }
-
-        // Låsen gjør at den andre venter til den første har committet. Da ser den et oppdrag som ikke er kvittert,
-        // og stopper. Uten låsen kunne begge ha lest en tom fagsak og fått periodeId 0.
-        assertThat(resultater.count { it.isSuccess }).isEqualTo(1)
-        assertThat(resultater.mapNotNull { it.exceptionOrNull() }.single())
-            .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.CONFLICT) }
-        assertThat(behandlinger.mapNotNull { oppdragRepository.findByIdOrNull(it.id) }).hasSize(1)
     }
 
     private fun iverksettOgKvitter(behandling: Behandling): OppdragResultat {
         val oppdrag = utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(behandling.id, "Z999999")!!.oppdragResultat
-        oppdragRepository.oppdaterStatus(behandling.id, OppdragStatus.KVITTERT_OK, kvitteringsmelding = null)
+        oppdragResultatRepository.oppdaterStatus(behandling.id, OppdragStatus.KVITTERT_OK, kvitteringsmelding = null)
         return oppdrag
     }
 

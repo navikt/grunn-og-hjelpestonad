@@ -18,7 +18,7 @@ import java.util.UUID
 class OppdragIverksettingService(
     private val utbetalingsoppdragService: UtbetalingsoppdragService,
     private val oppdragClient: OppdragClient,
-    private val oppdragRepository: OppdragRepository,
+    private val oppdragResultatRepository: OppdragResultatRepository,
     private val meterRegistry: MeterRegistry,
 ) {
     private val logger = LoggerFactory.getLogger(OppdragIverksettingService::class.java)
@@ -54,7 +54,7 @@ class OppdragIverksettingService(
         tellIverksetting(if (utfall == IverksettUtfall.ALLEREDE_SENDT) "allerede_sendt" else "ok")
 
         if (oppdrag.status == OppdragStatus.OPPRETTET) {
-            oppdragRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, kvitteringsmelding = null)
+            oppdragResultatRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, kvitteringsmelding = null)
         }
         return Iverksettingsresultat(oppdrag = oppdrag, testandel = lagret.testandel, sendt = true)
     }
@@ -66,11 +66,11 @@ class OppdragIverksettingService(
      * lagrede oppdraget, slik at et identbytte etter sendingen ikke gir 404.
      */
     fun hentStatus(behandlingId: UUID): OppdragStatusSvar {
-        val lagret = oppdragRepository.findByIdOrNull(behandlingId)
+        val lagret = oppdragResultatRepository.findByIdOrNull(behandlingId)
         val oppdragId = lagret?.utbetalingsoppdrag?.tilOppdragId() ?: utbetalingsoppdragService.lagOppdragId(behandlingId)
         val svar = oppdragClient.hentStatus(oppdragId)
         if (lagret != null) {
-            oppdragRepository.oppdaterStatus(behandlingId, svar.status, svar.melding)
+            oppdragResultatRepository.oppdaterStatus(behandlingId, svar.status, svar.melding)
         }
         if (svar.melding != null) {
             secureLogger.info("Kvitteringsmelding for behandling={}: {}", behandlingId, svar.melding)

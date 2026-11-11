@@ -58,7 +58,6 @@ data class Utbetalingsandel(
 interface OppdragResultatRepository :
     RepositoryInterface<OppdragResultat, UUID>,
     InsertUpdateRepository<OppdragResultat> {
-
     /**
      * Status på siste oppdrag på fagsaken, eller `null` når fagsaken ikke har noe oppdrag. Brukes til å stoppe et nytt
      * oppdrag til det forrige er kvittert. Fjernes når behandlingen først blir `FERDIGSTILT` ved `KVITTERT_OK`.

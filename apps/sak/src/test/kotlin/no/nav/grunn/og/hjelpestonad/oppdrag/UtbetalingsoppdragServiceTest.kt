@@ -30,7 +30,7 @@ class UtbetalingsoppdragServiceTest {
     private val fagsakRepository = mockk<FagsakRepository>()
     private val fagsakService = mockk<FagsakService>()
     private val tilkjentYtelseService = mockk<TilkjentYtelseService>()
-    private val oppdragRepository = mockk<OppdragRepository>()
+    private val oppdragResultatRepository = mockk<OppdragResultatRepository>()
 
     private val fagsak = Fagsak(fagsakPersonId = java.util.UUID.randomUUID(), eksternId = 2L, stønadstype = StønadType.BARNETILSYN)
     private val behandling =
@@ -47,8 +47,8 @@ class UtbetalingsoppdragServiceTest {
         every { behandlingService.hentBehandlingEllerKast(behandling.id) } returns behandling
         every { fagsakRepository.findById(fagsak.id) } returns Optional.of(fagsak)
         every { fagsakService.hentAktivIdent(fagsak.id) } returns "12345678910"
-        every { oppdragRepository.finnForrigeAndeler(fagsak.id, behandling.id) } returns emptyList()
-        every { oppdragRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns emptyList()
+        every { oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, behandling.id) } returns emptyList()
+        every { oppdragResultatRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns emptyList()
     }
 
     private fun service(brukTestandelHvisMangler: Boolean) =
@@ -57,7 +57,7 @@ class UtbetalingsoppdragServiceTest {
             fagsakRepository = fagsakRepository,
             fagsakService = fagsakService,
             tilkjentYtelseService = tilkjentYtelseService,
-            oppdragRepository = oppdragRepository,
+            oppdragResultatRepository = oppdragResultatRepository,
             brukTestandelHvisMangler = brukTestandelHvisMangler,
             clock = clock,
         )
@@ -142,8 +142,8 @@ class UtbetalingsoppdragServiceTest {
                 forrigePeriodeId = null,
                 kildeBehandlingId = forrigeBehandlingId,
             )
-        every { oppdragRepository.finnForrigeAndeler(fagsak.id, behandling.id) } returns listOf(sisteAndel)
-        every { oppdragRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns listOf(sisteAndel)
+        every { oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, behandling.id) } returns listOf(sisteAndel)
+        every { oppdragResultatRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns listOf(sisteAndel)
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns tilkjentYtelseUtenAndeler()
 
         val resultat = service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id, "Z123456")
@@ -177,8 +177,8 @@ class UtbetalingsoppdragServiceTest {
                 forrigePeriodeId = null,
                 kildeBehandlingId = forrigeBehandlingId,
             )
-        every { oppdragRepository.finnForrigeAndeler(fagsak.id, behandling.id) } returns listOf(forrige)
-        every { oppdragRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns listOf(forrige)
+        every { oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, behandling.id) } returns listOf(forrige)
+        every { oppdragResultatRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns listOf(forrige)
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns
             TilkjentYtelse(
                 behandlingId = behandling.id,
