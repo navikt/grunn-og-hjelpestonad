@@ -155,7 +155,7 @@ class UtbetalingsoppdragService(
                     personIdent = fagsakService.hentAktivIdent(fagsak.id),
                     saksbehandlerId = saksbehandlerId,
                     vedtaksdato = LocalDate.now(clock),
-                    andeler = testandel?.let { listOf(it) } ?: andeler.sortedBy { it.fom },
+                    andelerTilkjentYtelse = testandel?.let { listOf(it) } ?: andeler.sortedBy { it.fom },
                     forrigeAndeler = forrigeAndeler,
                     sisteAndelPerKjede = sisteAndelPerKjede,
                 ),

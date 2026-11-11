@@ -10,8 +10,6 @@ import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.MappedCollection
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.UUID
 
@@ -57,13 +55,9 @@ data class Utbetalingsandel(
 )
 
 @Repository
-interface OppdragRepository :
+interface OppdragResultatRepository :
     RepositoryInterface<OppdragResultat, UUID>,
     InsertUpdateRepository<OppdragResultat> {
-    /** Låser fagsaken til transaksjonen er ferdig så to behandlinger ikke kjedes samtidig. Feiler uten transaksjon fordi låsen ellers slippes med en gang. */
-    @Query("SELECT id FROM fagsak WHERE id = :fagsakId FOR UPDATE")
-    @Transactional(propagation = Propagation.MANDATORY)
-    fun låsFagsak(fagsakId: UUID): UUID?
 
     /**
      * Status på siste oppdrag på fagsaken, eller `null` når fagsaken ikke har noe oppdrag. Brukes til å stoppe et nytt
@@ -95,7 +89,7 @@ interface OppdragRepository :
         ORDER BY ua.fom
         """,
     )
-    fun finnForrigeAndeler(
+    fun finnAndelerFraForrigeBehandling(
         fagsakId: UUID,
         unntattBehandlingId: UUID,
     ): List<Utbetalingsandel>
@@ -112,8 +106,8 @@ interface OppdragRepository :
             SELECT ua.*, ROW_NUMBER() OVER (
                  PARTITION BY ua.ytelsestype ORDER BY ua.periode_id DESC, o.opprettet_tid ASC
             ) AS rn
-            FROM utbetalingsandel ua
-            JOIN oppdrag_resultat o ON o.behandling_id = ua.behandling_id
+            FROM oppdrag_resultat o
+            JOIN utbetalingsandel ua ON o.behandling_id = ua.behandling_id
             WHERE o.fagsak_id = :fagsakId AND o.behandling_id <> :unntattBehandlingId
         ) siste WHERE rn = 1
         """,
@@ -123,7 +117,11 @@ interface OppdragRepository :
         unntattBehandlingId: UUID,
     ): List<Utbetalingsandel>
 
-    /** Ikke bruk update() på aggregatet, det sletter og setter inn andelene på nytt. */
+    /**
+     * Endrer bare status, kvittering og endret_tid. Ikke bruk update() på aggregatet: det sletter og setter inn
+     * andelene på nytt, og andelene er kjedegrunnlaget for neste behandling (ADR-0011), så de skal ikke skrives
+     * på nytt ved en statusendring. update() setter heller ikke endret_tid, fordi entiteten ikke har feltet.
+     */
     @Modifying
     @Query("UPDATE oppdrag_resultat SET status = :status, kvitteringsmelding = :kvitteringsmelding, endret_tid = LOCALTIMESTAMP WHERE behandling_id = :behandlingId")
     fun oppdaterStatus(
