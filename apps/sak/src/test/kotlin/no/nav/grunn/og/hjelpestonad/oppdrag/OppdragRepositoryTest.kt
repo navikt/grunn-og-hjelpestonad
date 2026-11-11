@@ -159,7 +159,7 @@ internal class OppdragRepositoryTest : SpringContextTest() {
                 personIdent = PERSONIDENT,
                 saksbehandlerId = "Z999999",
                 vedtaksdato = LocalDate.parse("2025-07-01"),
-                andeler =
+                andelerTilkjentYtelse =
                     listOf(
                         AndelTilkjentYtelse(
                             beløp = 1000.toBigDecimal(),

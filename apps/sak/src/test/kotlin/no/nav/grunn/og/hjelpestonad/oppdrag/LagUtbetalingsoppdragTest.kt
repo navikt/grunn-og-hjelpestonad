@@ -31,8 +31,8 @@ class LagUtbetalingsoppdragTest {
         assertThat(oppdrag.utbetalingsperiode.map { it.periodeId }).containsExactly(0L, 1L)
         assertThat(oppdrag.utbetalingsperiode.map { it.forrigePeriodeId }).containsExactly(null, 0L)
 
-        assertThat(beregnet.harEndring).isTrue()
-        assertThat(beregnet.andeler.utenId()).containsExactly(
+        assertThat(beregnet.harEndringFraForrigeBehandling).isTrue()
+        assertThat(beregnet.utbetalingsandeler.utenId()).containsExactly(
             forventet(1000, "2025-01-01", "2025-03-31", periodeId = 0, forrigePeriodeId = null, kilde = behandlingId),
             forventet(2000, "2025-04-01", "2025-06-30", periodeId = 1, forrigePeriodeId = 0, kilde = behandlingId),
         )
@@ -47,7 +47,7 @@ class LagUtbetalingsoppdragTest {
                 .single()
                 .sats,
         ).isEqualByComparingTo("1000")
-        assertThat(beregnet.andeler).hasSize(1)
+        assertThat(beregnet.utbetalingsandeler).hasSize(1)
     }
 
     @Test
@@ -59,7 +59,7 @@ class LagUtbetalingsoppdragTest {
                 .single()
                 .sats,
         ).isEqualByComparingTo("1235")
-        assertThat(beregnet.andeler.single().beløp).isEqualTo(1235)
+        assertThat(beregnet.utbetalingsandeler.single().beløp).isEqualTo(1235)
     }
 
     @Test
@@ -85,9 +85,9 @@ class LagUtbetalingsoppdragTest {
                 ),
             )
 
-        assertThat(beregnet.harEndring).isFalse()
+        assertThat(beregnet.harEndringFraForrigeBehandling).isFalse()
         assertThat(beregnet.utbetalingsoppdrag.kodeEndring).isEqualTo(KodeEndring.ENDR)
-        assertThat(beregnet.andeler.utenId()).containsExactly(
+        assertThat(beregnet.utbetalingsandeler.utenId()).containsExactly(
             forventet(1000, "2025-01-01", "2025-03-31", periodeId = 0, forrigePeriodeId = null, kilde = forrigeBehandlingId),
             forventet(2000, "2025-04-01", "2025-06-30", periodeId = 1, forrigePeriodeId = 0, kilde = forrigeBehandlingId),
         )
@@ -116,7 +116,7 @@ class LagUtbetalingsoppdragTest {
         assertThat(periode.forrigePeriodeId).isEqualTo(1L)
         assertThat(periode.sats).isEqualByComparingTo("2500")
         assertThat(periode.vedtakdatoFom).isEqualTo(LocalDate.parse("2025-04-01"))
-        assertThat(beregnet.andeler.utenId()).containsExactly(
+        assertThat(beregnet.utbetalingsandeler.utenId()).containsExactly(
             forventet(1000, "2025-01-01", "2025-03-31", periodeId = 0, forrigePeriodeId = null, kilde = forrigeBehandlingId),
             forventet(2500, "2025-04-01", "2025-06-30", periodeId = 2, forrigePeriodeId = 1, kilde = behandlingId),
         )
@@ -141,7 +141,7 @@ class LagUtbetalingsoppdragTest {
         assertThat(periode.forrigePeriodeId).isEqualTo(0L)
         assertThat(periode.vedtakdatoFom).isEqualTo(LocalDate.parse("2025-01-01"))
         assertThat(periode.vedtakdatoTom).isEqualTo(LocalDate.parse("2025-06-30"))
-        assertThat(beregnet.andeler.utenId()).containsExactly(
+        assertThat(beregnet.utbetalingsandeler.utenId()).containsExactly(
             forventet(1000, "2025-01-01", "2025-06-30", periodeId = 1, forrigePeriodeId = 0, kilde = behandlingId),
         )
     }
@@ -165,7 +165,7 @@ class LagUtbetalingsoppdragTest {
         assertThat(periode.periodeId).isEqualTo(0L)
         assertThat(periode.vedtakdatoTom).isEqualTo(LocalDate.parse("2025-06-30"))
         // Den avkortede andelen beholder periodeId, men har nå sitt opphav i denne behandlingen.
-        assertThat(beregnet.andeler.utenId()).containsExactly(
+        assertThat(beregnet.utbetalingsandeler.utenId()).containsExactly(
             forventet(1000, "2025-01-01", "2025-03-31", periodeId = 0, forrigePeriodeId = null, kilde = behandlingId),
         )
     }
@@ -187,8 +187,8 @@ class LagUtbetalingsoppdragTest {
         assertThat(periode.periodeId).isEqualTo(1L)
         assertThat(periode.forrigePeriodeId).isEqualTo(0L)
         assertThat(periode.opphør?.opphørDatoFom).isEqualTo(LocalDate.parse("2025-01-01"))
-        assertThat(beregnet.harEndring).isTrue()
-        assertThat(beregnet.andeler).isEmpty()
+        assertThat(beregnet.harEndringFraForrigeBehandling).isTrue()
+        assertThat(beregnet.utbetalingsandeler).isEmpty()
     }
 
     @Test
@@ -209,7 +209,7 @@ class LagUtbetalingsoppdragTest {
         assertThat(periode.opphør).isNull()
         assertThat(periode.periodeId).isEqualTo(2L)
         assertThat(periode.forrigePeriodeId).isEqualTo(1L)
-        assertThat(beregnet.andeler.utenId()).containsExactly(
+        assertThat(beregnet.utbetalingsandeler.utenId()).containsExactly(
             forventet(1500, "2025-07-01", "2025-12-31", periodeId = 2, forrigePeriodeId = 1, kilde = behandlingId),
         )
     }
@@ -225,9 +225,9 @@ class LagUtbetalingsoppdragTest {
         personIdent = "12345678910",
         saksbehandlerId = "Z123456",
         vedtaksdato = LocalDate.parse("2025-07-01"),
-        andeler = andeler,
-        forrigeAndeler = forrigeAndeler,
-        sisteAndelPerKjede = sisteAndelPerKjede,
+        andelerTilkjentYtelse = andeler,
+        utbetalingsandelerForrigeBehandling = forrigeAndeler,
+        sisteAndelIHverKjedeForFagsak = sisteAndelPerKjede,
     )
 
     private fun andel(

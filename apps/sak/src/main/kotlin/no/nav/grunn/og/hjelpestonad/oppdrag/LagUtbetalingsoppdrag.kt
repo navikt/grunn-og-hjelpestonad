@@ -1,7 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
 import no.nav.familie.felles.utbetalingsgenerator.Utbetalingsgenerator
-import no.nav.familie.felles.utbetalingsgenerator.domain.AndelData
+import no.nav.familie.felles.utbetalingsgenerator.domain.AndelData as AndelForUtbetalingsgenerator
 import no.nav.familie.felles.utbetalingsgenerator.domain.Behandlingsinformasjon
 import no.nav.familie.felles.utbetalingsgenerator.domain.IdentOgType
 import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
@@ -11,11 +11,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
-/**
- * @param andeler tilkjent ytelse for behandlingen.
- * @param forrigeAndeler utbetalingsandelene til siste behandling på fagsaken som har et oppdrag.
- * @param sisteAndelPerKjede siste andel i hver kjede på fagsaken, se [OppdragRepository.finnSisteAndelPerKjede].
- */
 data class Oppdragsgrunnlag(
     val behandlingId: UUID,
     val eksternBehandlingId: Long,
@@ -23,21 +18,21 @@ data class Oppdragsgrunnlag(
     val personIdent: String,
     val saksbehandlerId: String,
     val vedtaksdato: LocalDate,
-    val andeler: List<AndelTilkjentYtelse>,
-    val forrigeAndeler: List<Utbetalingsandel> = emptyList(),
-    val sisteAndelPerKjede: List<Utbetalingsandel> = emptyList(),
+    val andelerTilkjentYtelse: List<AndelTilkjentYtelse>,
+    val utbetalingsandelerForrigeBehandling: List<Utbetalingsandel> = emptyList(),
+    val sisteAndelIHverKjedeForFagsak: List<Utbetalingsandel> = emptyList(),
 )
 
 /**
- * @param andeler alle løpende andeler etter behandlingen, med kjedefeltene. Lagres i `utbetalingsandel`, og blir
+ * @param utbetalingsandeler alle løpende andeler etter behandlingen, med kjedefeltene. Lagres i `utbetalingsandel`, og blir
  * forrige andeler for neste behandling.
  */
 data class BeregnetOppdrag(
     val utbetalingsoppdrag: Utbetalingsoppdrag,
-    val andeler: List<Utbetalingsandel>,
+    val utbetalingsandeler: List<Utbetalingsandel>,
 ) {
     /** Usann når generatoren ikke fant noen endring mot forrige behandling. Da skal ingenting sendes til OS. */
-    val harEndring: Boolean get() = utbetalingsoppdrag.utbetalingsperiode.isNotEmpty()
+    val harEndringFraForrigeBehandling: Boolean get() = utbetalingsoppdrag.utbetalingsperiode.isNotEmpty()
 }
 
 /**
@@ -51,8 +46,8 @@ data class BeregnetOppdrag(
  * ikke finnes ennå.
  */
 fun lagUtbetalingsoppdrag(grunnlag: Oppdragsgrunnlag): BeregnetOppdrag {
-    val nyeAndeler = grunnlag.andeler.filter { tilUtbetalingsbeløp(it.beløp) != 0 }
-    if (nyeAndeler.isEmpty() && grunnlag.sisteAndelPerKjede.isEmpty()) {
+    val nyeAndeler = grunnlag.andelerTilkjentYtelse.filter { tilUtbetalingsbeløp(it.beløp) != 0 }
+    if (nyeAndeler.isEmpty() && grunnlag.sisteAndelIHverKjedeForFagsak.isEmpty()) {
         throw UgyldigInput("Oppdrag krever minst én andel med beløp ulik 0, eller en tidligere kjede som skal opphøres")
     }
 
@@ -69,11 +64,11 @@ fun lagUtbetalingsoppdrag(grunnlag: Oppdragsgrunnlag): BeregnetOppdrag {
                     vedtaksdato = grunnlag.vedtaksdato,
                     opphørAlleKjederFra = null,
                 ),
-            nyeAndeler = nyeAndeler.map { it.tilAndelData(grunnlag.personIdent) },
-            forrigeAndeler = grunnlag.forrigeAndeler.map { it.tilAndelData(grunnlag.personIdent) },
+            nyeAndeler = nyeAndeler.map { it.tilAndelForUtbetalingsgenerator(grunnlag.personIdent) },
+            forrigeAndeler = grunnlag.utbetalingsandelerForrigeBehandling.map { it.tilAndelForUtbetalingsgenerator(grunnlag.personIdent) },
             sisteAndelPerKjede =
-                grunnlag.sisteAndelPerKjede
-                    .map { it.tilAndelData(grunnlag.personIdent) }
+                grunnlag.sisteAndelIHverKjedeForFagsak
+                    .map { it.tilAndelForUtbetalingsgenerator(grunnlag.personIdent) }
                     .associateBy { IdentOgType(it.personIdent, it.type) },
         )
 
@@ -95,11 +90,11 @@ fun lagUtbetalingsoppdrag(grunnlag: Oppdragsgrunnlag): BeregnetOppdrag {
         }
     check(andeler.size == nyeAndeler.size) { "Generatoren ga ${andeler.size} andeler, forventet ${nyeAndeler.size}" }
 
-    return BeregnetOppdrag(utbetalingsoppdrag = beregnet.utbetalingsoppdrag, andeler = andeler.sortedBy { it.fom })
+    return BeregnetOppdrag(utbetalingsoppdrag = beregnet.utbetalingsoppdrag, utbetalingsandeler = andeler.sortedBy { it.fom })
 }
 
-private fun AndelTilkjentYtelse.tilAndelData(personIdent: String) =
-    AndelData(
+private fun AndelTilkjentYtelse.tilAndelForUtbetalingsgenerator(personIdent: String) =
+    AndelForUtbetalingsgenerator(
         id = id.toString(),
         fom = YearMonth.from(fom),
         tom = YearMonth.from(tom),
@@ -111,8 +106,8 @@ private fun AndelTilkjentYtelse.tilAndelData(personIdent: String) =
         kildeBehandlingId = null,
     )
 
-private fun Utbetalingsandel.tilAndelData(personIdent: String) =
-    AndelData(
+private fun Utbetalingsandel.tilAndelForUtbetalingsgenerator(personIdent: String) =
+    AndelForUtbetalingsgenerator(
         id = id.toString(),
         fom = YearMonth.from(fom),
         tom = YearMonth.from(tom),

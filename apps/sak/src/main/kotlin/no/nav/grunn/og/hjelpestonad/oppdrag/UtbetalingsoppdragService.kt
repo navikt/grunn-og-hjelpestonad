@@ -65,7 +65,7 @@ class UtbetalingsoppdragService(
                     personIdent = fagsakService.hentAktivIdent(fagsak.id),
                     saksbehandlerId = SikkerhetContext.hentSaksbehandler(),
                     vedtaksdato = LocalDate.now(clock),
-                    andeler = testandel?.let { listOf(it) } ?: andeler.sortedBy { it.fom },
+                    andelerTilkjentYtelse = testandel?.let { listOf(it) } ?: andeler.sortedBy { it.fom },
                 ),
             )
 
