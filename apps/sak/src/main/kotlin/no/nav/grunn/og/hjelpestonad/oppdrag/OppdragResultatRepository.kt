@@ -99,7 +99,11 @@ interface OppdragResultatRepository :
         unntattBehandlingId: UUID,
     ): List<Utbetalingsandel>
 
-    /** Ikke bruk update() på aggregatet, det sletter og setter inn andelene på nytt. */
+    /**
+     * Endrer bare status, kvittering og endret_tid. Ikke bruk update() på aggregatet: det sletter og setter inn
+     * andelene på nytt, og andelene er kjedegrunnlaget for neste behandling (ADR-0011), så de skal ikke skrives
+     * på nytt ved en statusendring. update() setter heller ikke endret_tid, fordi entiteten ikke har feltet.
+     */
     @Modifying
     @Query("UPDATE oppdrag_resultat SET status = :status, kvitteringsmelding = :kvitteringsmelding, endret_tid = LOCALTIMESTAMP WHERE behandling_id = :behandlingId")
     fun oppdaterStatus(
