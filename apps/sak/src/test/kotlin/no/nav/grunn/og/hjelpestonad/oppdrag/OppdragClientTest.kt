@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.http.HttpStatus
 import java.math.BigDecimal
 import java.time.Duration
@@ -171,6 +173,16 @@ class OppdragClientTest {
     @Test
     fun `status FEILET i svaret gir Feil med bad gateway`() {
         stubSvar("""{"data": null, "status": "FEILET", "melding": "OS er stengt"}""")
+
+        val feil = assertThrows(Feil::class.java) { client.simuler(utbetalingsoppdrag) }
+
+        assertEquals(HttpStatus.BAD_GATEWAY, feil.httpStatus)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["", """{"data": null, "status": "SUKSESS"}"""])
+    fun `tomt svar eller manglende data gir Feil med bad gateway`(body: String) {
+        stubSvar(body)
 
         val feil = assertThrows(Feil::class.java) { client.simuler(utbetalingsoppdrag) }
 
