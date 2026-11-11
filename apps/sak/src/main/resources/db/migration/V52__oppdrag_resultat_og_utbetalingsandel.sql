@@ -6,8 +6,8 @@ CREATE TABLE oppdrag_resultat
     utbetalingsoppdrag JSONB        NOT NULL,
     status             TEXT         NOT NULL,
     kvitteringsmelding TEXT,
-    opprettet_tid      TIMESTAMP(6) NOT NULL DEFAULT LOCALTIMESTAMP,
-    endret_tid         TIMESTAMP(3) NOT NULL DEFAULT LOCALTIMESTAMP
+    opprettet_tid      TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
+    endret_tid         TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP
 );
 
 CREATE INDEX oppdrag_resultat_fagsak_id_idx ON oppdrag_resultat (fagsak_id, opprettet_tid);
