@@ -1,7 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
 import no.nav.familie.felles.utbetalingsgenerator.Utbetalingsgenerator
-import no.nav.familie.felles.utbetalingsgenerator.domain.AndelData as AndelForUtbetalingsgenerator
 import no.nav.familie.felles.utbetalingsgenerator.domain.Behandlingsinformasjon
 import no.nav.familie.felles.utbetalingsgenerator.domain.IdentOgType
 import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
@@ -10,6 +9,7 @@ import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
+import no.nav.familie.felles.utbetalingsgenerator.domain.AndelData as AndelForUtbetalingsgenerator
 
 data class Oppdragsgrunnlag(
     val behandlingId: UUID,
