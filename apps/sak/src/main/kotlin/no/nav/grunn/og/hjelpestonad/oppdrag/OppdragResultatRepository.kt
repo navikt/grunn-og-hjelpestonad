@@ -10,8 +10,6 @@ import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.MappedCollection
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.UUID
 
@@ -57,14 +55,9 @@ data class Utbetalingsandel(
 )
 
 @Repository
-interface OppdragRepository :
+interface OppdragResultatRepository :
     RepositoryInterface<OppdragResultat, UUID>,
     InsertUpdateRepository<OppdragResultat> {
-    /** Låser fagsaken til transaksjonen er ferdig så to behandlinger ikke kjedes samtidig. Feiler uten transaksjon fordi låsen ellers slippes med en gang. */
-    @Query("SELECT id FROM fagsak WHERE id = :fagsakId FOR UPDATE")
-    @Transactional(propagation = Propagation.MANDATORY)
-    fun låsFagsak(fagsakId: UUID): UUID?
-
     /** Andelene til siste behandling på fagsaken som har et oppdrag, også når den ikke endret noe. */
     @Query(
         """
@@ -78,7 +71,7 @@ interface OppdragRepository :
         ORDER BY ua.fom
         """,
     )
-    fun finnForrigeAndeler(
+    fun finnAndelerFraForrigeBehandling(
         fagsakId: UUID,
         unntattBehandlingId: UUID,
     ): List<Utbetalingsandel>
@@ -95,8 +88,8 @@ interface OppdragRepository :
             SELECT ua.*, ROW_NUMBER() OVER (
                  PARTITION BY ua.ytelsestype ORDER BY ua.periode_id DESC, o.opprettet_tid ASC
             ) AS rn
-            FROM utbetalingsandel ua
-            JOIN oppdrag_resultat o ON o.behandling_id = ua.behandling_id
+            FROM oppdrag_resultat o
+            JOIN utbetalingsandel ua ON o.behandling_id = ua.behandling_id
             WHERE o.fagsak_id = :fagsakId AND o.behandling_id <> :unntattBehandlingId
         ) siste WHERE rn = 1
         """,

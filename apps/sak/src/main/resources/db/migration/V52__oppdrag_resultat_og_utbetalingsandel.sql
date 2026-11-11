@@ -4,7 +4,7 @@ CREATE TABLE oppdrag_resultat
     behandling_id      UUID         PRIMARY KEY REFERENCES behandling (id),
     fagsak_id          UUID         NOT NULL REFERENCES fagsak (id),
     utbetalingsoppdrag JSONB        NOT NULL,
-    status             VARCHAR(50)  NOT NULL,
+    status             TEXT         NOT NULL,
     kvitteringsmelding TEXT,
     opprettet_tid      TIMESTAMP(6) NOT NULL DEFAULT LOCALTIMESTAMP,
     endret_tid         TIMESTAMP(3) NOT NULL DEFAULT LOCALTIMESTAMP
@@ -21,7 +21,7 @@ CREATE TABLE utbetalingsandel
     fom                 DATE        NOT NULL,
     tom                 DATE        NOT NULL,
     belop               INTEGER     NOT NULL,
-    ytelsestype         VARCHAR(50) NOT NULL,
+    ytelsestype         TEXT        NOT NULL,
     periode_id          BIGINT      NOT NULL,
     forrige_periode_id  BIGINT,
     kilde_behandling_id UUID        NOT NULL REFERENCES behandling (id),
