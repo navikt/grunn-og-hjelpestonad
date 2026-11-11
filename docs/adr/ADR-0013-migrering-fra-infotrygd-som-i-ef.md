@@ -1,6 +1,6 @@
 # ADR-0013: Migrering fra Infotrygd som i EF
 
-**Dato:** 2026-10-28, endret 2026-10-30
+**Dato:** 2026-10-28, endret 2026-11-11
 **Status:** Foreslått
 **Beslutningstakere:** Teamet som forvalter grunn- og hjelpestønad
 
@@ -91,12 +91,25 @@ fjernet fra tilkjent ytelse, og V46 dropper kolonnen.
 - Revurderingen har beslutter og vedtaksbrev som andre revurderinger.
 - Det finnes ingen egen kontroll av månedene Infotrygd har utbetalt for.
   Saksbehandler og beslutter ser simuleringen.
-- Oppdrag setter `opphørAlleKjederFra` lik ny startmåned når en revurdering i en
-  migrert sak flytter startmåned bakover. Ellers er feltet `null`, også når en
-  revurdering i en sak som ikke er migrert gir en andel før den første.
 - Revurderingen kopierer vilkårene fra forrige behandling, også de som ble
   opprettet maskinelt i migreringen. Hvert kopierte vilkår viser hvilken
   behandling det først ble vurdert i, som `opphavsvilkår` i EF.
+
+### Opphør før første andel følger EF
+
+Oppdrag setter `opphørAlleKjederFra` lik ny startmåned bare når alle disse
+vilkårene er oppfylt, som i
+[`opphørFra` i EF-iverksett](https://github.com/navikt/familie-ef-iverksett/blob/6f40e2276a07c7c4480718245735b3d57374fadb/src/main/kotlin/no/nav/familie/ef/iverksett/%C3%B8konomi/utbetalingsoppdrag/UtbetalingsoppdragGenerator.kt):
+
+- Det finnes en forrige tilkjent ytelse i ny løsning.
+- Ny startmåned er tidligere enn forrige startmåned.
+- Ny startmåned er før første nye andel, eller det finnes ingen nye andeler.
+
+Feltet angir opphør fra en måned som generatoren ikke kan finne fra de nye
+andelene alene. Regelen gjelder ved revurdering, uavhengig av om saken er
+migrert. Ved første migrering finnes ingen forrige tilkjent ytelse i ny
+løsning, og feltet er `null`. Det er også `null` når en revurdering bare
+flytter første andel bakover til ny startmåned.
 
 ### Infotrygd får beskjed ved hver iverksetting
 
@@ -188,8 +201,8 @@ sporbarheten erstatter fireøyneprinsippet.
       prod og før revurdering bakover i en migrert sak slås på.
 - [ ] Infotrygd bekrefter at `vedtaksmelding` med `datoStartNyGrunnstønad`
       stopper utbetalingen fra den måneden, også når det er inneværende måned.
-- [ ] Sjekk hvordan ef-iverksett bruker `startdato` mot generatoren, før
-      revurdering bakover bygges.
+- [x] Sjekket hvordan EF-iverksett bruker startmåned mot generatoren.
+      Regelen står under «Opphør før første andel følger EF».
 - [ ] Ta stilling til beslutter når overstyring av etterbetaling i migreringen
       kommer.
 - [ ] Vurder en hard kontroll på måneder Infotrygd har utbetalt for, når Økonomi

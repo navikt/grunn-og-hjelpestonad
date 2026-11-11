@@ -42,8 +42,9 @@ data class BeregnetOppdrag(
  * neste ledige `periodeId`, og kjeden opphøres fra første endring. Alle andeler får personens gjeldende ident, også
  * de forrige, slik at et identbytte ikke ser ut som en ny kjede.
  *
- * `opphørAlleKjederFra` er alltid `null`. Den skal bare settes i «Endre migreringsdato»-behandlinger (ADR-0011), som
- * ikke finnes ennå.
+ * `opphørAlleKjederFra` er foreløpig `null`. Ved revurdering skal feltet settes bare når startmåned flyttes bakover
+ * og enten er før første nye andel eller andellisten er tom. Feltet får da ny startmåned (ADR-0013).
+ * Denne støtten er ikke koblet inn her ennå.
  */
 fun lagUtbetalingsoppdrag(grunnlag: Oppdragsgrunnlag): BeregnetOppdrag {
     val nyeAndeler = grunnlag.andelerTilkjentYtelse.filter { tilUtbetalingsbeløp(it.beløp) != 0 }
