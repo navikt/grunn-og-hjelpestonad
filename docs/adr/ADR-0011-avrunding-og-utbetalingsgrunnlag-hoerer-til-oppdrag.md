@@ -40,15 +40,22 @@ Løpende saker skal migreres fra Infotrygd. Referanseappene håndterer også det
   fagsiden har bestemt det, runder vi opp med `HALF_UP`. Se
   [utledning av tilkjent ytelse](../tilkjent-ytelse/utledning-av-tilkjent-ytelse.md).
 - Oppdrag har sine egne tabeller i samme database:
-  - `oppdrag_resultat`, med nøkkel `behandling_id`: kvitteringsstatus,
+  - `oppdrag_resultat`, med nøkkel `behandling_id`: `fagsak_id`, kvitteringsstatus,
     kvitteringsmelding og `utbetalingsoppdrag` (JSONB) slik det ble sendt.
-  - `utbetalingsandel`: periode, utbetalingsbeløp, klassekode, `periode_id`,
-    `forrige_periode_id` og `kilde_behandling_id`.
+  - `utbetalingsandel`: `behandling_id`, periode, utbetalingsbeløp, ytelsestype,
+    `periode_id`, `forrige_periode_id` og `kilde_behandling_id`. Hver behandling
+    lagrer alle løpende andeler etter seg, også de uendrede, med samme `periode_id`.
 - Generatoren får forrige behandlings utbetalingsandeler fra `utbetalingsandel`.
   Vi regner dem ikke ut på nytt. Hvis avrundingsregelen endres, gjelder den nye
   regelen bare nye behandlinger, og generatoren sender bare forskjellen.
+- En kjede er én ytelsestype for personen, som `IdentOgType` i generatoren. Vi lagrer
+  ytelsestypen og ikke klassekoden. Klassekoden slår vi opp fra ytelsestypen når
+  oppdraget lages, så en ny klassekode bryter ikke kjeden.
 - Siste andel i hver kjede hentes med en spørring: høyeste `periode_id` per fagsak
-  og klassekode. Den virker også når siste behandling opphørte alle andelene.
+  og ytelsestype. Har flere behandlinger samme `periode_id`, gjelder den første, fordi
+  en senere behandling kan ha avkortet perioden. Spørringen virker også når siste
+  behandling opphørte alle andelene.
+- Rekkefølgen på oppdragene på en fagsak er `opprettet_tid`, som i EF og BA.
 - All kode for oppdrag ligger i pakken `no.nav.grunn.og.hjelpestonad.oppdrag`.
 
 > **Erstattet av [ADR-0013](ADR-0013-migrering-fra-infotrygd-som-i-ef.md):**
