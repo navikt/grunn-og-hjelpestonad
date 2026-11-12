@@ -23,6 +23,7 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
+import no.nav.grunn.og.hjelpestonad.oppdrag.IverksettOppdragTask
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.Oppgave
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
@@ -169,6 +170,47 @@ class BeslutterServiceTest {
                 .filter { (type, _) -> type.navn == SendVedtakTilInfotrygdFeedTask.TYPE.navn }
                 .map { (_, payload) -> payload },
         ).containsExactly(behandlingId)
+    }
+
+    @Test
+    fun `godkjenning oppretter IverksettOppdragTask med saksbehandleren som sendte til beslutter`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
+        every { vedtakService.hentVedtak(behandlingId) } returns
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.OPPHØR, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+        mockkObject(SikkerhetContext)
+        every { SikkerhetContext.hentSaksbehandler() } returns "Z999999"
+        every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
+        val typer = mutableListOf<TaskType<Any>>()
+        val payloads = mutableListOf<Any>()
+        every { taskService.opprett(capture(typer), capture(payloads), any(), any()) } returns TaskId(1)
+
+        try {
+            beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
+        } finally {
+            unmockkObject(SikkerhetContext)
+        }
+
+        assertThat(
+            typer
+                .zip(payloads)
+                .filter { (type, _) -> type.navn == IverksettOppdragTask.TYPE.navn }
+                .map { (_, payload) -> payload },
+        ).containsExactly(IverksettOppdragTask.IverksettOppdragTaskData(behandlingId = behandlingId, saksbehandlerId = "Z123456"))
+    }
+
+    @Test
+    fun `godkjent avslag oppretter ikke IverksettOppdragTask`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
+        every { vedtakService.hentVedtak(behandlingId) } returns
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.AVSLÅTT, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+        val typer = mutableListOf<TaskType<Any>>()
+        every { taskService.opprett(capture(typer), any(), any(), any()) } returns TaskId(1)
+
+        beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
+
+        assertThat(typer.map { it.navn }).doesNotContain(IverksettOppdragTask.TYPE.navn)
     }
 
     @Test

@@ -1,3 +1,10 @@
+# Navngiving (alle apper)
+Tilbakemeldingen fra PR-er er at variabelnavn ofte er for korte og forklarer for lite. Velg det lange, beskrivende navnet framfor det korte. Koden skal kunne leses uten at man må slå opp typen eller gå tilbake for å se hvor verdien kom fra.
+- En variabel som holder svaret fra en metode, heter som typen den holder: `val iverksettingsresultat = …` når metoden returnerer `Iverksettingsresultat`, ikke `resultat`, `res` eller `r`.
+- Ta med det som skiller verdien fra lignende verdier i samme kode: `andelerTilkjentYtelse` og `utbetalingsandelerForrigeBehandling`, ikke `andeler` og `forrigeAndeler`. `lagretOppdrag`, ikke `lagret`.
+- Det samme gjelder parametre, felt og boolske egenskaper: `harEndringFraForrigeBehandling`, ikke `harEndring`.
+- Ikke forkort ord. Unntaket er vanlige forkortelser i domenet, som `fnr` og `id`.
+
 # Frontend
 (`apps/frontend`): React 19 + React Router 8 (framework mode med `ssr: false`, Express-server for API-proxy og statiske filer) i TypeScript, med Aksel (`@navikt/ds-react` 8) som designsystem, React Compiler slått på i `vite.config.ts` og API-klient generert fra backendens OpenAPI med `@hey-api/openapi-ts` (`pnpm run generate:api`). Bruk pnpm-versjonen i `packageManager` og `pnpm install --frozen-lockfile`.
 - Bruk aksel-builder skill når du skal jobbe med aksel-komponenter i frontend. For eksmpel når du lager skjemaer.
