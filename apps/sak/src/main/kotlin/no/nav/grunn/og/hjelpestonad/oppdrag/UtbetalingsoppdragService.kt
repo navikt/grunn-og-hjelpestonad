@@ -1,10 +1,10 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
 import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
+import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakRepository
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakService
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
@@ -13,15 +13,16 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
 /**
- * Lager utbetalingsoppdraget for en behandling. Brukes av både simulering og iverksetting.
- *
- * Bare førstegangsbehandling: ingen kjeding mot tidligere andeler (se ADR-0011).
+ * Lager utbetalingsoppdraget for en behandling, kjedet mot andelene som allerede er sendt på fagsaken (ADR-0011).
+ * Brukes av både simulering og iverksetting.
  */
 @Service
 class UtbetalingsoppdragService(
@@ -29,50 +30,75 @@ class UtbetalingsoppdragService(
     private val fagsakRepository: FagsakRepository,
     private val fagsakService: FagsakService,
     private val tilkjentYtelseService: TilkjentYtelseService,
+    private val oppdragResultatRepository: OppdragResultatRepository,
     @Value("\${oppdrag.bruk-testandel-hvis-mangler:false}")
     private val brukTestandelHvisMangler: Boolean,
     private val clock: Clock = Clock.systemDefaultZone(),
 ) {
     private val logger = LoggerFactory.getLogger(UtbetalingsoppdragService::class.java)
 
-    fun lagUtbetalingsoppdrag(behandlingId: UUID): UtbetalingsoppdragForBehandling {
+    /** Til simulering. Leser kjeden på fagsaken, men lagrer ingenting. */
+    fun lagUtbetalingsoppdrag(
+        behandlingId: UUID,
+        saksbehandlerId: String,
+    ): UtbetalingsoppdragForBehandling {
         val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
-        val fagsak = fagsakRepository.findByIdOrNull(behandling.fagsakId) ?: error("Fant ikke fagsak for behandling=$behandlingId")
-        val andeler =
-            tilkjentYtelseService
-                .hentTilkjentYtelse(behandlingId)
-                ?.andelerTilkjentYtelse
-                .orEmpty()
-                .filter { tilUtbetalingsbeløp(it.beløp) != 0 }
+        val beregning =
+            beregnUtbetalingsoppdrag(behandling, saksbehandlerId)
+                ?: throw Feil("Behandlingen har ingen andeler å utbetale og ingen tidligere utbetaling å opphøre", HttpStatus.BAD_REQUEST)
+        if (!beregning.oppdrag.harEndringFraForrigeBehandling) {
+            throw Feil("Behandlingen endrer ikke utbetalingen", HttpStatus.BAD_REQUEST)
+        }
+        return UtbetalingsoppdragForBehandling(utbetalingsoppdrag = beregning.oppdrag.utbetalingsoppdrag, testandel = beregning.testandel)
+    }
 
-        val testandel =
-            if (andeler.isEmpty()) {
-                if (!brukTestandelHvisMangler) {
-                    throw Feil("Behandlingen har ingen tilkjent ytelse", HttpStatus.BAD_REQUEST)
-                }
-                logger.info("Behandling={} mangler tilkjent ytelse, bruker testandel", behandlingId)
-                lagTestandel(behandlingId, YearMonth.now(clock))
-            } else {
-                null
-            }
+    /**
+     * Til iverksetting. Lager oppdraget og lagrer det med andelene. Transaksjonen er alltid ny, slik at
+     * oppdraget er committet før det sendes: et nytt forsøk sender da det samme oppdraget, og lager ikke et nytt.
+     *
+     * Finnes oppdraget for behandlingen fra før, returneres det lagrede uten ny generering.
+     * Returnerer `null` når behandlingen ikke har andeler og fagsaken ikke har noen kjede å opphøre.
+     *
+     * Stopper hvis forrige oppdrag på fagsaken ikke er kvittert OK: da vet vi ikke om OS har andelene vi ville kjedet
+     * mot. Et avvist oppdrag må rettes før fagsaken kan få nye oppdrag.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    fun lagOgLagreUtbetalingsoppdrag(
+        behandlingId: UUID,
+        saksbehandlerId: String,
+    ): LagretUtbetalingsoppdrag? {
+        val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
+        oppdragResultatRepository.findByIdOrNull(behandlingId)?.let {
+            logger.info("Oppdrag for behandling={} finnes fra før med status={}, bruker det lagrede", behandlingId, it.status)
+            return LagretUtbetalingsoppdrag(oppdragResultat = it, testandel = null)
+        }
 
-        val utbetalingsoppdrag =
-            lagUtbetalingsoppdrag(
-                Oppdragsgrunnlag(
-                    behandlingId = behandling.id,
-                    eksternBehandlingId = behandling.eksternId,
-                    eksternFagsakId = fagsak.eksternId,
-                    personIdent = fagsakService.hentAktivIdent(fagsak.id),
-                    saksbehandlerId = SikkerhetContext.hentSaksbehandler(),
-                    vedtaksdato = LocalDate.now(clock),
-                    andelerTilkjentYtelse = testandel?.let { listOf(it) } ?: andeler.sortedBy { it.fom },
-                ),
+        val statusPåForrige = oppdragResultatRepository.finnStatusPåSisteOppdrag(behandling.fagsakId, unntattBehandlingId = behandlingId)
+        if (statusPåForrige != null && statusPåForrige !in OppdragStatus.FERDIG) {
+            throw Feil(
+                "Forrige oppdrag på fagsaken har status $statusPåForrige. Det må være kvittert OK før et nytt oppdrag kan sendes.",
+                HttpStatus.CONFLICT,
             )
+        }
 
-        return UtbetalingsoppdragForBehandling(
-            utbetalingsoppdrag = utbetalingsoppdrag.utbetalingsoppdrag,
-            testandel = testandel?.let { Testandel(fom = it.fom, tom = it.tom, beløp = tilUtbetalingsbeløp(it.beløp)) },
+        val beregning = beregnUtbetalingsoppdrag(behandling, saksbehandlerId) ?: return null
+        val oppdragResultat =
+            OppdragResultat(
+                behandlingId = behandling.id,
+                fagsakId = behandling.fagsakId,
+                utbetalingsoppdrag = beregning.oppdrag.utbetalingsoppdrag,
+                status = if (beregning.oppdrag.harEndringFraForrigeBehandling) OppdragStatus.OPPRETTET else OppdragStatus.INGEN_ENDRING,
+                andeler = beregning.oppdrag.utbetalingsandeler.toSet(),
+            )
+        oppdragResultatRepository.insert(oppdragResultat)
+        logger.info(
+            "Lagret oppdrag for behandling={}: status={}, {} perioder, {} andeler",
+            behandlingId,
+            oppdragResultat.status,
+            oppdragResultat.utbetalingsoppdrag.utbetalingsperiode.size,
+            beregning.oppdrag.utbetalingsandeler.size,
         )
+        return LagretUtbetalingsoppdrag(oppdragResultat = oppdragResultat, testandel = beregning.testandel)
     }
 
     /** ID-en `familie-oppdrag-backend` bruker for oppdraget til behandlingen, se [OppdragId]. */
@@ -84,6 +110,64 @@ class UtbetalingsoppdragService(
             behandlingsId = behandling.eksternId.toString(),
         )
     }
+
+    private fun beregnUtbetalingsoppdrag(
+        behandling: Behandling,
+        saksbehandlerId: String,
+    ): Beregning? {
+        val fagsak = fagsakRepository.findByIdOrNull(behandling.fagsakId) ?: error("Fant ikke fagsak for behandling=${behandling.id}")
+        val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(behandling.id)
+        val andelerTilkjentYtelse = tilkjentYtelse?.andelerTilkjentYtelse.orEmpty().filter { tilUtbetalingsbeløp(it.beløp) != 0 }
+        val utbetalingsandelerForrigeBehandling = oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, unntattBehandlingId = behandling.id)
+        val sisteUtbetalingsandelPerKjedeIFagsak = oppdragResultatRepository.finnSisteAndelPerKjede(fagsak.id, unntattBehandlingId = behandling.id)
+
+        // Tilkjent ytelse uten andeler er et opphør når fagsaken har en kjede, og ingenting ellers.
+        // Mangler tilkjent ytelse helt, er den ikke beregnet ennå.
+        val manglerAndeler = tilkjentYtelse == null || (andelerTilkjentYtelse.isEmpty() && sisteUtbetalingsandelPerKjedeIFagsak.isEmpty())
+        val testandel =
+            when {
+                !manglerAndeler -> {
+                    null
+                }
+
+                brukTestandelHvisMangler -> {
+                    logger.info("Behandling={} mangler tilkjent ytelse, bruker testandel", behandling.id)
+                    lagTestandel(behandling.id, YearMonth.now(clock))
+                }
+
+                tilkjentYtelse == null -> {
+                    throw Feil("Behandlingen har ingen tilkjent ytelse", HttpStatus.BAD_REQUEST)
+                }
+
+                else -> {
+                    return null
+                }
+            }
+
+        val oppdrag =
+            lagUtbetalingsoppdrag(
+                Oppdragsgrunnlag(
+                    behandlingId = behandling.id,
+                    eksternBehandlingId = behandling.eksternId,
+                    eksternFagsakId = fagsak.eksternId,
+                    personIdent = fagsakService.hentAktivIdent(fagsak.id),
+                    saksbehandlerId = saksbehandlerId,
+                    vedtaksdato = LocalDate.now(clock),
+                    andelerTilkjentYtelse = testandel?.let { listOf(it) } ?: andelerTilkjentYtelse.sortedBy { it.fom },
+                    utbetalingsandelerForrigeBehandling = utbetalingsandelerForrigeBehandling,
+                    sisteAndelIHverKjedeForFagsak = sisteUtbetalingsandelPerKjedeIFagsak,
+                ),
+            )
+        return Beregning(
+            oppdrag = oppdrag,
+            testandel = testandel?.let { Testandel(fom = it.fom, tom = it.tom, beløp = tilUtbetalingsbeløp(it.beløp)) },
+        )
+    }
+
+    private data class Beregning(
+        val oppdrag: BeregnetOppdrag,
+        val testandel: Testandel?,
+    )
 
     companion object {
         private const val TESTANDEL_BELØP = 1000
@@ -108,6 +192,12 @@ class UtbetalingsoppdragService(
 data class UtbetalingsoppdragForBehandling(
     val utbetalingsoppdrag: Utbetalingsoppdrag,
     /** Satt når behandlingen manglet tilkjent ytelse og oppdraget ble laget med en testandel. */
+    val testandel: Testandel?,
+)
+
+data class LagretUtbetalingsoppdrag(
+    val oppdragResultat: OppdragResultat,
+    /** Satt når oppdraget ble laget nå med en testandel. Null når oppdraget fantes fra før. */
     val testandel: Testandel?,
 )
 

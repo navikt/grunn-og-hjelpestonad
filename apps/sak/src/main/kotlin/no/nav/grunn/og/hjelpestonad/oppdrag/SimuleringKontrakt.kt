@@ -5,17 +5,9 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /*
- * Speiler `Ressurs` og `no.nav.familie.kontrakter.felles.simulering` i familie-kontrakter,
+ * Speiler `no.nav.familie.kontrakter.felles.simulering` i familie-kontrakter,
  * slik at vi slipper avhengigheten. Enum-felter leses som tekst, og ukjente felter ignoreres.
  */
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class Ressurs<T>(
-    val data: T?,
-    val status: String,
-    val melding: String? = null,
-    val frontendFeilmelding: String? = null,
-)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DetaljertSimuleringResultat(
