@@ -95,7 +95,7 @@ class IverksettOppdragTaskTest {
                     personIdent = "12345678910",
                     saksbehandlerId = "Z123456",
                     vedtaksdato = LocalDate.of(2026, 11, 1),
-                    andeler =
+                    andelerTilkjentYtelse =
                         listOf(
                             AndelTilkjentYtelse(
                                 beløp = 1000.toBigDecimal(),
