@@ -66,10 +66,11 @@ class OppdragIverksettingService(
      * lagrede oppdraget, slik at et identbytte etter sendingen ikke gir 404.
      */
     fun hentStatus(behandlingId: UUID): OppdragStatusSvar {
-        val lagret = oppdragResultatRepository.findByIdOrNull(behandlingId)
-        val oppdragId = lagret?.utbetalingsoppdrag?.tilOppdragId() ?: utbetalingsoppdragService.lagOppdragId(behandlingId)
+        val lagretOppdrag = oppdragResultatRepository.findByIdOrNull(behandlingId)
+        val lagretOppdragId = lagretOppdrag?.utbetalingsoppdrag?.tilOppdragId()
+        val oppdragId = lagretOppdragId ?: utbetalingsoppdragService.lagOppdragId(behandlingId)
         val svar = oppdragClient.hentStatus(oppdragId)
-        if (lagret != null) {
+        if (lagretOppdrag != null) {
             oppdragResultatRepository.oppdaterStatus(behandlingId, svar.status, svar.melding)
         }
         if (svar.melding != null) {

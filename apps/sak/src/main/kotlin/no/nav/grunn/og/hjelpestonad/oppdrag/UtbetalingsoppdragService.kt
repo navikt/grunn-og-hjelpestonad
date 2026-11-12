@@ -44,7 +44,7 @@ class UtbetalingsoppdragService(
     ): UtbetalingsoppdragForBehandling {
         val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
         val beregning =
-            beregn(behandling, saksbehandlerId)
+            beregnUtbetalingsoppdrag(behandling, saksbehandlerId)
                 ?: throw Feil("Behandlingen har ingen andeler å utbetale og ingen tidligere utbetaling å opphøre", HttpStatus.BAD_REQUEST)
         if (!beregning.oppdrag.harEndringFraForrigeBehandling) {
             throw Feil("Behandlingen endrer ikke utbetalingen", HttpStatus.BAD_REQUEST)
@@ -81,7 +81,7 @@ class UtbetalingsoppdragService(
             )
         }
 
-        val beregning = beregn(behandling, saksbehandlerId) ?: return null
+        val beregning = beregnUtbetalingsoppdrag(behandling, saksbehandlerId) ?: return null
         val oppdragResultat =
             OppdragResultat(
                 behandlingId = behandling.id,
@@ -111,19 +111,19 @@ class UtbetalingsoppdragService(
         )
     }
 
-    private fun beregn(
+    private fun beregnUtbetalingsoppdrag(
         behandling: Behandling,
         saksbehandlerId: String,
     ): Beregning? {
         val fagsak = fagsakRepository.findByIdOrNull(behandling.fagsakId) ?: error("Fant ikke fagsak for behandling=${behandling.id}")
         val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(behandling.id)
-        val andeler = tilkjentYtelse?.andelerTilkjentYtelse.orEmpty().filter { tilUtbetalingsbeløp(it.beløp) != 0 }
-        val forrigeAndeler = oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, unntattBehandlingId = behandling.id)
-        val sisteAndelPerKjede = oppdragResultatRepository.finnSisteAndelPerKjede(fagsak.id, unntattBehandlingId = behandling.id)
+        val andelerTilkjentYtelse = tilkjentYtelse?.andelerTilkjentYtelse.orEmpty().filter { tilUtbetalingsbeløp(it.beløp) != 0 }
+        val utbetalingsandelerForrigeBehandling = oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, unntattBehandlingId = behandling.id)
+        val sisteUtbetalingsandelPerKjedeIFagsak = oppdragResultatRepository.finnSisteAndelPerKjede(fagsak.id, unntattBehandlingId = behandling.id)
 
         // Tilkjent ytelse uten andeler er et opphør når fagsaken har en kjede, og ingenting ellers.
         // Mangler tilkjent ytelse helt, er den ikke beregnet ennå.
-        val manglerAndeler = tilkjentYtelse == null || (andeler.isEmpty() && sisteAndelPerKjede.isEmpty())
+        val manglerAndeler = tilkjentYtelse == null || (andelerTilkjentYtelse.isEmpty() && sisteUtbetalingsandelPerKjedeIFagsak.isEmpty())
         val testandel =
             when {
                 !manglerAndeler -> {
@@ -153,9 +153,9 @@ class UtbetalingsoppdragService(
                     personIdent = fagsakService.hentAktivIdent(fagsak.id),
                     saksbehandlerId = saksbehandlerId,
                     vedtaksdato = LocalDate.now(clock),
-                    andelerTilkjentYtelse = testandel?.let { listOf(it) } ?: andeler.sortedBy { it.fom },
-                    utbetalingsandelerForrigeBehandling = forrigeAndeler,
-                    sisteAndelIHverKjedeForFagsak = sisteAndelPerKjede,
+                    andelerTilkjentYtelse = testandel?.let { listOf(it) } ?: andelerTilkjentYtelse.sortedBy { it.fom },
+                    utbetalingsandelerForrigeBehandling = utbetalingsandelerForrigeBehandling,
+                    sisteAndelIHverKjedeForFagsak = sisteUtbetalingsandelPerKjedeIFagsak,
                 ),
             )
         return Beregning(
