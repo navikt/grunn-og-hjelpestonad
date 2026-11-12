@@ -24,18 +24,18 @@ class ÅpningstidTest {
         "2026-10-24T22:00, 15, 2026-10-26T06:00",
     )
     fun `neste tidspunkt er på en hverdag mellom 06 og 21 norsk tid`(
-        nå: String,
-        minutter: Long,
-        forventet: String,
+        nåINorskTid: String,
+        forsinkelseIMinutter: Long,
+        forventetTidspunkt: String,
     ) {
-        val resultat = nesteTidspunktIÅpningstid(oslo(nå), Duration.ofMinutes(minutter))
+        val nesteTidspunkt = nesteTidspunktIÅpningstid(norskTidTilInstant(nåINorskTid), Duration.ofMinutes(forsinkelseIMinutter))
 
-        assertThat(resultat).isEqualTo(oslo(forventet))
+        assertThat(nesteTidspunkt).isEqualTo(norskTidTilInstant(forventetTidspunkt))
     }
 
-    private fun oslo(tid: String) =
+    private fun norskTidTilInstant(datoOgKlokkeslett: String) =
         LocalDateTime
-            .parse(tid)
+            .parse(datoOgKlokkeslett)
             .atZone(ZoneId.of("Europe/Oslo"))
             .toInstant()
 }

@@ -8,9 +8,9 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
-private val OSLO: ZoneId = ZoneId.of("Europe/Oslo")
-private val ÅPNER: LocalTime = LocalTime.of(6, 0)
-private val STENGER: LocalTime = LocalTime.of(21, 0)
+private val NORSK_TIDSSONE: ZoneId = ZoneId.of("Europe/Oslo")
+private val OS_ÅPNER: LocalTime = LocalTime.of(6, 0)
+private val OS_STENGER: LocalTime = LocalTime.of(21, 0)
 
 /**
  * Første tidspunkt minst [minimumForsinkelse] etter [nå] som ligger på en hverdag mellom kl. 06 og 21 norsk tid, når OS
@@ -21,15 +21,15 @@ fun nesteTidspunktIÅpningstid(
     nå: Instant,
     minimumForsinkelse: Duration,
 ): Instant {
-    val tidligst = nå.plus(minimumForsinkelse).atZone(OSLO)
-    val dato = tidligst.toLocalDate()
-    val tid = tidligst.toLocalTime()
+    val tidligsteTidspunkt = nå.plus(minimumForsinkelse).atZone(NORSK_TIDSSONE)
+    val tidligsteDato = tidligsteTidspunkt.toLocalDate()
+    val tidligsteKlokkeslett = tidligsteTidspunkt.toLocalTime()
 
     return when {
-        dato.erHelg() -> dato.nesteHverdag().åpner()
-        tid.isBefore(ÅPNER) -> dato.åpner()
-        !tid.isAfter(STENGER) -> tidligst
-        else -> dato.nesteHverdag().åpner()
+        tidligsteDato.erHelg() -> tidligsteDato.nesteHverdag().tidspunktOSÅpner()
+        tidligsteKlokkeslett < OS_ÅPNER -> tidligsteDato.tidspunktOSÅpner()
+        tidligsteKlokkeslett <= OS_STENGER -> tidligsteTidspunkt
+        else -> tidligsteDato.nesteHverdag().tidspunktOSÅpner()
     }.toInstant()
 }
 
@@ -37,4 +37,4 @@ private fun LocalDate.erHelg() = dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek ==
 
 private fun LocalDate.nesteHverdag(): LocalDate = generateSequence(plusDays(1)) { it.plusDays(1) }.first { !it.erHelg() }
 
-private fun LocalDate.åpner(): ZonedDateTime = atTime(ÅPNER).atZone(OSLO)
+private fun LocalDate.tidspunktOSÅpner(): ZonedDateTime = atTime(OS_ÅPNER).atZone(NORSK_TIDSSONE)
