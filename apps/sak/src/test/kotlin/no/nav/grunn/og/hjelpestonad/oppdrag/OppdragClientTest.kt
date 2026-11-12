@@ -63,7 +63,7 @@ class OppdragClientTest {
                 personIdent = "12345678910",
                 saksbehandlerId = "Z123456",
                 vedtaksdato = LocalDate.of(2026, 1, 15),
-                andeler =
+                andelerTilkjentYtelse =
                     listOf(
                         AndelTilkjentYtelse(
                             beløp = 1234.toBigDecimal(),
@@ -73,7 +73,7 @@ class OppdragClientTest {
                         ),
                     ),
             ),
-        )
+        ).utbetalingsoppdrag
 
     @BeforeEach
     fun setup() {

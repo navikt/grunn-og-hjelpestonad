@@ -65,12 +65,12 @@ class UtbetalingsoppdragService(
                     personIdent = fagsakService.hentAktivIdent(fagsak.id),
                     saksbehandlerId = SikkerhetContext.hentSaksbehandler(),
                     vedtaksdato = LocalDate.now(clock),
-                    andeler = testandel?.let { listOf(it) } ?: andeler.sortedBy { it.fom },
+                    andelerTilkjentYtelse = testandel?.let { listOf(it) } ?: andeler.sortedBy { it.fom },
                 ),
             )
 
         return UtbetalingsoppdragForBehandling(
-            utbetalingsoppdrag = utbetalingsoppdrag,
+            utbetalingsoppdrag = utbetalingsoppdrag.utbetalingsoppdrag,
             testandel = testandel?.let { Testandel(fom = it.fom, tom = it.tom, beløp = tilUtbetalingsbeløp(it.beløp)) },
         )
     }
