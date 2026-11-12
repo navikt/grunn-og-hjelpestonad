@@ -6,13 +6,13 @@
 
 **Status:** ready-for-human
 
-🔴 Rød sone: kjedingen (`lagUtbetalingsoppdrag`, spørringene i `OppdragRepository`) og låsen på fagsaken. Feil her gir feilutbetaling.
+🔴 Rød sone: kjedingen (`lagUtbetalingsoppdrag`, spørringene i `OppdragResultatRepository`) og sperren mot nytt oppdrag før forrige er kvittert. Feil her gir feilutbetaling.
 
-ADR: [ADR-0011](../../../docs/adr/ADR-0011-avrunding-og-utbetalingsgrunnlag-hoerer-til-oppdrag.md)
+ADR: [ADR-0011](../../../docs/adr/ADR-0011-avrunding-og-utbetalingsgrunnlag-hoerer-til-oppdrag.md), [ADR-0013](../../../docs/adr/ADR-0013-migrering-fra-infotrygd-som-i-ef.md) (opphør før første andel)
 
-- [x] `oppdrag_resultat` og `utbetalingsandel` (V52). En kjede er én ytelsestype, ikke én klassekode.
+- [x] `oppdrag_resultat` og `utbetalingsandel` (V52). En kjede er én ytelsestype, ikke én klassekode. Oppdragene på en fagsak sorteres på `opprettet_tid`, som i EF og BA.
 - [x] Kjeding med forrige andeler og siste andel per kjede. Tester for førstegangsbehandling, nytt beløp, avkorting, opphør av alle andeler, ingen endring og ny andel etter fullt opphør.
-- [x] Fagsaken låses mens oppdraget lages og lagres. Oppdraget committes før det sendes, og et nytt forsøk sender det lagrede oppdraget.
+- [x] Oppdraget lages og lagres i en egen transaksjon og committes før det sendes. Et nytt forsøk sender det lagrede oppdraget. Fagsaken låses ikke: vi stoler på at fagsaken bare kan ha én åpen behandling, og på sperren under.
 - [x] 409 fra `familie-oppdrag-backend` regnes som sendt.
 - [x] Nytt oppdrag stopper med 409 hvis forrige oppdrag på fagsaken ikke har status `KVITTERT_OK` eller `INGEN_ENDRING`.
 - [x] Status hentes med identen oppdraget ble sendt med, så et identbytte gir ikke 404.
@@ -25,12 +25,13 @@ ADR: [ADR-0011](../../../docs/adr/ADR-0011-avrunding-og-utbetalingsgrunnlag-hoer
 
 - Et avvist oppdrag stopper alle nye oppdrag på fagsaken. Det finnes ingen måte å rette det på ennå, verken i koden eller i et skjermbilde.
 - Godkjenning setter behandlingen til `FERDIGSTILT` med én gang, før oppdraget er kvittert. En revurdering kan derfor godkjennes mens forrige oppdrag fortsatt ligger på kø. Da får `IverksettOppdragTask` 409 fra sperren, feiler tre ganger og stopper. Noen må starte den på nytt når forrige oppdrag er kvittert. Det løses når behandlingen først blir `FERDIGSTILT` ved `KVITTERT_OK`, som i EF.
+- Av samme grunn beskytter «én åpen behandling per fagsak» ikke kjedingen før oppdraget er lagret. Feiler `IverksettOppdragTask` før lagringen (for eksempel mot PDL eller tilkjent ytelse), kan en revurdering godkjennes og kjedes først. Når den eldste tasken kjører igjen, kjedes den etter revurderingen og sender den gamle behandlingens andeler. Uten lås kan også to tasker på samme fagsak lese samme forrige andeler hvis de kjører samtidig. Primærnøkkelen på `behandling_id` beskytter bare mot to oppdrag for samme behandling.
 - Testendepunktet oppretter ingen statustask. Etter et kall må noen hente status med GET-endepunktet, ellers stopper neste oppdrag på fagsaken.
 - Avvist oppdrag eller manglende kvittering etter 100 forsøk gir en stoppet task. Saksbehandler ser ingenting, og ingen får varsel.
 - Statustasken poller hvert 15. minutt på hverdager mellom 06 og 21, som i familie-ba-sak, men tar ikke hensyn til helligdager. Én helligdag bruker 60 av de 100 forsøkene, så to helligdager på rad (jul, påske) stopper tasken før OS åpner.
 - Fagsaker som ble sendt fra testendepunktet før V52, har kjeder i OS som vi ikke kjenner. Ikke bruk dem.
 - Testandelen (1000 kr for inneværende måned) brukes når tilkjent ytelse mangler. Den fjernes når issue 10 i sats-og-trygdetid er ferdig.
-- `opphørAlleKjederFra` er alltid `null`. «Endre migreringsdato» (migrering 22) trenger den.
+- `opphørAlleKjederFra` er alltid `null`. ADR-0013 beskriver når den skal settes: ved revurdering der startmåned flyttes bakover og er før første nye andel, eller det ikke finnes nye andeler. Det er ikke koblet inn ennå.
 
 ## Til neste PR
 
