@@ -26,28 +26,28 @@ class HentOppdragStatusTask(
 
     override fun utfor(kontekst: TaskKontekst<HentOppdragStatusTaskData>) {
         val behandlingId = kontekst.payload.behandlingId
-        val forsøk = kontekst.payload.forsøk
-        val svar = oppdragIverksettingService.hentStatus(behandlingId)
+        val antallForsøk = kontekst.payload.forsøk
+        val oppdragStatusSvar = oppdragIverksettingService.hentStatus(behandlingId)
 
-        when (svar.status) {
+        when (oppdragStatusSvar.status) {
             OppdragStatus.KVITTERT_OK -> {
                 logger.info("Oppdrag for behandling={} er kvittert OK", behandlingId)
             }
 
             OppdragStatus.LAGT_PÅ_KØ -> {
-                if (forsøk >= MAKS_FORSØK) {
-                    throw IllegalStateException("Fikk ikke kvittering fra OS for behandling=$behandlingId etter $forsøk forsøk")
+                if (antallForsøk >= MAKS_FORSØK) {
+                    throw IllegalStateException("Fikk ikke kvittering fra OS for behandling=$behandlingId etter $antallForsøk forsøk")
                 }
 
                 kontekst.opprettNesteTask<HentOppdragStatusTaskData>(
                     type = TYPE,
-                    payload = HentOppdragStatusTaskData(behandlingId = behandlingId, forsøk = forsøk + 1),
+                    payload = HentOppdragStatusTaskData(behandlingId = behandlingId, forsøk = antallForsøk + 1),
                     triggerTid = nesteTidspunktIÅpningstid(clock.instant(), VENTETID),
                 )
             }
 
             else -> {
-                throw IllegalStateException("Oppdrag for behandling=$behandlingId fikk status=${svar.status}")
+                throw IllegalStateException("Oppdrag for behandling=$behandlingId fikk status=${oppdragStatusSvar.status}")
             }
         }
     }

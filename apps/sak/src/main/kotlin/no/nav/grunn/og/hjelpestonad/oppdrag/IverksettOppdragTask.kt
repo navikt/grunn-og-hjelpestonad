@@ -23,9 +23,9 @@ class IverksettOppdragTask(
 
     override fun utfor(kontekst: TaskKontekst<IverksettOppdragTaskData>) {
         val behandlingId = kontekst.payload.behandlingId
-        val resultat = oppdragIverksettingService.iverksett(behandlingId, kontekst.payload.saksbehandlerId)
+        val iverksettingsresultat = oppdragIverksettingService.iverksett(behandlingId, kontekst.payload.saksbehandlerId)
 
-        if (resultat?.sendt == true) {
+        if (iverksettingsresultat?.sendt == true) {
             kontekst.opprettNesteTask(
                 type = HentOppdragStatusTask.TYPE,
                 payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId = behandlingId, forsøk = 1),
