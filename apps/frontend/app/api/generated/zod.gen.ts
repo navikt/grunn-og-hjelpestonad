@@ -539,7 +539,6 @@ export const zBehandlingEndringResponse = z.object({
     endringType: z.enum([
         'BEHANDLING_OPPRETTET',
         'SENDT_TIL_BESLUTTER',
-        'ANGRET_SEND_TIL_BESLUTTER',
         'VILKÅR_VURDERING_OPPRETTET',
         'VILKÅR_VURDERING_OPPDATERT',
         'VILKÅR_VURDERING_SLETTET',
@@ -765,15 +764,6 @@ export const zBesluttVedtakPath = z.object({
  * OK
  */
 export const zBesluttVedtakResponse = z.record(z.string(), z.string());
-
-export const zAngreSendTilBeslutterPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zAngreSendTilBeslutterResponse = z.record(z.string(), z.string());
 
 export const zHentMedlemskapPerioderPath = z.object({
     behandlingId: z.uuid()

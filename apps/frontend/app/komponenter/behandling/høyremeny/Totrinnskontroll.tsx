@@ -40,7 +40,7 @@ export const Totrinnskontroll = () => {
     hentAnsvarligSaksbehandlerPåNytt,
     ansvarligSaksbehandler,
   } = useBehandlingContext();
-  const { angreSendTilBeslutter, besluttVedtak, sender } = useBeslutter();
+  const { besluttVedtak, sender } = useBeslutter();
 
   const erSendtTilBeslutter = behandling?.status === "FATTER_VEDTAK";
 
@@ -72,11 +72,6 @@ export const Totrinnskontroll = () => {
   if (totrinnskontrollStatus?.status === TotrinnskontrollStatus.IKKE_AUTORISERT) {
     return (
       <SendtTilBeslutter
-        behandlingId={behandlingId}
-        angreSendTilBeslutter={angreSendTilBeslutter}
-        revaliderBehandling={revaliderBehandling}
-        hentTotrinnskontrollStatusPåNytt={hentTotrinnskontrollStatusPåNytt}
-        hentAnsvarligSaksbehandlerPåNytt={hentAnsvarligSaksbehandlerPåNytt}
         opprettetAv={totrinnskontrollStatus.totrinnskontroll?.opprettetAv}
         opprettetTid={totrinnskontrollStatus.totrinnskontroll?.opprettetTid}
       />
@@ -87,45 +82,9 @@ export const Totrinnskontroll = () => {
 };
 
 const SendtTilBeslutter: React.FC<{
-  behandlingId: string;
-  angreSendTilBeslutter: (
-    behandlingId: string
-  ) => Promise<{ data?: unknown; feilmelding?: string }>;
-  revaliderBehandling: () => void;
-  hentTotrinnskontrollStatusPåNytt: () => void;
-  hentAnsvarligSaksbehandlerPåNytt: () => void;
   opprettetAv?: string;
   opprettetTid?: string;
-}> = ({
-  behandlingId,
-  angreSendTilBeslutter,
-  revaliderBehandling,
-  hentTotrinnskontrollStatusPåNytt,
-  hentAnsvarligSaksbehandlerPåNytt,
-  opprettetAv,
-  opprettetTid,
-}) => {
-  const { ansvarligSaksbehandler } = useBehandlingContext();
-  const [laster, settLaster] = useState(false);
-
-  const erAnsvarligSaksbehandler = ansvarligSaksbehandler?.rolle === "INNLOGGET_SAKSBEHANDLER";
-  const behandlingHarIngenAnsvarligSaksbehandler = ansvarligSaksbehandler === null;
-
-  const handleAngreSendTilBeslutter = async () => {
-    settLaster(true);
-    try {
-      const respons = await angreSendTilBeslutter(behandlingId);
-      if (respons.data) {
-        oppdaterEndringshistorikk();
-        revaliderBehandling();
-        hentTotrinnskontrollStatusPåNytt();
-        hentAnsvarligSaksbehandlerPåNytt();
-      }
-    } finally {
-      settLaster(false);
-    }
-  };
-
+}> = ({ opprettetAv, opprettetTid }) => {
   return (
     <Box borderColor="neutral" borderWidth="1" borderRadius="12" padding="space-16">
       <VStack gap="space-12">
@@ -137,15 +96,6 @@ const SendtTilBeslutter: React.FC<{
           <InfoRad label="Sendt inn av" verdi={opprettetAv || ""} />
           <InfoRad label="Sendt inn" verdi={opprettetTid || ""} />
         </VStack>
-        <Button
-          size="small"
-          variant="secondary"
-          onClick={handleAngreSendTilBeslutter}
-          loading={laster}
-          disabled={!erAnsvarligSaksbehandler || behandlingHarIngenAnsvarligSaksbehandler}
-        >
-          Angre send til beslutter
-        </Button>
       </VStack>
     </Box>
   );
