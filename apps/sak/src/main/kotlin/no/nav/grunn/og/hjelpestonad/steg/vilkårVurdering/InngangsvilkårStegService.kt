@@ -3,13 +3,12 @@ package no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
-import no.nav.grunn.og.hjelpestonad.felles.periode.Periodisert
+import no.nav.grunn.og.hjelpestonad.felles.periode.formaterPeriode
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 data class InngangsvilkårResultat(
@@ -62,18 +61,4 @@ class InngangsvilkårStegService(
                     perioder.joinToString(", ") { formaterPeriode(it) }
             },
     )
-
-    private fun formaterPeriode(periode: Periodisert): String {
-        if (periode.fraOgMedDato == null && periode.tilOgMedDato == null) {
-            return "Hele behandlingsperioden"
-        }
-
-        val fra = periode.fraOgMedDato?.format(DATOFORMAT) ?: "Fra fødsel"
-        val til = periode.tilOgMedDato?.format(DATOFORMAT) ?: "løpende"
-        return "$fra – $til"
-    }
-
-    private companion object {
-        val DATOFORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-    }
 }

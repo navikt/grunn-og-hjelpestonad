@@ -10,6 +10,8 @@ import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseRepository
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
+import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifterRepository
+import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifterService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapRepository
@@ -25,16 +27,27 @@ import kotlin.test.assertNotEquals
 class KopierVilkårServiceTest {
     private val medlemskapRepository = mockk<VilkårMedlemskapRepository>()
     private val diagnoseRepository = mockk<VilkårDiagnoseRepository>()
+    private val ekstrautgifterRepository = mockk<VilkårEkstrautgifterRepository>()
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
+
+    private val vilkårDiagnoseService =
+        VilkårDiagnoseService(diagnoseRepository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService)
 
     private val kopierVilkårService =
         KopierVilkårService(
             vilkårMedlemskapService =
                 VilkårMedlemskapService(medlemskapRepository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService),
-            vilkårDiagnoseService =
-                VilkårDiagnoseService(diagnoseRepository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService),
+            vilkårDiagnoseService = vilkårDiagnoseService,
+            vilkårEkstrautgifterService =
+                VilkårEkstrautgifterService(
+                    ekstrautgifterRepository,
+                    behandlingService,
+                    endringshistorikkService,
+                    ansvarligSaksbehandlerService,
+                    vilkårDiagnoseService,
+                ),
         )
 
     private val forrigeBehandlingId = UUID.fromString("00000000-0000-0000-0000-000000000001")
@@ -46,6 +59,8 @@ class KopierVilkårServiceTest {
     init {
         every { medlemskapRepository.insertAll(capture(medlemskapInsert)) } answers { firstArg() }
         every { diagnoseRepository.insertAll(capture(diagnoseInsert)) } answers { firstArg() }
+        every { ekstrautgifterRepository.findByBehandlingId(any()) } returns emptyList()
+        every { ekstrautgifterRepository.insertAll(any()) } answers { firstArg() }
     }
 
     @Test

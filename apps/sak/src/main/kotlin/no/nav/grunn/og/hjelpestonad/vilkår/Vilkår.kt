@@ -13,6 +13,9 @@ enum class VilkårType {
 
     /** ftrl. § 6-2 — varig sykdom, skade eller lyte, dokumentert ved diagnose. */
     DIAGNOSE,
+
+    /** ftrl. § 6-3 — nødvendige ekstrautgifter, som avgjør om søker har rett og hvilken sats. */
+    NØDVENDIGE_EKSTRAUTGIFTER,
 }
 
 enum class Vurdering {

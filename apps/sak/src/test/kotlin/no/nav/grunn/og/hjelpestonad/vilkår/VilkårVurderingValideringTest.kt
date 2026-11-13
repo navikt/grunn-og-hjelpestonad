@@ -38,10 +38,11 @@ class VilkårVurderingValideringTest {
     }
 
     @Test
-    fun `R1 - ingen vurderte perioder gir én feil per vilkår`() {
+    fun `R1 - ingen vurderte perioder gir én feil per inngangsvilkår`() {
         val feil = VilkårVurderingValidering.valider(VurderteInngangsvilkår(behandlingId, emptyList(), emptyList()))
 
-        assertThat(feil.map { it.vilkårType }).containsExactlyInAnyOrder(*VilkårType.entries.toTypedArray())
+        assertThat(feil.map { it.vilkårType })
+            .containsExactlyInAnyOrder(VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN, VilkårType.DIAGNOSE)
         assertThat(feil.map { it.melding }).doesNotContainNull()
     }
 
