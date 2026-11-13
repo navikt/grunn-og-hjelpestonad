@@ -14,6 +14,7 @@ Spec: [spec.md](../spec.md)
 - [ ] Når det ikke er rett i noen måned, hopper steg 1 over steg 2, se ADR-0014. I en revurdering må tilkjent ytelse uten andeler likevel lagres, slik at oppdrag stopper utbetalingen. Avgjør om fullføringen av steg 1 eller simuleringen lagrer den.
 - [ ] Vedtakssteget regner ikke ut tilkjent ytelse.
 - [ ] Valideringsfeil returneres med 400 i samme format som i steg 1, med lokal exception handler på kontrolleren.
+- [ ] Fullføringen sjekker på nytt at hver diagnose i ekstrautgiftene er vurdert til `JA` i hele perioden. Steg 1 kan endres etter at ekstrautgiftene er lagret, og kopieringen tar ikke med diagnoser vurdert til `NEI`. Bruk regelen i `EkstrautgifterRegler`, se ADR-0016.
 - [ ] Endringshistorikken får en ny endringstype for fullført sats og trygdetid, med antall andeler og datoer, uten diagnose.
 - [ ] Neste i steg 2 kaller endepunktet, viser feilene i `ErrorSummary`, også feilen for trygdetid som ikke har en vilkårstype, og går videre til simulering ved suksess. Knappen er deaktivert mens kallet pågår.
 - [ ] Testen av steg-servicen sjekker tilgang, rekkefølgen hent → utled → slett → lagre, og endringshistorikk.
