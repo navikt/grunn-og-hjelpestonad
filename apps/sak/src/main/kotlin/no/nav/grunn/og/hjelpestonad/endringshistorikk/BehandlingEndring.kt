@@ -23,6 +23,9 @@ enum class EndringType {
     BESLUTTER_GODKJENT,
     BESLUTTER_UNDERKJENT,
     BEHANDLING_HENLAGT,
+    TRYGDETID_OPPRETTET,
+    TRYGDETID_OPPDATERT,
+    TRYGDETID_SLETTET,
 }
 
 @Table("behandling_endring")
