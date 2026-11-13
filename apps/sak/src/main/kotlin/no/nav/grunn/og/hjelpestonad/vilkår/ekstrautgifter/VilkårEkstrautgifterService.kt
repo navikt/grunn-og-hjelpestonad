@@ -1,9 +1,11 @@
 package no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
+import no.nav.grunn.og.hjelpestonad.felles.periode.Endringstyper
+import no.nav.grunn.og.hjelpestonad.felles.periode.PeriodeMedBegrunnelseService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
-import no.nav.grunn.og.hjelpestonad.vilkår.VilkårPeriodeService
 import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
 import org.springframework.stereotype.Service
@@ -16,13 +18,27 @@ class VilkårEkstrautgifterService(
     endringshistorikkService: EndringshistorikkService,
     ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val vilkårDiagnoseService: VilkårDiagnoseService,
-) : VilkårPeriodeService<VilkårEkstrautgifter, VilkårEkstrautgifterRequest>(
+) : PeriodeMedBegrunnelseService<VilkårEkstrautgifter, VilkårEkstrautgifterRequest>(
         vilkårEkstrautgifterRepository,
         behandlingService,
         endringshistorikkService,
         ansvarligSaksbehandlerService,
+        Endringstyper(
+            opprettet = EndringType.VILKÅR_VURDERING_OPPRETTET,
+            oppdatert = EndringType.VILKÅR_VURDERING_OPPDATERT,
+            slettet = EndringType.VILKÅR_VURDERING_SLETTET,
+        ),
     ) {
-    override val vilkårType = VilkårType.NØDVENDIGE_EKSTRAUTGIFTER
+    private val vilkårType = VilkårType.NØDVENDIGE_EKSTRAUTGIFTER
+
+    override val periodebeskrivelse = "vilkårsvurdering for ${vilkårType.name}"
+
+    /** Bare perioder vurdert til ja kopieres. */
+    override fun skalKopieres(periode: VilkårEkstrautgifter) = periode.erVilkårOppfylt()
+
+    override fun endringsdetalj(periode: VilkårEkstrautgifter) =
+        periode.sats?.let { "${vilkårType.name}, Sats: ${it.nummer}" }
+            ?: "${vilkårType.name}, Vurdering: ${periode.vurdering.name}"
 
     override fun nyPeriode(
         behandlingId: UUID,
@@ -47,6 +63,4 @@ class VilkårEkstrautgifterService(
         lagret = eksisterendePeriode,
         diagnosePerioder = vilkårDiagnoseService.hentPerioder(behandlingId),
     )
-
-    override fun endringsdetalj(periode: VilkårEkstrautgifter) = periode.sats?.let { "${vilkårType.name}, Sats: ${it.nummer}" } ?: super.endringsdetalj(periode)
 }

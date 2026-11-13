@@ -82,6 +82,7 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
 
+        validerBegrunnelse(request.begrunnelse)
         val eksisterendePeriode = request.id?.let { hentPeriodePåBehandling(behandlingId, it) }
         valider(request = request, behandlingId = behandlingId, eksisterendePeriode = eksisterendePeriode)
         val periode = eksisterendePeriode?.oppdaterMed(request) ?: nyPeriode(behandlingId, request)

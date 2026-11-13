@@ -5,14 +5,11 @@ import efterlatte.prosessering.TaskType
 import efterlatte.prosessering.spring.TaskService
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
-import no.nav.grunn.og.hjelpestonad.behandling.LagBehandleSakOppgaveTask
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.Årsak
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandling
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandlingService
@@ -20,7 +17,6 @@ import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
@@ -29,6 +25,7 @@ import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
 import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTask
 import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTaskData
+import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTask
 import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
 import no.nav.grunn.og.hjelpestonad.vedtak.AktivitetstypeBarnetilsyn
@@ -52,7 +49,6 @@ class BeslutterServiceTest {
     private val oppgaveService = mockk<OppgaveService>(relaxed = true)
     private val totrinnskontrollService = mockk<TotrinnskontrollService>(relaxed = true)
     private val taskService = mockk<TaskService>(relaxed = true)
-    private val lagBehandleSakOppgaveTask = mockk<LagBehandleSakOppgaveTask>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val vedtakService = mockk<VedtakService>(relaxed = true)
     private val årsakBehandlingService = mockk<ÅrsakBehandlingService>(relaxed = true)
@@ -65,7 +61,6 @@ class BeslutterServiceTest {
             oppgaveService = oppgaveService,
             totrinnskontrollService = totrinnskontrollService,
             taskService = taskService,
-            lagBehandleSakOppgaveTask = lagBehandleSakOppgaveTask,
             ansvarligSaksbehandlerService = ansvarligSaksbehandlerService,
             vedtakService = vedtakService,
             årsakBehandlingService = årsakBehandlingService,
@@ -104,18 +99,6 @@ class BeslutterServiceTest {
             IkkeAnsvarligSaksbehandlerFeil("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
 
         assertThatThrownBy { beslutterService.sendTilBeslutter(behandlingId) }
-            .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
-            .hasMessageContaining("ikke ansvarlig saksbehandler")
-    }
-
-    @Test
-    fun `angreSendTilBeslutter kaster ManglerTilgang når bruker ikke er ansvarlig saksbehandler`() {
-        val behandlingId = UUID.randomUUID()
-
-        every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
-            IkkeAnsvarligSaksbehandlerFeil("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
-
-        assertThatThrownBy { beslutterService.angreSendTilBeslutter(behandlingId) }
             .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }
@@ -172,43 +155,19 @@ class BeslutterServiceTest {
     }
 
     @Test
-    fun `angreSendTilBeslutter avvises når behandlingen ikke venter på beslutning`() {
-        listOf(
-            BehandlingStatus.UTREDES to OppgavetypeEYO.BEH_SAK,
-            // Etter godkjenning er siste oppgave fortsatt GOD_VED
-            BehandlingStatus.FERDIGSTILT to OppgavetypeEYO.GOD_VED,
-            // Sendt til beslutter, men GOD_VED-oppgaven er ikke opprettet ennå
-            BehandlingStatus.FATTER_VEDTAK to OppgavetypeEYO.BEH_SAK,
-        ).forEach { (status, oppgavetype) ->
-            val behandlingId = UUID.randomUUID()
-            every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, status)
-            every { oppgaveService.hentAktivOppgavetype(behandlingId) } returns oppgavetype
-
-            assertThatThrownBy { beslutterService.angreSendTilBeslutter(behandlingId) }
-                .isInstanceOfSatisfying(Feil::class.java) {
-                    assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
-                    assertThat(it.melding)
-                        .isEqualTo("Kan ikke angre send til beslutter fordi behandlingen ikke venter på beslutning.")
-                }
-
-            verifyIngenEndringer()
-        }
-    }
-
-    @Test
-    fun `angreSendTilBeslutter setter behandlingen tilbake til UTREDES når den venter på beslutning`() {
+    fun `underkjent vedtak sendes tilbake til saksbehandler`() {
         val behandlingId = UUID.randomUUID()
-        val behandling = behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
-        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling
-        every { oppgaveService.hentAktivOppgavetype(behandlingId) } returns OppgavetypeEYO.GOD_VED
-        mockkObject(SikkerhetContext)
-        every { SikkerhetContext.hentSaksbehandler() } returns "Z123456"
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
+        every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
 
-        try {
-            beslutterService.angreSendTilBeslutter(behandlingId)
-        } finally {
-            unmockkObject(SikkerhetContext)
-        }
+        beslutterService.besluttVedtak(
+            behandlingId,
+            BeslutteVedtakRequest(
+                godkjent = false,
+                årsakUnderkjent = ÅrsakUnderkjent.VILKÅR,
+                begrunnelse = "Vilkår må vurderes på nytt",
+            ),
+        )
 
         verify {
             taskService.opprett(
@@ -220,9 +179,20 @@ class BeslutterServiceTest {
                 any(),
             )
         }
-        verify { lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(behandling, "Z123456") }
         verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.UTREDES) }
-        verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.ANGRET_SEND_TIL_BESLUTTER) }
+        verify { endringshistorikkService.registrerUnderkjennelse(behandlingId, ÅrsakUnderkjent.VILKÅR, "Vilkår må vurderes på nytt") }
+        verify {
+            taskService.opprett(
+                OpprettOppgaveTask.TYPE,
+                match<OpprettOppgaveTaskData> {
+                    it.behandlingId == behandlingId &&
+                        it.oppgavetype == OppgavetypeEYO.BEH_UND_VED &&
+                        it.tilordnetSaksbehandler == "Z123456"
+                },
+                any(),
+                any(),
+            )
+        }
     }
 
     @Test
@@ -259,7 +229,6 @@ class BeslutterServiceTest {
         verify(exactly = 0) {
             taskService.opprett(any<TaskType<OpprettOppgaveTaskData>>(), any<OpprettOppgaveTaskData>(), any(), any())
         }
-        verify(exactly = 0) { lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(any(), any()) }
         verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any()) }
     }

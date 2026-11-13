@@ -1,9 +1,11 @@
 package no.nav.grunn.og.hjelpestonad.infotrygd
 
+import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.InfotrygdDelytelseResponse
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.InfotrygdEvaluering
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.InfotrygdGhResponse
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.InfotrygdStonadResponse
 import no.nav.grunn.og.hjelpestonad.infotrygd.kontrakt.InfotrygdVedtakResponse
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -22,6 +24,7 @@ object InfotrygdTestdata {
         vedtak = vedtak.toList(),
     )
 
+    /** Uten [delytelser] får vedtaket én delytelse med samme periode som vedtaket. */
     fun vedtak(
         vedtakId: Long,
         fom: String = "2020-01-01",
@@ -29,6 +32,7 @@ object InfotrygdTestdata {
         tidspunktReg: LocalDateTime = LocalDateTime.parse("2020-01-01T12:00:00").plusDays(vedtakId),
         evaluering: InfotrygdEvaluering? = null,
         gh: List<InfotrygdGhResponse> = emptyList(),
+        delytelser: List<InfotrygdDelytelseResponse> = listOf(delytelse(fom = fom, tom = tom)),
     ) = InfotrygdVedtakResponse(
         vedtakId = vedtakId,
         tknr = "0301",
@@ -44,9 +48,24 @@ object InfotrygdTestdata {
         tidspunktReg = tidspunktReg,
         brukerid = "Z123456",
         endringer = listOf("F"),
-        delytelser = emptyList(),
+        delytelser = delytelser,
         gh = gh,
         evaluering = evaluering,
+    )
+
+    fun delytelse(
+        fom: String = "2020-01-01",
+        tom: String? = null,
+        beløp: String = "800",
+    ) = InfotrygdDelytelseResponse(
+        typeDelytelse = "MG",
+        tidspunktReg = LocalDateTime.parse("2020-01-01T12:00:00"),
+        fom = LocalDate.parse(fom),
+        tom = tom?.let(LocalDate::parse),
+        beløp = BigDecimal(beløp),
+        typeSats = "M",
+        typeUtbetaling = "L",
+        brukerid = "Z123456",
     )
 
     fun evaluering(diagnose1: String = "E10.9") =

@@ -1,9 +1,11 @@
 package no.nav.grunn.og.hjelpestonad.vilkår.diagnose
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
+import no.nav.grunn.og.hjelpestonad.felles.periode.Endringstyper
+import no.nav.grunn.og.hjelpestonad.felles.periode.PeriodeMedBegrunnelseService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
-import no.nav.grunn.og.hjelpestonad.vilkår.VilkårPeriodeService
 import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -14,13 +16,23 @@ class VilkårDiagnoseService(
     behandlingService: BehandlingService,
     endringshistorikkService: EndringshistorikkService,
     ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
-) : VilkårPeriodeService<VilkårDiagnose, VilkårDiagnoseRequest>(
+) : PeriodeMedBegrunnelseService<VilkårDiagnose, VilkårDiagnoseRequest>(
         vilkårDiagnoseRepository,
         behandlingService,
         endringshistorikkService,
         ansvarligSaksbehandlerService,
+        Endringstyper(
+            opprettet = EndringType.VILKÅR_VURDERING_OPPRETTET,
+            oppdatert = EndringType.VILKÅR_VURDERING_OPPDATERT,
+            slettet = EndringType.VILKÅR_VURDERING_SLETTET,
+        ),
     ) {
-    override val vilkårType = VilkårType.DIAGNOSE
+    override val periodebeskrivelse = "vilkårsvurdering for ${VilkårType.DIAGNOSE.name}"
+
+    /** Bare perioder vurdert til ja kopieres. */
+    override fun skalKopieres(periode: VilkårDiagnose) = periode.erVilkårOppfylt()
+
+    override fun endringsdetalj(periode: VilkårDiagnose) = "${VilkårType.DIAGNOSE.name}, Vurdering: ${periode.vurdering.name}"
 
     override fun nyPeriode(
         behandlingId: UUID,

@@ -107,7 +107,7 @@ Ikke undersøkt: den gamle måten lager et nytt vedtak (`FI`) med virkningstidsp
 
 Gjeldende perioder fra ADR-0012 er den eneste kilden til perioder. Migreringen og «Gjeldende perioder» i frontend bruker de samme reglene, slik at saksbehandler ser i oppslaget hva migreringen vil gjøre. Migreringen legger bare til sjekker av den siste perioden. Sjekkene endrer ingen perioder.
 
-`apps/infotrygd` gir rådata. En ren funksjon i `sak` lager de gjeldende periodene og slår dem sammen. Vi lager ikke et endepunkt for sammenslåtte perioder i `apps/infotrygd`, slik EF-appen har.
+`apps/infotrygd` gir rådata. En ren funksjon i `sak` lager de gjeldende periodene. Vi slår ikke sammen like perioder og lager ikke et endepunkt for sammenslåtte perioder i `apps/infotrygd`, slik EF-appen har.
 
 Når dataene er uklare, gir vi heller én feil for mye. Det er lettere å endre reglene for når en migrering stopper, enn å rette en migrering som har gått galt.
 
@@ -119,7 +119,7 @@ Når dataene er uklare, gir vi heller én feil for mye. Det er lettere å endre 
 - Det nyeste vedtaket (høyest `vedtakId`) vinner, også på tvers av stønader. Et eldre vedtak gjelder igjen etter at et nyere slutter, som i ADR-0012. EF kutter i stedet alt etter fom på det nyere vedtaket. Forskjellen gjelder 5 stønader i dev, alle med siste vedtak mellom 2009 og 2020. En Infotrygd-ekspert bør bekrefte regelen.
 - Vedtak der alle endringskodene er `AN` (Annullert) eller `UA` (Uaktuell), er ikke med. `/stonader` filtrerer dem allerede bort.
 - Er stønaden ikke opphørt, men alle vedtakene er avsluttet, er saken avsluttet. Unntaket er når personens siste vedtak er på en slik stønad og slutter på eller etter datogrensen 2026-01-01. Da gir oppslaget og migreringen feil, se listen under. I dev gjelder det 427 stønader hos 419 personer, og bare 1 person får feil.
-- Perioder som følger etter hverandre, slås sammen når Infotrygd-beløp, sats, trygdetid, diagnose og hjemmelbokstav er like.
+- Like perioder som følger etter hverandre, slås ikke sammen (endret 2026-11-06, se ticket 27). Migreringen bruker bare siste periode. Er det to like perioder fremover i tid, stopper migreringen.
 
 Disse tilfellene gir feil, både i oppslaget og i migreringen. Vi vet ennå ikke hva som er riktig tolkning, og ser på dem når vi møter dem:
 

@@ -113,6 +113,16 @@ class VilkårEkstrautgifterServiceTest {
     }
 
     @Test
+    fun `lagrePeriode avviser begrunnelse over 2000 tegn før noe skrives`() {
+        assertThatThrownBy { service.lagrePeriode(behandlingId, request().copy(begrunnelse = "a".repeat(2001))) }
+            .isInstanceOf(UgyldigInput::class.java)
+
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
+    }
+
+    @Test
     fun `endringshistorikken viser satsen, men ikke diagnosen eller begrunnelsen`() {
         val detaljer = slot<String>()
         every { endringshistorikkService.registrerEndring(any(), any(), capture(detaljer)) } returns Unit

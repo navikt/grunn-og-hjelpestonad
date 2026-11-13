@@ -200,6 +200,13 @@ export const zOppdragSimuleringResponse = z.object({
     testandel: zTestandel.nullish()
 });
 
+export const zOppdragIverksettingResponse = z.object({
+    saksnummer: z.string(),
+    behandlingsId: z.string(),
+    antallPerioder: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    testandel: zTestandel.nullish()
+});
+
 export const zInfotrygdStonaderRequest = z.object({
     personident: z.string(),
     stønadstype: z.enum(['GRUNNSTØNAD', 'HJELPESTØNAD'])
@@ -299,7 +306,8 @@ export const zGjeldendeInfotrygdPeriode = z.object({
     fom: z.iso.date(),
     tom: z.iso.date().nullish(),
     stønadId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    vedtak: zInfotrygdVedtakMedArv
+    vedtak: zInfotrygdVedtakMedArv,
+    infotrygdBeløp: z.number()
 });
 
 export const zInfotrygdGjeldendePerioderResponse = z.object({
@@ -574,22 +582,9 @@ export const zVedtakResponse = z.object({
     beslutterIdent: z.string().nullish()
 });
 
-export const zSimuleringPeriodeResponse = z.object({
-    fom: z.iso.date(),
-    tom: z.iso.date(),
-    nyttBeløp: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    tidligereUtbetalt: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    resultat: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    feilutbetaling: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
-});
-
-export const zSimuleringResultatResponse = z.object({
-    perioder: z.array(zSimuleringPeriodeResponse),
-    fom: z.iso.date(),
-    tomSisteUtbetaling: z.iso.date(),
-    fomDatoNestePeriode: z.iso.date().nullish(),
-    etterbetaling: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    feilutbetaling: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+export const zOppdragStatusSvar = z.object({
+    status: z.string(),
+    melding: z.string().nullish()
 });
 
 export const zBehandlingEndringResponse = z.object({
@@ -598,7 +593,6 @@ export const zBehandlingEndringResponse = z.object({
     endringType: z.enum([
         'BEHANDLING_OPPRETTET',
         'SENDT_TIL_BESLUTTER',
-        'ANGRET_SEND_TIL_BESLUTTER',
         'VILKÅR_VURDERING_OPPRETTET',
         'VILKÅR_VURDERING_OPPDATERT',
         'VILKÅR_VURDERING_SLETTET',
@@ -687,15 +681,6 @@ export const zSøkPersonBody = zSøkRequest;
  */
 export const zSøkPersonResponse = zSøkeresultatResponse;
 
-export const zSimulerForBehandlingPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zSimulerForBehandlingResponse = z.string();
-
 export const zHentJournalPostForBrukerIdBody = zHentDokumenterRequest;
 
 /**
@@ -732,6 +717,15 @@ export const zSimulerMotOppdragPath = z.object({
  * OK
  */
 export const zSimulerMotOppdragResponse = zOppdragSimuleringResponse;
+
+export const zIverksettMotOppdragPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zIverksettMotOppdragResponse = zOppdragIverksettingResponse;
 
 export const zLagIverksettVedtaksbrevTaskPath = z.object({
     behandlingId: z.uuid()
@@ -824,15 +818,6 @@ export const zBesluttVedtakPath = z.object({
  * OK
  */
 export const zBesluttVedtakResponse = z.record(z.string(), z.string());
-
-export const zAngreSendTilBeslutterPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zAngreSendTilBeslutterResponse = z.record(z.string(), z.string());
 
 export const zHentMedlemskapPerioderPath = z.object({
     behandlingId: z.uuid()
@@ -997,15 +982,6 @@ export const zSøkPersonMedFagsakPersonIdPath = z.object({
  */
 export const zSøkPersonMedFagsakPersonIdResponse = zSøkeresultatResponse;
 
-export const zHentSimuleringsresultatPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zHentSimuleringsresultatResponse = zSimuleringResultatResponse;
-
 export const zHentDokumentSomPdfPath = z.object({
     journalpostId: z.string(),
     dokumentInfoId: z.string()
@@ -1033,6 +1009,15 @@ export const zHentDokumentSomPdf1Query = z.object({
  * OK
  */
 export const zHentDokumentSomPdf1Response = z.string();
+
+export const zHentOppdragStatusPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zHentOppdragStatusResponse = zOppdragStatusSvar;
 
 export const zHentFagsakPath = z.object({
     fagsakPersonId: z.uuid(),

@@ -34,6 +34,8 @@ class OppdragClientTest {
         private lateinit var wireMockServer: WireMockServer
         private const val SCOPE = "api://test-oppdrag/.default"
         private const val PATH = "/api/simulering/v1"
+        private const val IVERKSETT_PATH = "/api/oppdrag"
+        private const val STATUS_PATH = "/api/status"
 
         @BeforeAll
         @JvmStatic
@@ -53,15 +55,15 @@ class OppdragClientTest {
     private lateinit var client: OppdragClient
 
     private val utbetalingsoppdrag =
-        lagUtbetalingsoppdragForSimulering(
-            SimuleringsgrunnlagOppdrag(
+        lagUtbetalingsoppdrag(
+            Oppdragsgrunnlag(
                 behandlingId = UUID.randomUUID(),
                 eksternBehandlingId = 1L,
                 eksternFagsakId = 2L,
                 personIdent = "12345678910",
                 saksbehandlerId = "Z123456",
                 vedtaksdato = LocalDate.of(2026, 1, 15),
-                andeler =
+                andelerTilkjentYtelse =
                     listOf(
                         AndelTilkjentYtelse(
                             beløp = 1234.toBigDecimal(),
@@ -71,7 +73,7 @@ class OppdragClientTest {
                         ),
                     ),
             ),
-        )
+        ).utbetalingsoppdrag
 
     @BeforeEach
     fun setup() {
@@ -96,9 +98,10 @@ class OppdragClientTest {
         body: String,
         status: Int = 200,
         forsinkelseMs: Int = 0,
+        path: String = PATH,
     ) {
         wireMockServer.stubFor(
-            post(urlEqualTo(PATH)).willReturn(
+            post(urlEqualTo(path)).willReturn(
                 aResponse()
                     .withStatus(status)
                     .withFixedDelay(forsinkelseMs)
@@ -197,5 +200,72 @@ class OppdragClientTest {
         val feil = assertThrows(Feil::class.java) { client.simuler(utbetalingsoppdrag) }
 
         assertEquals(HttpStatus.BAD_GATEWAY, feil.httpStatus)
+    }
+
+    @Test
+    fun `iverksett sender oppdraget med OBO-token til api oppdrag`() {
+        stubSvar("""{"data": "Oppdrag sendt OK", "status": "SUKSESS", "melding": "Innhenting av data var vellykket"}""", path = IVERKSETT_PATH)
+
+        client.iverksett(utbetalingsoppdrag)
+
+        wireMockServer.verify(
+            postRequestedFor(urlEqualTo(IVERKSETT_PATH))
+                .withHeader("Authorization", equalTo("Bearer gyldig-token"))
+                .withRequestBody(matchingJsonPath("$.fagSystem", equalTo("IT28")))
+                .withRequestBody(matchingJsonPath("$.saksnummer", equalTo("2")))
+                .withRequestBody(matchingJsonPath("$.utbetalingsperiode[0].behandlingId", equalTo("1"))),
+        )
+    }
+
+    @Test
+    fun `iverksett gir conflict når oppdraget er sendt før`() {
+        stubSvar("""{"data": null, "status": "FEILET", "melding": "Oppdrag er allerede sendt for saksnr 2."}""", status = 409, path = IVERKSETT_PATH)
+
+        val feil = assertThrows(Feil::class.java) { client.iverksett(utbetalingsoppdrag) }
+
+        assertEquals(HttpStatus.CONFLICT, feil.httpStatus)
+    }
+
+    @Test
+    fun `iverksett gir bad gateway når familie-oppdrag-backend ikke klarer å sende`() {
+        stubSvar("""{"data": null, "status": "FEILET", "melding": "Klarte ikke sende oppdrag for saksnr 2"}""", status = 500, path = IVERKSETT_PATH)
+
+        val feil = assertThrows(Feil::class.java) { client.iverksett(utbetalingsoppdrag) }
+
+        assertEquals(HttpStatus.BAD_GATEWAY, feil.httpStatus)
+    }
+
+    @Test
+    fun `hentStatus sender OppdragId og leser status og kvitteringsmelding`() {
+        stubSvar("""{"data": "KVITTERT_OK", "status": "SUKSESS", "melding": "Oppdrag behandlet"}""", path = STATUS_PATH)
+
+        val svar = client.hentStatus(OppdragId(fagsystem = "IT28", personIdent = "12345678910", behandlingsId = "1"))
+
+        assertEquals(OppdragStatusSvar(status = "KVITTERT_OK", melding = "Oppdrag behandlet"), svar)
+        wireMockServer.verify(
+            postRequestedFor(urlEqualTo(STATUS_PATH))
+                .withHeader("Authorization", equalTo("Bearer gyldig-token"))
+                .withRequestBody(matchingJsonPath("$.fagsystem", equalTo("IT28")))
+                .withRequestBody(matchingJsonPath("$.personIdent", equalTo("12345678910")))
+                .withRequestBody(matchingJsonPath("$.behandlingsId", equalTo("1"))),
+        )
+    }
+
+    @Test
+    fun `hentStatus gir melding null når kvitteringen mangler beskrivelse`() {
+        stubSvar("""{"data": "LAGT_PÅ_KØ", "status": "SUKSESS", "melding": ""}""", path = STATUS_PATH)
+
+        val svar = client.hentStatus(OppdragId(fagsystem = "IT28", personIdent = "12345678910", behandlingsId = "1"))
+
+        assertEquals(OppdragStatusSvar(status = "LAGT_PÅ_KØ", melding = null), svar)
+    }
+
+    @Test
+    fun `hentStatus gir not found når oppdraget ikke finnes`() {
+        stubSvar("""{"data": null, "status": "FEILET", "melding": "Fant ikke oppdrag"}""", status = 404, path = STATUS_PATH)
+
+        val feil = assertThrows(Feil::class.java) { client.hentStatus(OppdragId(fagsystem = "IT28", personIdent = "12345678910", behandlingsId = "1")) }
+
+        assertEquals(HttpStatus.NOT_FOUND, feil.httpStatus)
     }
 }

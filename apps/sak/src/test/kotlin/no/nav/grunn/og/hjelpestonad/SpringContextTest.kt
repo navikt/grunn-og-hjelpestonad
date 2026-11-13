@@ -6,6 +6,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandling
 import no.nav.grunn.og.hjelpestonad.brev.Brev
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.Fagsak
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.FagsakPerson
+import no.nav.grunn.og.hjelpestonad.oppdrag.OppdragResultat
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
 import org.junit.jupiter.api.AfterEach
@@ -39,6 +40,7 @@ open class SpringContextTest {
     }
 
     private fun resetDatabase() {
+        jdbcAggregateOperations.deleteAll(OppdragResultat::class.java)
         jdbcAggregateOperations.deleteAll(TilkjentYtelse::class.java)
         jdbcAggregateOperations.deleteAll(Vedtak::class.java)
         jdbcAggregateOperations.deleteAll(ÅrsakBehandling::class.java)
