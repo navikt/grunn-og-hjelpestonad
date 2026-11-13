@@ -8,9 +8,9 @@ CREATE TABLE trygdetid
     fra_og_med_dato DATE,
     til_og_med_dato DATE,
     opprettet_av    TEXT         NOT NULL,
-    opprettet_tid   TIMESTAMP(3) NOT NULL,
+    opprettet_tid   TIMESTAMP    NOT NULL,
     endret_av       TEXT         NOT NULL,
-    endret_tid      TIMESTAMP(3) NOT NULL,
+    endret_tid      TIMESTAMP    NOT NULL,
     CONSTRAINT trygdetid_teller_omraade
         CHECK (teller BETWEEN 0 AND 40),
     CONSTRAINT trygdetid_kilde_gyldig
