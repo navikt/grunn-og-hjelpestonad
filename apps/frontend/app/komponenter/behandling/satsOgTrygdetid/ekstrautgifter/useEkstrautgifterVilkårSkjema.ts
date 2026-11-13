@@ -38,7 +38,6 @@ export interface EkstrautgiftRad {
   diagnosekoder: string[];
 }
 
-/** Feil på én rad. Hver melding har radnummer, så samme tekst brukes i raden og i feiloppsummeringen. */
 export interface EkstrautgiftRadfeil {
   hjemmelbokstav?: string;
   diagnoser?: string;
@@ -57,12 +56,10 @@ function radfeilFra(rader: EkstrautgiftRad[]): EkstrautgiftRadfeil[] {
   }));
 }
 
-/** Feil for hele listen. Gjelder bare når ja er valgt og det ikke finnes rader. */
 function listefeilFra(vurdering: Vurdering | "", rader: EkstrautgiftRad[]): string | undefined {
   return vurdering === Vurdering.JA && rader.length === 0 ? EKSTRAUTGIFT_MANGLER_FEIL : undefined;
 }
 
-/** Første feil, brukt til å blokkere lagring. */
 function ekstrautgifterFeil(
   vurdering: Vurdering | "",
   rader: EkstrautgiftRad[]
