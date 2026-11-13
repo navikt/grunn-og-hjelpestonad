@@ -7,6 +7,7 @@ import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
+import no.nav.grunn.og.hjelpestonad.felles.periode.PeriodeMedBegrunnelseService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
@@ -24,7 +25,7 @@ import java.util.UUID
 import kotlin.test.Test
 
 /**
- * Dekker livssyklusen som ligger i [VilkårPeriodeService] og deles av alle vilkårene.
+ * Dekker livssyklusen som ligger i [PeriodeMedBegrunnelseService] og deles av alle vilkårene.
  * Medlemskap er valgt som representant fordi det ikke har vilkårsspesifikke særregler.
  */
 class VilkårMedlemskapServiceTest {
