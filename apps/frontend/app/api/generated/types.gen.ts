@@ -5,7 +5,7 @@ export type ClientOptions = {
 };
 
 export type Valideringsfeil = {
-    vilkårType: 'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN' | 'DIAGNOSE';
+    vilkårType: 'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN' | 'DIAGNOSE' | 'NØDVENDIGE_EKSTRAUTGIFTER';
     melding: string;
 };
 
@@ -345,6 +345,33 @@ export type VilkårMedlemskapResponse = {
     behandlingId: string;
     regelverk: 'NASJONALE_REGLER' | 'EØS_FORORDNINGEN';
     vurdering: 'JA' | 'NEI';
+    begrunnelse: string;
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+    erVilkårOppfylt: boolean;
+};
+
+export type Ekstrautgift = {
+    hjemmelbokstav: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H';
+    diagnosekoder: Array<string>;
+};
+
+export type VilkårEkstrautgifterRequest = {
+    id?: string | null;
+    vurdering: 'JA' | 'NEI';
+    sats?: 'SATS_1' | 'SATS_2' | 'SATS_3' | 'SATS_4' | 'SATS_5' | 'SATS_6' | null;
+    ekstrautgifter: Array<Ekstrautgift>;
+    begrunnelse: string;
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+};
+
+export type VilkårEkstrautgifterResponse = {
+    id: string;
+    behandlingId: string;
+    vurdering: 'JA' | 'NEI';
+    sats?: 'SATS_1' | 'SATS_2' | 'SATS_3' | 'SATS_4' | 'SATS_5' | 'SATS_6' | null;
+    ekstrautgifter: Array<Ekstrautgift>;
     begrunnelse: string;
     fraOgMedDato?: string | null;
     tilOgMedDato?: string | null;
@@ -811,6 +838,36 @@ export type LagreMedlemskapPeriodeResponses = {
 
 export type LagreMedlemskapPeriodeResponse = LagreMedlemskapPeriodeResponses[keyof LagreMedlemskapPeriodeResponses];
 
+export type HentEkstrautgifterPerioderData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/ekstrautgifter';
+};
+
+export type HentEkstrautgifterPerioderResponses = {
+    200: Array<VilkårEkstrautgifterResponse>;
+};
+
+export type HentEkstrautgifterPerioderResponse = HentEkstrautgifterPerioderResponses[keyof HentEkstrautgifterPerioderResponses];
+
+export type LagreEkstrautgifterPeriodeData = {
+    body: VilkårEkstrautgifterRequest;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/ekstrautgifter';
+};
+
+export type LagreEkstrautgifterPeriodeResponses = {
+    200: VilkårEkstrautgifterResponse;
+};
+
+export type LagreEkstrautgifterPeriodeResponse = LagreEkstrautgifterPeriodeResponses[keyof LagreEkstrautgifterPeriodeResponses];
+
 export type HentDiagnosePerioderData = {
     body?: never;
     path: {
@@ -1207,6 +1264,20 @@ export type SlettMedlemskapPeriodeData = {
 };
 
 export type SlettMedlemskapPeriodeResponses = {
+    200: unknown;
+};
+
+export type SlettEkstrautgifterPeriodeData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+        vilkårPeriodeId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/vilkar/ekstrautgifter/{vilkårPeriodeId}';
+};
+
+export type SlettEkstrautgifterPeriodeResponses = {
     200: unknown;
 };
 

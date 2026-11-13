@@ -10,6 +10,7 @@ export interface Valideringsfeil {
 const nøkkelForVilkårType: Record<ValideringsfeilResponse["vilkårType"], VilkårNøkkel> = {
   MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN: "medlemskap",
   DIAGNOSE: "diagnose",
+  NØDVENDIGE_EKSTRAUTGIFTER: "ekstrautgifter",
 };
 
 /**

@@ -47,6 +47,9 @@ export type Skjemafeil<EkstraFelt extends string = never> = Partial<
 
 const UGYLDIG_DATO = "Skriv datoen som dd.mm.åååå, for eksempel 01.03.2026.";
 
+/** Eksporteres så kallere kan skille denne feilen fra en ugyldig dato. */
+export const FRA_OG_MED_PÅKREVD = "Du må fylle inn fra og med-datoen.";
+
 function oppdaterSkjemafeil<Felt extends string>(
   forrige: Skjemafeil<Felt>,
   felt: FellesFelt | Felt,
@@ -66,7 +69,12 @@ function oppdaterSkjemafeil<Felt extends string>(
 }
 
 export function useVilkårSkjema<EkstraFelt extends string = never>(
-  ekstraValidering?: () => Skjemafeil<EkstraFelt>
+  ekstraValidering?: (vurdering: Vurdering | "") => Skjemafeil<EkstraFelt>,
+  innstillinger?: {
+    fraOgMedPåkrevd?: (vurdering: Vurdering | "") => boolean;
+    /** Feilmelding når vurderingen mangler. Standard er Ja/Nei-teksten. */
+    vurderingPåkrevdFeil?: string;
+  }
 ) {
   const [erÅpent, settErÅpent] = useState(false);
   const [redigererId, settRedigererId] = useState<string | null>(null);
@@ -127,7 +135,9 @@ export function useVilkårSkjema<EkstraFelt extends string = never>(
     const nyeFeil: Skjemafeil<EkstraFelt> = {};
 
     if (vurdering === "") {
-      nyeFeil.vurdering = "Du må velge Ja eller Nei på om vilkåret er oppfylt.";
+      nyeFeil.vurdering =
+        innstillinger?.vurderingPåkrevdFeil ??
+        "Du må velge Ja eller Nei på om vilkåret er oppfylt.";
     }
 
     const fra = datovalidering.current?.from;
@@ -135,6 +145,10 @@ export function useVilkårSkjema<EkstraFelt extends string = never>(
 
     if (fra && !fra.isEmpty && !fra.isValidDate) {
       nyeFeil.fraOgMed = `Fra og med-datoen er ikke gyldig. ${UGYLDIG_DATO}`;
+    }
+
+    if (innstillinger?.fraOgMedPåkrevd?.(vurdering) && !selectedRange?.from && !nyeFeil.fraOgMed) {
+      nyeFeil.fraOgMed = FRA_OG_MED_PÅKREVD;
     }
 
     const førFraOgMed =
@@ -150,7 +164,7 @@ export function useVilkårSkjema<EkstraFelt extends string = never>(
       nyeFeil.tilOgMed = førFraOgMed;
     }
 
-    return { ...nyeFeil, ...ekstraValidering?.() };
+    return { ...nyeFeil, ...ekstraValidering?.(vurdering) };
   };
 
   const validerFelt = (felt: FellesFelt | EkstraFelt) => {

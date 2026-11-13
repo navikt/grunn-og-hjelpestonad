@@ -69,6 +69,18 @@ export const søkPerson = <ThrowOnError extends boolean = false>(options: Option
     }
 });
 
+export const simulerForBehandling = <ThrowOnError extends boolean = false>(options: Options<SimulerForBehandlingData, ThrowOnError>): RequestResult<SimulerForBehandlingResponses, unknown, ThrowOnError> => (options.client ?? client).post<SimulerForBehandlingResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: z.never().optional(),
+        path: zSimulerForBehandlingPath,
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zSimulerForBehandlingResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/simulering/{behandlingId}',
+    ...options
+});
+
 export const hentJournalPostForBrukerId = <ThrowOnError extends boolean = false>(options: Options<HentJournalPostForBrukerIdData, ThrowOnError>): RequestResult<HentJournalPostForBrukerIdResponses, unknown, ThrowOnError> => (options.client ?? client).post<HentJournalPostForBrukerIdResponses, unknown, ThrowOnError>({
     requestValidator: async (data) => await z.object({
         body: zHentJournalPostForBrukerIdBody,
@@ -142,18 +154,6 @@ export const simulerMotOppdrag = <ThrowOnError extends boolean = false>(options:
     responseValidator: async (data) => await zSimulerMotOppdragResponse.parseAsync(data),
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/oppdrag/simulering/{behandlingId}',
-    ...options
-});
-
-export const iverksettMotOppdrag = <ThrowOnError extends boolean = false>(options: Options<IverksettMotOppdragData, ThrowOnError>): RequestResult<IverksettMotOppdragResponses, unknown, ThrowOnError> => (options.client ?? client).post<IverksettMotOppdragResponses, unknown, ThrowOnError>({
-    requestValidator: async (data) => await z.object({
-        body: z.never().optional(),
-        path: zIverksettMotOppdragPath,
-        query: z.never().optional()
-    }).parseAsync(data),
-    responseValidator: async (data) => await zIverksettMotOppdragResponse.parseAsync(data),
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/oppdrag/iverksetting/{behandlingId}',
     ...options
 });
 
@@ -349,6 +349,18 @@ export const besluttVedtak = <ThrowOnError extends boolean = false>(options: Opt
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+export const angreSendTilBeslutter = <ThrowOnError extends boolean = false>(options: Options<AngreSendTilBeslutterData, ThrowOnError>): RequestResult<AngreSendTilBeslutterResponses, unknown, ThrowOnError> => (options.client ?? client).post<AngreSendTilBeslutterResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: z.never().optional(),
+        path: zAngreSendTilBeslutterPath,
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zAngreSendTilBeslutterResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/beslutter/angre-send-til-beslutter/{behandlingId}',
+    ...options
 });
 
 export const hentMedlemskapPerioder = <ThrowOnError extends boolean = false>(options: Options<HentMedlemskapPerioderData, ThrowOnError>): RequestResult<HentMedlemskapPerioderResponses, unknown, ThrowOnError> => (options.client ?? client).get<HentMedlemskapPerioderResponses, unknown, ThrowOnError>({
@@ -592,6 +604,18 @@ export const søkPersonMedFagsakPersonId = <ThrowOnError extends boolean = false
     ...options
 });
 
+export const hentSimuleringsresultat = <ThrowOnError extends boolean = false>(options: Options<HentSimuleringsresultatData, ThrowOnError>): RequestResult<HentSimuleringsresultatResponses, unknown, ThrowOnError> => (options.client ?? client).get<HentSimuleringsresultatResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: z.never().optional(),
+        path: zHentSimuleringsresultatPath,
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zHentSimuleringsresultatResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/simulering/{behandlingId}/resultat',
+    ...options
+});
+
 export const hentDokumentSomPdf = <ThrowOnError extends boolean = false>(options: Options<HentDokumentSomPdfData, ThrowOnError>): RequestResult<HentDokumentSomPdfResponses, unknown, ThrowOnError> => (options.client ?? client).get<HentDokumentSomPdfResponses, unknown, ThrowOnError>({
     requestValidator: async (data) => await z.object({
         body: z.never().optional(),
@@ -613,18 +637,6 @@ export const hentDokumentSomPdf1 = <ThrowOnError extends boolean = false>(option
     responseValidator: async (data) => await zHentDokumentSomPdf1Response.parseAsync(data),
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/saf/{journalpostId}/dokument-pdf/{dokumentInfoId}',
-    ...options
-});
-
-export const hentOppdragStatus = <ThrowOnError extends boolean = false>(options: Options<HentOppdragStatusData, ThrowOnError>): RequestResult<HentOppdragStatusResponses, unknown, ThrowOnError> => (options.client ?? client).get<HentOppdragStatusResponses, unknown, ThrowOnError>({
-    requestValidator: async (data) => await z.object({
-        body: z.never().optional(),
-        path: zHentOppdragStatusPath,
-        query: z.never().optional()
-    }).parseAsync(data),
-    responseValidator: async (data) => await zHentOppdragStatusResponse.parseAsync(data),
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/oppdrag/iverksetting/{behandlingId}/status',
     ...options
 });
 
