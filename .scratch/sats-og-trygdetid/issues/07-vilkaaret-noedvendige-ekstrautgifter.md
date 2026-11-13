@@ -28,7 +28,7 @@ Modell B, se ADR-0016.
 - [x] Tabellene er `vilkar_ekstrautgifter` (vurdering, sats, begrunnelse, datoer) og `vilkar_ekstrautgift_diagnose` (én rad per bokstav og diagnose). CHECK-constraints krever fra og med-dato og sats ved `JA`, og ingen sats ellers. Ved `NEI` er fra og med-dato valgfri.
 - [x] Saksbehandler velger satsen. Systemet regner ikke ut noe.
 - [x] Reglene ved lagring ligger i `EkstrautgifterRegler`: sats og minst én ekstrautgift ved `JA`, minst én diagnose per ekstrautgift, ingen bokstav to ganger, bokstav d og e bare når perioden allerede har dem, og hver diagnose vurdert til `JA` i hele perioden.
-- [x] Endringshistorikken viser sats og hjemmelbokstaver, aldri diagnosekoden.
+- [x] Endringshistorikken viser sats når perioden har en sats, ellers vurderingen, samt perioden. Hjemmelbokstaver, diagnosekoder og begrunnelse tas ikke med.
 - [x] Bare perioder med `JA` kopieres.
 - [x] Steg 2 sender vurdering og sats per periode til utledningen i ticket 09. Bokstaver og diagnoser påvirker ikke beløpet.
 - [x] Flyten er testet i nettleseren.
@@ -37,4 +37,4 @@ Modell B, se ADR-0016.
 
 **2026-11-06:** Satt på vent til modellen er avklart i ticket 15.
 
-**2026-11-09:** Bygget etter modell B. Gjenstår: test av flyten i nettleseren. Den lokale databasen må nullstilles først, fordi den har en annen V52 fra variant A.
+**2026-11-09:** Bygget etter modell B. På dette tidspunktet gjensto test av flyten i nettleseren. Den lokale databasen måtte nullstilles først, fordi den hadde en annen V52 fra variant A. Se sjekklisten over for oppdatert teststatus.
