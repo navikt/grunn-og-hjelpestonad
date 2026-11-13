@@ -60,18 +60,18 @@ Reglene ligger i `EkstrautgifterRegler`, som ren kode etter ADR-0008:
 Et `NEI` kan ha ekstrautgifter. Da dokumenterer de hva som ble vurdert og ikke
 godkjent.
 
-### Endringshistorikken viser sats og bokstaver, aldri diagnosekoden
+### Endringshistorikken viser sats, aldri hjemmelbokstaver eller diagnosekoder
 
 Koblingen mellom en ekstrautgift og en diagnose er en helseopplysning etter
-GDPR artikkel 9. Endringshistorikken viser derfor sats og hjemmelbokstaver,
-men ikke diagnosekodene. Hooken `flereEndringsdetaljer` i
-`PeriodeMedBegrunnelseService` tar bare enum-verdier, slik at fritekst og koder
-ikke kan havne der ved et uhell.
+GDPR artikkel 9. Bokstavene c (førerhund), f (fordyret kosthold) og h
+(servicehund) sier også noe om helsen til søker. Endringshistorikken viser
+verken hjemmelbokstaver, diagnosekoder eller begrunnelse. Den viser sats når
+perioden har en sats, ellers vurderingen (`JA` eller `NEI`), samt perioden.
 
-Bokstavene c (førerhund), f (fordyret kosthold) og h (servicehund) sier noe om
-helsen til søker, også uten diagnosekoden. Vi tar dem likevel med, fordi
-endringshistorikken har samme lesere og samme tilgangssjekk som vilkåret selv.
-Den som ser historikken, ser også vurderingen med diagnosene.
+`VilkårEkstrautgifterService.endringsdetalj` bygger teksten av faste felter.
+Hooken `endringsdetalj` i `PeriodeMedBegrunnelseService` returnerer en `String`.
+Det er feltene underklassene bruker, ikke typen, som holder fritekst og
+diagnosekoder ute av historikken.
 
 ### Kopiering og migrering
 
