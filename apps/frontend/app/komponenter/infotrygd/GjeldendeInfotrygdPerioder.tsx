@@ -1,13 +1,22 @@
 import React from "react";
 import { BodyShort, Box, Heading, HStack, LocalAlert, Table, Tag, VStack } from "@navikt/ds-react";
 import type { InfotrygdGjeldendePerioderResponse } from "~/api/generated/types.gen";
+import { formaterBelop } from "~/utils/utils";
 import { erMotstridende, ingenBryting, TomtFelt, UlikeVerdier, VerdiMedKilde } from "./celler";
 import { formaterDato, formaterPeriode } from "./formatering";
 import { nyesteGhFørst } from "./vedtaksrader";
 
 type GjeldendePeriode = InfotrygdGjeldendePerioderResponse["perioder"][number];
 
-const KOLONNER = ["Periode", "Sats", "Trygdetid", "Diagnose", "Bokstav i § 6-3", "Vedtatt"];
+const KOLONNER = [
+  "Periode",
+  "Beløp",
+  "Sats",
+  "Trygdetid",
+  "Diagnose",
+  "Bokstav i § 6-3",
+  "Vedtatt",
+];
 
 const nyesteFomFørst = (a: GjeldendePeriode, b: GjeldendePeriode): number =>
   b.fom.localeCompare(a.fom);
@@ -39,6 +48,7 @@ function PeriodeRad({ periode }: { periode: GjeldendePeriode }) {
           )}
         </HStack>
       </Table.DataCell>
+      <Table.DataCell style={ingenBryting}>{formaterBelop(periode.infotrygdBeløp)}</Table.DataCell>
       <Table.DataCell>
         {sats != null ? <VerdiMedKilde kilde={ghKilde}>{sats}</VerdiMedKilde> : <TomtFelt />}
       </Table.DataCell>

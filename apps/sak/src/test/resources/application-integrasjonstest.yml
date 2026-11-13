@@ -1,13 +1,10 @@
-# Integrasjonstest konfigurasjon
-# Minimal konfig for integrasjonstester - kun datasource og Unleash greier
-
-# Spring konfigurasjon
 spring:
     main:
         allow-bean-definition-overriding: true
     kafka:
-        security:
-            protocol: PLAINTEXT
+        properties:
+            security:
+                protocol: PLAINTEXT
     datasource:
         driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
         url: jdbc:tc:postgresql:17:///testdb
@@ -79,13 +76,10 @@ unleash:
         env: development
         token: ${UNLEASH_SERVER_API_TOKEN:test_token}
 
-# Kafka (dummy-verdier for tester)
+KAFKA_BROKERS: localhost:9092
+KAFKA_KEYSTORE_PATH: ""
+KAFKA_TRUSTSTORE_PATH: ""
+KAFKA_CREDSTORE_PASSWORD: ""
 KAFKA_SCHEMA_REGISTRY: http://localhost:8081
 KAFKA_SCHEMA_REGISTRY_USER: test-user
 KAFKA_SCHEMA_REGISTRY_PASSWORD: test-password
-
-app:
-    utbetaling:
-        utbetaling-topic: test.utbetaling-bs.v1
-        status-topic: test.status-bs.v1
-        simulering-response-topic: test.dryrun-bs.v1

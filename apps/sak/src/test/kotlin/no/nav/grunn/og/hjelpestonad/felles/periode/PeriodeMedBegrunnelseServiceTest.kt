@@ -189,7 +189,7 @@ class PeriodeMedBegrunnelseServiceTest {
 
         // Andre typer enn VILKÅR_VURDERING_*, slik at testen viser at servicen ikke har dem hardkodet.
         val OPPRETTET = EndringType.SENDT_TIL_BESLUTTER
-        val OPPDATERT = EndringType.ANGRET_SEND_TIL_BESLUTTER
+        val OPPDATERT = EndringType.ÅRSAK_OPPDATERT
         val SLETTET = EndringType.VILKÅR_VURDERING_FULLFØRT
     }
 }

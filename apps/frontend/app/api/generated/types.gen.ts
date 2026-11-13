@@ -161,6 +161,13 @@ export type Testandel = {
     beløp: number;
 };
 
+export type OppdragIverksettingResponse = {
+    saksnummer: string;
+    behandlingsId: string;
+    antallPerioder: number;
+    testandel?: Testandel | null;
+};
+
 export type InfotrygdStonaderRequest = {
     personident: string;
     stønadstype: 'GRUNNSTØNAD' | 'HJELPESTØNAD';
@@ -257,6 +264,7 @@ export type GjeldendeInfotrygdPeriode = {
     tom?: string | null;
     stønadId: number;
     vedtak: InfotrygdVedtakMedArv;
+    infotrygdBeløp: number;
 };
 
 export type InfotrygdGjeldendePerioderResponse = {
@@ -447,28 +455,15 @@ export type VedtakResponse = {
     beslutterIdent?: string | null;
 };
 
-export type SimuleringPeriodeResponse = {
-    fom: string;
-    tom: string;
-    nyttBeløp: number;
-    tidligereUtbetalt: number;
-    resultat: number;
-    feilutbetaling: number;
-};
-
-export type SimuleringResultatResponse = {
-    perioder: Array<SimuleringPeriodeResponse>;
-    fom: string;
-    tomSisteUtbetaling: string;
-    fomDatoNestePeriode?: string | null;
-    etterbetaling: number;
-    feilutbetaling: number;
+export type OppdragStatusSvar = {
+    status: string;
+    melding?: string | null;
 };
 
 export type BehandlingEndringResponse = {
     id: string;
     behandlingId: string;
-    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'ANGRET_SEND_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'INNGANGSVILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
+    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'INNGANGSVILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
     utførtAv: string;
     utførtTid: string;
     detaljer?: string | null;
@@ -545,21 +540,6 @@ export type SøkPersonResponses = {
 
 export type SøkPersonResponse = SøkPersonResponses[keyof SøkPersonResponses];
 
-export type SimulerForBehandlingData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/simulering/{behandlingId}';
-};
-
-export type SimulerForBehandlingResponses = {
-    200: string;
-};
-
-export type SimulerForBehandlingResponse = SimulerForBehandlingResponses[keyof SimulerForBehandlingResponses];
-
 export type HentJournalPostForBrukerIdData = {
     body: HentDokumenterRequest;
     path?: never;
@@ -626,6 +606,21 @@ export type SimulerMotOppdragResponses = {
 };
 
 export type SimulerMotOppdragResponse = SimulerMotOppdragResponses[keyof SimulerMotOppdragResponses];
+
+export type IverksettMotOppdragData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/oppdrag/iverksetting/{behandlingId}';
+};
+
+export type IverksettMotOppdragResponses = {
+    200: OppdragIverksettingResponse;
+};
+
+export type IverksettMotOppdragResponse = IverksettMotOppdragResponses[keyof IverksettMotOppdragResponses];
 
 export type LagIverksettVedtaksbrevTaskData = {
     body?: never;
@@ -785,23 +780,6 @@ export type BesluttVedtakResponses = {
 };
 
 export type BesluttVedtakResponse = BesluttVedtakResponses[keyof BesluttVedtakResponses];
-
-export type AngreSendTilBeslutterData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/beslutter/angre-send-til-beslutter/{behandlingId}';
-};
-
-export type AngreSendTilBeslutterResponses = {
-    200: {
-        [key: string]: string;
-    };
-};
-
-export type AngreSendTilBeslutterResponse = AngreSendTilBeslutterResponses[keyof AngreSendTilBeslutterResponses];
 
 export type HentMedlemskapPerioderData = {
     body?: never;
@@ -1055,21 +1033,6 @@ export type SøkPersonMedFagsakPersonIdResponses = {
 
 export type SøkPersonMedFagsakPersonIdResponse = SøkPersonMedFagsakPersonIdResponses[keyof SøkPersonMedFagsakPersonIdResponses];
 
-export type HentSimuleringsresultatData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/simulering/{behandlingId}/resultat';
-};
-
-export type HentSimuleringsresultatResponses = {
-    200: SimuleringResultatResponse;
-};
-
-export type HentSimuleringsresultatResponse = HentSimuleringsresultatResponses[keyof HentSimuleringsresultatResponses];
-
 export type HentDokumentSomPdfData = {
     body?: never;
     path: {
@@ -1105,6 +1068,21 @@ export type HentDokumentSomPdf1Responses = {
 };
 
 export type HentDokumentSomPdf1Response = HentDokumentSomPdf1Responses[keyof HentDokumentSomPdf1Responses];
+
+export type HentOppdragStatusData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/oppdrag/iverksetting/{behandlingId}/status';
+};
+
+export type HentOppdragStatusResponses = {
+    200: OppdragStatusSvar;
+};
+
+export type HentOppdragStatusResponse = HentOppdragStatusResponses[keyof HentOppdragStatusResponses];
 
 export type HentFagsakData = {
     body?: never;

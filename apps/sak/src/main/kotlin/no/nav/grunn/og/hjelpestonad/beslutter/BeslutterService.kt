@@ -4,13 +4,11 @@ import efterlatte.prosessering.spring.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
-import no.nav.grunn.og.hjelpestonad.behandling.LagBehandleSakOppgaveTask
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandlingService
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
-import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
@@ -36,7 +34,6 @@ class BeslutterService(
     private val oppgaveService: OppgaveService,
     private val totrinnskontrollService: TotrinnskontrollService,
     private val taskService: TaskService,
-    private val lagBehandleSakOppgaveTask: LagBehandleSakOppgaveTask,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val vedtakService: VedtakService,
     private val årsakBehandlingService: ÅrsakBehandlingService,
@@ -66,40 +63,6 @@ class BeslutterService(
         taskService.opprett(
             OpprettOppgaveTask.TYPE,
             OpprettOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeEYO.GOD_VED),
-        )
-    }
-
-    @Transactional
-    fun angreSendTilBeslutter(behandlingId: UUID) {
-        ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
-
-        val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
-        val aktivOppgavetype = oppgaveService.hentAktivOppgavetype(behandlingId)
-        if (behandling.status != BehandlingStatus.FATTER_VEDTAK || aktivOppgavetype != OppgavetypeEYO.GOD_VED) {
-            throw Feil(
-                "Kan ikke angre send til beslutter fordi behandlingen ikke venter på beslutning.",
-                HttpStatus.BAD_REQUEST,
-            )
-        }
-
-        taskService.opprett(
-            FerdigstillOppgaveTask.TYPE,
-            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = aktivOppgavetype),
-        )
-
-        lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(
-            behandling = behandling,
-            saksbehandler = SikkerhetContext.hentSaksbehandler(),
-        )
-
-        behandlingService.oppdaterBehandlingStatus(
-            behandlingId = behandlingId,
-            status = BehandlingStatus.UTREDES,
-        )
-
-        endringshistorikkService.registrerEndring(
-            behandlingId = behandlingId,
-            endringType = EndringType.ANGRET_SEND_TIL_BESLUTTER,
         )
     }
 

@@ -1,8 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.config
 
+import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.beslutter.ÅrsakUnderkjent
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
-import no.nav.grunn.og.hjelpestonad.iverksett.utbetaling.SimuleringResponse
 import org.postgresql.util.PGobject
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.flyway.autoconfigure.FlywayConfigurationCustomizer
@@ -44,8 +44,8 @@ open class DatabaseConfig(
         listOf(
             BrevRequestTilJsonbConverter(objectMapper),
             JsonbTilBrevRequestConverter(objectMapper),
-            SimuleringResponseTilJsonbConverter(objectMapper),
-            JsonbTilSimuleringResponseConverter(objectMapper),
+            UtbetalingsoppdragTilJsonbConverter(objectMapper),
+            JsonbTilUtbetalingsoppdragConverter(objectMapper),
             YearMonthTilDateConverter(),
             DateTilYearMonthConverter(),
         )
@@ -71,11 +71,7 @@ open class DatabaseConfig(
     class BrevRequestTilJsonbConverter(
         private val objectMapper: ObjectMapper,
     ) : Converter<BrevRequest, PGobject> {
-        override fun convert(source: BrevRequest): PGobject =
-            PGobject().apply {
-                type = "jsonb"
-                value = objectMapper.writeValueAsString(source)
-            }
+        override fun convert(source: BrevRequest): PGobject = jsonb(objectMapper.writeValueAsString(source))
     }
 
     @ReadingConverter
@@ -83,6 +79,20 @@ open class DatabaseConfig(
         private val objectMapper: ObjectMapper,
     ) : Converter<PGobject, BrevRequest> {
         override fun convert(source: PGobject): BrevRequest = objectMapper.readValue(source.value, BrevRequest::class.java)
+    }
+
+    @WritingConverter
+    class UtbetalingsoppdragTilJsonbConverter(
+        private val objectMapper: ObjectMapper,
+    ) : Converter<Utbetalingsoppdrag, PGobject> {
+        override fun convert(source: Utbetalingsoppdrag): PGobject = jsonb(objectMapper.writeValueAsString(source))
+    }
+
+    @ReadingConverter
+    class JsonbTilUtbetalingsoppdragConverter(
+        private val objectMapper: ObjectMapper,
+    ) : Converter<PGobject, Utbetalingsoppdrag> {
+        override fun convert(source: PGobject): Utbetalingsoppdrag = objectMapper.readValue(source.value, Utbetalingsoppdrag::class.java)
     }
 
     @Bean
@@ -122,22 +132,11 @@ open class DatabaseConfig(
     class DateTilYearMonthConverter : Converter<Date, YearMonth> {
         override fun convert(source: Date): YearMonth = YearMonth.from(source.toLocalDate())
     }
-
-    @WritingConverter
-    class SimuleringResponseTilJsonbConverter(
-        private val objectMapper: ObjectMapper,
-    ) : Converter<SimuleringResponse, PGobject> {
-        override fun convert(source: SimuleringResponse): PGobject =
-            PGobject().apply {
-                type = "jsonb"
-                value = objectMapper.writeValueAsString(source)
-            }
-    }
-
-    @ReadingConverter
-    class JsonbTilSimuleringResponseConverter(
-        private val objectMapper: ObjectMapper,
-    ) : Converter<PGobject, SimuleringResponse> {
-        override fun convert(source: PGobject): SimuleringResponse = objectMapper.readValue(source.value, SimuleringResponse::class.java)
-    }
 }
+
+/** `type` er navnet på Postgres-typen. Driveren har ingen enum for den, så en skrivefeil gir først feil når raden lagres. */
+private fun jsonb(json: String) =
+    PGobject().apply {
+        type = "jsonb"
+        value = json
+    }

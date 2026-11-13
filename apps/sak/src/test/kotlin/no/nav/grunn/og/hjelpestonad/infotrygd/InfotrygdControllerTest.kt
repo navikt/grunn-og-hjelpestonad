@@ -124,6 +124,7 @@ class InfotrygdControllerTest {
             jsonPath("$.perioder[0].fom") { value("2020-01-01") }
             jsonPath("$.perioder[0].stønadId") { value(1) }
             jsonPath("$.perioder[0].vedtak.vedtakId") { value(1) }
+            jsonPath("$.perioder[0].infotrygdBeløp") { value(800) }
         }
 
         verify(exactly = 1) { tilgangService.validerTilgangTilPerson(personident) }
