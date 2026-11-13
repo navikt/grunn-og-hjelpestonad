@@ -56,7 +56,11 @@ export const EkstrautgifterSkjema: React.FC<EkstrautgifterSkjemaProps> = ({
   const feilIRekkefølge = [
     { id: FRA_OG_MED_ID, tekst: skjema.feil.fraOgMed },
     { id: TIL_OG_MED_ID, tekst: skjema.feil.tilOgMed },
-    { id: LISTE_ID, tekst: skjema.feil.ekstrautgifter },
+    { id: LISTE_ID, tekst: skjema.listefeil },
+    ...skjema.radfeil.flatMap((feil, indeks) => [
+      { id: `${ID_PREFIKS}-${indeks}-hjemmelbokstav`, tekst: feil.hjemmelbokstav },
+      { id: `${ID_PREFIKS}-${indeks}-diagnoser`, tekst: feil.diagnoser },
+    ]),
     { id: SATS_ID, tekst: skjema.feil.vurdering || skjema.feil.sats },
     { id: BEGRUNNELSE_ID, tekst: skjema.feil.begrunnelse },
   ].filter((feil): feil is { id: string; tekst: string } => Boolean(feil.tekst));

@@ -1,4 +1,5 @@
 import React from "react";
+import { BodyShort, Button, LocalAlert } from "@navikt/ds-react";
 import { hjemmelbokstavTekst, satsTekst } from "~/types/vilkår";
 import {
   begrunnelseDetalj,
@@ -60,6 +61,27 @@ export const EkstrautgifterVilkår: React.FC<{ behandlingId: string }> = ({ beha
     );
   };
 
+  const henterDiagnoser = diagnosePerioder.laster || Boolean(diagnosePerioder.error);
+  const diagnoseMelding = diagnosePerioder.laster ? (
+    <BodyShort>Laster diagnoser ...</BodyShort>
+  ) : diagnosePerioder.error ? (
+    <LocalAlert status="error">
+      <LocalAlert.Content>
+        <BodyShort>
+          Kunne ikke hente diagnosene. Ekstrautgifter kan ikke vurderes uten dem.
+        </BodyShort>
+        <Button
+          type="button"
+          variant="secondary"
+          size="small"
+          onClick={() => diagnosePerioder.hentPåNytt()}
+        >
+          Prøv igjen
+        </Button>
+      </LocalAlert.Content>
+    </LocalAlert>
+  ) : null;
+
   return (
     <VilkårSeksjon
       nøkkel="ekstrautgifter"
@@ -77,12 +99,22 @@ export const EkstrautgifterVilkår: React.FC<{ behandlingId: string }> = ({ beha
       sletting={sletting}
       leggTil={{ tekst: "Legg til periode", åpne: skjema.åpneNyPeriode }}
     >
-      <EkstrautgifterSkjema
-        skjema={skjema}
-        diagnoserVurdertTilJa={diagnoser}
-        lagrer={lagreEkstrautgifter.laster}
-        onLagre={lagrePeriode}
-      />
+      <div aria-live="polite">{diagnoseMelding}</div>
+      {henterDiagnoser && (
+        <div>
+          <Button type="button" variant="secondary" onClick={skjema.lukk}>
+            Avbryt
+          </Button>
+        </div>
+      )}
+      {!henterDiagnoser && (
+        <EkstrautgifterSkjema
+          skjema={skjema}
+          diagnoserVurdertTilJa={diagnoser}
+          lagrer={lagreEkstrautgifter.laster}
+          onLagre={lagrePeriode}
+        />
+      )}
     </VilkårSeksjon>
   );
 };

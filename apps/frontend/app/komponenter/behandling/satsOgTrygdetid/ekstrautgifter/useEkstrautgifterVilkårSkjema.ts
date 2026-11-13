@@ -16,8 +16,8 @@ import {
 
 const SATS_FEIL = "Du må velge sats når vilkåret er oppfylt.";
 const EKSTRAUTGIFT_MANGLER_FEIL = "Du må legge til minst én ekstrautgift når vilkåret er oppfylt.";
-const HJEMMELBOKSTAV_MANGLER_FEIL = "Du må velge hjemmelbokstav for hver ekstrautgift.";
-const DIAGNOSE_MANGLER_FEIL = "Du må velge minst én diagnose for hver ekstrautgift.";
+const HJEMMELBOKSTAV_MANGLER_FEIL = "Du må velge hjemmelbokstav.";
+const DIAGNOSE_MANGLER_FEIL = "Du må velge minst én diagnose.";
 
 type EkstraFelt = "sats" | "ekstrautgifter";
 
@@ -38,14 +38,41 @@ export interface EkstrautgiftRad {
   diagnosekoder: string[];
 }
 
+/** Feil på én rad. Hver melding har radnummer, så samme tekst brukes i raden og i feiloppsummeringen. */
+export interface EkstrautgiftRadfeil {
+  hjemmelbokstav?: string;
+  diagnoser?: string;
+}
+
+function radfeilFra(rader: EkstrautgiftRad[]): EkstrautgiftRadfeil[] {
+  return rader.map((rad, indeks) => ({
+    hjemmelbokstav:
+      rad.hjemmelbokstav === ""
+        ? `Ekstrautgift ${indeks + 1}: ${HJEMMELBOKSTAV_MANGLER_FEIL}`
+        : undefined,
+    diagnoser:
+      rad.diagnosekoder.length === 0
+        ? `Ekstrautgift ${indeks + 1}: ${DIAGNOSE_MANGLER_FEIL}`
+        : undefined,
+  }));
+}
+
+/** Feil for hele listen. Gjelder bare når ja er valgt og det ikke finnes rader. */
+function listefeilFra(vurdering: Vurdering | "", rader: EkstrautgiftRad[]): string | undefined {
+  return vurdering === Vurdering.JA && rader.length === 0 ? EKSTRAUTGIFT_MANGLER_FEIL : undefined;
+}
+
+/** Første feil, brukt til å blokkere lagring. */
 function ekstrautgifterFeil(
   vurdering: Vurdering | "",
   rader: EkstrautgiftRad[]
 ): string | undefined {
-  if (vurdering === Vurdering.JA && rader.length === 0) return EKSTRAUTGIFT_MANGLER_FEIL;
-  if (rader.some((rad) => rad.hjemmelbokstav === "")) return HJEMMELBOKSTAV_MANGLER_FEIL;
-  if (rader.some((rad) => rad.diagnosekoder.length === 0)) return DIAGNOSE_MANGLER_FEIL;
-  return undefined;
+  return (
+    listefeilFra(vurdering, rader) ??
+    radfeilFra(rader)
+      .flatMap((feil) => [feil.hjemmelbokstav, feil.diagnoser])
+      .find((feil) => feil !== undefined)
+  );
 }
 
 function validerEkstrautgifter(
@@ -188,6 +215,13 @@ export function useEkstrautgifterVilkårSkjema(diagnoserVurdertTilJa: Diagnoseko
     (bokstav) => !ekstrautgifter.some((rad) => rad.hjemmelbokstav === bokstav)
   );
 
+  const radfeil: EkstrautgiftRadfeil[] = fellesSkjema.harForsøktLagre
+    ? radfeilFra(ekstrautgifter)
+    : [];
+  const listefeil = fellesSkjema.harForsøktLagre
+    ? listefeilFra(fellesSkjema.vurdering, ekstrautgifter)
+    : undefined;
+
   const verdier = (): { sats: Sats | null; ekstrautgifter: Ekstrautgift[] } => ({
     sats: fellesSkjema.vurdering === Vurdering.JA && sats !== "" ? sats : null,
     ekstrautgifter: ekstrautgifter.map((rad) => ({
@@ -201,6 +235,8 @@ export function useEkstrautgifterVilkårSkjema(diagnoserVurdertTilJa: Diagnoseko
     sats,
     satsValg: satsValgFra(fellesSkjema.vurdering, sats),
     ekstrautgifter,
+    radfeil,
+    listefeil,
     åpneNyPeriode,
     åpneRedigeringAvPeriode,
     velgSatsValg,
