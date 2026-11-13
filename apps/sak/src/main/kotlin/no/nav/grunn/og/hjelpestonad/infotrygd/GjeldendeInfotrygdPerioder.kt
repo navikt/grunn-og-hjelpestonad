@@ -157,9 +157,7 @@ object GjeldendeInfotrygdPerioder {
     private fun periodetekst(
         fom: LocalDate,
         tom: LocalDate?,
-    ): String = if (tom == null) "fra ${fom.format(DATOFORMAT)}" else "${fom.format(DATOFORMAT)}–${tom.format(DATOFORMAT)}"
-
-    private val DATOFORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    ): String = if (tom == null) "fra ${fom.format(NORSK_DATOFORMAT)}" else "${fom.format(NORSK_DATOFORMAT)}–${tom.format(NORSK_DATOFORMAT)}"
 
     /** Se ADR-0013. EF bruker 2019-01-01. Vi bør se på denne på nytt når vi begynner med migrering */
     private val DATOGRENSE_FOR_MIGRERING: LocalDate = LocalDate.of(2026, 1, 1)
