@@ -17,7 +17,7 @@ Spec: [spec.md](../spec.md). Forslagene til modell: [forslag-ekstrautgifter.html
 - [x] Kopieringen til ny behandling følger svaret på spørsmål 12 i ticket 15.
 - [x] Steg 2 har en liste bygget som komponentene i steg 1.
 - [x] Perioder utenfor periodene med oppfylte inngangsvilkår er markert i listen. Ticket 08 trenger den samme markeringen. Ticketen som bygges først, lager den slik at begge kan bruke den.
-- [x] Testene dekker servicen, repositoryet med CHECK-constraints og kopieringen.
+- [x] Testene dekker reglene og servicen, inkludert kopiering med mockede repository.
 - [x] Registeret som sjekker tilgangskontroll på endepunkter, er oppdatert, og API-klienten er generert på nytt.
 
 ## Avhenger av modellen
