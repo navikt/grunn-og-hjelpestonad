@@ -463,7 +463,7 @@ export type OppdragStatusSvar = {
 export type BehandlingEndringResponse = {
     id: string;
     behandlingId: string;
-    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'ANGRET_SEND_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'INNGANGSVILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
+    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'INNGANGSVILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
     utførtAv: string;
     utførtTid: string;
     detaljer?: string | null;
@@ -780,23 +780,6 @@ export type BesluttVedtakResponses = {
 };
 
 export type BesluttVedtakResponse = BesluttVedtakResponses[keyof BesluttVedtakResponses];
-
-export type AngreSendTilBeslutterData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/beslutter/angre-send-til-beslutter/{behandlingId}';
-};
-
-export type AngreSendTilBeslutterResponses = {
-    200: {
-        [key: string]: string;
-    };
-};
-
-export type AngreSendTilBeslutterResponse = AngreSendTilBeslutterResponses[keyof AngreSendTilBeslutterResponses];
 
 export type HentMedlemskapPerioderData = {
     body?: never;

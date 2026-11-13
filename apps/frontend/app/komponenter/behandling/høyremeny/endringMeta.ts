@@ -2,7 +2,6 @@ import type React from "react";
 import {
   PlusCircleIcon,
   PaperplaneIcon,
-  ArrowUndoIcon,
   TasklistIcon,
   CheckmarkCircleIcon,
   NotePencilIcon,
@@ -30,12 +29,6 @@ export const endringMeta: Record<EndringType, EndringMeta> = {
     tekst: "Sendt til beslutter",
     ikon: PaperplaneIcon,
     farge: "info",
-    erMilepæl: true,
-  },
-  ANGRET_SEND_TIL_BESLUTTER: {
-    tekst: "Angret send til beslutter",
-    ikon: ArrowUndoIcon,
-    farge: "warning",
     erMilepæl: true,
   },
   VILKÅR_VURDERING_OPPRETTET: {
