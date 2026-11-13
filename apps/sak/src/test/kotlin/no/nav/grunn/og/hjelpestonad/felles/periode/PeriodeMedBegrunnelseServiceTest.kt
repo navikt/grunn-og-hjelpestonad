@@ -7,13 +7,16 @@ import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
+import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.felles.sporbar.Sporbar
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDate
 import java.util.Optional
 import java.util.UUID
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 
 /**
  * Detaljene i endringshistorikken bygges av fellesdelen, så en periode uten vurdering, slik
@@ -24,12 +27,14 @@ import kotlin.test.Test
 class PeriodeMedBegrunnelseServiceTest {
     private val repository = mockk<PeriodeMedBegrunnelseRepository<TestPeriode>>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
+    private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val service =
         TestPeriodeService(
             repository,
-            mockk<BehandlingService>(relaxed = true),
+            behandlingService,
             endringshistorikkService,
-            mockk<AnsvarligSaksbehandlerService>(relaxed = true),
+            ansvarligSaksbehandlerService,
         )
 
     private val behandlingId = UUID.randomUUID()
@@ -89,6 +94,39 @@ class PeriodeMedBegrunnelseServiceTest {
 
         assertThat(kopier).hasSize(2)
         assertThat(kopier.map { it.behandlingId }).containsOnly(nyBehandlingId)
+    }
+
+    @Test
+    fun `for lang begrunnelse avvises uten lagring eller historikk`() {
+        assertFailsWith<UgyldigInput> {
+            service.lagrePeriode(behandlingId, TestPeriodeRequest(begrunnelse = "a".repeat(2001)))
+        }
+
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
+    }
+
+    @Test
+    fun `tilgang sjekkes før lengden på begrunnelsen`() {
+        every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
+            IkkeAnsvarligSaksbehandlerFeil("Ikke ansvarlig saksbehandler")
+
+        assertFailsWith<IkkeAnsvarligSaksbehandlerFeil> {
+            service.lagrePeriode(behandlingId, TestPeriodeRequest(begrunnelse = "a".repeat(2001)))
+        }
+
+        verify(exactly = 0) { repository.insertAll(any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
+    }
+
+    @Test
+    fun `tom begrunnelse og begrunnelse med 2000 tegn kan lagres`() {
+        for (begrunnelse in listOf("", "a".repeat(2000))) {
+            val lagret = service.lagrePeriode(behandlingId, TestPeriodeRequest(begrunnelse = begrunnelse))
+
+            assertThat(lagret.begrunnelse).isEqualTo(begrunnelse)
+        }
     }
 
     private enum class TestType { TESTPERIODE }

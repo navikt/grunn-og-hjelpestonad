@@ -22,7 +22,7 @@ object EkstrautgifterRegler {
         "Bokstav d og e gir ikke grunnstønad i nye tilfeller fra 1. januar 2020. " +
             "De kan bare beholdes i en periode som allerede har dem."
     const val DIAGNOSE_IKKE_OPPFYLT_I_HELE_PERIODEN =
-        "En valgt diagnose er ikke vurdert til oppfylt i hele perioden. " +
+        "Minst én av de valgte diagnosene er ikke vurdert til oppfylt i hele perioden. " +
             "Endre perioden, eller vurder diagnosen i steg 1."
 
     fun valider(
@@ -31,7 +31,7 @@ object EkstrautgifterRegler {
         diagnosePerioder: List<VilkårDiagnose>,
     ) {
         validerHverEkstrautgiftHarDiagnose(request.ekstrautgifter)
-        validerKunÉnEkstrautgiftPerBokstav(request.ekstrautgifter)
+        validerKunEnEkstrautgiftPerBokstav(request.ekstrautgifter)
         if (request.vurdering == Vurdering.JA) validerOppfylt(request) else validerIkkeOppfylt(request.sats)
         validerBokstaverForNyeTilfeller(request.ekstrautgifter, lagret)
         validerDiagnoserOppfyltIHelePerioden(request, diagnosePerioder)
@@ -47,7 +47,7 @@ object EkstrautgifterRegler {
         }
     }
 
-    private fun validerKunÉnEkstrautgiftPerBokstav(ekstrautgifter: List<Ekstrautgift>) {
+    private fun validerKunEnEkstrautgiftPerBokstav(ekstrautgifter: List<Ekstrautgift>) {
         val bokstaver = ekstrautgifter.map { it.hjemmelbokstav }
         if (bokstaver.size != bokstaver.toSet().size) {
             throw UgyldigInput(HJEMMELBOKSTAV_FLERE_GANGER)

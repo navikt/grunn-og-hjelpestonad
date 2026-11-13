@@ -6,9 +6,9 @@ import no.nav.familie.tidslinje.tilTidslinje
 import no.nav.familie.tidslinje.utvidelser.kombinerMed
 import no.nav.familie.tidslinje.utvidelser.slåSammenLikePerioder
 import no.nav.familie.tidslinje.utvidelser.tilPerioder
+import no.nav.grunn.og.hjelpestonad.felles.NORSK_DATOFORMAT
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 /** Tidsrommet [vedtak] gjelder i. Tom betyr at perioden er løpende. */
 data class GjeldendeInfotrygdPeriode(
@@ -67,8 +67,8 @@ object GjeldendeInfotrygdPerioder {
         val tom = listOfNotNull(datoInnvTom, faktiskOpphørsdato(datoOpphør)).min()
         if (tom <= datoInnvFom) {
             throw UgyldigInput(
-                "Vedtak $vedtakId starter ${datoInnvFom.format(DATOFORMAT)}, etter at stønaden opphørte " +
-                    "${datoOpphør.format(DATOFORMAT)}. Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
+                "Vedtak $vedtakId starter ${datoInnvFom.format(NORSK_DATOFORMAT)}, etter at stønaden opphørte " +
+                    "${datoOpphør.format(NORSK_DATOFORMAT)}. Vi har ikke bestemt hvordan slike vedtak skal tolkes. Kontakt teamet.",
             )
         }
         return Periode(VedtakPåStønad(stønad.stønadId, this), datoInnvFom, tom)
@@ -78,8 +78,8 @@ object GjeldendeInfotrygdPerioder {
         val tom = datoInnvTom ?: return
         if (tom <= datoInnvFom) {
             throw UgyldigInput(
-                "Vedtak $vedtakId i Infotrygd har innvilget tom ${tom.format(DATOFORMAT)}, som ikke er etter " +
-                    "innvilget fom ${datoInnvFom.format(DATOFORMAT)}.",
+                "Vedtak $vedtakId i Infotrygd har innvilget tom ${tom.format(NORSK_DATOFORMAT)}, som ikke er etter " +
+                    "innvilget fom ${datoInnvFom.format(NORSK_DATOFORMAT)}.",
             )
         }
     }
@@ -109,7 +109,7 @@ object GjeldendeInfotrygdPerioder {
         // Ønsker bare å kaste feil dersom dette treffer saker som nylig er avsluttet.
         if (stønad.erLøpende() && !sisteVedtak.erLøpende() && vedtakTom >= DATOGRENSE_FOR_MIGRERING) {
             throw UgyldigInput(
-                "Stønad ${stønad.stønadId} er ikke opphørt, men siste vedtak ${sisteVedtak.vedtakId} sluttet ${vedtakTom.format(DATOFORMAT)}. " +
+                "Stønad ${stønad.stønadId} er ikke opphørt, men siste vedtak ${sisteVedtak.vedtakId} sluttet ${vedtakTom.format(NORSK_DATOFORMAT)}. " +
                     "Vi har ikke bestemt hvordan slike saker skal tolkes. Kontakt teamet.",
             )
         }
@@ -117,8 +117,6 @@ object GjeldendeInfotrygdPerioder {
 
     /** Opphør den 1. i måneden betyr at stønaden gjaldt ut måneden før. */
     private fun faktiskOpphørsdato(datoOpphør: LocalDate): LocalDate = if (datoOpphør.dayOfMonth == 1) datoOpphør.minusDays(1) else datoOpphør
-
-    private val DATOFORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
     /** Se ADR-0013. EF bruker 2019-01-01. Vi bør se på denne på nytt når vi begynner med migrering */
     private val DATOGRENSE_FOR_MIGRERING: LocalDate = LocalDate.of(2026, 1, 1)

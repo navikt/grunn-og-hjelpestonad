@@ -7,6 +7,7 @@ import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
+import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.felles.periode.PeriodeMedBegrunnelseService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
@@ -218,6 +219,16 @@ class VilkårMedlemskapServiceTest {
         assertThat(detaljer.captured).isEqualTo(
             "${VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN}, Vurdering: ${Vurdering.JA}, Periode: 01.01.2025 – 30.06.2025",
         )
+    }
+
+    @Test
+    fun `lagrePeriode avviser begrunnelse over 2000 tegn før noe skrives`() {
+        assertThatThrownBy { service.lagrePeriode(behandlingId, request().copy(begrunnelse = "a".repeat(2001))) }
+            .isInstanceOf(UgyldigInput::class.java)
+
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 
     @Test
