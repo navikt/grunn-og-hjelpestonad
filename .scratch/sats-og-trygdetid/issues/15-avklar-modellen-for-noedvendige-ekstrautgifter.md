@@ -67,7 +67,7 @@ Gjelder C og D. Forslag: høyst én post per hjemmelbokstav per periode. Overlap
 
 - Kobles posten til diagnosekoden eller til en bestemt diagnoseperiode? Koden overlever kopiering og deling av perioder. Det gjør ikke en rad-id. Forslag: diagnosekoden.
 - Må minst én diagnose være valgt? Forslag: ja.
-- Hva skjer når en valgt diagnose ikke er oppfylt i hele perioden til posten: feil, markering som for perioder utenfor inngangsvilkårene, eller ingenting? Forslag: markering.
+- Hva skjer når en valgt diagnose ikke er oppfylt i hele perioden til posten: feil, markering eller ingenting? Forslag: markering.
 - Egen koblingstabell eller liste på raden? Forslag: egen tabell.
 
 **Avgjør:** fag (må hver utgift ha en diagnose?) og teamet (resten). **Påvirker:** 07.

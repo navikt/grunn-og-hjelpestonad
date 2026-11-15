@@ -1,6 +1,6 @@
 # 07: Vilkåret nødvendige ekstrautgifter
 
-**What to build:** Saksbehandler kan registrere nødvendige ekstrautgifter i steg 2 etter modellen teamet og fag velger i ticket 15. Perioder som ligger utenfor periodene med oppfylte inngangsvilkår, er markert. Kriteriene som avhenger av modellen, skrives inn når ticket 15 er avgjort. Se ADR-0006 under «Steg 2 er nødvendige ekstrautgifter og trygdetid».
+**What to build:** Saksbehandler kan registrere nødvendige ekstrautgifter i steg 2 etter modellen teamet og fag velger i ticket 15. Kriteriene som avhenger av modellen, skrives inn når ticket 15 er avgjort. Se ADR-0006 under «Steg 2 er nødvendige ekstrautgifter og trygdetid».
 
 **Blocked by:** 05, 06, 15
 
@@ -16,7 +16,6 @@ Spec: [spec.md](../spec.md). Forslagene til modell: [forslag-ekstrautgifter.html
 - [x] I en revurdering av en migrert sak kan saksbehandler endre og slette det som kom fra Infotrygd (ticket 15, punkt 5 under «Avklart»).
 - [x] Kopieringen til ny behandling følger svaret på spørsmål 12 i ticket 15.
 - [x] Steg 2 har en liste bygget som komponentene i steg 1.
-- [x] Perioder utenfor periodene med oppfylte inngangsvilkår er markert i listen. Ticket 08 trenger den samme markeringen. Ticketen som bygges først, lager den slik at begge kan bruke den.
 - [x] Testene dekker reglene og servicen, inkludert kopiering med mockede repository.
 - [x] Registeret som sjekker tilgangskontroll på endepunkter, er oppdatert, og API-klienten er generert på nytt.
 

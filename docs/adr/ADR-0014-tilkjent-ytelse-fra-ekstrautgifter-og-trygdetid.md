@@ -55,7 +55,7 @@ brevet.
 - Er det minst én periode med oppfylte inngangsvilkår, må minst én
   ekstrautgiftsperiode være vurdert.
 - Perioder for ekstrautgifter og trygdetid som ligger utenfor periodene med
-  oppfylte inngangsvilkår, tar beregningen ikke med. Frontend markerer dem.
+  oppfylte inngangsvilkår, tar beregningen ikke med. Frontend markerer dem ikke.
 - Valideringsfeilen har én feil per vilkårstype og én for trygdetid. Feilen for
   trygdetid har en egen nøkkel, siden `VilkårType` ikke har noen verdi for
   trygdetid.

@@ -132,8 +132,6 @@ utgiftspost får i D.
 - Steg 1 kan endres etter at ekstrautgiftene er lagret. Fullføringen av steg 2
   (ticket 10) må derfor sjekke at diagnosene fortsatt er vurdert til `JA` i hele
   perioden, også etter kopiering.
-- Frontend markerer perioder utenfor periodene med oppfylte inngangsvilkår. Den
-  rene funksjonen kan brukes av trygdetid (ticket 08).
 - Beløpene for hver ekstrautgift lagres ikke, så ingen kan sjekke satsen mot
   utgiftene i ettertid. Regnestykket står i begrunnelsen.
 
