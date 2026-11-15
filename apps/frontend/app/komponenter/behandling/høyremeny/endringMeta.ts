@@ -97,6 +97,24 @@ export const endringMeta: Record<EndringType, EndringMeta> = {
     farge: "danger",
     erMilepæl: true,
   },
+  TRYGDETID_OPPRETTET: {
+    tekst: "Trygdetid opprettet",
+    ikon: TasklistIcon,
+    farge: "info",
+    erMilepæl: false,
+  },
+  TRYGDETID_OPPDATERT: {
+    tekst: "Trygdetid oppdatert",
+    ikon: TasklistIcon,
+    farge: "info",
+    erMilepæl: false,
+  },
+  TRYGDETID_SLETTET: {
+    tekst: "Trygdetid slettet",
+    ikon: TrashIcon,
+    farge: "warning",
+    erMilepæl: false,
+  },
 };
 
 export interface EndringGruppe {

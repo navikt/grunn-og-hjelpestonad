@@ -131,7 +131,7 @@ export function useEkstrautgifterVilkårSkjema(diagnoserVurdertTilJa: Diagnoseko
   };
 
   const fjernFraOgMedPåkrevdFeil = () => {
-    if (fellesSkjema.feil.fraOgMed === FRA_OG_MED_PÅKREVD) fellesSkjema.fjernFeil("fraOgMed");
+    if (fellesSkjema.skjemafeil.fraOgMed === FRA_OG_MED_PÅKREVD) fellesSkjema.fjernFeil("fraOgMed");
   };
 
   const raderEtterVurdering = (vurdering: Vurdering): EkstrautgiftRad[] => {

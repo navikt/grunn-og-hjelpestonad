@@ -1,6 +1,5 @@
 import React from "react";
 import { Checkbox } from "@navikt/ds-react";
-import { feilmeldingFra } from "../felles/feilmeldingFra";
 import { useDiagnoseVilkårApi } from "./useDiagnoseVilkår";
 import { vilkårSpørsmål, type VilkårDiagnoseResponse } from "~/types/vilkår";
 import {
@@ -9,7 +8,7 @@ import {
   type VilkårPeriodeGruppe,
 } from "../felles/VilkårSeksjon";
 import { VilkårPeriodeSkjema } from "../felles/VilkårPeriodeSkjema";
-import { useSlettVilkårPeriode } from "../felles/useSlettVilkårPeriode";
+import { usePeriodeEndringer } from "../felles/usePeriodeEndringer";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useVilkårContext } from "~/komponenter/behandling/vilkår/VilkårContext";
 import { useDiagnoseVilkårSkjema } from "./useDiagnoseVilkårSkjema";
@@ -37,40 +36,32 @@ export const DiagnoseVilkår: React.FC = () => {
   const diagnoseGrupper = grupperDiagnoser(diagnosePerioder.data);
 
   const skjema = useDiagnoseVilkårSkjema();
-  const sletting = useSlettVilkårPeriode(
-    (vilkårPeriodeId, callbacks) =>
+  const endringer = usePeriodeEndringer({
+    perioder: diagnosePerioder,
+    skjema,
+    lagre,
+    slett: (vilkårPeriodeId, callbacks) =>
       slett.kall({ path: { behandlingId, vilkårPeriodeId } }, callbacks),
-    diagnosePerioder
-  );
+    lagrefeilTekst: "Kunne ikke lagre perioden.",
+  });
 
   const lagrePeriode = () => {
     const felles = skjema.fellesVerdier();
     const { diagnosekode } = skjema;
     if (!diagnosekode) return;
 
-    lagre.kall(
-      {
-        path: { behandlingId },
-        body: {
-          id: felles.id,
-          kode: diagnosekode.kode,
-          erYrkesskade: skjema.erYrkesskade,
-          vurdering: felles.vurdering,
-          begrunnelse: felles.begrunnelse,
-          fraOgMedDato: felles.fraOgMedDato,
-          tilOgMedDato: felles.tilOgMedDato,
-        },
+    endringer.lagre({
+      path: { behandlingId },
+      body: {
+        id: felles.id,
+        kode: diagnosekode.kode,
+        erYrkesskade: skjema.erYrkesskade,
+        vurdering: felles.vurdering,
+        begrunnelse: felles.begrunnelse,
+        fraOgMedDato: felles.fraOgMedDato,
+        tilOgMedDato: felles.tilOgMedDato,
       },
-      {
-        onSuccess: () => {
-          sletting.nullstillFeil();
-          skjema.lukk();
-          diagnosePerioder.hentPåNytt();
-        },
-        onError: (error) =>
-          skjema.settLagringsfeil(feilmeldingFra(error, "Kunne ikke lagre perioden.")),
-      }
-    );
+    });
   };
 
   return (
@@ -83,7 +74,7 @@ export const DiagnoseVilkår: React.FC = () => {
         ...begrunnelseDetalj(periode.begrunnelse),
       ]}
       skjema={skjema}
-      sletting={sletting}
+      endringer={endringer}
       leggTil={{ tekst: "Legg til diagnose", åpne: skjema.åpneNyDiagnose }}
       gruppering={{
         grupper: diagnoseGrupper,
@@ -96,7 +87,7 @@ export const DiagnoseVilkår: React.FC = () => {
         idPrefiks={ID_PREFIKS}
         spørsmål={vilkårSpørsmål.diagnose}
         skjema={skjema}
-        lagrer={lagre.laster}
+        lagrer={endringer.lagrer}
         onLagre={lagrePeriode}
         ekstraFelter={[{ felt: "diagnose", id: `${ID_PREFIKS}-diagnose` }]}
       >
@@ -104,7 +95,7 @@ export const DiagnoseVilkår: React.FC = () => {
           id={`${ID_PREFIKS}-diagnose`}
           valgt={skjema.diagnosekode}
           låst={skjema.diagnoseErLåst}
-          feil={skjema.feil.diagnose}
+          feil={skjema.skjemafeil.diagnose}
           onValgtEndret={skjema.velgDiagnose}
           onBlur={() => skjema.validerFelt("diagnose")}
         />

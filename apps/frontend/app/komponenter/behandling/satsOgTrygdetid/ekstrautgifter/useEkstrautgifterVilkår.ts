@@ -4,7 +4,7 @@ import {
   slettEkstrautgifterPeriode,
 } from "~/api/generated/sdk.gen";
 import type { VilkårEkstrautgifterResponse } from "~/api/generated/types.gen";
-import { useVilkårApiKall } from "~/komponenter/behandling/vilkår/felles/useVilkårApiKall";
+import { useApiKall } from "~/komponenter/behandling/vilkår/felles/useApiKall";
 
 export async function hentEkstrautgifterPerioderFraBackend(
   behandlingId: string,
@@ -28,7 +28,7 @@ export function useEkstrautgifterVilkårApi() {
     slettEkstrautgifterPeriode({ ...options, throwOnError: true });
 
   return {
-    lagreEkstrautgifter: useVilkårApiKall(lagreKall),
-    slettEkstrautgifter: useVilkårApiKall(slettKall),
+    lagreEkstrautgifter: useApiKall(lagreKall),
+    slettEkstrautgifter: useApiKall(slettKall),
   };
 }

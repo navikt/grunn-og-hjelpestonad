@@ -54,15 +54,15 @@ export const EkstrautgifterSkjema: React.FC<EkstrautgifterSkjemaProps> = ({
 
   // Vurdering og sats deler id. Bare én melding vises for dem, og vurdering vinner.
   const feilIRekkefølge = [
-    { id: FRA_OG_MED_ID, tekst: skjema.feil.fraOgMed },
-    { id: TIL_OG_MED_ID, tekst: skjema.feil.tilOgMed },
+    { id: FRA_OG_MED_ID, tekst: skjema.skjemafeil.fraOgMed },
+    { id: TIL_OG_MED_ID, tekst: skjema.skjemafeil.tilOgMed },
     { id: LISTE_ID, tekst: skjema.listefeil },
     ...skjema.radfeil.flatMap((feil, indeks) => [
       { id: `${ID_PREFIKS}-${indeks}-hjemmelbokstav`, tekst: feil.hjemmelbokstav },
       { id: `${ID_PREFIKS}-${indeks}-diagnoser`, tekst: feil.diagnoser },
     ]),
-    { id: SATS_ID, tekst: skjema.feil.vurdering || skjema.feil.sats },
-    { id: BEGRUNNELSE_ID, tekst: skjema.feil.begrunnelse },
+    { id: SATS_ID, tekst: skjema.skjemafeil.vurdering || skjema.skjemafeil.sats },
+    { id: BEGRUNNELSE_ID, tekst: skjema.skjemafeil.begrunnelse },
   ].filter((feil): feil is { id: string; tekst: string } => Boolean(feil.tekst));
 
   return (
@@ -81,7 +81,7 @@ export const EkstrautgifterSkjema: React.FC<EkstrautgifterSkjemaProps> = ({
                 {...skjema.fromInputProps}
                 id={FRA_OG_MED_ID}
                 label="Fra og med"
-                error={skjema.feil.fraOgMed}
+                error={skjema.skjemafeil.fraOgMed}
                 onChange={(event) => {
                   skjema.fromInputProps.onChange?.(event);
                 }}
@@ -95,7 +95,7 @@ export const EkstrautgifterSkjema: React.FC<EkstrautgifterSkjemaProps> = ({
                 {...skjema.toInputProps}
                 id={TIL_OG_MED_ID}
                 label="Til og med"
-                error={skjema.feil.tilOgMed}
+                error={skjema.skjemafeil.tilOgMed}
                 onChange={(event) => {
                   skjema.toInputProps.onChange?.(event);
                 }}
@@ -115,7 +115,7 @@ export const EkstrautgifterSkjema: React.FC<EkstrautgifterSkjemaProps> = ({
           label="Sats for grunnstønad"
           value={skjema.satsValg}
           onChange={(event) => skjema.velgSatsValg(event.target.value as SatsValg)}
-          error={skjema.feil.vurdering ?? skjema.feil.sats}
+          error={skjema.skjemafeil.vurdering ?? skjema.skjemafeil.sats}
         >
           <option value="">Velg sats</option>
           <option value={UNDER_SATS_1}>Ekstrautgifter under sats 1</option>
@@ -136,7 +136,7 @@ export const EkstrautgifterSkjema: React.FC<EkstrautgifterSkjemaProps> = ({
             skjema.settBegrunnelse(event.target.value);
           }}
           onBlur={() => skjema.validerFelt("begrunnelse")}
-          error={skjema.feil.begrunnelse}
+          error={skjema.skjemafeil.begrunnelse}
         />
 
         {/*
@@ -144,10 +144,10 @@ export const EkstrautgifterSkjema: React.FC<EkstrautgifterSkjemaProps> = ({
           den opp. Derfor er wrapperen alltid rendret, mens innholdet byttes ut.
         */}
         <div aria-live="assertive" aria-atomic="true">
-          {skjema.lagringsfeil && (
+          {skjema.backendfeil && (
             <LocalAlert status="error">
               <LocalAlert.Content>
-                {skjema.lagringsfeil} Endringene er ikke lagret. Prøv igjen.
+                {skjema.backendfeil} Endringene er ikke lagret. Prøv igjen.
               </LocalAlert.Content>
             </LocalAlert>
           )}

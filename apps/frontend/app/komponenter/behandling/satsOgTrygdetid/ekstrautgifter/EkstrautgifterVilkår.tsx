@@ -5,9 +5,8 @@ import {
   begrunnelseDetalj,
   VilkårSeksjon,
 } from "~/komponenter/behandling/vilkår/felles/VilkårSeksjon";
-import { useSlettVilkårPeriode } from "~/komponenter/behandling/vilkår/felles/useSlettVilkårPeriode";
+import { usePeriodeEndringer } from "~/komponenter/behandling/vilkår/felles/usePeriodeEndringer";
 import { usePerioder } from "~/komponenter/behandling/vilkår/felles/usePerioder";
-import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 import { hentDiagnosePerioderFraBackend } from "~/komponenter/behandling/vilkår/diagnose/useDiagnoseVilkår";
 import {
   hentEkstrautgifterPerioderFraBackend,
@@ -26,39 +25,31 @@ export const EkstrautgifterVilkår: React.FC<{ behandlingId: string }> = ({ beha
   const visDiagnose = lagDiagnoseVisning(diagnosePerioder.data);
 
   const skjema = useEkstrautgifterVilkårSkjema(diagnoser);
-  const sletting = useSlettVilkårPeriode(
-    (vilkårPeriodeId, callbacks) =>
+  const endringer = usePeriodeEndringer({
+    perioder: ekstrautgiftPerioder,
+    skjema,
+    lagre: lagreEkstrautgifter,
+    slett: (vilkårPeriodeId, callbacks) =>
       slettEkstrautgifter.kall({ path: { behandlingId, vilkårPeriodeId } }, callbacks),
-    ekstrautgiftPerioder
-  );
+    lagrefeilTekst: "Kunne ikke lagre perioden.",
+  });
 
   const lagrePeriode = () => {
     const felles = skjema.fellesVerdier();
     const { sats, ekstrautgifter } = skjema.verdier();
 
-    lagreEkstrautgifter.kall(
-      {
-        path: { behandlingId },
-        body: {
-          id: felles.id,
-          vurdering: felles.vurdering,
-          sats,
-          ekstrautgifter,
-          begrunnelse: felles.begrunnelse,
-          fraOgMedDato: felles.fraOgMedDato,
-          tilOgMedDato: felles.tilOgMedDato,
-        },
+    endringer.lagre({
+      path: { behandlingId },
+      body: {
+        id: felles.id,
+        vurdering: felles.vurdering,
+        sats,
+        ekstrautgifter,
+        begrunnelse: felles.begrunnelse,
+        fraOgMedDato: felles.fraOgMedDato,
+        tilOgMedDato: felles.tilOgMedDato,
       },
-      {
-        onSuccess: () => {
-          sletting.nullstillFeil();
-          skjema.lukk();
-          ekstrautgiftPerioder.hentPåNytt();
-        },
-        onError: (error) =>
-          skjema.settLagringsfeil(feilmeldingFra(error, "Kunne ikke lagre perioden.")),
-      }
-    );
+    });
   };
 
   const henterDiagnoser = diagnosePerioder.laster || Boolean(diagnosePerioder.error);
@@ -96,7 +87,7 @@ export const EkstrautgifterVilkår: React.FC<{ behandlingId: string }> = ({ beha
         ...begrunnelseDetalj(periode.begrunnelse),
       ]}
       skjema={skjema}
-      sletting={sletting}
+      endringer={endringer}
       leggTil={{ tekst: "Legg til periode", åpne: skjema.åpneNyPeriode }}
     >
       <div aria-live="polite">{diagnoseMelding}</div>
@@ -111,7 +102,7 @@ export const EkstrautgifterVilkår: React.FC<{ behandlingId: string }> = ({ beha
         <EkstrautgifterSkjema
           skjema={skjema}
           diagnoserVurdertTilJa={diagnoser}
-          lagrer={lagreEkstrautgifter.laster}
+          lagrer={endringer.lagrer}
           onLagre={lagrePeriode}
         />
       )}
