@@ -64,7 +64,7 @@ export function VilkårPeriodeSkjema<Felt extends string = never>({
   ];
 
   const feilIRekkefølge = feltrekkefølge
-    .map(({ felt, id }) => ({ id, tekst: skjema.feil[felt] }))
+    .map(({ felt, id }) => ({ id, tekst: skjema.skjemafeil[felt] }))
     .filter((feil): feil is { id: string; tekst: string } => Boolean(feil.tekst));
 
   return (
@@ -84,7 +84,7 @@ export function VilkårPeriodeSkjema<Felt extends string = never>({
             skjema.fjernFeil("vurdering");
             onVurderingEndret?.(verdi);
           }}
-          error={skjema.feil.vurdering}
+          error={skjema.skjemafeil.vurdering}
         >
           <Radio id={`${idPrefiks}-vurdering`} value={Vurdering.JA}>
             Ja
@@ -105,7 +105,7 @@ export function VilkårPeriodeSkjema<Felt extends string = never>({
                 {...skjema.fromInputProps}
                 id={`${idPrefiks}-fraOgMed`}
                 label="Fra og med"
-                error={skjema.feil.fraOgMed}
+                error={skjema.skjemafeil.fraOgMed}
                 onChange={(event) => {
                   skjema.fromInputProps.onChange?.(event);
                 }}
@@ -119,7 +119,7 @@ export function VilkårPeriodeSkjema<Felt extends string = never>({
                 {...skjema.toInputProps}
                 id={`${idPrefiks}-tilOgMed`}
                 label="Til og med"
-                error={skjema.feil.tilOgMed}
+                error={skjema.skjemafeil.tilOgMed}
                 onChange={(event) => {
                   skjema.toInputProps.onChange?.(event);
                 }}
@@ -142,7 +142,7 @@ export function VilkårPeriodeSkjema<Felt extends string = never>({
             skjema.settBegrunnelse(event.target.value);
           }}
           onBlur={() => skjema.validerFelt("begrunnelse")}
-          error={skjema.feil.begrunnelse}
+          error={skjema.skjemafeil.begrunnelse}
         />
 
         {/*
@@ -150,10 +150,10 @@ export function VilkårPeriodeSkjema<Felt extends string = never>({
           den opp. Derfor er wrapperen alltid rendret, mens innholdet byttes ut.
         */}
         <div aria-live="assertive" aria-atomic="true">
-          {skjema.lagringsfeil && (
+          {skjema.backendfeil && (
             <LocalAlert status="error">
               <LocalAlert.Content>
-                {skjema.lagringsfeil} Endringene er ikke lagret. Prøv igjen.
+                {skjema.backendfeil} Endringene er ikke lagret. Prøv igjen.
               </LocalAlert.Content>
             </LocalAlert>
           )}
