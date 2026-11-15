@@ -400,6 +400,25 @@ export type VilkårDiagnoseResponse = {
     erVilkårOppfylt: boolean;
 };
 
+export type TrygdetidRequest = {
+    id?: string | null;
+    teller: number;
+    kilde: 'ALDERSPENSJON' | 'UFØRETRYGD' | 'MIGRERING' | 'INGEN';
+    begrunnelse: string;
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+};
+
+export type TrygdetidResponse = {
+    id: string;
+    behandlingId: string;
+    teller: number;
+    kilde: 'ALDERSPENSJON' | 'UFØRETRYGD' | 'MIGRERING' | 'INGEN';
+    begrunnelse: string;
+    fraOgMedDato?: string | null;
+    tilOgMedDato?: string | null;
+};
+
 export type InngangsvilkårResponse = {
     perioder: Array<PeriodeMedOppfylteInngangsvilkårResponse>;
     nesteSteg: 'SATS_OG_TRYGDETID' | 'SIMULERING';
@@ -490,7 +509,7 @@ export type OppdragStatusSvar = {
 export type BehandlingEndringResponse = {
     id: string;
     behandlingId: string;
-    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'INNGANGSVILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT';
+    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'INNGANGSVILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT' | 'TRYGDETID_OPPRETTET' | 'TRYGDETID_OPPDATERT' | 'TRYGDETID_SLETTET';
     utførtAv: string;
     utførtTid: string;
     detaljer?: string | null;
@@ -898,6 +917,36 @@ export type LagreDiagnosePeriodeResponses = {
 
 export type LagreDiagnosePeriodeResponse = LagreDiagnosePeriodeResponses[keyof LagreDiagnosePeriodeResponses];
 
+export type HentTrygdetidPerioderData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/trygdetid';
+};
+
+export type HentTrygdetidPerioderResponses = {
+    200: Array<TrygdetidResponse>;
+};
+
+export type HentTrygdetidPerioderResponse = HentTrygdetidPerioderResponses[keyof HentTrygdetidPerioderResponses];
+
+export type LagreTrygdetidPeriodeData = {
+    body: TrygdetidRequest;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/trygdetid';
+};
+
+export type LagreTrygdetidPeriodeResponses = {
+    200: TrygdetidResponse;
+};
+
+export type LagreTrygdetidPeriodeResponse = LagreTrygdetidPeriodeResponses[keyof LagreTrygdetidPeriodeResponses];
+
 export type FullførInngangsvilkårData = {
     body?: never;
     path: {
@@ -1292,5 +1341,19 @@ export type SlettDiagnosePeriodeData = {
 };
 
 export type SlettDiagnosePeriodeResponses = {
+    200: unknown;
+};
+
+export type SlettTrygdetidPeriodeData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+        trygdetidId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/trygdetid/{trygdetidId}';
+};
+
+export type SlettTrygdetidPeriodeResponses = {
     200: unknown;
 };

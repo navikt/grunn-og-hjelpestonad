@@ -475,6 +475,35 @@ export const zVilkårDiagnoseResponse = z.object({
     erVilkårOppfylt: z.boolean()
 });
 
+export const zTrygdetidRequest = z.object({
+    id: z.uuid().nullish(),
+    teller: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    kilde: z.enum([
+        'ALDERSPENSJON',
+        'UFØRETRYGD',
+        'MIGRERING',
+        'INGEN'
+    ]),
+    begrunnelse: z.string(),
+    fraOgMedDato: z.iso.date().nullish(),
+    tilOgMedDato: z.iso.date().nullish()
+});
+
+export const zTrygdetidResponse = z.object({
+    id: z.uuid(),
+    behandlingId: z.uuid(),
+    teller: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    kilde: z.enum([
+        'ALDERSPENSJON',
+        'UFØRETRYGD',
+        'MIGRERING',
+        'INGEN'
+    ]),
+    begrunnelse: z.string(),
+    fraOgMedDato: z.iso.date().nullish(),
+    tilOgMedDato: z.iso.date().nullish()
+});
+
 export const zPeriodeMedOppfylteInngangsvilkårResponse = z.object({
     fraOgMedDato: z.iso.date().nullish(),
     tilOgMedDato: z.iso.date().nullish()
@@ -603,7 +632,10 @@ export const zBehandlingEndringResponse = z.object({
         'ÅRSAK_OPPDATERT',
         'BESLUTTER_GODKJENT',
         'BESLUTTER_UNDERKJENT',
-        'BEHANDLING_HENLAGT'
+        'BEHANDLING_HENLAGT',
+        'TRYGDETID_OPPRETTET',
+        'TRYGDETID_OPPDATERT',
+        'TRYGDETID_SLETTET'
     ]),
     utførtAv: z.string(),
     utførtTid: z.iso.datetime({ local: true }),
@@ -879,6 +911,26 @@ export const zLagreDiagnosePeriodePath = z.object({
  */
 export const zLagreDiagnosePeriodeResponse = zVilkårDiagnoseResponse;
 
+export const zHentTrygdetidPerioderPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zHentTrygdetidPerioderResponse = z.array(zTrygdetidResponse);
+
+export const zLagreTrygdetidPeriodeBody = zTrygdetidRequest;
+
+export const zLagreTrygdetidPeriodePath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zLagreTrygdetidPeriodeResponse = zTrygdetidResponse;
+
 export const zFullførInngangsvilkårPath = z.object({
     behandlingId: z.uuid()
 });
@@ -1096,4 +1148,9 @@ export const zSlettEkstrautgifterPeriodePath = z.object({
 export const zSlettDiagnosePeriodePath = z.object({
     behandlingId: z.uuid(),
     vilkårPeriodeId: z.uuid()
+});
+
+export const zSlettTrygdetidPeriodePath = z.object({
+    behandlingId: z.uuid(),
+    trygdetidId: z.uuid()
 });
