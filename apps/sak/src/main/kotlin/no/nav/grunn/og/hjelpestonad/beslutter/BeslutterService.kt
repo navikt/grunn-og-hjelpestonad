@@ -10,6 +10,7 @@ import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
+import no.nav.grunn.og.hjelpestonad.oppdrag.IverksettOppdragTask
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
@@ -20,6 +21,7 @@ import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
+import no.nav.grunn.og.hjelpestonad.vedtak.endrerUtbetaling
 import no.nav.grunn.og.hjelpestonad.vedtak.tilBehandlingResultat
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -114,6 +116,16 @@ class BeslutterService(
 
         if (vedtak?.resultatType == ResultatType.INNVILGET) {
             taskService.opprett(SendVedtakTilInfotrygdFeedTask.TYPE, behandlingId)
+        }
+
+        if (vedtak?.resultatType?.endrerUtbetaling() == true) {
+            taskService.opprett(
+                IverksettOppdragTask.TYPE,
+                IverksettOppdragTask.IverksettOppdragTaskData(
+                    behandlingId = behandlingId,
+                    saksbehandlerId = totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId),
+                ),
+            )
         }
     }
 

@@ -83,7 +83,6 @@ class UtbetalingsoppdragService(
 
         val beregning = beregnUtbetalingsoppdrag(behandling, saksbehandlerId) ?: return null
         val oppdragResultat = beregning.oppdrag.tilOppdragResultat(behandling)
-
         oppdragResultatRepository.insert(oppdragResultat)
         logger.info(
             "Lagret oppdrag for behandling={}: status={}, {} perioder, {} andeler",

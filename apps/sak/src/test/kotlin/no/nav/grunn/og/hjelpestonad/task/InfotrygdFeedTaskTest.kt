@@ -120,6 +120,7 @@ class InfotrygdFeedTaskTest {
                 antallFeil = 0,
                 stoppaarsak = null,
                 versjon = 0,
+                sistEndretTid = Instant.now(),
             ),
         payload = payload,
         transaksjon = mockk<Transaksjon>(),

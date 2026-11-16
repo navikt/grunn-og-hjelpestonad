@@ -19,7 +19,8 @@ import java.util.UUID
  *
  * Går gjennom samme kjeding og lagring som iverksettingen ved godkjenning, men krever ikke at vedtaket er besluttet.
  * Må fjernes eller kreve godkjent vedtak før prod. Oppretter ingen statustask: status hentes med GET-endepunktet, og
- * neste oppdrag på fagsaken stopper til statusen er `KVITTERT_OK`.
+ * neste oppdrag på fagsaken stopper til statusen er `KVITTERT_OK`. Et nytt kall for en behandling som er iverksatt,
+ * sender ikke oppdraget på nytt, men svarer med det lagrede oppdraget.
  */
 @RestController
 @RequestMapping(path = ["/api/oppdrag/iverksetting"])
@@ -35,16 +36,36 @@ class OppdragIverksettingController(
         @PathVariable behandlingId: UUID,
     ): OppdragIverksettingResponse {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        val resultat =
-            oppdragIverksettingService.iverksett(behandlingId, SikkerhetContext.hentSaksbehandler())
-                ?: throw Feil("Behandlingen har ingen andeler å utbetale og ingen tidligere utbetaling å opphøre", HttpStatus.BAD_REQUEST)
-        return OppdragIverksettingResponse(
-            saksnummer = resultat.oppdrag.utbetalingsoppdrag.saksnummer,
-            behandlingsId = utbetalingsoppdragService.lagOppdragId(behandlingId).behandlingsId,
-            antallPerioder = resultat.oppdrag.utbetalingsoppdrag.utbetalingsperiode.size,
-            testandel = resultat.testandel,
-        )
+        val iverksettingsresultat = oppdragIverksettingService.iverksett(behandlingId, SikkerhetContext.hentSaksbehandler())
+        return when (iverksettingsresultat) {
+            Iverksettingsresultat.IngentingÅSende -> {
+                throw Feil("Behandlingen har ingen andeler å utbetale og ingen tidligere utbetaling å opphøre", HttpStatus.BAD_REQUEST)
+            }
+
+            is Iverksettingsresultat.IngenEndring -> {
+                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat, iverksettingsresultat.testandel)
+            }
+
+            is Iverksettingsresultat.Sendt -> {
+                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat, iverksettingsresultat.testandel)
+            }
+
+            is Iverksettingsresultat.AlleredeIverksatt -> {
+                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat, testandel = null)
+            }
+        }
     }
+
+    private fun lagResponse(
+        behandlingId: UUID,
+        oppdragResultat: OppdragResultat,
+        testandel: Testandel?,
+    ) = OppdragIverksettingResponse(
+        saksnummer = oppdragResultat.utbetalingsoppdrag.saksnummer,
+        behandlingsId = utbetalingsoppdragService.lagOppdragId(behandlingId).behandlingsId,
+        antallPerioder = oppdragResultat.utbetalingsoppdrag.utbetalingsperiode.size,
+        testandel = testandel,
+    )
 
     @GetMapping("/{behandlingId}/status")
     fun hentOppdragStatus(

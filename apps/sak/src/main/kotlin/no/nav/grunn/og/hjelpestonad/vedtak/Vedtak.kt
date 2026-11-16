@@ -70,6 +70,13 @@ enum class ResultatType {
     OPPHØR,
 }
 
+/** Om vedtaket kan gi nye andeler eller opphøre andeler i OS, og derfor skal iverksettes mot oppdrag. */
+fun ResultatType.endrerUtbetaling(): Boolean =
+    when (this) {
+        ResultatType.INNVILGET, ResultatType.OPPHØR -> true
+        ResultatType.AVSLÅTT, ResultatType.HENLAGT -> false
+    }
+
 fun ResultatType.tilBehandlingResultat(): BehandlingResultat =
     when (this) {
         ResultatType.INNVILGET -> BehandlingResultat.INNVILGET
