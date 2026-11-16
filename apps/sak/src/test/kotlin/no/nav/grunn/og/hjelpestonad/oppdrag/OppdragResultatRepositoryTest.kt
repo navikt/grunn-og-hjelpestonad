@@ -12,13 +12,18 @@ import no.nav.grunn.og.hjelpestonad.fagsak.domain.Fagsak
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.FagsakPerson
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.Personident
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.http.HttpStatus
 import java.time.LocalDate
+import java.time.YearMonth
 import java.util.UUID
 
 internal class OppdragResultatRepositoryTest : SpringContextTest() {
@@ -35,7 +40,10 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
     private lateinit var fagsakPersonRepository: FagsakPersonRepository
 
     @Autowired
-    private lateinit var transactionManager: PlatformTransactionManager
+    private lateinit var utbetalingsoppdragService: UtbetalingsoppdragService
+
+    @Autowired
+    private lateinit var tilkjentYtelseRepository: TilkjentYtelseRepository
 
     @Test
     fun `lagrer og leser oppdraget som JSONB uten tap`() {
@@ -113,6 +121,25 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
     }
 
     @Test
+    fun `status på siste oppdrag er null når fagsaken ikke har oppdrag`() {
+        val fagsak = opprettFagsak()
+
+        assertThat(oppdragResultatRepository.finnStatusPåSisteOppdrag(fagsak.id, UUID.randomUUID())).isNull()
+    }
+
+    @Test
+    fun `status på siste oppdrag følger sist lagrede oppdrag og unntar behandling`() {
+        val fagsak = opprettFagsak()
+        val første = opprettBehandling(fagsak)
+        val andre = opprettBehandling(fagsak)
+        oppdragResultatRepository.insert(oppdragResultat(første, oppdrag(første), emptySet()).copy(status = OppdragStatus.KVITTERT_OK))
+        oppdragResultatRepository.insert(oppdragResultat(andre, oppdrag(andre), emptySet()).copy(status = OppdragStatus.LAGT_PÅ_KØ))
+
+        assertThat(oppdragResultatRepository.finnStatusPåSisteOppdrag(fagsak.id, UUID.randomUUID())).isEqualTo(OppdragStatus.LAGT_PÅ_KØ)
+        assertThat(oppdragResultatRepository.finnStatusPåSisteOppdrag(fagsak.id, andre.id)).isEqualTo(OppdragStatus.KVITTERT_OK)
+    }
+
+    @Test
     fun `oppdaterer status og kvitteringsmelding uten å endre andelene`() {
         val fagsak = opprettFagsak()
         val behandling = opprettBehandling(fagsak)
@@ -125,6 +152,100 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
         assertThat(oppdatert.kvitteringsmelding).isEqualTo("Mottatt")
         assertThat(oppdatert.andeler).containsExactlyElementsOf(lagret.andeler)
     }
+
+    @Test
+    fun `iverksetting kjeder revurderingen mot førstegangsbehandlingen og lager ikke nytt oppdrag ved nytt forsøk`() {
+        val fagsak = opprettFagsak()
+        val førstegang = opprettBehandling(fagsak)
+        lagreTilkjentYtelse(førstegang, andelTilkjentYtelse(førstegang, 1000, "2025-01-01", "2025-06-30"))
+        val førsteOppdrag = iverksettOgKvitter(førstegang)
+
+        val revurdering = opprettBehandling(fagsak)
+        lagreTilkjentYtelse(revurdering, andelTilkjentYtelse(revurdering, 1000, "2025-01-01", "2025-03-31"))
+        val revurderingOppdrag = utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(revurdering.id, "Z999999")!!.oppdragResultat
+        val nyttForsøk = utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(revurdering.id, "Z999999")!!
+
+        assertThat(førsteOppdrag.utbetalingsoppdrag.utbetalingsperiode.map { it.periodeId }).containsExactly(0L)
+        val opphør = revurderingOppdrag.utbetalingsoppdrag.utbetalingsperiode.single()
+        assertThat(opphør.periodeId).isEqualTo(0L)
+        assertThat(opphør.opphør?.opphørDatoFom).isEqualTo(LocalDate.parse("2025-04-01"))
+        assertThat(nyttForsøk.oppdragResultat.utbetalingsoppdrag).isEqualTo(revurderingOppdrag.utbetalingsoppdrag)
+        assertThat(nyttForsøk.testandel).isNull()
+        assertThat(oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, unntattBehandlingId = UUID.randomUUID()).map { it.tom })
+            .containsExactly(LocalDate.parse("2025-03-31"))
+    }
+
+    @Test
+    fun `kjede over tre behandlinger - endring, fullt opphør og ny andel`() {
+        val fagsak = opprettFagsak()
+        val førstegang = opprettBehandling(fagsak)
+        lagreTilkjentYtelse(
+            førstegang,
+            andelTilkjentYtelse(førstegang, 1000, "2025-01-01", "2025-03-31"),
+            andelTilkjentYtelse(førstegang, 2000, "2025-04-01", "2025-06-30"),
+        )
+        iverksettOgKvitter(førstegang)
+
+        val opphør = opprettBehandling(fagsak)
+        lagreTilkjentYtelse(opphør)
+        val opphørsperiode = iverksettOgKvitter(opphør).utbetalingsoppdrag.utbetalingsperiode.single()
+
+        val gjenopptak = opprettBehandling(fagsak)
+        lagreTilkjentYtelse(gjenopptak, andelTilkjentYtelse(gjenopptak, 1500, "2025-07-01", "2025-12-31"))
+        val nyPeriode = iverksettOgKvitter(gjenopptak).utbetalingsoppdrag.utbetalingsperiode.single()
+
+        assertThat(opphørsperiode.periodeId).isEqualTo(1L)
+        assertThat(opphørsperiode.opphør?.opphørDatoFom).isEqualTo(LocalDate.parse("2025-01-01"))
+        assertThat(nyPeriode.opphør).isNull()
+        assertThat(nyPeriode.periodeId).isEqualTo(2L)
+        assertThat(nyPeriode.forrigePeriodeId).isEqualTo(1L)
+        assertThat(oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, unntattBehandlingId = UUID.randomUUID()).map { it.periodeId })
+            .containsExactly(2L)
+    }
+
+    @Test
+    fun `nytt oppdrag stopper når forrige oppdrag på fagsaken ikke er kvittert OK`() {
+        listOf(OppdragStatus.OPPRETTET, OppdragStatus.LAGT_PÅ_KØ, "KVITTERT_FUNKSJONELL_FEIL").forEachIndexed { indeks, status ->
+            val fagsak = opprettFagsak(personident = "0101019999$indeks")
+            val førstegang = opprettBehandling(fagsak)
+            lagreTilkjentYtelse(førstegang, andelTilkjentYtelse(førstegang, 1000, "2025-01-01", "2025-06-30"))
+            utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(førstegang.id, "Z999999")
+            oppdragResultatRepository.oppdaterStatus(førstegang.id, status, kvitteringsmelding = null)
+
+            val revurdering = opprettBehandling(fagsak)
+            lagreTilkjentYtelse(revurdering, andelTilkjentYtelse(revurdering, 1000, "2025-01-01", "2025-03-31"))
+
+            assertThatThrownBy { utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(revurdering.id, "Z999999") }
+                .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.CONFLICT) }
+            assertThat(oppdragResultatRepository.findByIdOrNull(revurdering.id)).isNull()
+        }
+    }
+
+    private fun iverksettOgKvitter(behandling: Behandling): OppdragResultat {
+        val oppdrag = utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(behandling.id, "Z999999")!!.oppdragResultat
+        oppdragResultatRepository.oppdaterStatus(behandling.id, OppdragStatus.KVITTERT_OK, kvitteringsmelding = null)
+        return oppdrag
+    }
+
+    private fun lagreTilkjentYtelse(
+        behandling: Behandling,
+        vararg andeler: AndelTilkjentYtelse,
+    ) {
+        tilkjentYtelseRepository.insert(
+            TilkjentYtelse(
+                behandlingId = behandling.id,
+                startmåned = YearMonth.from(andeler.minOfOrNull { it.fom } ?: LocalDate.parse("2025-01-01")),
+                andelerTilkjentYtelse = andeler.toSet(),
+            ),
+        )
+    }
+
+    private fun andelTilkjentYtelse(
+        behandling: Behandling,
+        beløp: Int,
+        fom: String,
+        tom: String,
+    ) = AndelTilkjentYtelse(beløp = beløp.toBigDecimal(), fom = LocalDate.parse(fom), tom = LocalDate.parse(tom), kildeBehandlingId = behandling.id)
 
     private fun oppdragResultat(
         behandling: Behandling,
@@ -170,8 +291,8 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
             kildeBehandlingId = behandling.id,
         )
 
-    private fun opprettFagsak(): Fagsak {
-        val fagsakPerson = fagsakPersonRepository.insert(FagsakPerson(identer = setOf(Personident(PERSONIDENT))))
+    private fun opprettFagsak(personident: String = PERSONIDENT): Fagsak {
+        val fagsakPerson = fagsakPersonRepository.insert(FagsakPerson(identer = setOf(Personident(personident))))
         return fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.BARNETILSYN))
     }
 

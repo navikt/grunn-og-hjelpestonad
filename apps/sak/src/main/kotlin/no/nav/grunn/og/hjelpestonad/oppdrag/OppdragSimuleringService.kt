@@ -1,10 +1,11 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import org.springframework.stereotype.Service
 import java.util.UUID
 
-/** Simulerer en behandling mot oppdrag gjennom `familie-oppdrag-backend`. Resultatet lagres ikke (se ADR-0011). */
+/** Simulerer en behandling mot oppdrag gjennom `familie-oppdrag-backend`, kjedet mot det som er sendt før. Resultatet lagres ikke (se ADR-0011). */
 @Service
 class OppdragSimuleringService(
     private val utbetalingsoppdragService: UtbetalingsoppdragService,
@@ -12,7 +13,7 @@ class OppdragSimuleringService(
     private val meterRegistry: MeterRegistry,
 ) {
     fun simuler(behandlingId: UUID): OppdragSimuleringResponse {
-        val utbetalingsoppdragForBehandling = utbetalingsoppdragService.lagUtbetalingsoppdrag(behandlingId)
+        val utbetalingsoppdragForBehandling = utbetalingsoppdragService.lagUtbetalingsoppdrag(behandlingId, SikkerhetContext.hentSaksbehandler())
         val utbetalingsoppdrag = utbetalingsoppdragForBehandling.utbetalingsoppdrag
         val testandel = utbetalingsoppdragForBehandling.testandel
 
