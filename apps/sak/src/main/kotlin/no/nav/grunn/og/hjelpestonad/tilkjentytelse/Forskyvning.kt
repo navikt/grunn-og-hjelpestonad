@@ -61,7 +61,10 @@ private fun forskyvFom(
     fom?.let {
         when (endringFraForrige) {
             Endring.ØKNING -> YearMonth.from(it).atDay(1)
-            Endring.REDUKSJON, null -> YearMonth.from(it).plusMonths(1).atDay(1)
+
+            Endring.REDUKSJON,
+            null,
+            -> YearMonth.from(it).plusMonths(1).atDay(1)
         }
     }
 
