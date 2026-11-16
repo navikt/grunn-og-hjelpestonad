@@ -160,10 +160,10 @@ data class LagOppgaveRequest(
     val prioritet: OppgavePrioritet = OppgavePrioritet.NORM,
     val tema: Tema,
     val behandlingstema: String? = null,
-    val behandlingstype: String? = null,
+    val behandlingstype: String? = null, // TODO Avklar og sett riktig behandlingstype for GRU.
     val fristFerdigstillelse: String,
     val aktivDato: String,
-    val oppgavetype: OppgavetypeEYO,
+    val oppgavetype: OppgavetypeGRU,
     val beskrivelse: String,
     val tilordnetRessurs: String? = null,
     val behandlesAvApplikasjon: String,

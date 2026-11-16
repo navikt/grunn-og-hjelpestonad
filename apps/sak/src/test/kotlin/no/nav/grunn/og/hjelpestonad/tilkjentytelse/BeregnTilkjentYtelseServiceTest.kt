@@ -184,7 +184,7 @@ internal class BeregnTilkjentYtelseServiceTest : SpringContextTest() {
 
     private fun opprettFagsak(): UUID {
         val fagsakPerson = fagsakPersonRepository.insert(FagsakPerson(identer = setOf(Personident("01010199998"))))
-        return fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.BARNETILSYN)).id
+        return fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.GRUNNSTØNAD)).id
     }
 
     private fun opprettBehandling(

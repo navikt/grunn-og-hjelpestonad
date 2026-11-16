@@ -13,7 +13,7 @@ import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppdrag.IverksettOppdragTask
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
-import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
+import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeGRU
 import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTask
 import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTask
@@ -64,7 +64,7 @@ class BeslutterService(
 
         taskService.opprett(
             OpprettOppgaveTask.TYPE,
-            OpprettOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeEYO.GOD_VED),
+            OpprettOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeGRU.BEH_VED),
         )
     }
 
@@ -111,7 +111,7 @@ class BeslutterService(
 
         taskService.opprett(
             FerdigstillOppgaveTask.TYPE,
-            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeEYO.GOD_VED),
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeGRU.BEH_VED),
         )
 
         if (vedtak?.resultatType == ResultatType.INNVILGET) {
@@ -157,14 +157,14 @@ class BeslutterService(
 
         taskService.opprett(
             FerdigstillOppgaveTask.TYPE,
-            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeEYO.GOD_VED),
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeGRU.BEH_VED),
         )
 
         taskService.opprett(
             OpprettOppgaveTask.TYPE,
             OpprettOppgaveTaskData(
                 behandlingId = behandlingId,
-                oppgavetype = OppgavetypeEYO.BEH_UND_VED,
+                oppgavetype = OppgavetypeGRU.BEH_SAK,
                 tilordnetSaksbehandler = saksbehandlerSomSendteTilBeslutter,
             ),
         )
@@ -183,10 +183,10 @@ class BeslutterService(
             oppgaveService.hentOppgaveForBehandling(behandlingId)
                 ?: throw IllegalStateException("Fant ikke oppgave for behandling med id $behandlingId")
 
-        val finnesFatterVedtakOppgaveFraFør = oppgave.type == OppgavetypeEYO.GOD_VED.name
+        val finnesFatterVedtakOppgaveFraFør = oppgave.type == OppgavetypeGRU.BEH_VED.name
         if (finnesFatterVedtakOppgaveFraFør) {
             throw IllegalStateException(
-                "Det finnes allerede en godkjenn vedtak-oppgave for behandling med id $behandlingId. " +
+                "Det finnes allerede en oppgave av typen Behandle vedtak for behandling med id $behandlingId. " +
                     "Behandlingen kan ikke sendes til beslutter på nytt før eksisterende oppgave er ferdigstilt.",
             )
         }

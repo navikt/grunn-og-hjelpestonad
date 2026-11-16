@@ -37,7 +37,7 @@ class FagsakControllerTest {
 
     private val personident = "12345678910"
     private val fagsakPersonId = UUID.randomUUID()
-    private val stønadstype = StønadType.BARNETILSYN
+    private val stønadstype = StønadType.GRUNNSTØNAD
 
     private val fagsak =
         FagsakResponse(
@@ -55,7 +55,7 @@ class FagsakControllerTest {
         mockMvc
             .post("/api/fagsak") {
                 contentType = MediaType.APPLICATION_JSON
-                content = """{"personident":"$personident","stønadstype":"BARNETILSYN"}"""
+                content = """{"personident":"$personident","stønadstype":"GRUNNSTØNAD"}"""
             }.andExpect {
                 status { isOk() }
                 jsonPath("$.fagsakPersonId") { value(fagsakPersonId.toString()) }
@@ -71,7 +71,7 @@ class FagsakControllerTest {
         mockMvc
             .post("/api/fagsak") {
                 contentType = MediaType.APPLICATION_JSON
-                content = """{"personident":"123","stønadstype":"BARNETILSYN"}"""
+                content = """{"personident":"123","stønadstype":"GRUNNSTØNAD"}"""
             }.andExpect {
                 status { isBadRequest() }
                 jsonPath("$.melding") { value("Personident må være 11 siffer") }
@@ -86,7 +86,7 @@ class FagsakControllerTest {
         mockMvc
             .post("/api/fagsak") {
                 contentType = MediaType.APPLICATION_JSON
-                content = """{"fagsakPersonId":"$fagsakPersonId","stønadstype":"BARNETILSYN"}"""
+                content = """{"fagsakPersonId":"$fagsakPersonId","stønadstype":"GRUNNSTØNAD"}"""
             }.andExpect {
                 status { isBadRequest() }
             }
@@ -99,7 +99,7 @@ class FagsakControllerTest {
         every { fagsakService.hentFagsak(fagsakPersonId, stønadstype) } returns fagsak
 
         mockMvc
-            .get("/api/fagsak/fagsak-person/$fagsakPersonId/BARNETILSYN")
+            .get("/api/fagsak/fagsak-person/$fagsakPersonId/GRUNNSTØNAD")
             .andExpect {
                 status { isOk() }
                 jsonPath("$.id") { value(fagsak.id.toString()) }
@@ -115,7 +115,7 @@ class FagsakControllerTest {
             Feil(melding = "Fant ikke fagsak", httpStatus = HttpStatus.NOT_FOUND)
 
         mockMvc
-            .get("/api/fagsak/fagsak-person/$fagsakPersonId/BARNETILSYN")
+            .get("/api/fagsak/fagsak-person/$fagsakPersonId/GRUNNSTØNAD")
             .andExpect { status { isNotFound() } }
     }
 }

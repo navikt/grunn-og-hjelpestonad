@@ -48,7 +48,7 @@ class OppgaveService(
             Oppgave(
                 behandlingId = behandling.id,
                 gsakOppgaveId = oppgave.id ?: throw IllegalStateException("Oppgave-respons mangler id"),
-                type = OppgavetypeEYO.BEH_SAK.name,
+                type = OppgavetypeGRU.BEH_SAK.name,
             ),
         )
 
@@ -84,8 +84,8 @@ class OppgaveService(
         )
     }
 
-    fun opprettGodkjennVedtakOppgave(behandlingId: UUID) {
-        logger.info("Oppretter godkjenn vedtak oppgave for behandling=$behandlingId")
+    fun opprettBehandleVedtakOppgave(behandlingId: UUID) {
+        logger.info("Oppretter behandle vedtak oppgave for behandling=$behandlingId")
 
         val fagsak = hentFagsakForBehandling(behandlingId)
         val fagsakPerson = fagsakPersonRepository.findByIdOrNull(fagsak.fagsakPersonId) ?: throw IllegalStateException("Finner ikke fagsakPerson")
@@ -97,12 +97,12 @@ class OppgaveService(
                 personident = personident.ident,
                 saksreferanse = fagsak.eksternId.toString(),
                 prioritet = OppgavePrioritet.NORM,
-                tema = Tema.EYO,
+                tema = Tema.GRU,
                 behandlingstema = fagsak.stønadstype.behandlingstema,
                 fristFerdigstillelse = OppgaveUtil.lagFristForOppgave().format(DateTimeFormatter.ISO_DATE),
                 aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
-                oppgavetype = OppgavetypeEYO.GOD_VED,
-                beskrivelse = "Godkjenn vedtak for behandling=$behandlingId",
+                oppgavetype = OppgavetypeGRU.BEH_VED,
+                beskrivelse = "Behandle vedtak for behandling=$behandlingId",
                 tilordnetRessurs = null,
                 behandlesAvApplikasjon = "grunn-og-hjelpestonad",
                 tildeltEnhetsnr = gosysOppgave.tildeltEnhetsnr ?: throw IllegalStateException("Oppgave mangler tildeltEnhetsnr"),
@@ -114,7 +114,7 @@ class OppgaveService(
             Oppgave(
                 behandlingId = behandlingId,
                 gsakOppgaveId = oppgave.id ?: throw IllegalStateException("Oppgave-respons mangler id"),
-                type = OppgavetypeEYO.GOD_VED.name,
+                type = OppgavetypeGRU.BEH_VED.name,
             ),
         )
     }
@@ -135,11 +135,11 @@ class OppgaveService(
                 personident = personident.ident,
                 saksreferanse = fagsak.eksternId.toString(),
                 prioritet = OppgavePrioritet.NORM,
-                tema = Tema.EYO,
+                tema = Tema.GRU,
                 behandlingstema = fagsak.stønadstype.behandlingstema,
                 fristFerdigstillelse = OppgaveUtil.lagFristForOppgave().format(DateTimeFormatter.ISO_DATE),
                 aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
-                oppgavetype = OppgavetypeEYO.BEH_UND_VED,
+                oppgavetype = OppgavetypeGRU.BEH_SAK,
                 beskrivelse = "Behandle underkjent vedtak for behandling=$behandlingId",
                 tilordnetRessurs = tilordnetSaksbehandler,
                 behandlesAvApplikasjon = "grunn-og-hjelpestonad",
@@ -152,7 +152,7 @@ class OppgaveService(
             Oppgave(
                 behandlingId = behandlingId,
                 gsakOppgaveId = oppgave.id ?: throw IllegalStateException("Oppgave-respons mangler id"),
-                type = OppgavetypeEYO.BEH_UND_VED.name,
+                type = OppgavetypeGRU.BEH_SAK.name,
             ),
         )
     }
@@ -160,12 +160,12 @@ class OppgaveService(
     fun hentOppgaveForBehandling(behandlingId: UUID): Oppgave? =
         oppgaveRepository.finnSisteOppgaveForBehandling(
             behandlingId = behandlingId,
-            types = listOf(OppgavetypeEYO.BEH_SAK.name, OppgavetypeEYO.GOD_VED.name, OppgavetypeEYO.BEH_UND_VED.name),
+            types = listOf(OppgavetypeGRU.BEH_SAK.name, OppgavetypeGRU.BEH_VED.name),
         )
 
     fun ferdigstillOppgaveForType(
         behandlingId: UUID,
-        oppgavetype: OppgavetypeEYO,
+        oppgavetype: OppgavetypeGRU,
     ) {
         logger.info("Ferdigstiller oppgave av type=${oppgavetype.name} for behandling=$behandlingId")
 
@@ -184,11 +184,11 @@ class OppgaveService(
         )
     }
 
-    fun hentAktivOppgavetype(behandlingId: UUID): OppgavetypeEYO {
+    fun hentAktivOppgavetype(behandlingId: UUID): OppgavetypeGRU {
         val oppgave =
             hentOppgaveForBehandling(behandlingId)
                 ?: throw IllegalStateException("Finner ikke oppgave for behandling=$behandlingId")
-        return OppgavetypeEYO.valueOf(oppgave.type)
+        return OppgavetypeGRU.valueOf(oppgave.type)
     }
 
     private fun hentGosysOppgave(behandlingId: UUID): OppgaveDto {
@@ -219,12 +219,12 @@ private fun lagOpprettBehandleSakOppgaveRequest(
         personident = personident.ident,
         saksreferanse = fagsak.eksternId.toString(), // TODO sjekk om dette burde være "behandling-eksternid"?
         prioritet = OppgavePrioritet.NORM,
-        tema = Tema.EYO,
+        tema = Tema.GRU,
         behandlingstema = fagsak.stønadstype.behandlingstema,
         fristFerdigstillelse = OppgaveUtil.lagFristForOppgave().format(DateTimeFormatter.ISO_DATE),
         aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
-        oppgavetype = OppgavetypeEYO.BEH_SAK,
-        beskrivelse = "Behandle sak oppgave for barnetilsynbehandling=${behandling.id}-${fagsak.stønadstype.name}",
+        oppgavetype = OppgavetypeGRU.BEH_SAK,
+        beskrivelse = "Behandle sak for behandling=${behandling.id}-${fagsak.stønadstype.name}",
         tilordnetRessurs = saksbehandler,
         behandlesAvApplikasjon = "grunn-og-hjelpestonad", // Kan kun feilregistreres av saksbehandler i gosys? Må ferdigstilles av applikasjon?
         tildeltEnhetsnr = tildeltEnhetsnr,
@@ -287,30 +287,14 @@ enum class OppgavePrioritet {
     LAV,
 }
 
-// mulige oppgavetyper for tema EYO (Februar 2026)
-enum class OppgavetypeEYO(
+enum class OppgavetypeGRU(
     val term: String,
 ) {
     BEH_SAK(
         term = "Behandle sak",
     ),
-    GOD_VED(
-        term = "Godkjenne vedtak",
-    ),
-    BEH_UND_VED(
-        term = "Behandle underkjent vedtak",
-    ),
-    INNH_DOK(
-        term = "Innhent dokumentasjon",
-    ),
-    VURD_NOTAT(
-        term = "Vurder notat",
-    ),
-    VURD_BREV(
-        term = "Vurder brev",
-    ),
-    GEN(
-        term = "Generell",
+    BEH_VED(
+        term = "Behandle vedtak",
     ),
     VURD_HENV(
         term = "Vurder henvendelse",
@@ -321,35 +305,14 @@ enum class OppgavetypeEYO(
     KONT_BRUK(
         term = "Kontakt bruker",
     ),
-    KRA_DOD(
-        term = "Død",
-    ),
     BEH_SED(
         term = "Behandle SED",
     ),
-    TVU_FOR(
-        term = "Tvungen forvaltning",
+    FREM(
+        term = "Fremlegg",
     ),
-    RETUR(
-        term = "Behandle returpost",
-    ),
-    JFR(
-        term = "Journalføring",
-    ),
-    KON_UTG_SCA_DOK(
-        term = "Kontroller utgående skannet dokument",
-    ),
-    FDR(
-        term = "Fordeling",
-    ),
-    JFR_UT(
-        term = "Journalføring utgående",
-    ),
-    VUR_SVAR(
-        term = "Vurder svar",
-    ),
-    SVAR_IK_MOT(
-        term = "Svar ikke mottatt",
+    VUR(
+        term = "Vurder dokument",
     ),
 }
 
@@ -367,5 +330,5 @@ enum class IdentGruppe {
 }
 
 enum class Tema {
-    EYO,
+    GRU,
 }

@@ -3,7 +3,7 @@ package no.nav.grunn.og.hjelpestonad.task
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
-import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
+import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeGRU
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -21,16 +21,16 @@ class OpprettOppgaveTask(
         logger.info("Oppretter oppgave for behandling=${data.behandlingId}, type=${data.oppgavetype}")
 
         when (data.oppgavetype) {
-            OppgavetypeEYO.GOD_VED -> {
-                oppgaveService.opprettGodkjennVedtakOppgave(data.behandlingId)
+            OppgavetypeGRU.BEH_VED -> {
+                oppgaveService.opprettBehandleVedtakOppgave(data.behandlingId)
             }
 
-            OppgavetypeEYO.BEH_UND_VED -> {
+            OppgavetypeGRU.BEH_SAK -> {
                 oppgaveService.opprettBehandleUnderkjentVedtakOppgave(
                     behandlingId = data.behandlingId,
                     tilordnetSaksbehandler =
                         data.tilordnetSaksbehandler
-                            ?: throw IllegalStateException("tilordnetSaksbehandler påkrevd for BEH_UND_VED"),
+                            ?: throw IllegalStateException("tilordnetSaksbehandler påkrevd for BEH_SAK"),
                 )
             }
 
@@ -47,7 +47,7 @@ class OpprettOppgaveTask(
 
 data class OpprettOppgaveTaskData(
     val behandlingId: UUID,
-    val oppgavetype: OppgavetypeEYO,
+    val oppgavetype: OppgavetypeGRU,
     val tilordnetSaksbehandler: String? = null,
     val unik: LocalDateTime = LocalDateTime.now(),
 )

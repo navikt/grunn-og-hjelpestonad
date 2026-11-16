@@ -4,7 +4,7 @@ import type { FagsakRequest, FagsakResponse } from "~/api/generated/types.gen";
 import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 import { erGyldigFagsakPersonId } from "~/utils/utils";
 
-export const STØNADSTYPE: FagsakRequest["stønadstype"] = "BARNETILSYN";
+export const STØNADSTYPE: FagsakRequest["stønadstype"] = "GRUNNSTØNAD";
 
 interface FagsakState {
   fagsakPersonId?: string;

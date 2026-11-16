@@ -23,7 +23,7 @@ import no.nav.grunn.og.hjelpestonad.oppdrag.IverksettOppdragTask
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.Oppgave
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
-import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
+import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeGRU
 import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTask
 import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTask
@@ -72,6 +72,7 @@ class BeslutterServiceTest {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
+        every { oppgaveService.hentAktivOppgavetype(behandlingId) } returns OppgavetypeGRU.BEH_SAK
         every { årsakBehandlingService.hentÅrsakBehandling(behandlingId) } returns
             ÅrsakBehandling(behandlingId = behandlingId, kravdato = LocalDate.of(2026, 10, 1), årsak = Årsak.SØKNAD)
 
@@ -79,6 +80,67 @@ class BeslutterServiceTest {
 
         verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
         verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.SENDT_TIL_BESLUTTER) }
+        verify {
+            taskService.opprett(
+                FerdigstillOppgaveTask.TYPE,
+                match<FerdigstillOppgaveTaskData> {
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_SAK
+                },
+                any(),
+                any(),
+            )
+            taskService.opprett(
+                OpprettOppgaveTask.TYPE,
+                match<OpprettOppgaveTaskData> {
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
+                },
+                any(),
+                any(),
+            )
+        }
+    }
+
+    @Test
+    fun `gjentatt underkjenning oppretter behandle sak til opprinnelig saksbehandler`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
+        every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
+        every { oppgaveService.hentAktivOppgavetype(behandlingId) } returns OppgavetypeGRU.BEH_SAK
+        every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
+
+        repeat(2) {
+            beslutterService.sendTilBeslutter(behandlingId)
+            beslutterService.besluttVedtak(
+                behandlingId,
+                BeslutteVedtakRequest(
+                    godkjent = false,
+                    årsakUnderkjent = ÅrsakUnderkjent.VILKÅR,
+                    begrunnelse = "Vilkår må vurderes på nytt",
+                ),
+            )
+        }
+
+        verify(exactly = 2) {
+            taskService.opprett(
+                OpprettOppgaveTask.TYPE,
+                match<OpprettOppgaveTaskData> {
+                    it.behandlingId == behandlingId &&
+                        it.oppgavetype == OppgavetypeGRU.BEH_SAK &&
+                        it.tilordnetSaksbehandler == "Z123456"
+                },
+                any(),
+                any(),
+            )
+            taskService.opprett(
+                FerdigstillOppgaveTask.TYPE,
+                match<FerdigstillOppgaveTaskData> {
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
+                },
+                any(),
+                any(),
+            )
+        }
     }
 
     @Test
@@ -209,7 +271,7 @@ class BeslutterServiceTest {
             taskService.opprett(
                 FerdigstillOppgaveTask.TYPE,
                 match<FerdigstillOppgaveTaskData> {
-                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeEYO.GOD_VED
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
                 },
                 any(),
                 any(),
@@ -222,7 +284,7 @@ class BeslutterServiceTest {
                 OpprettOppgaveTask.TYPE,
                 match<OpprettOppgaveTaskData> {
                     it.behandlingId == behandlingId &&
-                        it.oppgavetype == OppgavetypeEYO.BEH_UND_VED &&
+                        it.oppgavetype == OppgavetypeGRU.BEH_SAK &&
                         it.tilordnetSaksbehandler == "Z123456"
                 },
                 any(),
@@ -283,6 +345,6 @@ class BeslutterServiceTest {
         Oppgave(
             behandlingId = behandlingId,
             gsakOppgaveId = 1L,
-            type = OppgavetypeEYO.BEH_SAK.name,
+            type = OppgavetypeGRU.BEH_SAK.name,
         )
 }

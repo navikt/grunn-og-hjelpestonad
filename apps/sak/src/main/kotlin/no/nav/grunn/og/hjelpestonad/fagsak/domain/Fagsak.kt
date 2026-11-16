@@ -23,6 +23,6 @@ enum class StønadType(
     val kodeRutine: String,
     val behandlingstema: String,
 ) {
-    BARNETILSYN("GB", behandlingstema = "ab0028"),
-    SKOLEPENGER("GU", behandlingstema = "ab0177"),
+    GRUNNSTØNAD("GS", behandlingstema = "ab0132"),
+    HJELPESTØNAD("HS", behandlingstema = "ab0138"),
 }

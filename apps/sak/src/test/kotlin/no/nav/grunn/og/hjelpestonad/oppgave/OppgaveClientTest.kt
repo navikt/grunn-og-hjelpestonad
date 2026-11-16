@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.matching
+import com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath
 import com.github.tomakehurst.wiremock.client.WireMock.patch
 import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
@@ -65,6 +66,9 @@ class OppgaveClientTest {
             post(urlEqualTo("/api/v1/oppgaver"))
                 .withHeader("Authorization", equalTo("Bearer maskin-token"))
                 .withHeader("X-Correlation-ID", matching(".+"))
+                .withRequestBody(matchingJsonPath("$.tema", equalTo("GRU")))
+                .withRequestBody(matchingJsonPath("$.behandlingstema", equalTo("ab0132")))
+                .withRequestBody(matchingJsonPath("$.oppgavetype", equalTo("BEH_SAK")))
                 .willReturn(jsonResponse(oppgaveResponse())),
         )
 
@@ -73,10 +77,12 @@ class OppgaveClientTest {
                 LagOppgaveRequest(
                     personident = "12345678901",
                     saksreferanse = "sak-1",
-                    tema = Tema.EYO,
+                    tema = Tema.GRU,
+                    behandlingstema = "ab0132",
+                    behandlingstype = null,
                     fristFerdigstillelse = "2026-09-09",
                     aktivDato = "2026-09-08",
-                    oppgavetype = OppgavetypeEYO.BEH_SAK,
+                    oppgavetype = OppgavetypeGRU.BEH_SAK,
                     beskrivelse = "Beskrivelse",
                     behandlesAvApplikasjon = "grunn-og-hjelpestonad",
                     tildeltEnhetsnr = "1234",
@@ -129,5 +135,5 @@ class OppgaveClientTest {
             .withHeader("Content-Type", "application/json")
             .withBody(body)
 
-    private fun oppgaveResponse() = """{"id":123,"tema":"EYO","oppgavetype":"BEH_SAK"}"""
+    private fun oppgaveResponse() = """{"id":123,"tema":"GRU","oppgavetype":"BEH_SAK"}"""
 }

@@ -109,7 +109,7 @@ class TilgangssjekkWebMvcTest {
         every { tilgangService.validerTilgangTilPerson(any()) } throws avslag
 
         mockMvc
-            .postJson("/api/fagsak", """{"personident":"12345678901","stønadstype":"BARNETILSYN"}""")
+            .postJson("/api/fagsak", """{"personident":"12345678901","stønadstype":"GRUNNSTØNAD"}""")
             .forventAvslag()
 
         verify(exactly = 0) { fagsakService.hentEllerOpprettFagsak(any(), any()) }

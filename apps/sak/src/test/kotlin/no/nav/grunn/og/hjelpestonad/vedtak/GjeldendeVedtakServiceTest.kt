@@ -50,7 +50,7 @@ class GjeldendeVedtakServiceTest : SpringContextTest() {
             )
         fagsak =
             fagsakRepository.insert(
-                Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.BARNETILSYN),
+                Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.GRUNNSTØNAD),
             )
     }
 

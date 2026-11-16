@@ -293,7 +293,7 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
 
     private fun opprettFagsak(personident: String = PERSONIDENT): Fagsak {
         val fagsakPerson = fagsakPersonRepository.insert(FagsakPerson(identer = setOf(Personident(personident))))
-        return fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.BARNETILSYN))
+        return fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.GRUNNSTØNAD))
     }
 
     private fun opprettBehandling(fagsak: Fagsak): Behandling = behandlingRepository.insert(Behandling(fagsakId = fagsak.id, status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT))
