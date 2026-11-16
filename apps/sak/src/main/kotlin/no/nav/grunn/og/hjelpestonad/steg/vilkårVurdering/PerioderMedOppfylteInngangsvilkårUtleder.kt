@@ -4,6 +4,8 @@ import no.nav.familie.tidslinje.filtrerIkkeNull
 import no.nav.familie.tidslinje.utvidelser.slåSammenLikePerioder
 import no.nav.familie.tidslinje.utvidelser.tilPerioder
 import no.nav.grunn.og.hjelpestonad.felles.periode.Periodisert
+import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
+import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import java.time.LocalDate
 
 /**
@@ -15,9 +17,14 @@ data class PeriodeMedOppfylteInngangsvilkår(
 ) : Periodisert
 
 object PerioderMedOppfylteInngangsvilkårUtleder {
-    fun utled(vurderteInngangsvilkår: VurderteInngangsvilkår): List<PeriodeMedOppfylteInngangsvilkår> =
-        vurderteInngangsvilkår.medlemskap
-            .erOppfyltTidslinje(vurderteInngangsvilkår.diagnoser)
+    fun utled(vurderteInngangsvilkår: VurderteInngangsvilkår): List<PeriodeMedOppfylteInngangsvilkår> = utled(medlemskap = vurderteInngangsvilkår.medlemskap, diagnoser = vurderteInngangsvilkår.diagnoser)
+
+    fun utled(
+        medlemskap: List<VilkårMedlemskap>,
+        diagnoser: List<VilkårDiagnose>,
+    ): List<PeriodeMedOppfylteInngangsvilkår> =
+        medlemskap
+            .erOppfyltTidslinje(diagnoser)
             .slåSammenLikePerioder()
             .tilPerioder()
             .filtrerIkkeNull()

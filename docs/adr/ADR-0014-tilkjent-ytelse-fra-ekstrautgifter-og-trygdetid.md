@@ -32,8 +32,9 @@ til nærmeste hele krone. Reglene er oppsummert i
 
 `POST /api/behandling/{behandlingId}/sats-og-trygdetid/fullfor` validerer steget,
 regner ut tilkjent ytelse og lagrer den. Utregningen er en ren funksjon etter
-ADR-0008. Inn går vilkårsradene, trygdetidsradene og listen over satsbeløp, og
-ut går andeler per måned. Servicen sletter tilkjent ytelse for behandlingen og
+ADR-0008. Inn går vilkårsradene og trygdetidsradene slik de er lagret, og
+ut går andeler per måned. Satsbeløpene leser funksjonen selv fra listen i kode,
+som er input og ikke I/O etter ADR-0008. Servicen sletter tilkjent ytelse for behandlingen og
 lagrer den på nytt i samme transaksjon. Startmåned settes etter ADR-0013.
 
 Ekstrautgiftene ligger på `/vilkar/ekstrautgifter`. Trygdetid er ikke et vilkår
@@ -56,6 +57,10 @@ brevet.
   ekstrautgiftsperiode være vurdert.
 - Perioder for ekstrautgifter og trygdetid som ligger utenfor periodene med
   oppfylte inngangsvilkår, tar beregningen ikke med. Frontend markerer dem ikke.
+  Unntaket er en endring i trygdetiden mellom to perioder med oppfylte vilkår.
+  Den teller som en endring etter § 22-12, så en økning kan gjelde fra den siste
+  måneden i den første perioden. Fag har ikke bekreftet det, se ticket 21 under
+  `.scratch/sats-og-trygdetid/issues/`.
 - Valideringsfeilen har én feil per vilkårstype og én for trygdetid. Feilen for
   trygdetid har en egen nøkkel, siden `VilkårType` ikke har noen verdi for
   trygdetid.
