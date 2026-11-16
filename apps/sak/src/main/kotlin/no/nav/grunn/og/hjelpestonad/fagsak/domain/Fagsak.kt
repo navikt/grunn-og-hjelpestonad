@@ -19,10 +19,7 @@ data class Fagsak(
     val sporbar: Sporbar = Sporbar(),
 )
 
-enum class StønadType(
-    val kodeRutine: String,
-    val behandlingstema: String,
-) {
-    GRUNNSTØNAD("GS", behandlingstema = "ab0132"),
-    HJELPESTØNAD("HS", behandlingstema = "ab0138"),
+enum class StønadType {
+    GRUNNSTØNAD("GS"),
+    HJELPESTØNAD("HS"),
 }

@@ -10,6 +10,7 @@ import no.nav.grunn.og.hjelpestonad.fagsak.FagsakRepository
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.Fagsak
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.FagsakPerson
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.Personident
+import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
@@ -98,7 +99,7 @@ class OppgaveService(
                 saksreferanse = fagsak.eksternId.toString(),
                 prioritet = OppgavePrioritet.NORM,
                 tema = Tema.GRU,
-                behandlingstema = fagsak.stønadstype.behandlingstema,
+                behandlingstema = fagsak.stønadstype.tilBehandlingstema(),
                 fristFerdigstillelse = OppgaveUtil.lagFristForOppgave().format(DateTimeFormatter.ISO_DATE),
                 aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
                 oppgavetype = OppgavetypeGRU.BEH_VED,
@@ -136,7 +137,7 @@ class OppgaveService(
                 saksreferanse = fagsak.eksternId.toString(),
                 prioritet = OppgavePrioritet.NORM,
                 tema = Tema.GRU,
-                behandlingstema = fagsak.stønadstype.behandlingstema,
+                behandlingstema = fagsak.stønadstype.tilBehandlingstema(),
                 fristFerdigstillelse = OppgaveUtil.lagFristForOppgave().format(DateTimeFormatter.ISO_DATE),
                 aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
                 oppgavetype = OppgavetypeGRU.BEH_SAK,
@@ -220,7 +221,7 @@ private fun lagOpprettBehandleSakOppgaveRequest(
         saksreferanse = fagsak.eksternId.toString(), // TODO sjekk om dette burde være "behandling-eksternid"?
         prioritet = OppgavePrioritet.NORM,
         tema = Tema.GRU,
-        behandlingstema = fagsak.stønadstype.behandlingstema,
+        behandlingstema = fagsak.stønadstype.tilBehandlingstema(),
         fristFerdigstillelse = OppgaveUtil.lagFristForOppgave().format(DateTimeFormatter.ISO_DATE),
         aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
         oppgavetype = OppgavetypeGRU.BEH_SAK,
@@ -229,6 +230,12 @@ private fun lagOpprettBehandleSakOppgaveRequest(
         behandlesAvApplikasjon = "grunn-og-hjelpestonad", // Kan kun feilregistreres av saksbehandler i gosys? Må ferdigstilles av applikasjon?
         tildeltEnhetsnr = tildeltEnhetsnr,
     )
+
+fun StønadType.tilBehandlingstema(): String =
+    when (this) {
+        StønadType.GRUNNSTØNAD -> "ab0132"
+        StønadType.HJELPESTØNAD -> "ab0138"
+    }
 
 fun FagsakPerson.aktivIdent(): Personident =
     this.identer.maxByOrNull { it.sporbar.endret.endretTid }
