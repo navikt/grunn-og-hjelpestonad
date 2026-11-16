@@ -5,6 +5,7 @@
 
 # Backend
 (`apps/sak`): Kotlin 2.4 på Java 25 med Spring Boot 4 (web, security/OAuth2, Data JDBC), PostgreSQL med Flyway-migrasjoner, springdoc-openapi for API-spesifikasjonen, og bygg med Maven.
+- Bruk alltid `TIMESTAMP` uten eksplisitt presisjon i SQL, aldri `TIMESTAMP(3)`. Dette gjelder alle appene i repoet.
 - Kall lokal backend (profil `local-mock`, port 8082) med token fra mock-oauth2 i én pipeline. Lagring av tokenet i fil via `curl -o` virker ikke i sandboxen: `curl -s -X POST http://localhost:8089/default/token -d "grant_type=client_credentials&code=x&client_id=mock-client-id&client_secret=s&scope=default" | jq -r '"Authorization: Bearer " + .access_token' | curl -s -i -H @- http://localhost:8082/api/<sti>`.
 - Deterministisk logikk (regler, utledning, rangering) skrives som rene funksjoner uten Spring, og servicen henter, kaller og lagrer. Se [ADR-0008](docs/adr/ADR-0008-deterministisk-logikk-utenfor-spring.md) for når koden skal flyttes ut, og bruk `UgyldigInput`, ikke `Feil`, i ren kode.
 - Ikke dekonstruer klasser (`val (a, b) = objekt`). Les feltene med navn (`objekt.a`). Dekonstruering bruker rekkefølgen på feltene, så hvis noen bytter om to felt av samme type, kompilerer koden fortsatt, men verdiene byttes uten at noen merker det.
@@ -29,4 +30,3 @@ Standardrollene (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-hum
 ### Ordliste
 
 Ordlisten heter `CONTEXT.md` (på rot), ikke `GLOSSARY.md`. Les og oppdater den der en skill nevner `GLOSSARY.md`. ADR-er ligger i `docs/adr/`.
-

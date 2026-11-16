@@ -12,6 +12,7 @@ import no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl.PdlFaktagrunnlagService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.task.SendStartBehandlingTilInfotrygdFeedTask
+import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidService
 import no.nav.grunn.og.hjelpestonad.vilkår.KopierVilkårService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,6 +26,7 @@ class OpprettBehandlingService(
     private val pdlFaktagrunnlagService: PdlFaktagrunnlagService,
     private val taskService: TaskService,
     private val kopierVilkårService: KopierVilkårService,
+    private val trygdetidService: TrygdetidService,
 ) {
     @Transactional
     fun opprettBehandling(
@@ -51,6 +53,7 @@ class OpprettBehandlingService(
             taskService.opprett(SendStartBehandlingTilInfotrygdFeedTask.TYPE, behandling.id)
         } else {
             kopierVilkårService.kopierFraForrigeBehandling(forrigeBehandlingId = forrigeBehandlingId, behandlingId = behandling.id)
+            trygdetidService.kopierPerioder(fraBehandlingId = forrigeBehandlingId, tilBehandlingId = behandling.id)
         }
 
         lagBehandleSakOppgaveTask.opprettBehandleSakOppgaveTask(behandling = behandling, saksbehandler = SikkerhetContext.hentSaksbehandler())

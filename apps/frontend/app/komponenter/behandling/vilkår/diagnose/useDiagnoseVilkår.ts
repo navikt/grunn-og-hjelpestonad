@@ -5,7 +5,7 @@ import {
   slettDiagnosePeriode,
 } from "~/api/generated/sdk.gen";
 import type { VilkårDiagnoseResponse } from "~/api/generated/types.gen";
-import { useVilkårApiKall } from "../felles/useVilkårApiKall";
+import { useApiKall } from "../felles/useApiKall";
 
 export async function hentDiagnosePerioderFraBackend(
   behandlingId: string,
@@ -33,7 +33,7 @@ export function useDiagnoseVilkårApi() {
   );
 
   return {
-    lagre: useVilkårApiKall(lagreKall),
-    slett: useVilkårApiKall(slettKall),
+    lagre: useApiKall(lagreKall),
+    slett: useApiKall(slettKall),
   };
 }

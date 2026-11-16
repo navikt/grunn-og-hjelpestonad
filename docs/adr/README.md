@@ -21,7 +21,7 @@ utover å oppdatere status og lenke til den nye ADR-en.
 | [ADR-0003](ADR-0003-vilkaarsmodell-for-grunnstoenad.md) | Vilkårsmodell for grunnstønad | Delvis erstattet av ADR-0006 |
 | [ADR-0004](ADR-0004-vilkaarssteg-utleder-perioder-med-rett.md) | Vilkårssteget fullføres i backend og utleder perioder med rett | Delvis erstattet av ADR-0006 |
 | [ADR-0005](ADR-0005-perioder-fra-infotrygd.md) | Perioder fra Infotrygd | Erstattet av `/stonader` |
-| [ADR-0006](ADR-0006-fem-vilkaar-med-inngangsvilkaar-som-foerste-steg.md) | Fem vilkår, med inngangsvilkår som første steg | Foreslått |
+| [ADR-0006](ADR-0006-fem-vilkaar-med-inngangsvilkaar-som-foerste-steg.md) | Fem vilkår, med inngangsvilkår som første steg | Foreslått, ekstrautgifter erstattet av ADR-0016 |
 | [ADR-0007](ADR-0007-faktagrunnlag-per-kilde-med-minst-mulig-endring.md) | Faktagrunnlag per kilde, med minst mulig endring | Foreslått |
 | [ADR-0008](ADR-0008-deterministisk-logikk-utenfor-spring.md) | Deterministisk logikk utenfor Spring | Foreslått |
 | [ADR-0009](ADR-0009-tilgangskontroll-mot-person.md) | Tilgangskontroll mot person via tilgangsmaskinen | Akseptert |
@@ -31,3 +31,4 @@ utover å oppdatere status og lenke til den nye ADR-en.
 | [ADR-0013](ADR-0013-migrering-fra-infotrygd-som-i-ef.md) | Migrering fra Infotrygd som i EF | Foreslått |
 | [ADR-0014](ADR-0014-tilkjent-ytelse-fra-ekstrautgifter-og-trygdetid.md) | Steg 2 regner ut tilkjent ytelse fra ekstrautgifter og trygdetid | Foreslått |
 | [ADR-0015](ADR-0015-sperre-adressebeskyttelse-i-dev.md) | Sperre adressebeskyttelse og skjerming for Infotrygd i dev | Foreslått |
+| [ADR-0016](ADR-0016-ekstrautgifter-som-sats-med-kobling.md) | Ekstrautgifter som sats med kobling (B), med vei til D | Foreslått |

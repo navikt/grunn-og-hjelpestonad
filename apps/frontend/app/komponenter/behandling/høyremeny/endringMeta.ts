@@ -2,7 +2,6 @@ import type React from "react";
 import {
   PlusCircleIcon,
   PaperplaneIcon,
-  ArrowUndoIcon,
   TasklistIcon,
   CheckmarkCircleIcon,
   NotePencilIcon,
@@ -30,12 +29,6 @@ export const endringMeta: Record<EndringType, EndringMeta> = {
     tekst: "Sendt til beslutter",
     ikon: PaperplaneIcon,
     farge: "info",
-    erMilepæl: true,
-  },
-  ANGRET_SEND_TIL_BESLUTTER: {
-    tekst: "Angret send til beslutter",
-    ikon: ArrowUndoIcon,
-    farge: "warning",
     erMilepæl: true,
   },
   VILKÅR_VURDERING_OPPRETTET: {
@@ -103,6 +96,24 @@ export const endringMeta: Record<EndringType, EndringMeta> = {
     ikon: XMarkOctagonIcon,
     farge: "danger",
     erMilepæl: true,
+  },
+  TRYGDETID_OPPRETTET: {
+    tekst: "Trygdetid opprettet",
+    ikon: TasklistIcon,
+    farge: "info",
+    erMilepæl: false,
+  },
+  TRYGDETID_OPPDATERT: {
+    tekst: "Trygdetid oppdatert",
+    ikon: TasklistIcon,
+    farge: "info",
+    erMilepæl: false,
+  },
+  TRYGDETID_SLETTET: {
+    tekst: "Trygdetid slettet",
+    ikon: TrashIcon,
+    farge: "warning",
+    erMilepæl: false,
   },
 };
 

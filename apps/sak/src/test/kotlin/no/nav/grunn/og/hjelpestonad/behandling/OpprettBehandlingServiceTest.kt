@@ -14,6 +14,7 @@ import no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl.PdlFaktagrunnlagService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.task.SendStartBehandlingTilInfotrygdFeedTask
+import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidService
 import no.nav.grunn.og.hjelpestonad.vilkår.KopierVilkårService
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
@@ -27,6 +28,7 @@ class OpprettBehandlingServiceTest {
     private val pdlFaktagrunnlagService = mockk<PdlFaktagrunnlagService>(relaxed = true)
     private val taskService = mockk<TaskService>(relaxed = true)
     private val kopierVilkårService = mockk<KopierVilkårService>(relaxed = true)
+    private val trygdetidService = mockk<TrygdetidService>(relaxed = true)
     private val opprettBehandlingService =
         OpprettBehandlingService(
             behandlingService = BehandlingService(behandlingRepository),
@@ -35,6 +37,7 @@ class OpprettBehandlingServiceTest {
             pdlFaktagrunnlagService = pdlFaktagrunnlagService,
             taskService = taskService,
             kopierVilkårService = kopierVilkårService,
+            trygdetidService = trygdetidService,
         )
 
     @BeforeEach
@@ -123,6 +126,32 @@ class OpprettBehandlingServiceTest {
         opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
 
         verify(exactly = 0) { kopierVilkårService.kopierFraForrigeBehandling(any(), any()) }
+    }
+
+    @Test
+    fun `revurdering kopierer trygdetid fra siste iverksatte behandling for samme fagsak`() {
+        every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
+        val fagsakId = UUID.randomUUID()
+        val forrigeBehandlingId = UUID.randomUUID()
+        val forrigeBehandling = mockk<Behandling>()
+        every { forrigeBehandling.id } returns forrigeBehandlingId
+        every { behandlingRepository.finnSisteIverksatteBehandling(fagsakId) } returns forrigeBehandling
+
+        val behandling = opprettBehandlingService.opprettBehandling(fagsakId = fagsakId)
+
+        verify(exactly = 1) { behandlingRepository.finnSisteIverksatteBehandling(fagsakId) }
+        verify(exactly = 1) {
+            trygdetidService.kopierPerioder(fraBehandlingId = forrigeBehandlingId, tilBehandlingId = behandling.id)
+        }
+    }
+
+    @Test
+    fun `første behandling kopierer ingen trygdetid`() {
+        every { behandlingRepository.existsByFagsakIdAndStatusIsNot(any(), any()) } returns false
+
+        opprettBehandlingService.opprettBehandling(fagsakId = UUID.randomUUID())
+
+        verify(exactly = 0) { trygdetidService.kopierPerioder(any(), any()) }
     }
 
     @Test

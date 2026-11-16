@@ -1,30 +1,20 @@
-import { useRef, useState } from "react";
-import { useRangeDatepicker, type RangeValidationT } from "@navikt/ds-react";
-import { format, parseISO } from "date-fns";
+import { useState } from "react";
 import type { Vurdering } from "~/types/vilkår";
+import {
+  usePeriodeMedBegrunnelseSkjema,
+  type PeriodeFelt,
+  type PeriodeSkjemafeil,
+} from "./usePeriodeMedBegrunnelseSkjema";
 
-/** Backend bruker `LocalDate`, altså `yyyy-MM-dd` uten tidssone. */
-export function tilIsoDato(dato: Date | undefined): string | null {
-  return dato ? format(dato, "yyyy-MM-dd") : null;
-}
+export {
+  FRA_OG_MED_PÅKREVD,
+  fraIsoDato,
+  tilIsoDato,
+  visDato,
+  visPeriode,
+} from "./usePeriodeMedBegrunnelseSkjema";
 
-export function fraIsoDato(dato: string | null | undefined): Date | undefined {
-  return dato ? parseISO(dato) : undefined;
-}
-
-export function visDato(dato: string | null | undefined): string {
-  const parset = fraIsoDato(dato);
-  return parset ? format(parset, "dd.MM.yyyy") : "–";
-}
-
-export function visPeriode(fraOgMedDato?: string | null, tilOgMedDato?: string | null): string {
-  if (!fraOgMedDato && !tilOgMedDato) {
-    return "Hele behandlingsperioden";
-  }
-  const fra = fraOgMedDato ? visDato(fraOgMedDato) : "Fra fødsel";
-  const til = tilOgMedDato ? visDato(tilOgMedDato) : "løpende";
-  return `${fra} – ${til}`;
-}
+const VURDERING_PÅKREVD_FEIL = "Du må velge Ja eller Nei på om vilkåret er oppfylt.";
 
 export interface FellesVilkårPeriodeFelter {
   id: string;
@@ -35,7 +25,7 @@ export interface FellesVilkårPeriodeFelter {
 }
 
 /** Feltene som det felles skjemaet selv validerer. */
-export type FellesFelt = "vurdering" | "fraOgMed" | "tilOgMed" | "begrunnelse";
+export type FellesFelt = "vurdering" | PeriodeFelt;
 
 /**
  * Feilmeldinger per felt. `EkstraFelt` er feltnavnene det enkelte vilkåret legger til,
@@ -45,184 +35,44 @@ export type Skjemafeil<EkstraFelt extends string = never> = Partial<
   Record<FellesFelt | EkstraFelt, string>
 >;
 
-const UGYLDIG_DATO = "Skriv datoen som dd.mm.åååå, for eksempel 01.03.2026.";
-
-function oppdaterSkjemafeil<Felt extends string>(
-  forrige: Skjemafeil<Felt>,
-  felt: FellesFelt | Felt,
-  feilmelding?: string
-): Skjemafeil<Felt> {
-  if (forrige[felt] === feilmelding) {
-    return forrige;
-  }
-
-  if (feilmelding) {
-    return { ...forrige, [felt]: feilmelding };
-  }
-
-  const neste = { ...forrige };
-  delete neste[felt];
-  return neste;
-}
-
 export function useVilkårSkjema<EkstraFelt extends string = never>(
-  ekstraValidering?: () => Skjemafeil<EkstraFelt>
+  ekstraValidering?: (vurdering: Vurdering | "") => Skjemafeil<EkstraFelt>,
+  innstillinger?: {
+    fraOgMedPåkrevd?: (vurdering: Vurdering | "") => boolean;
+    /** Feilmelding når vurderingen mangler. Standard er Ja/Nei-teksten. */
+    vurderingPåkrevdFeil?: string;
+  }
 ) {
-  const [erÅpent, settErÅpent] = useState(false);
-  const [redigererId, settRedigererId] = useState<string | null>(null);
   const [vurdering, settVurdering] = useState<Vurdering | "">("");
-  const [begrunnelse, settBegrunnelse] = useState("");
-  const [feil, settFeil] = useState<Skjemafeil<EkstraFelt>>({});
-  const [harForsøktLagre, settHarForsøktLagre] = useState(false);
-  const [lagringsfeil, settLagringsfeil] = useState<string | undefined>(undefined);
-  const [fokusFeiloppsummering, settFokusFeiloppsummering] = useState(0);
 
-  const datovalidering = useRef<RangeValidationT | undefined>(undefined);
-
-  const { datepickerProps, fromInputProps, toInputProps, selectedRange, setSelected, reset } =
-    useRangeDatepicker({
-      onValidate: (validering) => {
-        datovalidering.current = validering;
-      },
-    });
-
-  const nullstill = () => {
-    settVurdering("");
-    settBegrunnelse("");
-    settFeil({});
-    settHarForsøktLagre(false);
-    settLagringsfeil(undefined);
-    datovalidering.current = undefined;
-    reset();
-  };
-
-  const åpneNyPeriode = () => {
-    settRedigererId(null);
-    nullstill();
-    settErÅpent(true);
-  };
+  const periodeSkjema = usePeriodeMedBegrunnelseSkjema<EkstraFelt | "vurdering">({
+    // Vurdering-feilen legges først, så kallerens ekstraValidering kan overstyre den.
+    ekstraValidering: (): PeriodeSkjemafeil<EkstraFelt | "vurdering"> => {
+      const feil: PeriodeSkjemafeil<EkstraFelt | "vurdering"> = {};
+      if (vurdering === "") {
+        feil.vurdering = innstillinger?.vurderingPåkrevdFeil ?? VURDERING_PÅKREVD_FEIL;
+      }
+      return { ...feil, ...ekstraValidering?.(vurdering) };
+    },
+    fraOgMedPåkrevd: () => innstillinger?.fraOgMedPåkrevd?.(vurdering) ?? false,
+    nullstillEkstra: () => settVurdering(""),
+  });
 
   const åpneRedigeringAvPeriode = (periode: FellesVilkårPeriodeFelter) => {
-    settRedigererId(periode.id);
     settVurdering(periode.vurdering);
-    settBegrunnelse(periode.begrunnelse);
-    settFeil({});
-    settHarForsøktLagre(false);
-    settLagringsfeil(undefined);
-    datovalidering.current = undefined;
-    setSelected({
-      from: fraIsoDato(periode.fraOgMedDato),
-      to: fraIsoDato(periode.tilOgMedDato),
-    });
-    settErÅpent(true);
-  };
-
-  const lukk = () => {
-    settErÅpent(false);
-    settRedigererId(null);
-    nullstill();
-  };
-
-  const validerHeleSkjemaet = (): Skjemafeil<EkstraFelt> => {
-    const nyeFeil: Skjemafeil<EkstraFelt> = {};
-
-    if (vurdering === "") {
-      nyeFeil.vurdering = "Du må velge Ja eller Nei på om vilkåret er oppfylt.";
-    }
-
-    const fra = datovalidering.current?.from;
-    const til = datovalidering.current?.to;
-
-    if (fra && !fra.isEmpty && !fra.isValidDate) {
-      nyeFeil.fraOgMed = `Fra og med-datoen er ikke gyldig. ${UGYLDIG_DATO}`;
-    }
-
-    const førFraOgMed =
-      "Til og med-datoen må være samme dag som eller etter fra og med-datoen. Endre en av datoene.";
-
-    if (til) {
-      if (til.isBeforeFrom) {
-        nyeFeil.tilOgMed = førFraOgMed;
-      } else if (!til.isEmpty && !til.isValidDate) {
-        nyeFeil.tilOgMed = `Til og med-datoen er ikke gyldig. ${UGYLDIG_DATO}`;
-      }
-    } else if (selectedRange?.from && selectedRange?.to && selectedRange.to < selectedRange.from) {
-      nyeFeil.tilOgMed = førFraOgMed;
-    }
-
-    return { ...nyeFeil, ...ekstraValidering?.() };
-  };
-
-  const validerFelt = (felt: FellesFelt | EkstraFelt) => {
-    if (!harForsøktLagre) {
-      return;
-    }
-
-    const alleSkjemafeil = validerHeleSkjemaet();
-    settFeil((forrigeSkjemafeil) => {
-      const nyFeil = alleSkjemafeil[felt];
-      return oppdaterSkjemafeil(forrigeSkjemafeil, felt, nyFeil);
-    });
-  };
-
-  const fjernFeil = (felt: FellesFelt | EkstraFelt) => {
-    settFeil((forrige) => oppdaterSkjemafeil(forrige, felt));
-  };
-
-  const validerValg = (felt: FellesFelt | EkstraFelt, feilmelding?: string) => {
-    if (!harForsøktLagre) {
-      return;
-    }
-
-    settFeil((forrige) => oppdaterSkjemafeil(forrige, felt, feilmelding));
-  };
-
-  const forsøkLagre = (lagre: () => void) => {
-    settLagringsfeil(undefined);
-    settHarForsøktLagre(true);
-
-    const alleSkjemafeil = validerHeleSkjemaet();
-    settFeil(alleSkjemafeil);
-
-    if (Object.keys(alleSkjemafeil).length > 0) {
-      settFokusFeiloppsummering((teller) => teller + 1);
-      return;
-    }
-
-    lagre();
+    periodeSkjema.åpneRedigeringAvPeriode(periode);
   };
 
   const fellesVerdier = () => ({
-    id: redigererId,
+    ...periodeSkjema.periodeVerdier(),
     vurdering: vurdering as Vurdering,
-    begrunnelse: begrunnelse.trim(),
-    fraOgMedDato: tilIsoDato(selectedRange?.from),
-    tilOgMedDato: tilIsoDato(selectedRange?.to),
   });
 
   return {
-    erÅpent,
-    redigererId,
+    ...periodeSkjema,
     vurdering,
     settVurdering,
-    begrunnelse,
-    settBegrunnelse,
-    feil,
-    harForsøktLagre,
-    settFeil,
-    lagringsfeil,
-    settLagringsfeil,
-    fokusFeiloppsummering,
-    datepickerProps,
-    fromInputProps,
-    toInputProps,
-    åpneNyPeriode,
     åpneRedigeringAvPeriode,
-    lukk,
-    validerFelt,
-    validerValg,
-    fjernFeil,
-    forsøkLagre,
     fellesVerdier,
   };
 }

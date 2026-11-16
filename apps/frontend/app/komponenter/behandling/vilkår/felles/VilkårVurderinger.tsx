@@ -3,10 +3,10 @@ import { Accordion, BodyShort, Button, LocalAlert, Skeleton, VStack } from "@nav
 import { PlusIcon } from "@navikt/aksel-icons";
 import { useErLesevisning } from "~/hooks/useErLesevisning";
 import type { FellesVilkårPeriodeFelter } from "./useVilkårSkjema";
-import { VilkårPeriodeKort, VilkårPeriodeRedigering, type Detalj } from "./VilkårPeriodeKort";
+import { PeriodeKort, PeriodeRedigering, type Detalj } from "./PeriodeKort";
 import { VilkårGruppeItem } from "./VilkårGruppeItem";
 import type { PerioderResult } from "./usePerioder";
-import type { VilkårSletting } from "./useSlettVilkårPeriode";
+import type { PeriodeEndringerVisning } from "./usePeriodeEndringer";
 import type {
   VilkårGruppering,
   VilkårLeggTil,
@@ -21,7 +21,7 @@ export function VilkårVurderinger<
   hentefeil,
   detaljerFor,
   skjema,
-  sletting,
+  endringer,
   leggTil,
   gruppering,
   children,
@@ -30,7 +30,7 @@ export function VilkårVurderinger<
   hentefeil: string | undefined;
   detaljerFor: (periode: T) => Detalj[];
   skjema: VilkårSeksjonSkjema<T>;
-  sletting: VilkårSletting<T>;
+  endringer: PeriodeEndringerVisning<T>;
   leggTil: VilkårLeggTil;
   gruppering?: VilkårGruppering<T>;
   children: React.ReactNode;
@@ -48,26 +48,27 @@ export function VilkårVurderinger<
   const renderPeriode = (periode: T) => {
     if (!erLesevisning && skjema.erÅpent && skjema.redigererId === periode.id) {
       return (
-        <VilkårPeriodeRedigering
+        <PeriodeRedigering
           key={periode.id}
           fraOgMedDato={periode.fraOgMedDato}
           tilOgMedDato={periode.tilOgMedDato}
         >
           {children}
-        </VilkårPeriodeRedigering>
+        </PeriodeRedigering>
       );
     }
 
     return (
-      <VilkårPeriodeKort
+      <PeriodeKort
         key={periode.id}
         fraOgMedDato={periode.fraOgMedDato}
         tilOgMedDato={periode.tilOgMedDato}
         erVilkårOppfylt={periode.erVilkårOppfylt}
         detaljer={detaljerFor(periode)}
+        opptatt={endringer.opptatt}
         onEndre={erLesevisning ? undefined : () => skjema.åpneRedigeringAvPeriode(periode)}
-        onSlett={erLesevisning ? undefined : () => sletting.slett(periode)}
-        sletter={sletting.sletterId === periode.id}
+        onSlett={erLesevisning ? undefined : () => endringer.slett(periode)}
+        sletter={endringer.sletterId === periode.id}
       />
     );
   };
@@ -78,6 +79,7 @@ export function VilkårVurderinger<
       tittel={gruppe.tittel}
       erOppfylt={gruppe.perioder.some((periode) => periode.erVilkårOppfylt)}
       defaultOpen={gruppering?.grupper.length === 1}
+      disabled={endringer.opptatt}
       onLeggTil={
         erLesevisning || skjema.erÅpent ? undefined : () => gruppering?.åpneNyPeriode(gruppe)
       }
@@ -96,14 +98,15 @@ export function VilkårVurderinger<
       )}
 
       <div aria-live="polite" aria-atomic="true">
-        {sletting.feil && (
+        {endringer.slettefeil && (
           <LocalAlert status="error">
-            <LocalAlert.Content>{sletting.feil}</LocalAlert.Content>
+            <LocalAlert.Content>{endringer.slettefeil}</LocalAlert.Content>
           </LocalAlert>
         )}
       </div>
 
-      {laster && <Skeleton variant="rectangle" height={120} />}
+      {/* Skeleton bare ved første lasting. Ved ny henting beholdes lista som allerede vises. */}
+      {laster && periodeliste === undefined && <Skeleton variant="rectangle" height={120} />}
 
       {!laster && !hentefeil && antall === 0 && (
         <BodyShort>Ingen perioder er vurdert for dette vilkåret ennå.</BodyShort>
@@ -125,6 +128,7 @@ export function VilkårVurderinger<
             type="button"
             variant="secondary"
             icon={<PlusIcon aria-hidden />}
+            disabled={endringer.opptatt}
             onClick={leggTil.åpne}
           >
             {leggTil.tekst ?? "Legg til periode"}

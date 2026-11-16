@@ -213,7 +213,7 @@ eksempel «F90.0 Forstyrrelser av aktivitet og oppmerksomhet».
 - Diagnosekoden er en helseopplysning etter GDPR artikkel 9, akkurat som
   teksten. Den skal heller ikke inn i logger eller i endringshistorikken, se
   `registrerEndring` i
-  [VilkårPeriodeService](../../../apps/sak/src/main/kotlin/no/nav/grunn/og/hjelpestonad/vilkår/VilkårPeriodeService.kt).
+  [PeriodeMedBegrunnelseService](../../../apps/sak/src/main/kotlin/no/nav/grunn/og/hjelpestonad/felles/periode/PeriodeMedBegrunnelseService.kt).
 - Med navikt/diagnosekoder eller en egen container forlater ikke søkeordene
   Nav. Med WHOs API i skyen sendes søkeordene til WHO. De er ikke knyttet til en
   person, men vi bør unngå det når vi har et alternativ.

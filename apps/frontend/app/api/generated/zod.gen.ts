@@ -3,7 +3,11 @@
 import * as z from 'zod';
 
 export const zValideringsfeil = z.object({
-    vilkårType: z.enum(['MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN', 'DIAGNOSE']),
+    vilkårType: z.enum([
+        'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN',
+        'DIAGNOSE',
+        'NØDVENDIGE_EKSTRAUTGIFTER'
+    ]),
     melding: z.string()
 });
 
@@ -399,6 +403,56 @@ export const zVilkårMedlemskapResponse = z.object({
     erVilkårOppfylt: z.boolean()
 });
 
+export const zEkstrautgift = z.object({
+    hjemmelbokstav: z.enum([
+        'A',
+        'B',
+        'C',
+        'D',
+        'E',
+        'F',
+        'G',
+        'H'
+    ]),
+    diagnosekoder: z.array(z.string())
+});
+
+export const zVilkårEkstrautgifterRequest = z.object({
+    id: z.uuid().nullish(),
+    vurdering: z.enum(['JA', 'NEI']),
+    sats: z.enum([
+        'SATS_1',
+        'SATS_2',
+        'SATS_3',
+        'SATS_4',
+        'SATS_5',
+        'SATS_6'
+    ]).nullish(),
+    ekstrautgifter: z.array(zEkstrautgift),
+    begrunnelse: z.string(),
+    fraOgMedDato: z.iso.date().nullish(),
+    tilOgMedDato: z.iso.date().nullish()
+});
+
+export const zVilkårEkstrautgifterResponse = z.object({
+    id: z.uuid(),
+    behandlingId: z.uuid(),
+    vurdering: z.enum(['JA', 'NEI']),
+    sats: z.enum([
+        'SATS_1',
+        'SATS_2',
+        'SATS_3',
+        'SATS_4',
+        'SATS_5',
+        'SATS_6'
+    ]).nullish(),
+    ekstrautgifter: z.array(zEkstrautgift),
+    begrunnelse: z.string(),
+    fraOgMedDato: z.iso.date().nullish(),
+    tilOgMedDato: z.iso.date().nullish(),
+    erVilkårOppfylt: z.boolean()
+});
+
 export const zVilkårDiagnoseRequest = z.object({
     id: z.uuid().nullish(),
     kode: z.string(),
@@ -419,6 +473,35 @@ export const zVilkårDiagnoseResponse = z.object({
     fraOgMedDato: z.iso.date().nullish(),
     tilOgMedDato: z.iso.date().nullish(),
     erVilkårOppfylt: z.boolean()
+});
+
+export const zTrygdetidRequest = z.object({
+    id: z.uuid().nullish(),
+    teller: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    kilde: z.enum([
+        'ALDERSPENSJON',
+        'UFØRETRYGD',
+        'MIGRERING',
+        'INGEN'
+    ]),
+    begrunnelse: z.string(),
+    fraOgMedDato: z.iso.date().nullish(),
+    tilOgMedDato: z.iso.date().nullish()
+});
+
+export const zTrygdetidResponse = z.object({
+    id: z.uuid(),
+    behandlingId: z.uuid(),
+    teller: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    kilde: z.enum([
+        'ALDERSPENSJON',
+        'UFØRETRYGD',
+        'MIGRERING',
+        'INGEN'
+    ]),
+    begrunnelse: z.string(),
+    fraOgMedDato: z.iso.date().nullish(),
+    tilOgMedDato: z.iso.date().nullish()
 });
 
 export const zPeriodeMedOppfylteInngangsvilkårResponse = z.object({
@@ -539,7 +622,6 @@ export const zBehandlingEndringResponse = z.object({
     endringType: z.enum([
         'BEHANDLING_OPPRETTET',
         'SENDT_TIL_BESLUTTER',
-        'ANGRET_SEND_TIL_BESLUTTER',
         'VILKÅR_VURDERING_OPPRETTET',
         'VILKÅR_VURDERING_OPPDATERT',
         'VILKÅR_VURDERING_SLETTET',
@@ -550,7 +632,10 @@ export const zBehandlingEndringResponse = z.object({
         'ÅRSAK_OPPDATERT',
         'BESLUTTER_GODKJENT',
         'BESLUTTER_UNDERKJENT',
-        'BEHANDLING_HENLAGT'
+        'BEHANDLING_HENLAGT',
+        'TRYGDETID_OPPRETTET',
+        'TRYGDETID_OPPDATERT',
+        'TRYGDETID_SLETTET'
     ]),
     utførtAv: z.string(),
     utførtTid: z.iso.datetime({ local: true }),
@@ -766,15 +851,6 @@ export const zBesluttVedtakPath = z.object({
  */
 export const zBesluttVedtakResponse = z.record(z.string(), z.string());
 
-export const zAngreSendTilBeslutterPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zAngreSendTilBeslutterResponse = z.record(z.string(), z.string());
-
 export const zHentMedlemskapPerioderPath = z.object({
     behandlingId: z.uuid()
 });
@@ -795,6 +871,26 @@ export const zLagreMedlemskapPeriodePath = z.object({
  */
 export const zLagreMedlemskapPeriodeResponse = zVilkårMedlemskapResponse;
 
+export const zHentEkstrautgifterPerioderPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zHentEkstrautgifterPerioderResponse = z.array(zVilkårEkstrautgifterResponse);
+
+export const zLagreEkstrautgifterPeriodeBody = zVilkårEkstrautgifterRequest;
+
+export const zLagreEkstrautgifterPeriodePath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zLagreEkstrautgifterPeriodeResponse = zVilkårEkstrautgifterResponse;
+
 export const zHentDiagnosePerioderPath = z.object({
     behandlingId: z.uuid()
 });
@@ -814,6 +910,26 @@ export const zLagreDiagnosePeriodePath = z.object({
  * OK
  */
 export const zLagreDiagnosePeriodeResponse = zVilkårDiagnoseResponse;
+
+export const zHentTrygdetidPerioderPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zHentTrygdetidPerioderResponse = z.array(zTrygdetidResponse);
+
+export const zLagreTrygdetidPeriodeBody = zTrygdetidRequest;
+
+export const zLagreTrygdetidPeriodePath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zLagreTrygdetidPeriodeResponse = zTrygdetidResponse;
 
 export const zFullførInngangsvilkårPath = z.object({
     behandlingId: z.uuid()
@@ -1024,7 +1140,17 @@ export const zSlettMedlemskapPeriodePath = z.object({
     vilkårPeriodeId: z.uuid()
 });
 
+export const zSlettEkstrautgifterPeriodePath = z.object({
+    behandlingId: z.uuid(),
+    vilkårPeriodeId: z.uuid()
+});
+
 export const zSlettDiagnosePeriodePath = z.object({
     behandlingId: z.uuid(),
     vilkårPeriodeId: z.uuid()
+});
+
+export const zSlettTrygdetidPeriodePath = z.object({
+    behandlingId: z.uuid(),
+    trygdetidId: z.uuid()
 });

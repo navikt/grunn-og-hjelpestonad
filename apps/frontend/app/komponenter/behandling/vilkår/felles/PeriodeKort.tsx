@@ -7,7 +7,12 @@ export interface Detalj {
   verdi: string;
 }
 
-export function VilkårPeriodeRedigering({
+export function begrunnelseDetalj(begrunnelse: string | null | undefined): Detalj[] {
+  const tekst = begrunnelse?.trim();
+  return tekst ? [{ etikett: "Begrunnelse", verdi: tekst }] : [];
+}
+
+export function PeriodeRedigering({
   fraOgMedDato,
   tilOgMedDato,
   children,
@@ -26,7 +31,7 @@ export function VilkårPeriodeRedigering({
   );
 }
 
-export function VilkårPeriodeKort({
+export function PeriodeKort({
   fraOgMedDato,
   tilOgMedDato,
   erVilkårOppfylt,
@@ -34,18 +39,24 @@ export function VilkårPeriodeKort({
   onEndre,
   onSlett,
   sletter = false,
+  // Låser Endre og Slett mens et kall pågår.
+  opptatt = false,
 }: {
   fraOgMedDato?: string | null;
   tilOgMedDato?: string | null;
-  erVilkårOppfylt: boolean;
+  erVilkårOppfylt?: boolean;
   detaljer: Detalj[];
   onEndre?: () => void;
   onSlett?: () => void;
   sletter?: boolean;
+  opptatt?: boolean;
 }) {
-  const status = erVilkårOppfylt
-    ? { tekst: "Oppfylt", farge: "success" as const }
-    : { tekst: "Ikke oppfylt", farge: "danger" as const };
+  const status =
+    erVilkårOppfylt === undefined
+      ? undefined
+      : erVilkårOppfylt
+        ? { tekst: "Oppfylt", farge: "success" as const }
+        : { tekst: "Ikke oppfylt", farge: "danger" as const };
 
   return (
     <FormSummary>
@@ -54,9 +65,11 @@ export function VilkårPeriodeKort({
           <FormSummary.Heading level="3">
             {visPeriode(fraOgMedDato, tilOgMedDato)}
           </FormSummary.Heading>
-          <Tag variant="strong" size="small" data-color={status.farge}>
-            {status.tekst}
-          </Tag>
+          {status && (
+            <Tag variant="strong" size="small" data-color={status.farge}>
+              {status.tekst}
+            </Tag>
+          )}
         </HStack>
       </FormSummary.Header>
 
@@ -73,7 +86,13 @@ export function VilkårPeriodeKort({
         <FormSummary.Footer>
           <HStack gap="space-8">
             {onEndre && (
-              <Button type="button" variant="tertiary" size="small" onClick={onEndre}>
+              <Button
+                type="button"
+                variant="tertiary"
+                size="small"
+                disabled={opptatt}
+                onClick={onEndre}
+              >
                 Endre
               </Button>
             )}
@@ -83,6 +102,7 @@ export function VilkårPeriodeKort({
                 variant="tertiary"
                 size="small"
                 loading={sletter}
+                disabled={opptatt}
                 onClick={onSlett}
               >
                 Slett

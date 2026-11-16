@@ -32,15 +32,6 @@ class BeslutterController(
         return ResponseEntity.ok(mapOf("status" to "OK"))
     }
 
-    @PostMapping("/angre-send-til-beslutter/{behandlingId}")
-    fun angreSendTilBeslutter(
-        @PathVariable behandlingId: UUID,
-    ): ResponseEntity<Map<String, String>> {
-        tilgangService.validerTilgangTilBehandling(behandlingId)
-        beslutterService.angreSendTilBeslutter(behandlingId)
-        return ResponseEntity.ok(mapOf("status" to "OK"))
-    }
-
     @PostMapping("/beslutt-vedtak/{behandlingId}")
     fun besluttVedtak(
         @PathVariable behandlingId: UUID,

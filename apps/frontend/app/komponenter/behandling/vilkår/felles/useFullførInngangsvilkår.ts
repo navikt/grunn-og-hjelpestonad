@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { fullførInngangsvilkår } from "~/api/generated/sdk.gen";
 import type { InngangsvilkårResponse } from "~/api/generated/types.gen";
 import { feilmeldingFra } from "./feilmeldingFra";
-import { useVilkårApiKall } from "./useVilkårApiKall";
+import { useApiKall } from "./useApiKall";
 import { valideringsfeilFra, type Valideringsfeil } from "./valideringsfeilFra";
 
 type FullførOptions = Parameters<typeof fullførInngangsvilkår>[0];
@@ -24,7 +24,7 @@ export function useFullførInngangsvilkår(behandlingId: string): FullførInngan
     resultatRef.current = data;
     return data;
   }, []);
-  const { kall, laster } = useVilkårApiKall(apiKall);
+  const { kall, laster } = useApiKall(apiKall);
 
   const fullfør = (onSuccess: (resultat: InngangsvilkårResponse) => void) => {
     settValideringsfeil([]);

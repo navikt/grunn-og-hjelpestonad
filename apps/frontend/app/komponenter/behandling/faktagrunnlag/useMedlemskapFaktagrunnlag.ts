@@ -4,7 +4,7 @@ import {
   innhentFaktagrunnlagFraPdl,
 } from "~/api/generated/sdk.gen";
 import type { MedlemskapFaktagrunnlagResponse } from "~/api/generated/types.gen";
-import { useVilkårApiKall } from "../vilkår/felles/useVilkårApiKall";
+import { useApiKall } from "../vilkår/felles/useApiKall";
 
 interface GrunnlagState {
   behandlingId: string;
@@ -47,7 +47,7 @@ export function useMedlemskapFaktagrunnlag(behandlingId: string) {
     (options: InnhentOptions) => innhentFaktagrunnlagFraPdl({ ...options, throwOnError: true }),
     []
   );
-  const innhentFraPdl = useVilkårApiKall(innhentFraPdlKall);
+  const innhentFraPdl = useApiKall(innhentFraPdlKall);
 
   const harGjeldendeState = state.behandlingId === behandlingId && state.hentIndeks === hentIndeks;
   const medlemskapFaktagrunnlag =
