@@ -46,15 +46,20 @@ class OppdragIverksettingService(
             return Iverksettingsresultat.IngenEndring(oppdragResultat = oppdragResultat, testandel = lagretUtbetalingsoppdrag.testandel)
         }
 
+        // Alle statuser utenom OPPRETTET er satt etter at OS tok imot oppdraget, så det sendes ikke på nytt.
+        if (oppdragResultat.status != OppdragStatus.OPPRETTET) {
+            logger.info("Oppdrag for behandling={} er iverksatt fra før med status={}, sender ikke på nytt", behandlingId, oppdragResultat.status)
+            tellIverksetting("allerede_iverksatt")
+            return Iverksettingsresultat.AlleredeIverksatt(oppdragResultat = oppdragResultat)
+        }
+
         val iverksettUtfall =
             runCatching { oppdragClient.iverksett(oppdragResultat.utbetalingsoppdrag) }
                 .onFailure { tellIverksetting("feilet") }
                 .getOrThrow()
         tellIverksetting(if (iverksettUtfall == IverksettUtfall.ALLEREDE_SENDT) "allerede_sendt" else "ok")
 
-        if (oppdragResultat.status == OppdragStatus.OPPRETTET) {
-            oppdragResultatRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, kvitteringsmelding = null)
-        }
+        oppdragResultatRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, kvitteringsmelding = null)
         return Iverksettingsresultat.Sendt(oppdragResultat = oppdragResultat, testandel = lagretUtbetalingsoppdrag.testandel)
     }
 
@@ -97,10 +102,21 @@ sealed interface Iverksettingsresultat {
         val testandel: Testandel?,
     ) : Iverksettingsresultat
 
-    /** Oppdraget er sendt til OS, eller var sendt fra før (409 fra `familie-oppdrag-backend`). Kvitteringen kommer asynkront. */
+    /**
+     * Oppdraget er sendt til OS nå. Det gjelder også 409 fra `familie-oppdrag-backend`: et tidligere forsøk sendte
+     * oppdraget, men rakk ikke å lagre statusen. Kvitteringen kommer asynkront.
+     */
     data class Sendt(
         val oppdragResultat: OppdragResultat,
         val testandel: Testandel?,
+    ) : Iverksettingsresultat
+
+    /**
+     * Den lagrede statusen viser at OS tok imot oppdraget i et tidligere kall (`LAGT_PÅ_KØ` eller en kvittering).
+     * Ingenting er sendt nå.
+     */
+    data class AlleredeIverksatt(
+        val oppdragResultat: OppdragResultat,
     ) : Iverksettingsresultat
 }
 

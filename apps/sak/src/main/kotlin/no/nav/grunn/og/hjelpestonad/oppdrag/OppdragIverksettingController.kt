@@ -19,7 +19,8 @@ import java.util.UUID
  *
  * Går gjennom samme kjeding og lagring som iverksettingen ved godkjenning, men krever ikke at vedtaket er besluttet.
  * Må fjernes eller kreve godkjent vedtak før prod. Oppretter ingen statustask: status hentes med GET-endepunktet, og
- * neste oppdrag på fagsaken stopper til statusen er `KVITTERT_OK`.
+ * neste oppdrag på fagsaken stopper til statusen er `KVITTERT_OK`. Et nytt kall for en behandling som er iverksatt,
+ * sender ikke oppdraget på nytt, men svarer med det lagrede oppdraget.
  */
 @RestController
 @RequestMapping(path = ["/api/oppdrag/iverksetting"])
@@ -47,6 +48,10 @@ class OppdragIverksettingController(
 
             is Iverksettingsresultat.Sendt -> {
                 lagResponse(behandlingId, iverksettingsresultat.oppdragResultat, iverksettingsresultat.testandel)
+            }
+
+            is Iverksettingsresultat.AlleredeIverksatt -> {
+                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat, testandel = null)
             }
         }
     }

@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.oppdrag
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
 import no.nav.grunn.og.hjelpestonad.task.lagTaskType
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.Duration
@@ -11,14 +12,17 @@ import java.util.UUID
 /**
  * Sender oppdraget for en godkjent behandling til OS, og oppretter [HentOppdragStatusTask] når oppdraget er sendt.
  *
- * Et nytt forsøk etter feil sender det lagrede oppdraget på nytt. Var det sendt før, svarer `familie-oppdrag-backend`
- * med 409, og tasken går videre som om sendingen lyktes.
+ * Et nytt forsøk etter feil sender det lagrede oppdraget på nytt bare når statusen fortsatt er `OPPRETTET`. Var det
+ * sendt før, svarer `familie-oppdrag-backend` med 409, og tasken går videre som om sendingen lyktes. Er statusen
+ * `LAGT_PÅ_KØ` eller en kvittering, sendes ingenting.
  */
 @Service
 class IverksettOppdragTask(
     private val oppdragIverksettingService: OppdragIverksettingService,
     private val clock: Clock = Clock.systemDefaultZone(),
 ) : TaskStep<IverksettOppdragTask.IverksettOppdragTaskData> {
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     override val type = TYPE
 
     override fun utfor(kontekst: TaskKontekst<IverksettOppdragTaskData>) {
@@ -27,20 +31,33 @@ class IverksettOppdragTask(
 
         when (iverksettingsresultat) {
             is Iverksettingsresultat.Sendt -> {
-                kontekst.opprettNesteTask(
-                    type = HentOppdragStatusTask.TYPE,
-                    payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId = behandlingId, forsøk = 1),
-                    triggerTid = nesteTidspunktIÅpningstid(clock.instant(), VENTETID_FØR_STATUS),
-                )
+                opprettHentOppdragStatusTask(kontekst, behandlingId)
+            }
+
+            is Iverksettingsresultat.AlleredeIverksatt -> {
+                if (iverksettingsresultat.oppdragResultat.status == OppdragStatus.LAGT_PÅ_KØ) {
+                    opprettHentOppdragStatusTask(kontekst, behandlingId)
+                }
             }
 
             // Ingenting er sendt til OS, så det finnes ingen kvittering å hente. Tasken er ferdig.
             Iverksettingsresultat.IngentingÅSende,
             is Iverksettingsresultat.IngenEndring,
             -> {
-                Unit
+                logger.info("Behandling={} er ikke iverksatt mot oppdrag fordi den ikke endrer utbetalingen", behandlingId)
             }
         }
+    }
+
+    private fun opprettHentOppdragStatusTask(
+        kontekst: TaskKontekst<IverksettOppdragTaskData>,
+        behandlingId: UUID,
+    ) {
+        kontekst.opprettNesteTask(
+            type = HentOppdragStatusTask.TYPE,
+            payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId = behandlingId, forsøk = 1),
+            triggerTid = nesteTidspunktIÅpningstid(clock.instant(), VENTETID_FØR_STATUS),
+        )
     }
 
     companion object {

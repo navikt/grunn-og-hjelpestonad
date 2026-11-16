@@ -37,6 +37,38 @@ class IverksettOppdragTaskTest {
     }
 
     @Test
+    fun `allerede iverksatt oppdrag på kø oppretter status-task, fordi forrige forsøk kan ha feilet før tasken ble opprettet`() {
+        val behandlingId = UUID.randomUUID()
+        val saksbehandlerId = "Z123456"
+        val kontekst = kontekst(behandlingId, saksbehandlerId)
+        every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns
+            Iverksettingsresultat.AlleredeIverksatt(oppdragResultat = oppdragResultat(OppdragStatus.LAGT_PÅ_KØ))
+
+        task.utfor(kontekst)
+
+        verify(exactly = 1) {
+            kontekst.opprettNesteTask(
+                type = HentOppdragStatusTask.TYPE,
+                payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId, forsøk = 1),
+                triggerTid = klokke.instant().plusSeconds(30),
+            )
+        }
+    }
+
+    @Test
+    fun `allerede kvittert oppdrag oppretter ingen task`() {
+        val behandlingId = UUID.randomUUID()
+        val saksbehandlerId = "Z123456"
+        val kontekst = kontekst(behandlingId, saksbehandlerId)
+        every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns
+            Iverksettingsresultat.AlleredeIverksatt(oppdragResultat = oppdragResultat(OppdragStatus.KVITTERT_OK))
+
+        task.utfor(kontekst)
+
+        verifiserIngenNesteTask(kontekst)
+    }
+
+    @Test
     fun `oppdrag uten endring oppretter ingen task`() {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z123456"
@@ -86,7 +118,7 @@ class IverksettOppdragTaskTest {
         }
     }
 
-    private fun oppdragResultat(): OppdragResultat {
+    private fun oppdragResultat(status: String = OppdragStatus.OPPRETTET): OppdragResultat {
         val behandlingId = UUID.randomUUID()
         val utbetalingsoppdrag =
             lagUtbetalingsoppdrag(
@@ -112,7 +144,7 @@ class IverksettOppdragTaskTest {
             behandlingId = behandlingId,
             fagsakId = UUID.randomUUID(),
             utbetalingsoppdrag = utbetalingsoppdrag,
-            status = OppdragStatus.OPPRETTET,
+            status = status,
             andeler = emptySet(),
         )
     }

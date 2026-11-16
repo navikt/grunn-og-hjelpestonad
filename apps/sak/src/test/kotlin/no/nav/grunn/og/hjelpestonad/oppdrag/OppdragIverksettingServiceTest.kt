@@ -12,6 +12,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.http.HttpStatus
 import java.time.LocalDate
 import java.util.Optional
@@ -80,14 +82,17 @@ class OppdragIverksettingServiceTest {
         assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "allerede_sendt").count()).isEqualTo(1.0)
     }
 
-    @Test
-    fun `sender lagret oppdrag på nytt uten å overskrive en kvittering`() {
-        lagret(OppdragStatus.KVITTERT_OK)
-        every { oppdragClient.iverksett(utbetalingsoppdrag) } returns IverksettUtfall.ALLEREDE_SENDT
+    @ParameterizedTest
+    @ValueSource(strings = [OppdragStatus.LAGT_PÅ_KØ, OppdragStatus.KVITTERT_OK, "KVITTERT_FUNKSJONELL_FEIL"])
+    fun `sender ikke oppdraget på nytt når OS har tatt imot det`(status: String) {
+        lagret(status)
 
-        service.iverksett(behandlingId, "Z999999")
+        val iverksettingsresultat = service.iverksett(behandlingId, "Z999999")
 
+        assertThat(iverksettingsresultat).isEqualTo(Iverksettingsresultat.AlleredeIverksatt(oppdragResultat(status)))
+        verify(exactly = 0) { oppdragClient.iverksett(any()) }
         verify(exactly = 0) { oppdragResultatRepository.oppdaterStatus(any(), any(), any()) }
+        assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "allerede_iverksatt").count()).isEqualTo(1.0)
     }
 
     @Test
