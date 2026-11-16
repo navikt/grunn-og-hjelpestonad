@@ -25,11 +25,14 @@ fun nesteTidspunktIÅpningstid(
     val tidligsteDato = tidligsteTidspunkt.toLocalDate()
     val tidligsteKlokkeslett = tidligsteTidspunkt.toLocalTime()
 
+    val erHelg = tidligsteDato.erHelg()
+    val erFørÅpningstid = tidligsteKlokkeslett < OS_ÅPNER
+    val erEtterStengetid = tidligsteKlokkeslett > OS_STENGER
+
     return when {
-        tidligsteDato.erHelg() -> tidligsteDato.nesteHverdag().tidspunktOSÅpner()
-        tidligsteKlokkeslett < OS_ÅPNER -> tidligsteDato.tidspunktOSÅpner()
-        tidligsteKlokkeslett <= OS_STENGER -> tidligsteTidspunkt
-        else -> tidligsteDato.nesteHverdag().tidspunktOSÅpner()
+        erHelg || erEtterStengetid -> tidligsteDato.nesteHverdag().tidspunktOSÅpner()
+        erFørÅpningstid -> tidligsteDato.tidspunktOSÅpner()
+        else -> tidligsteTidspunkt
     }.toInstant()
 }
 

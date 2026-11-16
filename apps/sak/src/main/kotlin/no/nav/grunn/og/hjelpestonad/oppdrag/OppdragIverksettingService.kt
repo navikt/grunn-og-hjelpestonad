@@ -27,36 +27,35 @@ class OppdragIverksettingService(
     /**
      * @param saksbehandlerId identen som står i oppdraget: saksbehandleren som sendte til beslutter, eller innlogget
      * bruker fra testendepunktet.
-     * @return `null` når behandlingen ikke har noe å utbetale og fagsaken ingen kjede å opphøre.
      */
     fun iverksett(
         behandlingId: UUID,
         saksbehandlerId: String,
-    ): Iverksettingsresultat? {
-        val lagret = utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(behandlingId, saksbehandlerId)
-        if (lagret == null) {
+    ): Iverksettingsresultat {
+        val lagretUtbetalingsoppdrag = utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(behandlingId, saksbehandlerId)
+        if (lagretUtbetalingsoppdrag == null) {
             logger.info("Ingenting å sende til oppdrag for behandling={}", behandlingId)
             tellIverksetting("ingenting_aa_sende")
-            return null
+            return Iverksettingsresultat.IngentingÅSende
         }
 
-        val oppdrag = lagret.oppdragResultat
-        if (oppdrag.status == OppdragStatus.INGEN_ENDRING) {
+        val oppdragResultat = lagretUtbetalingsoppdrag.oppdragResultat
+        if (oppdragResultat.status == OppdragStatus.INGEN_ENDRING) {
             logger.info("Behandling={} endrer ikke utbetalingen, sender ikke oppdrag", behandlingId)
             tellIverksetting("ingen_endring")
-            return Iverksettingsresultat(oppdrag = oppdrag, testandel = lagret.testandel, sendt = false)
+            return Iverksettingsresultat.IngenEndring(oppdragResultat = oppdragResultat, testandel = lagretUtbetalingsoppdrag.testandel)
         }
 
-        val utfall =
-            runCatching { oppdragClient.iverksett(oppdrag.utbetalingsoppdrag) }
+        val iverksettUtfall =
+            runCatching { oppdragClient.iverksett(oppdragResultat.utbetalingsoppdrag) }
                 .onFailure { tellIverksetting("feilet") }
                 .getOrThrow()
-        tellIverksetting(if (utfall == IverksettUtfall.ALLEREDE_SENDT) "allerede_sendt" else "ok")
+        tellIverksetting(if (iverksettUtfall == IverksettUtfall.ALLEREDE_SENDT) "allerede_sendt" else "ok")
 
-        if (oppdrag.status == OppdragStatus.OPPRETTET) {
+        if (oppdragResultat.status == OppdragStatus.OPPRETTET) {
             oppdragResultatRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, kvitteringsmelding = null)
         }
-        return Iverksettingsresultat(oppdrag = oppdrag, testandel = lagret.testandel, sendt = true)
+        return Iverksettingsresultat.Sendt(oppdragResultat = oppdragResultat, testandel = lagretUtbetalingsoppdrag.testandel)
     }
 
     /**
@@ -88,12 +87,22 @@ private fun Utbetalingsoppdrag.tilOppdragId(): OppdragId? =
         OppdragId(fagsystem = fagSystem, personIdent = aktoer, behandlingsId = it.behandlingId.toString())
     }
 
-/** @param sendt usann når generatoren ikke fant noen endring, og ingenting ble sendt. */
-data class Iverksettingsresultat(
-    val oppdrag: OppdragResultat,
-    val testandel: Testandel?,
-    val sendt: Boolean,
-)
+sealed interface Iverksettingsresultat {
+    /** Behandlingen har ingen andeler å utbetale, og fagsaken har ingen kjede å opphøre. Ingenting er lagret eller sendt. */
+    data object IngentingÅSende : Iverksettingsresultat
+
+    /** Generatoren fant ingen endring mot forrige behandling. Oppdraget er lagret med status `INGEN_ENDRING`, men ikke sendt. */
+    data class IngenEndring(
+        val oppdragResultat: OppdragResultat,
+        val testandel: Testandel?,
+    ) : Iverksettingsresultat
+
+    /** Oppdraget er sendt til OS, eller var sendt fra før (409 fra `familie-oppdrag-backend`). Kvitteringen kommer asynkront. */
+    data class Sendt(
+        val oppdragResultat: OppdragResultat,
+        val testandel: Testandel?,
+    ) : Iverksettingsresultat
+}
 
 data class OppdragIverksettingResponse(
     val saksnummer: String,

@@ -35,16 +35,32 @@ class OppdragIverksettingController(
         @PathVariable behandlingId: UUID,
     ): OppdragIverksettingResponse {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        val resultat =
-            oppdragIverksettingService.iverksett(behandlingId, SikkerhetContext.hentSaksbehandler())
-                ?: throw Feil("Behandlingen har ingen andeler å utbetale og ingen tidligere utbetaling å opphøre", HttpStatus.BAD_REQUEST)
-        return OppdragIverksettingResponse(
-            saksnummer = resultat.oppdrag.utbetalingsoppdrag.saksnummer,
-            behandlingsId = utbetalingsoppdragService.lagOppdragId(behandlingId).behandlingsId,
-            antallPerioder = resultat.oppdrag.utbetalingsoppdrag.utbetalingsperiode.size,
-            testandel = resultat.testandel,
-        )
+        val iverksettingsresultat = oppdragIverksettingService.iverksett(behandlingId, SikkerhetContext.hentSaksbehandler())
+        return when (iverksettingsresultat) {
+            Iverksettingsresultat.IngentingÅSende -> {
+                throw Feil("Behandlingen har ingen andeler å utbetale og ingen tidligere utbetaling å opphøre", HttpStatus.BAD_REQUEST)
+            }
+
+            is Iverksettingsresultat.IngenEndring -> {
+                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat, iverksettingsresultat.testandel)
+            }
+
+            is Iverksettingsresultat.Sendt -> {
+                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat, iverksettingsresultat.testandel)
+            }
+        }
     }
+
+    private fun lagResponse(
+        behandlingId: UUID,
+        oppdragResultat: OppdragResultat,
+        testandel: Testandel?,
+    ) = OppdragIverksettingResponse(
+        saksnummer = oppdragResultat.utbetalingsoppdrag.saksnummer,
+        behandlingsId = utbetalingsoppdragService.lagOppdragId(behandlingId).behandlingsId,
+        antallPerioder = oppdragResultat.utbetalingsoppdrag.utbetalingsperiode.size,
+        testandel = testandel,
+    )
 
     @GetMapping("/{behandlingId}/status")
     fun hentOppdragStatus(

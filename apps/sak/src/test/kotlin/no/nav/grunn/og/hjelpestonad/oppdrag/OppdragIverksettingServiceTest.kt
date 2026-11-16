@@ -25,6 +25,7 @@ class OppdragIverksettingServiceTest {
     private val service = OppdragIverksettingService(utbetalingsoppdragService, oppdragClient, oppdragResultatRepository, meterRegistry)
 
     private val behandlingId = UUID.randomUUID()
+    private val fagsakId = UUID.randomUUID()
     private val testandel = Testandel(fom = LocalDate.of(2026, 11, 1), tom = LocalDate.of(2026, 11, 30), beløp = 1000)
     private val utbetalingsoppdrag =
         lagUtbetalingsoppdrag(
@@ -39,7 +40,7 @@ class OppdragIverksettingServiceTest {
             ),
         ).utbetalingsoppdrag
 
-    private fun oppdragResultat(status: String) = OppdragResultat(behandlingId = behandlingId, fagsakId = UUID.randomUUID(), utbetalingsoppdrag = utbetalingsoppdrag, status = status, andeler = emptySet())
+    private fun oppdragResultat(status: String) = OppdragResultat(behandlingId = behandlingId, fagsakId = fagsakId, utbetalingsoppdrag = utbetalingsoppdrag, status = status, andeler = emptySet())
 
     private fun lagret(
         status: String,
@@ -59,10 +60,9 @@ class OppdragIverksettingServiceTest {
         lagret(OppdragStatus.OPPRETTET, testandel)
         every { oppdragClient.iverksett(utbetalingsoppdrag) } returns IverksettUtfall.SENDT
 
-        val resultat = service.iverksett(behandlingId, "Z999999")
+        val iverksettingsresultat = service.iverksett(behandlingId, "Z999999")
 
-        assertThat(resultat?.sendt).isTrue()
-        assertThat(resultat?.testandel).isEqualTo(testandel)
+        assertThat(iverksettingsresultat).isEqualTo(Iverksettingsresultat.Sendt(oppdragResultat(OppdragStatus.OPPRETTET), testandel))
         verify(exactly = 1) { oppdragClient.iverksett(utbetalingsoppdrag) }
         verify(exactly = 1) { oppdragResultatRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, null) }
         assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "ok").count()).isEqualTo(1.0)
@@ -73,9 +73,9 @@ class OppdragIverksettingServiceTest {
         lagret(OppdragStatus.OPPRETTET)
         every { oppdragClient.iverksett(utbetalingsoppdrag) } returns IverksettUtfall.ALLEREDE_SENDT
 
-        val resultat = service.iverksett(behandlingId, "Z999999")
+        val iverksettingsresultat = service.iverksett(behandlingId, "Z999999")
 
-        assertThat(resultat?.sendt).isTrue()
+        assertThat(iverksettingsresultat).isInstanceOf(Iverksettingsresultat.Sendt::class.java)
         verify(exactly = 1) { oppdragResultatRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, null) }
         assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "allerede_sendt").count()).isEqualTo(1.0)
     }
@@ -94,18 +94,18 @@ class OppdragIverksettingServiceTest {
     fun `sender ingenting når behandlingen ikke endrer utbetalingen`() {
         lagret(OppdragStatus.INGEN_ENDRING)
 
-        val resultat = service.iverksett(behandlingId, "Z999999")
+        val iverksettingsresultat = service.iverksett(behandlingId, "Z999999")
 
-        assertThat(resultat?.sendt).isFalse()
+        assertThat(iverksettingsresultat).isEqualTo(Iverksettingsresultat.IngenEndring(oppdragResultat(OppdragStatus.INGEN_ENDRING), testandel = null))
         verify(exactly = 0) { oppdragClient.iverksett(any()) }
         assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "ingen_endring").count()).isEqualTo(1.0)
     }
 
     @Test
-    fun `returnerer null når det ikke er noe å sende`() {
+    fun `returnerer IngentingÅSende når det ikke er noe å sende`() {
         every { utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(behandlingId, "Z999999") } returns null
 
-        assertThat(service.iverksett(behandlingId, "Z999999")).isNull()
+        assertThat(service.iverksett(behandlingId, "Z999999")).isEqualTo(Iverksettingsresultat.IngentingÅSende)
         verify(exactly = 0) { oppdragClient.iverksett(any()) }
     }
 

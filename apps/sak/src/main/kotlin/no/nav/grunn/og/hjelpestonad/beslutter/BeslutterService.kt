@@ -21,6 +21,7 @@ import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
+import no.nav.grunn.og.hjelpestonad.vedtak.endrerUtbetaling
 import no.nav.grunn.og.hjelpestonad.vedtak.tilBehandlingResultat
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -117,7 +118,7 @@ class BeslutterService(
             taskService.opprett(SendVedtakTilInfotrygdFeedTask.TYPE, behandlingId)
         }
 
-        if (vedtak?.resultatType in RESULTATER_SOM_ENDRER_UTBETALING) {
+        if (vedtak?.resultatType?.endrerUtbetaling() == true) {
             taskService.opprett(
                 IverksettOppdragTask.TYPE,
                 IverksettOppdragTask.IverksettOppdragTaskData(
@@ -189,10 +190,5 @@ class BeslutterService(
                     "Behandlingen kan ikke sendes til beslutter på nytt før eksisterende oppgave er ferdigstilt.",
             )
         }
-    }
-
-    companion object {
-        /** Vedtak som kan gi nye andeler eller opphøre andeler i OS. */
-        private val RESULTATER_SOM_ENDRER_UTBETALING = setOf(ResultatType.INNVILGET, ResultatType.OPPHØR)
     }
 }

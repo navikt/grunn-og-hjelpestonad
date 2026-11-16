@@ -22,7 +22,8 @@ class IverksettOppdragTaskTest {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
-        every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns iverksettingsresultat(sendt = true)
+        every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns
+            Iverksettingsresultat.Sendt(oppdragResultat = oppdragResultat(), testandel = null)
 
         task.utfor(kontekst)
 
@@ -36,11 +37,12 @@ class IverksettOppdragTaskTest {
     }
 
     @Test
-    fun `ikke sendt oppdrag oppretter ingen task`() {
+    fun `oppdrag uten endring oppretter ingen task`() {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
-        every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns iverksettingsresultat(sendt = false)
+        every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns
+            Iverksettingsresultat.IngenEndring(oppdragResultat = oppdragResultat(), testandel = null)
 
         task.utfor(kontekst)
 
@@ -48,11 +50,11 @@ class IverksettOppdragTaskTest {
     }
 
     @Test
-    fun `null resultat oppretter ingen task`() {
+    fun `ingenting å sende oppretter ingen task`() {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
-        every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns null
+        every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns Iverksettingsresultat.IngentingÅSende
 
         task.utfor(kontekst)
 
@@ -64,7 +66,7 @@ class IverksettOppdragTaskTest {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z654321"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
-        every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns null
+        every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns Iverksettingsresultat.IngentingÅSende
 
         task.utfor(kontekst)
 
@@ -84,7 +86,7 @@ class IverksettOppdragTaskTest {
         }
     }
 
-    private fun iverksettingsresultat(sendt: Boolean): Iverksettingsresultat {
+    private fun oppdragResultat(): OppdragResultat {
         val behandlingId = UUID.randomUUID()
         val utbetalingsoppdrag =
             lagUtbetalingsoppdrag(
@@ -106,17 +108,12 @@ class IverksettOppdragTaskTest {
                         ),
                 ),
             ).utbetalingsoppdrag
-        return Iverksettingsresultat(
-            oppdrag =
-                OppdragResultat(
-                    behandlingId = behandlingId,
-                    fagsakId = UUID.randomUUID(),
-                    utbetalingsoppdrag = utbetalingsoppdrag,
-                    status = OppdragStatus.OPPRETTET,
-                    andeler = emptySet(),
-                ),
-            testandel = null,
-            sendt = sendt,
+        return OppdragResultat(
+            behandlingId = behandlingId,
+            fagsakId = UUID.randomUUID(),
+            utbetalingsoppdrag = utbetalingsoppdrag,
+            status = OppdragStatus.OPPRETTET,
+            andeler = emptySet(),
         )
     }
 }

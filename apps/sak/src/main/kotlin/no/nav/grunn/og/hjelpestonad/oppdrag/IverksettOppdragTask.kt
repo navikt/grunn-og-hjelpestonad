@@ -25,12 +25,21 @@ class IverksettOppdragTask(
         val behandlingId = kontekst.payload.behandlingId
         val iverksettingsresultat = oppdragIverksettingService.iverksett(behandlingId, kontekst.payload.saksbehandlerId)
 
-        if (iverksettingsresultat?.sendt == true) {
-            kontekst.opprettNesteTask(
-                type = HentOppdragStatusTask.TYPE,
-                payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId = behandlingId, forsøk = 1),
-                triggerTid = nesteTidspunktIÅpningstid(clock.instant(), VENTETID_FØR_STATUS),
-            )
+        when (iverksettingsresultat) {
+            is Iverksettingsresultat.Sendt -> {
+                kontekst.opprettNesteTask(
+                    type = HentOppdragStatusTask.TYPE,
+                    payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId = behandlingId, forsøk = 1),
+                    triggerTid = nesteTidspunktIÅpningstid(clock.instant(), VENTETID_FØR_STATUS),
+                )
+            }
+
+            // Ingenting er sendt til OS, så det finnes ingen kvittering å hente. Tasken er ferdig.
+            Iverksettingsresultat.IngentingÅSende,
+            is Iverksettingsresultat.IngenEndring,
+            -> {
+                Unit
+            }
         }
     }
 
