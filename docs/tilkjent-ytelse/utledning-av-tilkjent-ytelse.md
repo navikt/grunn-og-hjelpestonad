@@ -40,6 +40,10 @@ Regelen om økning og reduksjon gjelder hver endring for seg. Øker satsen og
 synker trygdetidsbrøken i samme måned, gjelder den nye satsen fra samme måned
 og den nye brøken fra måneden etter.
 
+Retten faller bort i måneden med siste dag med rett. Er siste dag med rett
+30. september, er september siste måned med utbetaling. Har retten ingen
+sluttdato, har heller ikke siste andel det.
+
 Når Stortinget endrer satsbeløpet, gjelder det nye beløpet fra datoen
 Stortinget har satt. Det er ikke en endring etter § 22-12, men et nytt beløp
 for samme sats.
