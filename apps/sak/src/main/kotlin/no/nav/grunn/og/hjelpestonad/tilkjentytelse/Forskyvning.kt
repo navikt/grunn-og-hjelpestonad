@@ -35,8 +35,8 @@ internal fun <T : Comparable<T>> Tidslinje<T>.forskyvTilHeleMåneder(): Tidslinj
             val neste = perioder.getOrNull(indeks + 1)?.takeIf { periode.slutterDagenFør(it) }
             Periode(
                 verdi = periode.verdi,
-                fom = forskyvFom(periode.fom, endring(fra = forrige?.verdi, til = periode.verdi)),
-                tom = forskyvTom(periode.tom, endring(fra = periode.verdi, til = neste?.verdi)),
+                fom = forskyvFom(periode.fom, endring(periodeFør = forrige?.verdi, periodeEtter = periode.verdi)),
+                tom = forskyvTom(periode.tom, endring(periodeFør = periode.verdi, periodeEtter = neste?.verdi)),
             )
         }.filterNot { it.erTom() }
         .map { it.tilTidslinje() }
@@ -45,12 +45,12 @@ internal fun <T : Comparable<T>> Tidslinje<T>.forskyvTilHeleMåneder(): Tidslinj
 
 /** `null` når en av verdiene mangler, altså når det ikke finnes en periode rett før eller rett etter. */
 private fun <T : Comparable<T>> endring(
-    fra: T?,
-    til: T?,
+    periodeFør: T?,
+    periodeEtter: T?,
 ): Endring? =
     when {
-        fra == null || til == null -> null
-        til > fra -> Endring.ØKNING
+        periodeFør == null || periodeEtter == null -> null
+        periodeEtter > periodeFør -> Endring.ØKNING
         else -> Endring.REDUKSJON
     }
 
