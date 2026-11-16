@@ -19,3 +19,9 @@ Spec: [spec.md](../spec.md)
 - [ ] Neste i steg 2 kaller endepunktet, viser feilene i `ErrorSummary`, også feilen for trygdetid som ikke har en vilkårstype, og går videre til simulering ved suksess. Knappen er deaktivert mens kallet pågår.
 - [ ] Testen av steg-servicen sjekker tilgang, rekkefølgen hent → utled → slett → lagre, og endringshistorikk.
 - [ ] Registeret som sjekker tilgangskontroll på endepunkter, er oppdatert, og API-klienten er generert på nytt.
+- [ ] `TilkjentYtelseUtleder.utled` gir `UtledetAndel` med `tom = null` når retten ikke har sluttdato. `AndelTilkjentYtelse.tom` og `andel_tilkjent_ytelse.tom` blir nullable i en ny Flyway-migrering. `lagUtbetalingsoppdrag` gjør `null` om til en dato før generatoren, som krever `tom`. Avklar datoen med teamet og økonomi.
+- [ ] `UtledningAvTilkjentYtelseFeil` gjøres om til samme format som `VilkårValideringFeil`. Feilen for trygdetid har nøkkelen `Valideringsnøkkel.Trygdetid`.
+
+## Comments
+
+**2026-11-15:** Ticket 09 er ferdig. Utledningen returnerer `List<UtledetAndel>` med `YearMonth` og `tom = null` for løpende rett, ikke `AndelTilkjentYtelse`. I familie-ba-sak er `stønadTom` påkrevd, men der slutter alle andeler fordi vilkåret «under 18 år» får sluttdato fra fødselsdatoen. Grunnstønad har ingen slik slutt, så vi valgte `null` i tilkjent ytelse.
