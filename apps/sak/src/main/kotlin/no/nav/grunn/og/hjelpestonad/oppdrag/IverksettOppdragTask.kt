@@ -35,6 +35,7 @@ class IverksettOppdragTask(
             }
 
             is Iverksettingsresultat.AlleredeIverksatt -> {
+                // Testendepunktet sender uten å opprette statustask. Har OS kvittert, er statusen hentet fra før.
                 if (iverksettingsresultat.oppdragResultat.status == OppdragStatus.LAGT_PÅ_KØ) {
                     opprettHentOppdragStatusTask(kontekst, behandlingId)
                 }

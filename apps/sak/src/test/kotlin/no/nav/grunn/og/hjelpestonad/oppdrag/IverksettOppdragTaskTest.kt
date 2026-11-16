@@ -37,7 +37,7 @@ class IverksettOppdragTaskTest {
     }
 
     @Test
-    fun `allerede iverksatt oppdrag på kø oppretter status-task, fordi forrige forsøk kan ha feilet før tasken ble opprettet`() {
+    fun `allerede iverksatt oppdrag på kø oppretter status-task, fordi testendepunktet ikke oppretter en`() {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
