@@ -82,14 +82,7 @@ class UtbetalingsoppdragService(
         }
 
         val beregning = beregnUtbetalingsoppdrag(behandling, saksbehandlerId) ?: return null
-        val oppdragResultat =
-            OppdragResultat(
-                behandlingId = behandling.id,
-                fagsakId = behandling.fagsakId,
-                utbetalingsoppdrag = beregning.oppdrag.utbetalingsoppdrag,
-                status = if (beregning.oppdrag.harEndringFraForrigeBehandling) OppdragStatus.OPPRETTET else OppdragStatus.INGEN_ENDRING,
-                andeler = beregning.oppdrag.utbetalingsandeler.toSet(),
-            )
+        val oppdragResultat = beregning.oppdrag.tilOppdragResultat(behandling)
         oppdragResultatRepository.insert(oppdragResultat)
         logger.info(
             "Lagret oppdrag for behandling={}: status={}, {} perioder, {} andeler",
@@ -188,6 +181,15 @@ class UtbetalingsoppdragService(
             )
     }
 }
+
+private fun BeregnetOppdrag.tilOppdragResultat(behandling: Behandling) =
+    OppdragResultat(
+        behandlingId = behandling.id,
+        fagsakId = behandling.fagsakId,
+        utbetalingsoppdrag = utbetalingsoppdrag,
+        status = if (harEndringFraForrigeBehandling) OppdragStatus.OPPRETTET else OppdragStatus.INGEN_ENDRING,
+        andeler = utbetalingsandeler.toSet(),
+    )
 
 data class UtbetalingsoppdragForBehandling(
     val utbetalingsoppdrag: Utbetalingsoppdrag,

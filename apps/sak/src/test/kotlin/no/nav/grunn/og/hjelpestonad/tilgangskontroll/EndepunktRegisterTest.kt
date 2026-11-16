@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.tilgangskontroll
 
+import no.nav.grunn.og.hjelpestonad.beslutter.BeslutterController
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -37,6 +38,24 @@ class EndepunktRegisterTest {
         assertEquals(emptySet<String>(), MED_PERSONSJEKK intersect UTEN_PERSONSJEKK)
     }
 
+    @Test
+    fun `beslutter tilbyr bare sending beslutning og status`() {
+        val stier =
+            BeslutterController::class.java.declaredMethods
+                .mapNotNull { AnnotatedElementUtils.findMergedAnnotation(it, RequestMapping::class.java) }
+                .flatMap { it.path.toList() }
+                .toSet()
+
+        assertEquals(
+            setOf(
+                "/send-til-beslutter/{behandlingId}",
+                "/beslutt-vedtak/{behandlingId}",
+                "/totrinnskontroll-status/{behandlingId}",
+            ),
+            stier,
+        )
+    }
+
     private fun alleHandlere(): Set<String> {
         // Skanneren tar hensyn til @Profile og @ConditionalOnProperty. "dev" tar med controllere som bare finnes i dev,
         // som UnleashController, og egenskapene slår på controllere som ellers er av.
@@ -72,7 +91,6 @@ class EndepunktRegisterTest {
                 "BehandlingController#hentBehandlinger",
                 "BehandlingController#hentBehandling",
                 "BeslutterController#sendTilBeslutter",
-                "BeslutterController#angreSendTilBeslutter",
                 "BeslutterController#besluttVedtak",
                 "BeslutterController#hentTotrinnskontrollStatus",
                 "BrevController#lagBrevTask",
@@ -101,6 +119,9 @@ class EndepunktRegisterTest {
                 "SafController#hentDokumentSomPdf",
                 "InngangsvilkårStegController#fullførInngangsvilkår",
                 "InngangsvilkårStegController#hentPerioderMedOppfylteInngangsvilkår",
+                "TrygdetidController#hentTrygdetidPerioder",
+                "TrygdetidController#lagreTrygdetidPeriode",
+                "TrygdetidController#slettTrygdetidPeriode",
                 "VedtakController#hentVedtak",
                 "VedtakController#lagreVedtak",
                 "VedtakController#beregn",
@@ -108,6 +129,9 @@ class EndepunktRegisterTest {
                 "VilkårDiagnoseController#hentDiagnosePerioder",
                 "VilkårDiagnoseController#lagreDiagnosePeriode",
                 "VilkårDiagnoseController#slettDiagnosePeriode",
+                "VilkårEkstrautgifterController#hentEkstrautgifterPerioder",
+                "VilkårEkstrautgifterController#lagreEkstrautgifterPeriode",
+                "VilkårEkstrautgifterController#slettEkstrautgifterPeriode",
                 "VilkårMedlemskapController#hentMedlemskapPerioder",
                 "VilkårMedlemskapController#lagreMedlemskapPeriode",
                 "VilkårMedlemskapController#slettMedlemskapPeriode",

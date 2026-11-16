@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  angreSendTilBeslutter as angreSendTilBeslutterKall,
   besluttVedtak as besluttVedtakKall,
   sendTilBeslutter as sendTilBeslutterKall,
 } from "~/api/generated/sdk.gen";
@@ -25,21 +24,6 @@ export const useBeslutter = () => {
     }
   };
 
-  const angreSendTilBeslutter = async (behandlingId: string) => {
-    settSender(true);
-    try {
-      const { data } = await angreSendTilBeslutterKall({
-        path: { behandlingId },
-        throwOnError: true,
-      });
-      return { data };
-    } catch (feil: unknown) {
-      return { feilmelding: feilmeldingFra(feil, "Kunne ikke angre sending til beslutter.") };
-    } finally {
-      settSender(false);
-    }
-  };
-
   const besluttVedtak = async (behandlingId: string, body: BeslutteVedtakRequest) => {
     settSender(true);
     try {
@@ -59,7 +43,6 @@ export const useBeslutter = () => {
   return {
     sender,
     sendTilBeslutter,
-    angreSendTilBeslutter,
     besluttVedtak,
   };
 };

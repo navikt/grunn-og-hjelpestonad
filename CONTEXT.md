@@ -45,7 +45,11 @@ Vilkårene uten skjønn, medlemskap og diagnose, som vurderes først. De andre v
 En periode der både medlemskap og diagnose er oppfylt.
 
 **Nødvendige ekstrautgifter**:
-Vilkåret som avgjør om søker har rett i en periode med oppfylte inngangsvilkår, og i så fall hvilken sats. Er ekstrautgiftene under laveste sats, er vilkåret ikke oppfylt, jf. § 6-3 tredje ledd.
+Vilkåret som avgjør om søker har rett i en periode med oppfylte inngangsvilkår, og i så fall hvilken sats. Er ekstrautgiftene under laveste sats, er vilkåret ikke oppfylt, jf. § 6-3 tredje ledd. Saksbehandler setter satsen selv og registrerer ekstrautgiftene i perioden, se ADR-0016.
+
+**Ekstrautgift**:
+En nødvendig ekstrautgift i en periode: én hjemmelbokstav og diagnosene som gir utgiften. En periode har høyst én ekstrautgift per hjemmelbokstav. Beløpet lagres ikke. Tilsvarer en utgiftspost uten beløp hvis løsningen går over til utgiftsposter.
+_Avoid_: Utgiftspost (den har beløp), formål
 
 **Hjemmelbokstav**:
 Bokstaven i folketrygdloven § 6-3 første ledd som sier hva en nødvendig ekstrautgift går til: a) drift av tekniske hjelpemidler, b) transport, herunder drift av egen bil, c) hold av førerhund, f) fordyret kosthold, g) slitasje på klær og sengetøy og h) hold av servicehund. Bokstav d (telefon) og e (proteser, støttebandasje o.l.) gir ikke grunnstønad i nye tilfeller fra 1. januar 2020.

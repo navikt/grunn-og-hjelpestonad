@@ -7,12 +7,14 @@ export function VilkårGruppeItem({
   erOppfylt,
   defaultOpen,
   onLeggTil,
+  disabled,
   children,
 }: {
   tittel: string;
   erOppfylt: boolean;
   defaultOpen: boolean;
   onLeggTil?: () => void;
+  disabled?: boolean;
   children: React.ReactNode;
 }) {
   const status = erOppfylt
@@ -40,6 +42,7 @@ export function VilkårGruppeItem({
                 type="button"
                 variant="secondary"
                 icon={<PlusIcon aria-hidden />}
+                disabled={disabled}
                 onClick={onLeggTil}
               >
                 Legg til periode

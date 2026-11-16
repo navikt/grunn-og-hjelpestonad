@@ -102,9 +102,8 @@ er modellert sammen med ekstrautgiftene.
 
 22. Som saksbehandler vil jeg se periodene med oppfylte inngangsvilkår som en
     tidslinje øverst i steg 2.
-23. Som saksbehandler vil jeg se hvilke perioder for ekstrautgifter og trygdetid
-    som ligger utenfor periodene med oppfylte inngangsvilkår, slik at jeg kan
-    rydde etter at jeg har endret et inngangsvilkår.
+23. Som saksbehandler vil jeg at perioder for ekstrautgifter og trygdetid kan
+    ligge utenfor periodene med oppfylte inngangsvilkår uten å bli markert.
 24. Som saksbehandler vil jeg at perioder utenfor ikke gir feil og ikke påvirker
     beregningen, slik at jeg ikke blir stoppet av perioder som ikke betyr noe.
 
@@ -343,7 +342,8 @@ er modellert sammen med ekstrautgiftene.
   rett i noen måned.
 - Steg 2 viser tidslinjen med perioder med oppfylte inngangsvilkår, listen over
   ekstrautgifter og listen over trygdetid. Listene er bygget som komponentene
-  for inngangsvilkår, og perioder utenfor er markert.
+  for inngangsvilkår. Perioder utenfor periodene med oppfylte inngangsvilkår
+  markeres ikke.
 - Ekstrautgifter: vurdering ja/nei, sats 1–6 bare ved ja, datoer og begrunnelse.
 - Trygdetid: teller 0–40, kilde og datoer. Kilden «ingen» låser telleren på 40.
   Skjermbildet kaller ikke trygdetid et vilkår.

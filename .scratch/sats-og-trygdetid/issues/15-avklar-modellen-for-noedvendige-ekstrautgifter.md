@@ -8,11 +8,11 @@
 
 Spec: [spec.md](../spec.md). Bakgrunn: ADR-0006, ADR-0014 og ADR-0008. Variantene er vist i [forslag-ekstrautgifter.html](../forslag-ekstrautgifter.html). Åpne fila i en nettleser.
 
-- [ ] Teamet og fag har valgt variant.
+- [x] Teamet og fag har valgt variant.
 - [ ] Hvert spørsmål under har et svar under `## Answer`.
-- [ ] En ny ADR erstatter punktet om ekstrautgifter i ADR-0006 og merknaden i ADR-0014.
+- [x] En ny ADR erstatter punktet om ekstrautgifter i ADR-0006 og merknaden i ADR-0014.
 - [ ] Spec-en og ticket 07, 09, 10 og 11 er oppdatert. Migrering/16 er sjekket, fordi den setter vilkårene til oppfylt og henter sats fra Infotrygd.
-- [ ] `CONTEXT.md` er oppdatert: «Nødvendige ekstrautgifter», og «Utgiftspost» hvis C eller D blir valgt.
+- [x] `CONTEXT.md` er oppdatert: «Nødvendige ekstrautgifter», og «Utgiftspost» hvis C eller D blir valgt.
 
 ## Avklart
 
@@ -67,7 +67,7 @@ Gjelder C og D. Forslag: høyst én post per hjemmelbokstav per periode. Overlap
 
 - Kobles posten til diagnosekoden eller til en bestemt diagnoseperiode? Koden overlever kopiering og deling av perioder. Det gjør ikke en rad-id. Forslag: diagnosekoden.
 - Må minst én diagnose være valgt? Forslag: ja.
-- Hva skjer når en valgt diagnose ikke er oppfylt i hele perioden til posten: feil, markering som for perioder utenfor inngangsvilkårene, eller ingenting? Forslag: markering.
+- Hva skjer når en valgt diagnose ikke er oppfylt i hele perioden til posten: feil, markering eller ingenting? Forslag: markering.
 - Egen koblingstabell eller liste på raden? Forslag: egen tabell.
 
 **Avgjør:** fag (må hver utgift ha en diagnose?) og teamet (resten). **Påvirker:** 07.
@@ -141,8 +141,7 @@ Infotrygd har én hjemmelbokstav, én eller to diagnosekoder, én sats og Infotr
 
 **Avgjør:** teamet og fag. **Påvirker:** migrering/16.
 
-## Konsekvenser for koden
-
-Ingen kode for vilkåret er merget. Velger vi D, kan den vedtatte satsen lagres per periode i en tabell som i A, med `vurdering` og `sats`, og postene i en egen tabell.
 
 ## Comments
+
+**2026-11-09:** Designer valgte B. Ticket 07 er bygget etter B, og ADR-0016 og `CONTEXT.md` er oppdatert. Spec-en og ticket 09 og 11 er ikke gått gjennom, men B har ja eller nei og sats per periode, som de bygger på. Migrering/16 er ikke sjekket.

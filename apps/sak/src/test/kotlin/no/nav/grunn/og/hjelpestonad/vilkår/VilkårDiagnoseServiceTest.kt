@@ -238,6 +238,16 @@ class VilkårDiagnoseServiceTest {
     }
 
     @Test
+    fun `lagrePeriode avviser begrunnelse over 2000 tegn før noe skrives`() {
+        assertThatThrownBy { service.lagrePeriode(behandlingId, request().copy(begrunnelse = "a".repeat(2001))) }
+            .isInstanceOf(UgyldigInput::class.java)
+
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
+    }
+
+    @Test
     fun `skriver ingenting når behandlingen ikke er redigerbar`() {
         every { behandlingService.validerBehandlingErRedigerbar(behandlingId) } throws Feil("Behandlingen er ikke redigerbar")
 
@@ -261,7 +271,7 @@ class VilkårDiagnoseServiceTest {
             ),
         )
 
-        assertThat(detaljer.captured).isEqualTo("${VilkårType.DIAGNOSE}: ${Vurdering.JA}, Periode: 01.01.2025 – 30.06.2025")
+        assertThat(detaljer.captured).isEqualTo("${VilkårType.DIAGNOSE}, Vurdering: ${Vurdering.JA}, Periode: 01.01.2025 – 30.06.2025")
         assertThat(detaljer.captured).doesNotContain(DIABETES_TYPE_1).doesNotContain("Diabetes")
     }
 }

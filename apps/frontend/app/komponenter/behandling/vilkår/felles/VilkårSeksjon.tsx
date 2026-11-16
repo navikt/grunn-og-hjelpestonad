@@ -3,17 +3,13 @@ import { Accordion, BodyShort, HGrid, HStack, Tag, VStack } from "@navikt/ds-rea
 import { vilkårHjemmel, vilkårNavn, type VilkårNøkkel } from "~/types/vilkår";
 import type { FellesVilkårPeriodeFelter } from "./useVilkårSkjema";
 import { feilmeldingFra } from "./feilmeldingFra";
-import type { Detalj } from "./VilkårPeriodeKort";
+import { begrunnelseDetalj, type Detalj } from "./PeriodeKort";
 import type { PerioderResult } from "./usePerioder";
-import type { VilkårSletting } from "./useSlettVilkårPeriode";
+import type { PeriodeEndringerVisning } from "./usePeriodeEndringer";
 import { VilkårVurderinger } from "./VilkårVurderinger";
 
+export { begrunnelseDetalj };
 export type { Detalj };
-
-export function begrunnelseDetalj(begrunnelse: string | null | undefined): Detalj[] {
-  const tekst = begrunnelse?.trim();
-  return tekst ? [{ etikett: "Begrunnelse", verdi: tekst }] : [];
-}
 
 export interface VilkårPeriodeGruppe<T> {
   nøkkel: string;
@@ -45,7 +41,7 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
   hentefeilTekst,
   detaljerFor,
   skjema,
-  sletting,
+  endringer,
   leggTil,
   gruppering,
   grunnlag,
@@ -56,7 +52,7 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
   hentefeilTekst: string;
   detaljerFor: (periode: T) => Detalj[];
   skjema: VilkårSeksjonSkjema<T>;
-  sletting: VilkårSletting<T>;
+  endringer: PeriodeEndringerVisning<T>;
   leggTil: VilkårLeggTil;
   gruppering?: VilkårGruppering<T>;
   grunnlag?: React.ReactNode;
@@ -81,7 +77,8 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
     if (hentefeil) {
       return { tekst: "Ikke vurdert", farge: "warning" as const };
     }
-    if (laster || periodeliste === undefined) {
+    // Under ny henting beholdes statusen fra forrige liste. «Ikke vurdert» vises bare uten data.
+    if (periodeliste === undefined) {
       return { tekst: "Ikke vurdert", farge: "neutral" as const };
     }
     if (antall === 0) {
@@ -98,7 +95,7 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
       hentefeil={hentefeil}
       detaljerFor={detaljerFor}
       skjema={skjema}
-      sletting={sletting}
+      endringer={endringer}
       leggTil={leggTil}
       gruppering={gruppering}
     >

@@ -8,7 +8,6 @@ import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 /** Endringstypene servicen skriver i endringshistorikken. Vilkårene bruker VILKÅR_VURDERING_*. */
@@ -36,7 +35,11 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         request: R,
     ): P
 
-    protected open fun valider(request: R) = Unit
+    protected open fun valider(
+        request: R,
+        behandlingId: UUID,
+        eksisterendePeriode: P?,
+    ) = Unit
 
     protected open fun validerTidslinje(perioder: List<P>) = Unit
 
@@ -79,8 +82,9 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
 
+        validerBegrunnelse(request.begrunnelse)
         val eksisterendePeriode = request.id?.let { hentPeriodePåBehandling(behandlingId, it) }
-        valider(request)
+        valider(request = request, behandlingId = behandlingId, eksisterendePeriode = eksisterendePeriode)
         val periode = eksisterendePeriode?.oppdaterMed(request) ?: nyPeriode(behandlingId, request)
 
         val perioder = repository.findByBehandlingId(behandlingId).medNyPeriode(periode)
@@ -108,23 +112,7 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         registrerEndring(behandlingId, endringstyper.slettet, periode)
     }
 
-    /** Typen perioden står under i endringshistorikken, for eksempel vilkårstypen. */
-    protected abstract val type: Enum<*>
-
-    /** Vurderingen som står i endringshistorikken. Perioder uten vurdering, som trygdetid, gir `null`. */
-    protected open fun vurdering(periode: P): Enum<*>? = null
-
-    /**
-     * Diagnose er helseopplysning etter GDPR artikkel 9 og skal aldri registreres i
-     * endringshistorikk eller logg. Detaljene bygges derfor bare av faste felter: navnet på typen,
-     * navnet på vurderingen hvis perioden har en, og periode. Underklassene gir bare enum-verdier,
-     * så ingen fritekst eller data fra perioden, som diagnosekode eller diagnosebeskrivelse, kan
-     * havne her. Ikke utvid detaljene med andre opplysninger om saken.
-     */
-    private fun endringsdetaljer(periode: P): String {
-        val typeOgVurdering = listOfNotNull(type.name, vurdering(periode)?.name).joinToString(": ")
-        return "$typeOgVurdering, Periode: ${formaterPeriode(periode)}"
-    }
+    protected abstract fun endringsdetalj(periode: P): String
 
     private fun registrerEndring(
         behandlingId: UUID,
@@ -133,20 +121,10 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
     ) = endringshistorikkService.registrerEndring(
         behandlingId = behandlingId,
         endringType = endringType,
-        detaljer = endringsdetaljer(periode),
+        detaljer =
+            historikktekst(
+                endringsdetalj = endringsdetalj(periode = periode),
+                periode = periode,
+            ),
     )
-
-    private fun formaterPeriode(periode: Periodisert): String {
-        if (periode.fraOgMedDato == null && periode.tilOgMedDato == null) {
-            return "Hele behandlingsperioden"
-        }
-
-        val fra = periode.fraOgMedDato?.format(DATOFORMAT) ?: "Fra fødsel"
-        val til = periode.tilOgMedDato?.format(DATOFORMAT) ?: "løpende"
-        return "$fra – $til"
-    }
-
-    private companion object {
-        val DATOFORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-    }
 }
