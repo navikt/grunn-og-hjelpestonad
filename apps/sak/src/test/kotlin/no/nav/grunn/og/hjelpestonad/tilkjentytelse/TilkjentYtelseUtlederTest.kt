@@ -567,7 +567,7 @@ class TilkjentYtelseUtlederTest {
         fom: String,
         tom: String?,
         beløp: String,
-    ) = UtledetAndel(fom = YearMonth.parse(fom), tom = tom?.let { YearMonth.parse(it) }, beløp = BigDecimal(beløp))
+    ) = UtledetAndel(fraOgMedMåned = YearMonth.parse(fom), tilOgMedMåned = tom?.let { YearMonth.parse(it) }, beløp = BigDecimal(beløp))
 
     /** Sammenligner beløp med `compareTo`, så 1146 og 1146.000 er like. */
     private fun assertAndeler(

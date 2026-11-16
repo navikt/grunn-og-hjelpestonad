@@ -20,10 +20,10 @@ import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import java.math.BigDecimal
 import java.time.YearMonth
 
-/** Tilkjent ytelse for et sammenhengende tidsrom med samme beløp per måned. [tom] er `null` når retten ikke har sluttdato. */
+/** Tilkjent ytelse for et sammenhengende tidsrom med samme beløp per måned. [tilOgMedMåned] er `null` når retten ikke har sluttdato. */
 data class UtledetAndel(
-    val fom: YearMonth,
-    val tom: YearMonth?,
+    val fraOgMedMåned: YearMonth,
+    val tilOgMedMåned: YearMonth?,
     val beløp: BigDecimal,
 )
 
@@ -97,8 +97,8 @@ object TilkjentYtelseUtleder {
             .tilPerioderIkkeNull()
             .map {
                 UtledetAndel(
-                    fom = YearMonth.from(checkNotNull(it.fom) { "En andel mangler fra og med-dato." }),
-                    tom = it.tom?.let(YearMonth::from),
+                    fraOgMedMåned = YearMonth.from(checkNotNull(it.fom) { "En andel mangler fra og med-dato." }),
+                    tilOgMedMåned = it.tom?.let(YearMonth::from),
                     beløp = it.verdi,
                 )
             }
@@ -124,7 +124,7 @@ object TilkjentYtelseUtleder {
     ) {
         val ekstrautgifterVurdert =
             erInngangsvilkårOppfyltTidslinje
-                .kombinerMed(ekstrautgifter) { oppfylt, ekstrautgift -> if (oppfylt == true && ekstrautgift != null) true else null }
+                .kombinerMed(ekstrautgifter) { erInngangsvilkårOppfylt, ekstrautgift -> if (erInngangsvilkårOppfylt == true && ekstrautgift != null) true else null }
                 .harVerdi()
         val hullITrygdetid =
             satsTidslinje
