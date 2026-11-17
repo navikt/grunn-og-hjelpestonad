@@ -33,24 +33,28 @@ export const TrygdetidSeksjon: React.FC<{
   });
 
   const [erÅpen, settErÅpen] = useState(false);
-  const initialÅpenSatt = useRef(false);
+  const [sistBehandletÅpneVedFeil, settSistBehandletÅpneVedFeil] = useState<number | undefined>();
+  const [initialÅpenSatt, settInitialÅpenSatt] = useState(false);
   const seksjonsmålRef = useRef<HTMLButtonElement>(null);
+
+  // Avledet tilstand: justeres under rendering når propen endres, ikke i effect.
+  if (åpneVedFeil !== sistBehandletÅpneVedFeil) {
+    settSistBehandletÅpneVedFeil(åpneVedFeil);
+    if (åpneVedFeil) {
+      settErÅpen(true);
+    }
+  }
+
+  if (!initialÅpenSatt && !perioder.laster && perioder.data !== undefined) {
+    settInitialÅpenSatt(true);
+    settErÅpen(perioder.data.length === 0);
+  }
 
   useEffect(() => {
     if (åpneVedFeil) {
-      settErÅpen(true);
       requestAnimationFrame(() => seksjonsmålRef.current?.focus());
     }
   }, [åpneVedFeil]);
-
-  useEffect(() => {
-    if (initialÅpenSatt.current || perioder.laster || perioder.data === undefined) {
-      return;
-    }
-
-    initialÅpenSatt.current = true;
-    settErÅpen(perioder.data.length === 0);
-  }, [perioder.laster, perioder.data]);
 
   const visSkjema = !erLesevisning && skjema.erÅpent;
   const liste = perioder.data ?? [];
