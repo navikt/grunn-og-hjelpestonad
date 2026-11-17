@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.vedtak
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
+import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.felles.sporbar.SporbarUtils
 import org.springframework.data.annotation.Id
@@ -68,6 +69,19 @@ enum class ResultatType {
     AVSLÅTT,
     HENLAGT,
     OPPHØR,
+}
+
+/** Gjelder førstegangsbehandling. Revurdering og opphør krever sammenligning med forrige behandling. */
+fun validerVedtaksresultatMotBeregning(
+    resultatType: ResultatType,
+    harBeregnedeAndeler: Boolean,
+) {
+    if (resultatType == ResultatType.INNVILGET && !harBeregnedeAndeler) {
+        throw UgyldigInput("Vedtaket er en innvilgelse, men beregningen har ingen andeler. Kontroller vedtaksresultatet og grunnlaget før du sender til beslutter.")
+    }
+    if (resultatType == ResultatType.AVSLÅTT && harBeregnedeAndeler) {
+        throw UgyldigInput("Vedtaket er et avslag, men beregningen har andeler. Kontroller vedtaksresultatet og grunnlaget før du sender til beslutter.")
+    }
 }
 
 /** Om vedtaket kan gi nye andeler eller opphøre andeler i OS, og derfor skal iverksettes mot oppdrag. */
