@@ -64,24 +64,30 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
   const hentefeil = perioder.error ? feilmeldingFra(perioder.error, hentefeilTekst) : undefined;
   const antall = periodeliste?.length ?? 0;
   const [erÅpen, settErÅpen] = React.useState(false);
-  const initialÅpenSatt = React.useRef(false);
+  const [sistBehandletÅpneVedFeil, settSistBehandletÅpneVedFeil] = React.useState<
+    number | undefined
+  >();
+  const [initialÅpenSatt, settInitialÅpenSatt] = React.useState(false);
   const seksjonsmålRef = React.useRef<HTMLButtonElement>(null);
+
+  // Avledet tilstand: justeres under rendering når propen endres, ikke i effect.
+  if (åpneVedFeil !== sistBehandletÅpneVedFeil) {
+    settSistBehandletÅpneVedFeil(åpneVedFeil);
+    if (åpneVedFeil) {
+      settErÅpen(true);
+    }
+  }
+
+  if (!initialÅpenSatt && !laster && periodeliste !== undefined) {
+    settInitialÅpenSatt(true);
+    settErÅpen(periodeliste.length === 0);
+  }
 
   React.useEffect(() => {
     if (åpneVedFeil) {
-      settErÅpen(true);
       requestAnimationFrame(() => seksjonsmålRef.current?.focus());
     }
   }, [åpneVedFeil]);
-
-  React.useEffect(() => {
-    if (initialÅpenSatt.current || laster || periodeliste === undefined) {
-      return;
-    }
-
-    initialÅpenSatt.current = true;
-    settErÅpen(periodeliste.length === 0);
-  }, [laster, periodeliste]);
 
   const status = (() => {
     if (hentefeil) {
