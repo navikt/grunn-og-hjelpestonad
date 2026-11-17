@@ -17,6 +17,17 @@ export const zVilkårValideringFeilResponse = z.object({
     feil: z.array(zValideringsfeil)
 });
 
+export const zSatsOgTrygdetidValideringsfeil = z.object({
+    nøkkel: z.string(),
+    melding: z.string()
+});
+
+export const zSatsOgTrygdetidFeilResponse = z.object({
+    melding: z.string(),
+    status: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    feil: z.array(zSatsOgTrygdetidValideringsfeil)
+});
+
 export const zGrunnstønadPeriode = z.object({
     id: z.uuid(),
     datoFra: z.string(),
@@ -627,6 +638,7 @@ export const zBehandlingEndringResponse = z.object({
         'VILKÅR_VURDERING_SLETTET',
         'VILKÅR_VURDERING_FULLFØRT',
         'INNGANGSVILKÅR_VURDERING_FULLFØRT',
+        'SATS_OG_TRYGDETID_FULLFØRT',
         'VEDTAK_LAGRET',
         'ÅRSAK_LAGRET',
         'ÅRSAK_OPPDATERT',
@@ -930,6 +942,15 @@ export const zLagreTrygdetidPeriodePath = z.object({
  * OK
  */
 export const zLagreTrygdetidPeriodeResponse = zTrygdetidResponse;
+
+export const zFullførSatsOgTrygdetidPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * Tilkjent ytelse er beregnet og lagret.
+ */
+export const zFullførSatsOgTrygdetidResponse = z.void();
 
 export const zFullførInngangsvilkårPath = z.object({
     behandlingId: z.uuid()

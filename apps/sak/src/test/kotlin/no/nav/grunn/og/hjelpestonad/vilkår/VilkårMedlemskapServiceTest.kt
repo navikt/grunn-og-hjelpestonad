@@ -34,7 +34,7 @@ class VilkårMedlemskapServiceTest {
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
-    private val service = VilkårMedlemskapService(repository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService)
+    private val service = VilkårMedlemskapService(repository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService, mockk(relaxed = true))
 
     private val behandlingId = UUID.randomUUID()
 

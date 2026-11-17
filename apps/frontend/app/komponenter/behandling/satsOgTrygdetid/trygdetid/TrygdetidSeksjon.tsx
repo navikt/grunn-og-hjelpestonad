@@ -15,7 +15,10 @@ import { hentTrygdetidPerioderFraBackend, useTrygdetidApi } from "./useTrygdetid
 import { kildeTekst, MAKS_TELLER, useTrygdetidSkjema } from "./useTrygdetidSkjema";
 import { TrygdetidSkjema } from "./TrygdetidSkjema";
 
-export const TrygdetidSeksjon: React.FC<{ behandlingId: string }> = ({ behandlingId }) => {
+export const TrygdetidSeksjon: React.FC<{
+  behandlingId: string;
+  åpneVedFeil?: number;
+}> = ({ behandlingId, åpneVedFeil }) => {
   const erLesevisning = useErLesevisning();
   const perioder = usePerioder(behandlingId, hentTrygdetidPerioderFraBackend);
   const { lagreTrygdetid, slettTrygdetid } = useTrygdetidApi();
@@ -31,6 +34,14 @@ export const TrygdetidSeksjon: React.FC<{ behandlingId: string }> = ({ behandlin
 
   const [erÅpen, settErÅpen] = useState(false);
   const initialÅpenSatt = useRef(false);
+  const seksjonsmålRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (åpneVedFeil) {
+      settErÅpen(true);
+      requestAnimationFrame(() => seksjonsmålRef.current?.focus());
+    }
+  }, [åpneVedFeil]);
 
   useEffect(() => {
     if (initialÅpenSatt.current || perioder.laster || perioder.data === undefined) {
@@ -82,7 +93,9 @@ export const TrygdetidSeksjon: React.FC<{ behandlingId: string }> = ({ behandlin
 
   return (
     <Accordion.Item open={erÅpen} onOpenChange={settErÅpen}>
-      <Accordion.Header id="trygdetid">Trygdetid</Accordion.Header>
+      <Accordion.Header id="trygdetid" ref={seksjonsmålRef}>
+        Trygdetid
+      </Accordion.Header>
 
       <Accordion.Content>
         <VStack gap="space-24">

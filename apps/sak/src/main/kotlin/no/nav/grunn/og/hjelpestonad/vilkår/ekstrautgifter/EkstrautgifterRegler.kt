@@ -83,6 +83,20 @@ object EkstrautgifterRegler {
         }
     }
 
+    fun validerDiagnoserOppfyltIHelePerioden(
+        vilkårEkstrautgifter: VilkårEkstrautgifter,
+        diagnosePerioder: List<VilkårDiagnose>,
+    ) = validerDiagnoserOppfyltIHelePerioden(
+        VilkårEkstrautgifterRequest(
+            vurdering = vilkårEkstrautgifter.vurdering,
+            sats = vilkårEkstrautgifter.sats,
+            fraOgMedDato = vilkårEkstrautgifter.fraOgMedDato,
+            tilOgMedDato = vilkårEkstrautgifter.tilOgMedDato,
+            ekstrautgifter = vilkårEkstrautgifter.ekstrautgifter,
+        ),
+        diagnosePerioder,
+    )
+
     private fun validerDiagnoserOppfyltIHelePerioden(
         request: VilkårEkstrautgifterRequest,
         diagnosePerioder: List<VilkårDiagnose>,

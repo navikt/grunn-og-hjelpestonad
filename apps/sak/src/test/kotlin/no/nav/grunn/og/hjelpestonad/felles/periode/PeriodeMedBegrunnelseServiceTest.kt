@@ -11,6 +11,7 @@ import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.felles.sporbar.Sporbar
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDate
 import java.util.Optional
@@ -29,15 +30,25 @@ class PeriodeMedBegrunnelseServiceTest {
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
+    private val tilkjentYtelseService = mockk<TilkjentYtelseService>(relaxed = true)
     private val service =
         TestPeriodeService(
             repository,
             behandlingService,
             endringshistorikkService,
             ansvarligSaksbehandlerService,
+            tilkjentYtelseService,
         )
 
     private val behandlingId = UUID.randomUUID()
+
+    @Test
+    fun `lagring og sletting av en periode fjerner beregningen for behandlingen`() {
+        val periode = service.lagrePeriode(behandlingId, TestPeriodeRequest())
+        every { repository.findById(periode.id) } returns Optional.of(periode)
+        service.slettPeriode(behandlingId, periode.id)
+        verify(exactly = 2) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId) }
+    }
 
     init {
         every { repository.findByBehandlingId(any()) } returns emptyList()
@@ -160,12 +171,14 @@ class PeriodeMedBegrunnelseServiceTest {
         behandlingService: BehandlingService,
         endringshistorikkService: EndringshistorikkService,
         ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
+        tilkjentYtelseService: TilkjentYtelseService,
     ) : PeriodeMedBegrunnelseService<TestPeriode, TestPeriodeRequest>(
             repository,
             behandlingService,
             endringshistorikkService,
             ansvarligSaksbehandlerService,
             Endringstyper(opprettet = OPPRETTET, oppdatert = OPPDATERT, slettet = SLETTET),
+            tilkjentYtelseService,
         ) {
         override val periodebeskrivelse = "testperiode"
 

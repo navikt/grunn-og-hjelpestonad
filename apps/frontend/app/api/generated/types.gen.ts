@@ -15,6 +15,17 @@ export type VilkårValideringFeilResponse = {
     feil: Array<Valideringsfeil>;
 };
 
+export type SatsOgTrygdetidFeilResponse = {
+    melding: string;
+    status: number;
+    feil: Array<SatsOgTrygdetidValideringsfeil>;
+};
+
+export type SatsOgTrygdetidValideringsfeil = {
+    nøkkel: string;
+    melding: string;
+};
+
 export type GrunnstønadPeriode = {
     id: string;
     datoFra: string;
@@ -509,7 +520,7 @@ export type OppdragStatusSvar = {
 export type BehandlingEndringResponse = {
     id: string;
     behandlingId: string;
-    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'INNGANGSVILKÅR_VURDERING_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT' | 'TRYGDETID_OPPRETTET' | 'TRYGDETID_OPPDATERT' | 'TRYGDETID_SLETTET';
+    endringType: 'BEHANDLING_OPPRETTET' | 'SENDT_TIL_BESLUTTER' | 'VILKÅR_VURDERING_OPPRETTET' | 'VILKÅR_VURDERING_OPPDATERT' | 'VILKÅR_VURDERING_SLETTET' | 'VILKÅR_VURDERING_FULLFØRT' | 'INNGANGSVILKÅR_VURDERING_FULLFØRT' | 'SATS_OG_TRYGDETID_FULLFØRT' | 'VEDTAK_LAGRET' | 'ÅRSAK_LAGRET' | 'ÅRSAK_OPPDATERT' | 'BESLUTTER_GODKJENT' | 'BESLUTTER_UNDERKJENT' | 'BEHANDLING_HENLAGT' | 'TRYGDETID_OPPRETTET' | 'TRYGDETID_OPPDATERT' | 'TRYGDETID_SLETTET';
     utførtAv: string;
     utførtTid: string;
     detaljer?: string | null;
@@ -946,6 +957,27 @@ export type LagreTrygdetidPeriodeResponses = {
 };
 
 export type LagreTrygdetidPeriodeResponse = LagreTrygdetidPeriodeResponses[keyof LagreTrygdetidPeriodeResponses];
+
+export type FullførSatsOgTrygdetidData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/sats-og-trygdetid/fullfor';
+};
+
+export type FullførSatsOgTrygdetidErrors = {
+    400: SatsOgTrygdetidFeilResponse;
+};
+
+export type FullførSatsOgTrygdetidError = FullførSatsOgTrygdetidErrors[keyof FullførSatsOgTrygdetidErrors];
+
+export type FullførSatsOgTrygdetidResponses = {
+    204: void;
+};
+
+export type FullførSatsOgTrygdetidResponse = FullførSatsOgTrygdetidResponses[keyof FullførSatsOgTrygdetidResponses];
 
 export type FullførInngangsvilkårData = {
     body?: never;

@@ -1,110 +1,48 @@
 package no.nav.grunn.og.hjelpestonad.tilkjentytelse
 
-import no.nav.grunn.og.hjelpestonad.vedtak.AktivitetstypeBarnetilsyn
-import no.nav.grunn.og.hjelpestonad.vedtak.GrunnstønadPeriode
-import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
-import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
-import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
+import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
+import kotlin.test.assertFailsWith
 
-internal class BeregnAndelerTest {
+class BeregnAndelerTest {
+    private val behandlingId = UUID.randomUUID()
+    private val beregningsmåned = YearMonth.of(2026, 11)
+
     @Test
-    fun `innvilget vedtak gir én andel per ordinær periode med første og siste dag i måneden`() {
-        val kildeBehandlingId = UUID.randomUUID()
-        val vedtak =
-            Vedtak(
-                behandlingId = UUID.randomUUID(),
-                resultatType = ResultatType.INNVILGET,
-                grunnstønadPerioder =
-                    listOf(
-                        lagOrdinærPeriode(
-                            datoFra = YearMonth.of(2025, 1),
-                            datoTil = YearMonth.of(2025, 3),
-                            utgifter = BigDecimal(5000),
-                        ),
-                    ),
-                saksbehandlerIdent = "VL",
-            )
-
-        val andeler = beregnAndeler(vedtak, kildeBehandlingId)
-
-        assertThat(andeler).hasSize(1)
-        val andel = andeler.single()
-        assertThat(andel.fom).isEqualTo(LocalDate.of(2025, 1, 1))
-        assertThat(andel.tom).isEqualTo(LocalDate.of(2025, 3, 31))
-        assertThat(andel.beløp).isEqualByComparingTo(BigDecimal(3200))
-        assertThat(andel.kildeBehandlingId).isEqualTo(kildeBehandlingId)
+    fun `manglende sluttdato fylles med tre år frem uten avrunding`() {
+        val andel = fyllInnManglendeSluttdato(listOf(UtledetAndel(YearMonth.of(2026, 4), null, "829.125".toBigDecimal())), beregningsmåned, behandlingId).single()
+        assertThat(andel.fom).isEqualTo(LocalDate.of(2026, 4, 1))
+        assertThat(andel.tom).isEqualTo(LocalDate.of(2029, 11, 30))
+        assertThat(andel.beløp).isEqualByComparingTo("829.125")
+        assertThat(andel.kildeBehandlingId).isEqualTo(behandlingId)
     }
 
     @Test
-    fun `perioder uten stønad gir ikke andeler`() {
-        val vedtak =
-            Vedtak(
-                behandlingId = UUID.randomUUID(),
-                resultatType = ResultatType.INNVILGET,
-                grunnstønadPerioder =
-                    listOf(
-                        lagOrdinærPeriode(
-                            datoFra = YearMonth.of(2025, 1),
-                            datoTil = YearMonth.of(2025, 2),
-                            utgifter = BigDecimal(5000),
-                        ),
-                        GrunnstønadPeriode(
-                            datoFra = YearMonth.of(2025, 3),
-                            datoTil = YearMonth.of(2025, 4),
-                            utgifter = BigDecimal.ZERO,
-                            barn = emptyList(),
-                            periodetype = PeriodetypeBarnetilsyn.INGEN_STØNAD,
-                            aktivitetstype = AktivitetstypeBarnetilsyn.IKKE_RELEVANT,
-                        ),
-                        lagOrdinærPeriode(
-                            datoFra = YearMonth.of(2025, 5),
-                            datoTil = YearMonth.of(2025, 6),
-                            utgifter = BigDecimal(5000),
-                        ),
-                    ),
-                saksbehandlerIdent = "VL",
+    fun `eksplisitte sluttdatoer beholdes også for perioder som starter mer enn tre år frem`() {
+        val andeler =
+            fyllInnManglendeSluttdato(
+                listOf(
+                    UtledetAndel(YearMonth.of(2025, 1), YearMonth.of(2025, 6), 752.toBigDecimal()),
+                    UtledetAndel(YearMonth.of(2029, 12), YearMonth.of(2035, 1), 1146.toBigDecimal()),
+                ),
+                beregningsmåned,
+                behandlingId,
             )
-
-        val andeler = beregnAndeler(vedtak, UUID.randomUUID())
-
-        assertThat(andeler.map { it.fom }).containsExactlyInAnyOrder(
-            LocalDate.of(2025, 1, 1),
-            LocalDate.of(2025, 5, 1),
-        )
+        assertThat(andeler.map { it.tom }).containsExactly(LocalDate.of(2025, 6, 30), LocalDate.of(2035, 1, 31))
     }
 
     @Test
-    fun `opphør gir ingen andeler`() {
-        val vedtak =
-            Vedtak(
-                behandlingId = UUID.randomUUID(),
-                resultatType = ResultatType.OPPHØR,
-                grunnstønadPerioder = emptyList(),
-                saksbehandlerIdent = "VL",
-                opphørFom = YearMonth.of(2025, 1),
+    fun `åpen periode etter standard sluttdato avvises fremfor å forsvinne fra beregningen`() {
+        assertFailsWith<UgyldigInput> {
+            fyllInnManglendeSluttdato(
+                listOf(UtledetAndel(YearMonth.of(2029, 12), null, 1146.toBigDecimal())),
+                beregningsmåned,
+                behandlingId,
             )
-
-        val andeler = beregnAndeler(vedtak, UUID.randomUUID())
-
-        assertThat(andeler).isEmpty()
+        }
     }
-
-    private fun lagOrdinærPeriode(
-        datoFra: YearMonth,
-        datoTil: YearMonth,
-        utgifter: BigDecimal,
-    ) = GrunnstønadPeriode(
-        datoFra = datoFra,
-        datoTil = datoTil,
-        utgifter = utgifter,
-        barn = listOf(UUID.randomUUID()),
-        periodetype = PeriodetypeBarnetilsyn.ORDINÆR,
-        aktivitetstype = AktivitetstypeBarnetilsyn.I_ARBEID,
-    )
 }

@@ -46,6 +46,7 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
   gruppering,
   grunnlag,
   children,
+  åpneVedFeil,
 }: {
   nøkkel: VilkårNøkkel;
   perioder: PerioderResult<T>;
@@ -57,12 +58,21 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
   gruppering?: VilkårGruppering<T>;
   grunnlag?: React.ReactNode;
   children: React.ReactNode;
+  åpneVedFeil?: number;
 }) {
   const { data: periodeliste, laster } = perioder;
   const hentefeil = perioder.error ? feilmeldingFra(perioder.error, hentefeilTekst) : undefined;
   const antall = periodeliste?.length ?? 0;
   const [erÅpen, settErÅpen] = React.useState(false);
   const initialÅpenSatt = React.useRef(false);
+  const seksjonsmålRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    if (åpneVedFeil) {
+      settErÅpen(true);
+      requestAnimationFrame(() => seksjonsmålRef.current?.focus());
+    }
+  }, [åpneVedFeil]);
 
   React.useEffect(() => {
     if (initialÅpenSatt.current || laster || periodeliste === undefined) {
@@ -105,7 +115,7 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
 
   return (
     <Accordion.Item open={erÅpen} onOpenChange={settErÅpen}>
-      <Accordion.Header id={`vilkar-${nøkkel}`}>
+      <Accordion.Header id={`vilkar-${nøkkel}`} ref={seksjonsmålRef}>
         <HStack gap="space-12" align="center" wrap={false}>
           <span>{vilkårNavn[nøkkel]}</span>
           <Tag variant="strong" size="small" data-color={status.farge}>

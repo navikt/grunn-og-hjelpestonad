@@ -5,6 +5,7 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
@@ -23,6 +24,7 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
     private val endringshistorikkService: EndringshistorikkService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val endringstyper: Endringstyper,
+    private val tilkjentYtelseService: TilkjentYtelseService,
 ) {
     protected abstract val periodebeskrivelse: String
 
@@ -92,6 +94,7 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
 
         repository.deleteByBehandlingId(behandlingId)
         repository.insertAll(perioder)
+        tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
 
         val endringType = if (eksisterendePeriode == null) endringstyper.opprettet else endringstyper.oppdatert
         registrerEndring(behandlingId, endringType, periode)
@@ -108,6 +111,7 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         val periode = hentPeriodePåBehandling(behandlingId, periodeId)
 
         repository.deleteById(periode.id)
+        tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
 
         registrerEndring(behandlingId, endringstyper.slettet, periode)
     }

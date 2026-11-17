@@ -5,7 +5,6 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
-import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vedtak.BeregningUtils.beregnBarnetilsynperiode
 import org.springframework.stereotype.Service
@@ -22,7 +21,6 @@ class VedtakService(
     private val behandlingService: BehandlingService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val tilkjentYtelseService: TilkjentYtelseService,
-    private val beregnTilkjentYtelseService: BeregnTilkjentYtelseService,
 ) {
     fun hentVedtak(behandlingId: UUID): Vedtak? = vedtakRepository.findByBehandlingId(behandlingId)
 
@@ -33,12 +31,19 @@ class VedtakService(
     ): UUID {
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        when (vedtakRequest.resultatType) {
+            ResultatType.INNVILGET, ResultatType.OPPHØR -> {
+                if (tilkjentYtelseService.hentTilkjentYtelse(behandlingId) == null) {
+                    throw Feil("Fullfør sats og trygdetid før du lagrer vedtaket")
+                }
+            }
+
+            ResultatType.AVSLÅTT, ResultatType.HENLAGT -> {}
+        }
         if (vedtakRepository.findByBehandlingId(behandlingId) != null) {
-            tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
             vedtakRepository.deleteByBehandlingId(behandlingId)
         }
         val vedtak = vedtakRepository.insert(vedtakRequest.tilVedtak(behandlingId))
-        beregnTilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtak)
 
         endringshistorikkService.registrerEndring(
             behandlingId = behandlingId,
@@ -51,7 +56,6 @@ class VedtakService(
     fun slettVedtakHvisFinnes(behandlingId: UUID) {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         if (vedtakRepository.findByBehandlingId(behandlingId) != null) {
-            tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
             vedtakRepository.deleteByBehandlingId(behandlingId)
         }
     }
