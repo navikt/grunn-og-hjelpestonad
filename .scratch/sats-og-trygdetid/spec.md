@@ -264,8 +264,8 @@ er modellert sammen med ekstrautgiftene.
 ### Utledning av tilkjent ytelse
 
 - Én ren funksjon uten Spring, etter ADR-0008. Den tar inn vilkårsradene for
-  medlemskap, diagnose og ekstrautgifter, trygdetidsradene og listen over
-  satsbeløp. Den returnerer andeler per måned, eller kaster en valideringsfeil
+  medlemskap, diagnose og ekstrautgifter og trygdetidsradene, slik de er lagret.
+  Satsbeløpene leser den fra listen i kode. Den returnerer andeler per måned, eller kaster en valideringsfeil
   med listen over feil: én per vilkårstype og én for trygdetid, med egen nøkkel.
 - Den erstatter beregningen av andeler fra barnetilsyn som PR 116 la i en egen
   funksjon.
@@ -274,7 +274,9 @@ er modellert sammen med ekstrautgiftene.
   ekstrautgiftene er `JA` innenfor periodene med oppfylte inngangsvilkår.
 - Rett i et tidsrom betyr inngangsvilkårene oppfylt og ekstrautgifter `JA`.
   Hull er «nei». Perioder for ekstrautgifter og trygdetid utenfor periodene med
-  oppfylte inngangsvilkår tas ikke med.
+  oppfylte inngangsvilkår tas ikke med. Unntaket er en endring i trygdetiden
+  mellom to perioder med oppfylte vilkår, som teller som en endring etter
+  § 22-12. Se ticket 21.
 - § 22-12 brukes per endring:
   - Retten gjelder fra måneden etter at den oppstår.
   - Utbetalingen stopper ved utgangen av måneden retten faller bort.
