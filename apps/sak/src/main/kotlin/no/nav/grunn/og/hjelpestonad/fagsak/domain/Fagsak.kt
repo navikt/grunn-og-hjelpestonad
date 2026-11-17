@@ -20,6 +20,6 @@ data class Fagsak(
 )
 
 enum class StønadType {
-    GRUNNSTØNAD("GS"),
-    HJELPESTØNAD("HS"),
+    GRUNNSTØNAD,
+    HJELPESTØNAD,
 }

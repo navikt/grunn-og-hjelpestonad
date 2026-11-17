@@ -21,8 +21,8 @@ class OpprettOppgaveTask(
         logger.info("Oppretter oppgave for behandling=${data.behandlingId}, type=${data.oppgavetype}")
 
         when (data.oppgavetype) {
-            OppgavetypeGRU.BEH_VED -> {
-                oppgaveService.opprettBehandleVedtakOppgave(data.behandlingId)
+            OppgavetypeGRU.GOD_VED -> {
+                oppgaveService.opprettGodkjennVedtakOppgave(data.behandlingId)
             }
 
             OppgavetypeGRU.BEH_SAK -> {

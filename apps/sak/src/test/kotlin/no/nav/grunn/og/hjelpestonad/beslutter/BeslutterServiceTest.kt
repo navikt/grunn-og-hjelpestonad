@@ -92,7 +92,7 @@ class BeslutterServiceTest {
             taskService.opprett(
                 OpprettOppgaveTask.TYPE,
                 match<OpprettOppgaveTaskData> {
-                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.GOD_VED
                 },
                 any(),
                 any(),
@@ -135,7 +135,7 @@ class BeslutterServiceTest {
             taskService.opprett(
                 FerdigstillOppgaveTask.TYPE,
                 match<FerdigstillOppgaveTaskData> {
-                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.GOD_VED
                 },
                 any(),
                 any(),
@@ -271,7 +271,7 @@ class BeslutterServiceTest {
             taskService.opprett(
                 FerdigstillOppgaveTask.TYPE,
                 match<FerdigstillOppgaveTaskData> {
-                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.GOD_VED
                 },
                 any(),
                 any(),

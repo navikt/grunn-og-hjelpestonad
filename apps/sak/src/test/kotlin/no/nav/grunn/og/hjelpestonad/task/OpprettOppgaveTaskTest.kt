@@ -16,12 +16,12 @@ class OpprettOppgaveTaskTest {
     private val task = OpprettOppgaveTask(oppgaveService)
 
     @Test
-    fun `behandle vedtak oppretter oppgave til beslutter`() {
-        val data = OpprettOppgaveTaskData(UUID.randomUUID(), OppgavetypeGRU.BEH_VED)
+    fun `godkjenn vedtak oppretter oppgave til beslutter`() {
+        val data = OpprettOppgaveTaskData(UUID.randomUUID(), OppgavetypeGRU.GOD_VED)
 
         task.utfor(kontekst(data))
 
-        verify(exactly = 1) { oppgaveService.opprettBehandleVedtakOppgave(data.behandlingId) }
+        verify(exactly = 1) { oppgaveService.opprettGodkjennVedtakOppgave(data.behandlingId) }
         verify(exactly = 0) { oppgaveService.opprettBehandleUnderkjentVedtakOppgave(any(), any()) }
     }
 
@@ -32,7 +32,7 @@ class OpprettOppgaveTaskTest {
         task.utfor(kontekst(data))
 
         verify(exactly = 1) { oppgaveService.opprettBehandleUnderkjentVedtakOppgave(data.behandlingId, "Z123456") }
-        verify(exactly = 0) { oppgaveService.opprettBehandleVedtakOppgave(any()) }
+        verify(exactly = 0) { oppgaveService.opprettGodkjennVedtakOppgave(any()) }
     }
 
     @Test
