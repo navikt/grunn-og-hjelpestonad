@@ -177,6 +177,35 @@
           }
         }
       }
+    },
+    "/api/infotrygd/stonad/migreringspersoner/forstegangsvedtak" : {
+      "get" : {
+        "tags" : [ "st-ønad-controller" ],
+        "summary" : "Henter personer med løpende grunnstønad fra neste måned der siste vedtak er et førstegangsvedtak",
+        "description" : "Siste vedtak på stønaden har endringskode F. Med brukertoken fjernes personer saksbehandleren ikke har tilgang til, så svaret kan inneholde færre enn antall personer.",
+        "operationId" : "hentPersonerForMigreringMedFørstegangsvedtak",
+        "parameters" : [ {
+          "name" : "antall",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PersonerForMigreringResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components" : {
