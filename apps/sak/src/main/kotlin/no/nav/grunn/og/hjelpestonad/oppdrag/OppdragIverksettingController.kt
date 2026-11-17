@@ -43,15 +43,15 @@ class OppdragIverksettingController(
             }
 
             is Iverksettingsresultat.IngenEndring -> {
-                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat, iverksettingsresultat.testandel)
+                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat)
             }
 
             is Iverksettingsresultat.Sendt -> {
-                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat, iverksettingsresultat.testandel)
+                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat)
             }
 
             is Iverksettingsresultat.AlleredeIverksatt -> {
-                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat, testandel = null)
+                lagResponse(behandlingId, iverksettingsresultat.oppdragResultat)
             }
         }
     }
@@ -59,12 +59,10 @@ class OppdragIverksettingController(
     private fun lagResponse(
         behandlingId: UUID,
         oppdragResultat: OppdragResultat,
-        testandel: Testandel?,
     ) = OppdragIverksettingResponse(
         saksnummer = oppdragResultat.utbetalingsoppdrag.saksnummer,
         behandlingsId = utbetalingsoppdragService.lagOppdragId(behandlingId).behandlingsId,
         antallPerioder = oppdragResultat.utbetalingsoppdrag.utbetalingsperiode.size,
-        testandel = testandel,
     )
 
     @GetMapping("/{behandlingId}/status")

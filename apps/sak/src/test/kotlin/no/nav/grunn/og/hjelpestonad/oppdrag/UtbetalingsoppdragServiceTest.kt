@@ -51,16 +51,26 @@ class UtbetalingsoppdragServiceTest {
         every { oppdragResultatRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns emptyList()
     }
 
-    private fun service(brukTestandelHvisMangler: Boolean) =
+    private fun service() =
         UtbetalingsoppdragService(
             behandlingService = behandlingService,
             fagsakRepository = fagsakRepository,
             fagsakService = fagsakService,
             tilkjentYtelseService = tilkjentYtelseService,
             oppdragResultatRepository = oppdragResultatRepository,
-            brukTestandelHvisMangler = brukTestandelHvisMangler,
             clock = clock,
         )
+
+    @Test
+    fun `tom beregning uten tidligere utbetaling gir bad request`() {
+        every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns
+            TilkjentYtelse(behandlingId = behandling.id, startmåned = YearMonth.of(2026, 11), andelerTilkjentYtelse = emptySet())
+        assertThatThrownBy { service().lagUtbetalingsoppdrag(behandling.id, "Z123456") }
+            .isInstanceOfSatisfying(Feil::class.java) {
+                assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
+                assertThat(it.message).contains("ingen andeler å utbetale")
+            }
+    }
 
     @Test
     fun `lager oppdrag med andelene fra tilkjent ytelse når de finnes`() {
@@ -79,9 +89,8 @@ class UtbetalingsoppdragServiceTest {
                     ),
             )
 
-        val resultat = service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id, "Z123456")
+        val resultat = service().lagUtbetalingsoppdrag(behandling.id, "Z123456")
 
-        assertThat(resultat.testandel).isNull()
         assertThat(
             resultat.utbetalingsoppdrag.utbetalingsperiode
                 .single()
@@ -90,31 +99,30 @@ class UtbetalingsoppdragServiceTest {
     }
 
     @Test
-    fun `lager oppdrag med testandel når tilkjent ytelse mangler og testandel er slått på`() {
+    fun `kaster bad request når tilkjent ytelse mangler`() {
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns null
 
-        val resultat = service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id, "Z123456")
-
-        assertThat(resultat.testandel).isEqualTo(Testandel(fom = LocalDate.of(2026, 11, 1), tom = LocalDate.of(2026, 11, 30), beløp = 1000))
-        assertThat(
-            resultat.utbetalingsoppdrag.utbetalingsperiode
-                .single()
-                .sats,
-        ).isEqualByComparingTo("1000")
-    }
-
-    @Test
-    fun `kaster bad request når tilkjent ytelse mangler og testandel er slått av`() {
-        every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns null
-
-        assertThatThrownBy { service(brukTestandelHvisMangler = false).lagUtbetalingsoppdrag(behandling.id, "Z123456") }
+        assertThatThrownBy { service().lagUtbetalingsoppdrag(behandling.id, "Z123456") }
             .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST) }
     }
 
     @Test
     fun `OppdragId bruker fagsystem, aktiv ident og ekstern behandlings-ID`() {
-        every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns null
-        val service = service(brukTestandelHvisMangler = true)
+        every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns
+            TilkjentYtelse(
+                behandlingId = behandling.id,
+                startmåned = YearMonth.of(2026, 1),
+                andelerTilkjentYtelse =
+                    setOf(
+                        AndelTilkjentYtelse(
+                            beløp = 2500.toBigDecimal(),
+                            fom = LocalDate.of(2026, 1, 1),
+                            tom = LocalDate.of(2026, 3, 31),
+                            kildeBehandlingId = behandling.id,
+                        ),
+                    ),
+            )
+        val service = service()
 
         val oppdragId = service.lagOppdragId(behandling.id)
         val oppdrag = service.lagUtbetalingsoppdrag(behandling.id, "Z123456").utbetalingsoppdrag
@@ -146,9 +154,8 @@ class UtbetalingsoppdragServiceTest {
         every { oppdragResultatRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns listOf(sisteAndel)
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns tilkjentYtelseUtenAndeler()
 
-        val resultat = service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id, "Z123456")
+        val resultat = service().lagUtbetalingsoppdrag(behandling.id, "Z123456")
 
-        assertThat(resultat.testandel).isNull()
         assertThat(
             resultat.utbetalingsoppdrag.utbetalingsperiode
                 .single()
@@ -158,10 +165,10 @@ class UtbetalingsoppdragServiceTest {
     }
 
     @Test
-    fun `tilkjent ytelse uten andeler og uten kjede gir bad request i simulering når testandel er slått av`() {
+    fun `tilkjent ytelse uten andeler og uten kjede gir bad request i simulering`() {
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns tilkjentYtelseUtenAndeler()
 
-        assertThatThrownBy { service(brukTestandelHvisMangler = false).lagUtbetalingsoppdrag(behandling.id, "Z123456") }
+        assertThatThrownBy { service().lagUtbetalingsoppdrag(behandling.id, "Z123456") }
             .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST) }
     }
 
@@ -194,7 +201,7 @@ class UtbetalingsoppdragServiceTest {
                     ),
             )
 
-        assertThatThrownBy { service(brukTestandelHvisMangler = true).lagUtbetalingsoppdrag(behandling.id, "Z123456") }
+        assertThatThrownBy { service().lagUtbetalingsoppdrag(behandling.id, "Z123456") }
             .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST) }
     }
 

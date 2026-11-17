@@ -28,7 +28,6 @@ class OppdragIverksettingServiceTest {
 
     private val behandlingId = UUID.randomUUID()
     private val fagsakId = UUID.randomUUID()
-    private val testandel = Testandel(fom = LocalDate.of(2026, 11, 1), tom = LocalDate.of(2026, 11, 30), beløp = 1000)
     private val utbetalingsoppdrag =
         lagUtbetalingsoppdrag(
             Oppdragsgrunnlag(
@@ -38,18 +37,15 @@ class OppdragIverksettingServiceTest {
                 personIdent = "12345678910",
                 saksbehandlerId = "Z123456",
                 vedtaksdato = LocalDate.of(2026, 11, 15),
-                andelerTilkjentYtelse = listOf(AndelTilkjentYtelse(beløp = 1000.toBigDecimal(), fom = testandel.fom, tom = testandel.tom, kildeBehandlingId = behandlingId)),
+                andelerTilkjentYtelse = listOf(AndelTilkjentYtelse(beløp = 1000.toBigDecimal(), fom = LocalDate.of(2026, 11, 1), tom = LocalDate.of(2026, 11, 30), kildeBehandlingId = behandlingId)),
             ),
         ).utbetalingsoppdrag
 
     private fun oppdragResultat(status: String) = OppdragResultat(behandlingId = behandlingId, fagsakId = fagsakId, utbetalingsoppdrag = utbetalingsoppdrag, status = status, andeler = emptySet())
 
-    private fun lagret(
-        status: String,
-        testandel: Testandel? = null,
-    ) {
+    private fun lagret(status: String) {
         every { utbetalingsoppdragService.lagOgLagreUtbetalingsoppdrag(behandlingId, "Z999999") } returns
-            LagretUtbetalingsoppdrag(oppdragResultat(status), testandel)
+            LagretUtbetalingsoppdrag(oppdragResultat(status))
     }
 
     @BeforeEach
@@ -59,12 +55,12 @@ class OppdragIverksettingServiceTest {
 
     @Test
     fun `sender nytt oppdrag og setter status LAGT_PÅ_KØ`() {
-        lagret(OppdragStatus.OPPRETTET, testandel)
+        lagret(OppdragStatus.OPPRETTET)
         every { oppdragClient.iverksett(utbetalingsoppdrag) } returns IverksettUtfall.SENDT
 
         val iverksettingsresultat = service.iverksett(behandlingId, "Z999999")
 
-        assertThat(iverksettingsresultat).isEqualTo(Iverksettingsresultat.Sendt(oppdragResultat(OppdragStatus.OPPRETTET), testandel))
+        assertThat(iverksettingsresultat).isEqualTo(Iverksettingsresultat.Sendt(oppdragResultat(OppdragStatus.OPPRETTET)))
         verify(exactly = 1) { oppdragClient.iverksett(utbetalingsoppdrag) }
         verify(exactly = 1) { oppdragResultatRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, null) }
         assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "ok").count()).isEqualTo(1.0)
@@ -101,7 +97,7 @@ class OppdragIverksettingServiceTest {
 
         val iverksettingsresultat = service.iverksett(behandlingId, "Z999999")
 
-        assertThat(iverksettingsresultat).isEqualTo(Iverksettingsresultat.IngenEndring(oppdragResultat(OppdragStatus.INGEN_ENDRING), testandel = null))
+        assertThat(iverksettingsresultat).isEqualTo(Iverksettingsresultat.IngenEndring(oppdragResultat(OppdragStatus.INGEN_ENDRING)))
         verify(exactly = 0) { oppdragClient.iverksett(any()) }
         assertThat(meterRegistry.counter("oppdrag_iverksetting", "resultat", "ingen_endring").count()).isEqualTo(1.0)
     }
