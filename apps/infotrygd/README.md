@@ -119,6 +119,7 @@ Målt i dev 2026-10-30. Hvordan `sak` bruker tallene, står i
 | `POST /api/infotrygd/stonader` | Stønadene for én stønadstype, som et tre fra `t_stonad` til vedtak, endringer, delytelser, `t_gh` og evaluering |
 | `POST /api/infotrygd/stonad/eksisterer` | Om personene har vedtak eller saker, og om vedtakene er løpende |
 | `GET /api/infotrygd/stonad/migreringspersoner` | Personer med løpende stønad fra neste måned |
+| `GET /api/infotrygd/stonad/migreringspersoner/forstegangsvedtak` | Som over, men bare grunnstønad der siste vedtak har endringskode `F` (Førstegangsvedtak) |
 | `POST /api/infotrygd/saker/finn` | Saker fra `sa_sak_10` |
 | `GET /api/infotrygd/tabeller/*` | Kolonner og antall rader i replikatabellene |
 

@@ -48,6 +48,28 @@ class StønadRepository(
     fun finnPersonerForMigrering(
         antall: Int,
         dagensDato: LocalDate = LocalDate.now(),
+    ): Set<String> = finnPersonerMedLøpendeSisteVedtak(Stønadstype.entries, endringskode = null, antall, dagensDato)
+
+    /**
+     * Som [finnPersonerForMigrering], men bare for grunnstønad og bare der siste vedtak har endringskode F
+     * (Førstegangsvedtak). Et siste vedtak med F og AN er med, som i /stonader.
+     */
+    fun finnPersonerForMigreringMedFørstegangsvedtak(
+        antall: Int,
+        dagensDato: LocalDate = LocalDate.now(),
+    ): Set<String> =
+        finnPersonerMedLøpendeSisteVedtak(
+            listOf(Stønadstype.GRUNNSTØNAD),
+            endringskode = ENDRINGSKODE_FØRSTEGANGSVEDTAK,
+            antall,
+            dagensDato,
+        )
+
+    private fun finnPersonerMedLøpendeSisteVedtak(
+        stønadstyper: List<Stønadstype>,
+        endringskode: String?,
+        antall: Int,
+        dagensDato: LocalDate,
     ): Set<String> =
         jdbcClient
             .sql(
@@ -70,13 +92,20 @@ class StønadRepository(
                 SELECT DISTINCT v.personnr
                 FROM siste_vedtak sv
                 JOIN vedtak v ON v.vedtak_id = sv.vedtak_id
-                WHERE v.tom IS NULL OR v.tom > :nesteMåned
+                WHERE (v.tom IS NULL OR v.tom > :nesteMåned)
+                  AND (CAST(:endringskode AS TEXT) IS NULL
+                       OR EXISTS (SELECT 1 FROM t_endring e WHERE e.vedtak_id = sv.vedtak_id AND e.kode = :endringskode))
                 ORDER BY v.personnr
                 LIMIT :antall
                 """.trimIndent(),
-            ).param("kodeRutiner", Stønadstype.entries.map { it.kodeRutine })
+            ).param("kodeRutiner", stønadstyper.map { it.kodeRutine })
+            .param("endringskode", endringskode)
             .param("nesteMåned", YearMonth.from(dagensDato).plusMonths(1).atDay(1))
             .param("antall", antall)
             .queryAs<String>()
             .set()
+
+    private companion object {
+        const val ENDRINGSKODE_FØRSTEGANGSVEDTAK = "F"
+    }
 }

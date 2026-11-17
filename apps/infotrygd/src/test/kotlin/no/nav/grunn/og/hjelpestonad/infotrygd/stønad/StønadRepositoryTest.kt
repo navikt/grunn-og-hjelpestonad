@@ -145,4 +145,36 @@ class StønadRepositoryTest {
 
         assertEquals(setOf("01017012345"), stønadRepository.finnPersonerForMigrering(antall = 1, dagensDato))
     }
+
+    @Test
+    fun `migreringspersoner med førstegangsvedtak krever endringskode F på siste vedtak`() {
+        lagrePerson("1", "01017012345")
+        lagrePerson("2", "02027012345")
+        lagrePerson("3", "03037012345")
+        lagreVedtak("1", stønadId = "10", vedtakId = "100", kodeRutine = "GS", tom = null, endringskode = "F")
+        lagreVedtak("2", stønadId = "20", vedtakId = "200", kodeRutine = "GS", tom = "2026-06-30", endringskode = "F")
+        lagreVedtak("2", stønadId = "20", vedtakId = "201", kodeRutine = "GS", tom = null, endringskode = "S")
+        lagreVedtak("3", stønadId = "30", vedtakId = "300", kodeRutine = "GS", tom = null, endringskode = "R")
+
+        assertEquals(setOf("01017012345"), stønadRepository.finnPersonerForMigreringMedFørstegangsvedtak(antall = 10, dagensDato))
+    }
+
+    @Test
+    fun `migreringspersoner med førstegangsvedtak tar med F og AN på samme vedtak`() {
+        lagrePerson("1", "01017012345")
+        lagreVedtak("1", stønadId = "10", vedtakId = "100", kodeRutine = "GS", tom = null, endringskode = "F")
+        testdata.lagre(ExodusTabell.T_ENDRING, "vedtak_id" to "100", "kode" to "AN")
+
+        assertEquals(setOf("01017012345"), stønadRepository.finnPersonerForMigreringMedFørstegangsvedtak(antall = 10, dagensDato))
+    }
+
+    @Test
+    fun `migreringspersoner med førstegangsvedtak utelater hjelpestønad og avsluttede vedtak`() {
+        lagrePerson("1", "01017012345")
+        lagrePerson("2", "02027012345")
+        lagreVedtak("1", stønadId = "10", vedtakId = "100", kodeRutine = "HS", tom = null, endringskode = "F")
+        lagreVedtak("2", stønadId = "20", vedtakId = "200", kodeRutine = "GS", tom = "2026-01-31", endringskode = "F")
+
+        assertEquals(emptySet(), stønadRepository.finnPersonerForMigreringMedFørstegangsvedtak(antall = 10, dagensDato))
+    }
 }

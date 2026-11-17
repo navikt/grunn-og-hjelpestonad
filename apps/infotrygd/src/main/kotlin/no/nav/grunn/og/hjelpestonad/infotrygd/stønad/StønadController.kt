@@ -42,9 +42,28 @@ class StønadController(
     fun hentPersonerForMigrering(
         @RequestParam antall: Int,
     ): PersonerForMigreringResponse {
-        require(antall > 0) { "antall må være større enn 0" }
-        require(antall <= TilgangService.MAKS_ANTALL_PERSONER) { "antall kan ikke være større enn ${TilgangService.MAKS_ANTALL_PERSONER}" }
+        validerAntall(antall)
         val personer = stønadRepository.finnPersonerForMigrering(antall)
         return PersonerForMigreringResponse(tilgangService.filtrerPersonerMedTilgang(personer))
+    }
+
+    @Operation(
+        summary = "Henter personer med løpende grunnstønad fra neste måned der siste vedtak er et førstegangsvedtak",
+        description =
+            "Siste vedtak på stønaden har endringskode F. Med brukertoken fjernes personer saksbehandleren ikke " +
+                "har tilgang til, så svaret kan inneholde færre enn antall personer.",
+    )
+    @GetMapping("/migreringspersoner/forstegangsvedtak")
+    fun hentPersonerForMigreringMedFørstegangsvedtak(
+        @RequestParam antall: Int,
+    ): PersonerForMigreringResponse {
+        validerAntall(antall)
+        val personer = stønadRepository.finnPersonerForMigreringMedFørstegangsvedtak(antall)
+        return PersonerForMigreringResponse(tilgangService.filtrerPersonerMedTilgang(personer))
+    }
+
+    private fun validerAntall(antall: Int) {
+        require(antall > 0) { "antall må være større enn 0" }
+        require(antall <= TilgangService.MAKS_ANTALL_PERSONER) { "antall kan ikke være større enn ${TilgangService.MAKS_ANTALL_PERSONER}" }
     }
 }
