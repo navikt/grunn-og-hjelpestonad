@@ -22,7 +22,7 @@ class BeregnTilkjentYtelseService(
     private val clock: Clock = Clock.systemDefaultZone(),
 ) {
     @Transactional
-    fun beregnOgLagreTilkjentYtelse(behandlingId: UUID): Set<AndelTilkjentYtelse> {
+    fun beregnOgLagreTilkjentYtelse(behandlingId: UUID) {
         val vilkårMedlemskapPerioder = vilkårMedlemskapService.hentPerioder(behandlingId)
         val vilkårDiagnosePerioder = vilkårDiagnoseService.hentPerioder(behandlingId)
         val vilkårEkstrautgifterPerioder = vilkårEkstrautgifterService.hentPerioder(behandlingId)
@@ -35,7 +35,6 @@ class BeregnTilkjentYtelseService(
             )
         val andelerTilkjentYtelse = fyllInnManglendeSluttdato(utlededeAndeler, YearMonth.now(clock), behandlingId)
         lagreTilkjentYtelse(behandlingId, andelerTilkjentYtelse)
-        return andelerTilkjentYtelse
     }
 
     /** Brukes når inngangsvilkårene ikke er oppfylt og sats og trygdetid hoppes over. */
