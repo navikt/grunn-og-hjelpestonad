@@ -22,7 +22,7 @@ export function meta(_: Route.MetaArgs) {
 const STEG_PATH: StegPath = "sats-og-trygdetid";
 
 export default function SatsOgTrygdetid() {
-  const { behandlingId } = useBehandlingContext();
+  const { behandlingId, hentBehandlingPåNytt } = useBehandlingContext();
   const navigate = useNavigate();
   const { navigerTilNeste } = useStegNavigering(STEG_PATH);
   const erLesevisning = useErLesevisning();
@@ -46,7 +46,11 @@ export default function SatsOgTrygdetid() {
     fullførSteg(
       { path: { behandlingId }, throwOnError: true },
       {
-        onSuccess: navigerTilNeste,
+        onSuccess: async () => {
+          // Fullføringen flytter nåværendeSteg, så behandlingen hentes på nytt før navigering.
+          await hentBehandlingPåNytt();
+          navigerTilNeste();
+        },
         onError: (error: unknown) => {
           const valideringsfeilResponse = zSatsOgTrygdetidFeilResponse.safeParse(error);
           if (valideringsfeilResponse.success) {

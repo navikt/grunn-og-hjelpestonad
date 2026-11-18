@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import type { BehandlingSteg, Steg } from "~/komponenter/navbar/BehandlingFaner";
+import type { BehandlingSteg } from "~/komponenter/navbar/BehandlingFaner";
 import type { ÅrsakType } from "~/types/årsak";
 import type { Behandling } from "~/types/behandling";
 import type { AnsvarligSaksbehandlerResponse } from "~/types/saksbehandler";
@@ -14,14 +14,13 @@ export interface ÅrsakState {
 export const BehandlingContext = React.createContext<
   | {
       behandlingId: string;
-      ferdigeSteg: Steg[];
       stegListe?: BehandlingSteg[];
       behandling?: Behandling;
       årsakState?: ÅrsakState;
       oppdaterÅrsakState: (data: Partial<ÅrsakState>) => void;
       hentÅrsakData: () => Promise<void>;
       årsakDataHentet: boolean;
-      hentBehandlingPåNytt: () => void;
+      hentBehandlingPåNytt: () => Promise<void>;
       revaliderBehandling: () => void;
       ansvarligSaksbehandler: AnsvarligSaksbehandlerResponse | null;
       lasterAnsvarligSaksbehandler: boolean;

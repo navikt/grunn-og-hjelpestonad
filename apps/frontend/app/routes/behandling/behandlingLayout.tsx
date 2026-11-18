@@ -1,19 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { Outlet, useNavigate, useParams, useRevalidator } from "react-router";
+import { Outlet, useLocation, useNavigate, useParams, useRevalidator } from "react-router";
 import { BehandlingContext, type ÅrsakState } from "~/fellesContext/BehandlingContext";
-import {
-  BehandlingFaner,
-  type BehandlingSteg,
-  type Steg,
-} from "~/komponenter/navbar/BehandlingFaner";
+import { BehandlingFaner, type BehandlingSteg } from "~/komponenter/navbar/BehandlingFaner";
+import { erFaneLåst, visningsnavnForNåværendeSteg } from "~/komponenter/navbar/behandlingFaneRegel";
 import { Side } from "~/komponenter/layout/Side";
 import { HøyreMeny } from "~/komponenter/behandling/høyremeny/HøyreMeny";
 import { hentBehandling, hentÅrsakBehandling } from "~/api/generated/sdk.gen";
 import type { BehandlingResponse } from "~/api/generated/types.gen";
 import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 import { useLesevisningsContext } from "~/fellesContext/LesevisningsContext";
-import { Box, Button } from "@navikt/ds-react";
+import { Box, Button, InlineMessage, VStack } from "@navikt/ds-react";
 import { AnsvarligSaksbehandler } from "~/komponenter/behandling/høyremeny/AnsvarligSaksbehandler";
 import { Totrinnskontroll } from "~/komponenter/behandling/høyremeny/Totrinnskontroll";
 import { SidebarTabs } from "~/komponenter/behandling/høyremeny/SidebarTabs";
@@ -29,41 +26,61 @@ const BEHANDLING_STEG_LISTE: BehandlingSteg[] = [
   {
     path: "arsak-behandling",
     navn: "Årsak behandling",
-    kanStarte: () => true,
+    behandlingssteg: "ÅRSAK",
   },
   {
     path: "vilkar",
     navn: "Vilkår",
-    kanStarte: (ferdigeSteg) => ferdigeSteg.includes("Årsak behandling"),
+    behandlingssteg: "INNGANGSVILKÅR",
   },
   {
     path: "sats-og-trygdetid",
     navn: "Sats og trygdetid",
+    behandlingssteg: "SATS_OG_TRYGDETID",
   },
   {
     path: "simulering",
     navn: "Simulering",
+    behandlingssteg: "VEDTAK_OG_BREV",
   },
   {
     path: "brev",
     navn: "Brev",
+    behandlingssteg: "VEDTAK_OG_BREV",
   },
 ];
+
+// Meldingen om omdirigering sendes i location.state, så den forsvinner ved neste navigering.
+function hentLåstFaneMelding(state: unknown): string | undefined {
+  if (
+    typeof state === "object" &&
+    state !== null &&
+    "låstFaneMelding" in state &&
+    typeof state.låstFaneMelding === "string"
+  ) {
+    return state.låstFaneMelding;
+  }
+  return undefined;
+}
 
 export default function BehandlingLayout() {
   const { behandlingId, fagsakPersonId } = useParams<{
     behandlingId: string;
     fagsakPersonId: string;
   }>();
-  const [ferdigeSteg, settFerdigeSteg] = useState<Steg[]>([]);
   const [årsakState, settÅrsakState] = useState<ÅrsakState | undefined>(undefined);
   const [behandling, settBehandling] = useState<BehandlingResponse | undefined>(undefined);
   const [årsakDataHentet, settÅrsakDataHentet] = useState(false);
   const { settErLesevisning } = useLesevisningsContext();
   const revalidator = useRevalidator();
   const navigate = useNavigate();
+  const location = useLocation();
   const henleggModalRef = useRef<HTMLDialogElement>(null);
   const { henleggBehandling, laster, henleggFeilmelding } = useHenleggBehandling();
+  const låstFaneMelding = hentLåstFaneMelding(location.state);
+  const aktivFane = BEHANDLING_STEG_LISTE.find((steg) =>
+    location.pathname.endsWith(`/${steg.path}`)
+  );
 
   const {
     ansvarligSaksbehandler,
@@ -104,6 +121,7 @@ export default function BehandlingLayout() {
 
         const harÅrsak = response.status !== 204;
 
+        // 204 betyr at årsak mangler. Da er årsakData tom og skal ikke leses.
         if (harÅrsak) {
           settÅrsakState({
             kravdato: new Date(årsakData.kravdato),
@@ -112,9 +130,6 @@ export default function BehandlingLayout() {
           });
         }
 
-        // 204 betyr at årsak mangler. Da er årsakData tom og skal ikke leses.
-        const erÅrsakFerdig = harÅrsak && Boolean(årsakData.kravdato && årsakData.årsak);
-        settFerdigeSteg(erÅrsakFerdig ? ["Årsak behandling"] : []);
         settÅrsakDataHentet(true);
       } catch (feil: unknown) {
         if (signal.aborted) return;
@@ -167,6 +182,32 @@ export default function BehandlingLayout() {
       );
     }
   }, [behandlingId]);
+
+  // Behandlingen kan ha endret seg i en annen fane eller av en annen saksbehandler mens denne fanen var skjult.
+  useEffect(() => {
+    const hentBehandlingNårFanenBlirSynlig = () => {
+      if (document.visibilityState === "visible") void hentBehandlingPåNytt();
+    };
+    document.addEventListener("visibilitychange", hentBehandlingNårFanenBlirSynlig);
+    return () => document.removeEventListener("visibilitychange", hentBehandlingNårFanenBlirSynlig);
+  }, [hentBehandlingPåNytt]);
+
+  // En låst fane i URL-en sender brukeren til fanen for nåværendeSteg, med en melding.
+  useEffect(() => {
+    if (!behandling || !aktivFane || !erFaneLåst(aktivFane.behandlingssteg, behandling)) return;
+
+    const fanenSomHørerTilNåværendeSteg = BEHANDLING_STEG_LISTE.find(
+      (steg) => steg.behandlingssteg === behandling.nåværendeSteg
+    );
+    if (!fanenSomHørerTilNåværendeSteg) return;
+
+    navigate(fanenSomHørerTilNåværendeSteg.path, {
+      replace: true,
+      state: {
+        låstFaneMelding: `Fullfør «${visningsnavnForNåværendeSteg(behandling.nåværendeSteg)}» før du går videre.`,
+      },
+    });
+  }, [behandling, aktivFane, navigate]);
 
   const revaliderBehandling = useCallback(() => {
     settÅrsakDataHentet(false);
@@ -226,7 +267,6 @@ export default function BehandlingLayout() {
     <BehandlingContext.Provider
       value={{
         behandlingId,
-        ferdigeSteg,
         stegListe: BEHANDLING_STEG_LISTE,
         behandling,
         årsakState,
@@ -262,11 +302,18 @@ export default function BehandlingLayout() {
           feilmelding={henleggFeilmelding}
           onHenlegg={håndterHenlegg}
         />
-        <BehandlingFaner steg={BEHANDLING_STEG_LISTE} ferdigeSteg={ferdigeSteg} />
+        <BehandlingFaner steg={BEHANDLING_STEG_LISTE} behandling={behandling} />
         <Box style={{ display: "flex", flex: 1, minHeight: 0 }}>
           <Box style={{ flex: 1, overflowY: "auto", minWidth: 0 }}>
             <Side>
-              <Outlet />
+              <VStack gap="space-24">
+                {låstFaneMelding && (
+                  <InlineMessage status="info" size="small" role="status">
+                    {låstFaneMelding}
+                  </InlineMessage>
+                )}
+                <Outlet />
+              </VStack>
             </Side>
           </Box>
           <HøyreMeny>

@@ -5,6 +5,7 @@ import {
   slettDiagnosePeriode,
 } from "~/api/generated/sdk.gen";
 import type { VilkårDiagnoseResponse } from "~/api/generated/types.gen";
+import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useApiKall } from "../felles/useApiKall";
 
 export async function hentDiagnosePerioderFraBackend(
@@ -23,13 +24,23 @@ type LagreDiagnoseOptions = Parameters<typeof lagreDiagnosePeriode>[0];
 type SlettDiagnoseOptions = Parameters<typeof slettDiagnosePeriode>[0];
 
 export function useDiagnoseVilkårApi() {
+  const { hentBehandlingPåNytt } = useBehandlingContext();
+
   const lagreKall = useCallback(
-    (options: LagreDiagnoseOptions) => lagreDiagnosePeriode({ ...options, throwOnError: true }),
-    []
+    async (options: LagreDiagnoseOptions) => {
+      const lagreSvar = await lagreDiagnosePeriode({ ...options, throwOnError: true });
+      await hentBehandlingPåNytt();
+      return lagreSvar;
+    },
+    [hentBehandlingPåNytt]
   );
   const slettKall = useCallback(
-    (options: SlettDiagnoseOptions) => slettDiagnosePeriode({ ...options, throwOnError: true }),
-    []
+    async (options: SlettDiagnoseOptions) => {
+      const slettSvar = await slettDiagnosePeriode({ ...options, throwOnError: true });
+      await hentBehandlingPåNytt();
+      return slettSvar;
+    },
+    [hentBehandlingPåNytt]
   );
 
   return {

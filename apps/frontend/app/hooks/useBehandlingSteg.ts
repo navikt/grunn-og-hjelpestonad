@@ -2,7 +2,7 @@ import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 
 export function useBehandlingSteg() {
-  const { stegListe, ferdigeSteg } = useBehandlingContext();
+  const { stegListe } = useBehandlingContext();
 
   if (!stegListe) {
     throw new Error("useBehandlingSteg må brukes innenfor BehandlingContext med behandlingSteg");
@@ -24,7 +24,6 @@ export function useBehandlingSteg() {
 
   return {
     stegListe,
-    ferdigeSteg,
     finnNesteSteg,
     finnForrigeSteg,
   };
