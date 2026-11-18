@@ -5,6 +5,7 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.periode.formaterPeriode
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
 import org.springframework.stereotype.Service
@@ -23,6 +24,7 @@ class InngangsvilkårStegService(
     private val behandlingService: BehandlingService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val endringshistorikkService: EndringshistorikkService,
+    private val beregnTilkjentYtelseService: BeregnTilkjentYtelseService,
 ) {
     @Transactional
     fun fullførSteg(behandlingId: UUID): InngangsvilkårResultat {
@@ -34,8 +36,10 @@ class InngangsvilkårStegService(
         if (feil.isNotEmpty()) throw VilkårValideringFeil(feil)
 
         val perioder = PerioderMedOppfylteInngangsvilkårUtleder.utled(vurderteInngangsvilkår)
+        val nesteSteg = NesteStegEtterInngangsvilkår.utled(perioder)
+        if (nesteSteg == NesteStegEtterInngangsvilkår.SIMULERING) beregnTilkjentYtelseService.lagreTilkjentYtelseUtenAndeler(behandlingId)
         registrerEndringshistorikk(behandlingId, perioder)
-        return InngangsvilkårResultat(perioder = perioder, nesteSteg = NesteStegEtterInngangsvilkår.utled(perioder))
+        return InngangsvilkårResultat(perioder = perioder, nesteSteg = nesteSteg)
     }
 
     fun hentPerioder(behandlingId: UUID): List<PeriodeMedOppfylteInngangsvilkår> = PerioderMedOppfylteInngangsvilkårUtleder.utled(hentVurderteInngangsvilkår(behandlingId))

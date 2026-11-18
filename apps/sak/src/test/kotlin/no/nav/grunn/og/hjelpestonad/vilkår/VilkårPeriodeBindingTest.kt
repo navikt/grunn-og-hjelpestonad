@@ -31,6 +31,7 @@ class VilkårPeriodeBindingTest {
             mockk<BehandlingService>(relaxed = true),
             mockk<EndringshistorikkService>(relaxed = true),
             mockk<AnsvarligSaksbehandlerService>(relaxed = true),
+            mockk(relaxed = true),
         )
 
     private val egenBehandlingId = UUID.randomUUID()

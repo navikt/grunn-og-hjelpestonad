@@ -41,6 +41,7 @@ class VilkårEkstrautgifterServiceTest {
             endringshistorikkService,
             ansvarligSaksbehandlerService,
             vilkårDiagnoseService,
+            mockk(relaxed = true),
         )
 
     private val behandlingId = UUID.randomUUID()

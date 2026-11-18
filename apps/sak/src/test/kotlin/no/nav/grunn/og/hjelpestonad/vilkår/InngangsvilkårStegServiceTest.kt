@@ -15,6 +15,7 @@ import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.InngangsvilkårStegSer
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.NesteStegEtterInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PeriodeMedOppfylteInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
@@ -32,6 +33,7 @@ class InngangsvilkårStegServiceTest {
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
+    private val beregnTilkjentYtelseService = mockk<BeregnTilkjentYtelseService>(relaxed = true)
 
     private val service =
         InngangsvilkårStegService(
@@ -40,6 +42,7 @@ class InngangsvilkårStegServiceTest {
             behandlingService,
             ansvarligSaksbehandlerService,
             endringshistorikkService,
+            beregnTilkjentYtelseService,
         )
 
     private val behandlingId = UUID.randomUUID()
@@ -166,6 +169,7 @@ class InngangsvilkårStegServiceTest {
         service.fullførSteg(behandlingId)
 
         assertThat(detaljer.captured).isEqualTo("Ingen perioder med oppfylte inngangsvilkår")
+        verify { beregnTilkjentYtelseService.lagreTilkjentYtelseUtenAndeler(behandlingId) }
     }
 
     @Test

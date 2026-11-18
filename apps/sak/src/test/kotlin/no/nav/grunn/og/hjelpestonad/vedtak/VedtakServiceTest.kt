@@ -2,12 +2,12 @@ package no.nav.grunn.og.hjelpestonad.vedtak
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
-import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import java.util.UUID
@@ -19,8 +19,17 @@ class VedtakServiceTest {
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val tilkjentYtelseService = mockk<TilkjentYtelseService>(relaxed = true)
-    private val beregnTilkjentYtelseService = mockk<BeregnTilkjentYtelseService>(relaxed = true)
-    private val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingService, ansvarligSaksbehandlerService, tilkjentYtelseService, beregnTilkjentYtelseService)
+    private val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingService, ansvarligSaksbehandlerService, tilkjentYtelseService)
+
+    @Test
+    fun `vedtak kan ikke opprette utbetaling uten fullført beregning`() {
+        val behandlingId = UUID.randomUUID()
+        every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns null
+        assertThatThrownBy {
+            vedtakService.lagreVedtak(VedtakRequest(resultatType = ResultatType.INNVILGET, begrunnelse = "Test", grunnstønadPerioder = emptyList()), behandlingId)
+        }.isInstanceOf(Feil::class.java).hasMessageContaining("Fullfør sats og trygdetid")
+        verify(exactly = 0) { vedtakRepository.insert(any()) }
+    }
 
     @Test
     fun `lagreVedtak kaster feil når behandling ikke er redigerbar`() {

@@ -6,6 +6,7 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.periode.Endringstyper
 import no.nav.grunn.og.hjelpestonad.felles.periode.PeriodeMedBegrunnelseService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -16,6 +17,7 @@ class VilkårDiagnoseService(
     behandlingService: BehandlingService,
     endringshistorikkService: EndringshistorikkService,
     ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
+    tilkjentYtelseService: TilkjentYtelseService,
 ) : PeriodeMedBegrunnelseService<VilkårDiagnose, VilkårDiagnoseRequest>(
         vilkårDiagnoseRepository,
         behandlingService,
@@ -26,6 +28,7 @@ class VilkårDiagnoseService(
             oppdatert = EndringType.VILKÅR_VURDERING_OPPDATERT,
             slettet = EndringType.VILKÅR_VURDERING_SLETTET,
         ),
+        tilkjentYtelseService,
     ) {
     override val periodebeskrivelse = "vilkårsvurdering for ${VilkårType.DIAGNOSE.name}"
 

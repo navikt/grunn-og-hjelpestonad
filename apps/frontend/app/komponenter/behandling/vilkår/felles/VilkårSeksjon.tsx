@@ -46,6 +46,7 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
   gruppering,
   grunnlag,
   children,
+  åpneVedFeil,
 }: {
   nøkkel: VilkårNøkkel;
   perioder: PerioderResult<T>;
@@ -57,21 +58,36 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
   gruppering?: VilkårGruppering<T>;
   grunnlag?: React.ReactNode;
   children: React.ReactNode;
+  åpneVedFeil?: number;
 }) {
   const { data: periodeliste, laster } = perioder;
   const hentefeil = perioder.error ? feilmeldingFra(perioder.error, hentefeilTekst) : undefined;
   const antall = periodeliste?.length ?? 0;
   const [erÅpen, settErÅpen] = React.useState(false);
-  const initialÅpenSatt = React.useRef(false);
+  const [sistBehandletÅpneVedFeil, settSistBehandletÅpneVedFeil] = React.useState<
+    number | undefined
+  >();
+  const [initialÅpenSatt, settInitialÅpenSatt] = React.useState(false);
+  const seksjonsmålRef = React.useRef<HTMLButtonElement>(null);
+
+  // Avledet tilstand: justeres under rendering når propen endres, ikke i effect.
+  if (åpneVedFeil !== sistBehandletÅpneVedFeil) {
+    settSistBehandletÅpneVedFeil(åpneVedFeil);
+    if (åpneVedFeil) {
+      settErÅpen(true);
+    }
+  }
+
+  if (!initialÅpenSatt && !laster && periodeliste !== undefined) {
+    settInitialÅpenSatt(true);
+    settErÅpen(periodeliste.length === 0);
+  }
 
   React.useEffect(() => {
-    if (initialÅpenSatt.current || laster || periodeliste === undefined) {
-      return;
+    if (åpneVedFeil) {
+      requestAnimationFrame(() => seksjonsmålRef.current?.focus());
     }
-
-    initialÅpenSatt.current = true;
-    settErÅpen(periodeliste.length === 0);
-  }, [laster, periodeliste]);
+  }, [åpneVedFeil]);
 
   const status = (() => {
     if (hentefeil) {
@@ -105,7 +121,7 @@ export function VilkårSeksjon<T extends FellesVilkårPeriodeFelter & { erVilkå
 
   return (
     <Accordion.Item open={erÅpen} onOpenChange={settErÅpen}>
-      <Accordion.Header id={`vilkar-${nøkkel}`}>
+      <Accordion.Header id={`vilkar-${nøkkel}`} ref={seksjonsmålRef}>
         <HStack gap="space-12" align="center" wrap={false}>
           <span>{vilkårNavn[nøkkel]}</span>
           <Tag variant="strong" size="small" data-color={status.farge}>
