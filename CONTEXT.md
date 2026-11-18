@@ -68,6 +68,14 @@ Brøken x/40 fra søkers alderspensjon eller uføretrygd. Er 40/40 når søker i
 
 ## Behandling
 
+**Behandlingssteg**:
+Ett av stegene saksbehandler fullfører i en behandling, i fast rekkefølge: årsak, inngangsvilkår, sats og trygdetid, og vedtak og brev. Simulering hører til vedtak og brev.
+_Avoid_: Fane, side
+
+**Nåværende steg**:
+Steget saksbehandler skal fullføre nå. Alle steg før det er fullført. Saksbehandler kan endre steg før nåværende steg, men ikke senere steg. En endring setter nåværende steg tilbake til steget som ble endret.
+_Avoid_: Aktivt steg, fremdrift
+
 **Migrering**:
 At en løpende sak flyttes fra Infotrygd til ny løsning, slik at Infotrygd slutter å utbetale og ny løsning overtar utbetalingen fra inneværende måned. Systemet gjør det med ett klikk fra saksbehandler, uten vedtaksbrev og uten beslutter, som i EF. Endrer ikke hva stønadsmottaker får utbetalt.
 _Avoid_: Konvertering, overføring

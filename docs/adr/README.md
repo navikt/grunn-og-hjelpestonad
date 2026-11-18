@@ -32,3 +32,4 @@ utover å oppdatere status og lenke til den nye ADR-en.
 | [ADR-0014](ADR-0014-tilkjent-ytelse-fra-ekstrautgifter-og-trygdetid.md) | Steg 2 regner ut tilkjent ytelse fra ekstrautgifter og trygdetid | Foreslått |
 | [ADR-0015](ADR-0015-sperre-adressebeskyttelse-i-dev.md) | Sperre adressebeskyttelse og skjerming for Infotrygd i dev | Foreslått |
 | [ADR-0016](ADR-0016-ekstrautgifter-som-sats-med-kobling.md) | Ekstrautgifter som sats med kobling (B), med vei til D | Foreslått |
+| [ADR-0017](ADR-0017-backend-eier-naavaerende-steg.md) | Backend eier nåværende steg i behandlingen | Foreslått |
