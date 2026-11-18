@@ -99,6 +99,29 @@ class BeregnTilkjentYtelseServiceTest {
     }
 
     @Test
+    fun `revurdering med første andel etter forrige startmåned beholder forrige startmåned`() {
+        val forrigeBehandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling.copy(forrigeBehandlingId = forrigeBehandlingId)
+        every { tilkjentYtelseService.hentTilkjentYtelse(forrigeBehandlingId) } returns
+            TilkjentYtelse(
+                behandlingId = forrigeBehandlingId,
+                startmåned = YearMonth.of(2026, 1),
+                andelerTilkjentYtelse = emptySet(),
+            )
+        val tilkjentYtelse = slot<TilkjentYtelse>()
+        every { tilkjentYtelseService.lagre(capture(tilkjentYtelse)) } returns Unit
+
+        service.beregnOgLagreTilkjentYtelse(behandlingId)
+
+        assertThat(
+            tilkjentYtelse.captured.andelerTilkjentYtelse
+                .single()
+                .fom,
+        ).isEqualTo(LocalDate.of(2026, 4, 1))
+        assertThat(tilkjentYtelse.captured.startmåned).isEqualTo(YearMonth.of(2026, 1))
+    }
+
+    @Test
     fun `hull i trygdetid stopper fullføring uten å endre lagret beregning`() {
         every { trygdetidService.hentPerioder(behandlingId) } returns emptyList()
         assertFailsWith<UtledningAvTilkjentYtelseFeil> { service.beregnOgLagreTilkjentYtelse(behandlingId) }

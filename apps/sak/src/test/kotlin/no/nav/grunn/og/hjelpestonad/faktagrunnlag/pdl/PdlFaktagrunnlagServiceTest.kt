@@ -241,7 +241,7 @@ class PdlFaktagrunnlagServiceTest(
         val fagsakPerson =
             fagsakPersonRepository.findByIdent(setOf(ident))
                 ?: fagsakPersonRepository.insert(FagsakPerson(identer = setOf(Personident(ident))))
-        return fagsakRepository.findByFagsakPersonIdAndStønadstype(fagsakPerson.id, StønadType.BARNETILSYN)
-            ?: fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.BARNETILSYN))
+        return fagsakRepository.findByFagsakPersonIdAndStønadstype(fagsakPerson.id, StønadType.GRUNNSTØNAD)
+            ?: fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.GRUNNSTØNAD))
     }
 }

@@ -328,14 +328,14 @@ export const zInfotrygdGjeldendePerioderResponse = z.object({
 
 export const zFagsakRequest = z.object({
     personident: z.string(),
-    stønadstype: z.enum(['BARNETILSYN', 'SKOLEPENGER'])
+    stønadstype: z.enum(['GRUNNSTØNAD', 'HJELPESTØNAD'])
 });
 
 export const zFagsakResponse = z.object({
     id: z.uuid(),
     fagsakPersonId: z.uuid(),
     personident: z.string(),
-    stønadstype: z.enum(['BARNETILSYN', 'SKOLEPENGER']),
+    stønadstype: z.enum(['GRUNNSTØNAD', 'HJELPESTØNAD']),
     eksternId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' })
 });
 
@@ -1094,7 +1094,7 @@ export const zHentOppdragStatusResponse = zOppdragStatusSvar;
 
 export const zHentFagsakPath = z.object({
     fagsakPersonId: z.uuid(),
-    stonadstype: z.enum(['BARNETILSYN', 'SKOLEPENGER'])
+    stonadstype: z.enum(['GRUNNSTØNAD', 'HJELPESTØNAD'])
 });
 
 /**

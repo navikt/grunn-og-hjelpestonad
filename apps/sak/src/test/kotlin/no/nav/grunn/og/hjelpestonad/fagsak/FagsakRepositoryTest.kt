@@ -21,7 +21,7 @@ class FagsakRepositoryTest : SpringContextTest() {
         val ident = "01010199999"
         val fagsakPerson = fagsakPersonRepository.insert(FagsakPerson(identer = setOf(Personident(ident))))
 
-        fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.BARNETILSYN))
+        fagsakRepository.insert(Fagsak(fagsakPersonId = fagsakPerson.id, stønadstype = StønadType.GRUNNSTØNAD))
         val alleFagsaker = fagsakRepository.findAll()
 
         assertThat(alleFagsaker).hasSize(1)
