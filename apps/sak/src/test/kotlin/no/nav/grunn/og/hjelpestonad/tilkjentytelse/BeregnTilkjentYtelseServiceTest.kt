@@ -124,6 +124,29 @@ class BeregnTilkjentYtelseServiceTest {
     }
 
     @Test
+    fun `førstegangsbehandling uten andeler sletter tilkjent ytelse uten å lagre`() {
+        service.lagreTilkjentYtelseUtenAndeler(behandlingId)
+
+        verify(exactly = 1) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId) }
+        verify(exactly = 0) { tilkjentYtelseService.lagre(any()) }
+    }
+
+    @Test
+    fun `fullføring med ikke oppfylte inngangsvilkår sletter tilkjent ytelse uten å lagre`() {
+        every { medlemskapService.hentPerioder(behandlingId) } returns
+            listOf(VilkårMedlemskap(behandlingId = behandlingId, vurdering = Vurdering.NEI, regelverk = Regelverk.NASJONALE_REGLER, fraOgMedDato = fraOgMedDato))
+        every { diagnoseService.hentPerioder(behandlingId) } returns
+            listOf(VilkårDiagnose(behandlingId = behandlingId, vurdering = Vurdering.NEI, kode = "E109", tekst = "Testdiagnose", erYrkesskade = false, fraOgMedDato = fraOgMedDato))
+        every { ekstrautgifterService.hentPerioder(behandlingId) } returns
+            listOf(VilkårEkstrautgifter(behandlingId = behandlingId, vurdering = Vurdering.NEI, sats = null, fraOgMedDato = fraOgMedDato))
+
+        service.fullførSteg(behandlingId)
+
+        verify(exactly = 1) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId) }
+        verify(exactly = 0) { tilkjentYtelseService.lagre(any()) }
+    }
+
+    @Test
     fun `diagnose endret etter lagring av ekstrautgifter stopper beregningen`() {
         every { ekstrautgifterService.hentPerioder(behandlingId) } returns
             listOf(

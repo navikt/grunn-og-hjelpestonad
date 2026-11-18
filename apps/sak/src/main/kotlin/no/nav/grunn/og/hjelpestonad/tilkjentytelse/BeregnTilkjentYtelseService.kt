@@ -61,13 +61,12 @@ class BeregnTilkjentYtelseService(
     ) {
         val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
         val forrigeStartmåned = behandling.forrigeBehandlingId?.let { tilkjentYtelseService.hentTilkjentYtelse(it)?.startmåned }
+        if (andelerTilkjentYtelse.isEmpty() && forrigeStartmåned == null) {
+            tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
+            return
+        }
         val startmåned =
-            if (andelerTilkjentYtelse.isEmpty() && forrigeStartmåned == null) {
-                // Ingen utbetaling i en førstegangsbehandling. Startmåneden brukes ikke til et oppdrag.
-                YearMonth.now(clock)
-            } else {
-                utledStartmåned(andelerTilkjentYtelse, forrigeStartmåned, opphørsmåned = null)
-            }
+            utledStartmåned(andelerTilkjentYtelse, forrigeStartmåned, opphørsmåned = null)
         tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
         tilkjentYtelseService.lagre(TilkjentYtelse(behandlingId = behandlingId, startmåned = startmåned, andelerTilkjentYtelse = andelerTilkjentYtelse))
     }
