@@ -15,13 +15,10 @@ interface UseÅrsakBehandling {
   laster: boolean;
   feilmelding: string;
   erLagret: boolean;
-  låst: boolean;
   oppdaterKravdato: (dato: Date | undefined) => void;
   oppdaterÅrsak: (årsak: ÅrsakType) => void;
   oppdaterBeskrivelse: (beskrivelse: string) => void;
   lagre: () => Promise<boolean>;
-  settLåst: (val: boolean) => void;
-  tilbakestill: () => void;
 }
 
 const tilLocalDateString = (date: Date): string => {
@@ -40,13 +37,9 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
 
   const [laster, settLaster] = useState(false);
   const [erLagretOverstyring, settErLagretOverstyring] = useState<boolean | null>(null);
-  const [låstOverstyring, settLåstOverstyring] = useState<boolean | null>(null);
   const [feilmelding, settFeilmelding] = useState("");
 
   const erLagret = erLagretOverstyring ?? harEksisterendeData;
-  const låst = låstOverstyring ?? harEksisterendeData;
-
-  const settLåst = useCallback((val: boolean) => settLåstOverstyring(val), []);
 
   useEffect(() => {
     if (!behandlingId || årsakDataHentet) return;
@@ -69,6 +62,7 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
 
   const oppdaterKravdato = useCallback(
     (dato: Date | undefined) => {
+      settErLagretOverstyring(false);
       oppdaterÅrsakState({ kravdato: dato });
     },
     [oppdaterÅrsakState]
@@ -76,6 +70,7 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
 
   const oppdaterÅrsak = useCallback(
     (årsak: ÅrsakType) => {
+      settErLagretOverstyring(false);
       oppdaterÅrsakState({ årsak });
     },
     [oppdaterÅrsakState]
@@ -83,16 +78,11 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
 
   const oppdaterBeskrivelse = useCallback(
     (beskrivelse: string) => {
+      settErLagretOverstyring(false);
       oppdaterÅrsakState({ beskrivelse });
     },
     [oppdaterÅrsakState]
   );
-
-  const tilbakestill = useCallback(() => {
-    oppdaterÅrsakState({ kravdato: undefined, årsak: "" as ÅrsakType, beskrivelse: "" });
-    settLåstOverstyring(false);
-    settErLagretOverstyring(false);
-  }, [oppdaterÅrsakState]);
 
   const lagre = useCallback(async (): Promise<boolean> => {
     if (!behandlingId || !årsakState?.kravdato || !årsakState?.årsak) {
@@ -132,12 +122,9 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
     laster,
     feilmelding,
     erLagret,
-    låst,
     oppdaterKravdato,
     oppdaterÅrsak,
     oppdaterBeskrivelse,
     lagre,
-    settLåst,
-    tilbakestill,
   };
 };

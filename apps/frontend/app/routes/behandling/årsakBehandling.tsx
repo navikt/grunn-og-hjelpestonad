@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   DatePicker,
+  InlineMessage,
   Loader,
   Select,
   Textarea,
@@ -16,7 +17,6 @@ import { useArsakBehandling } from "~/hooks/useÅrsakBehandling";
 import { useErLesevisning } from "~/hooks/useErLesevisning";
 import type { ÅrsakType } from "~/types/årsak";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
-import { RedigerOgSlettKnapper } from "~/komponenter/behandling/RedigerOgSlettKnapper";
 import { StegNavigering } from "~/komponenter/behandling/StegNavigering";
 
 export function meta(_: Route.MetaArgs) {
@@ -44,30 +44,24 @@ export default function ArsakBehandling() {
     laster,
     feilmelding,
     erLagret,
-    låst,
     oppdaterKravdato,
     oppdaterÅrsak,
     oppdaterBeskrivelse,
     lagre,
-    settLåst,
-    tilbakestill,
   } = useArsakBehandling(behandlingId);
 
   const { datepickerProps, inputProps, setSelected } = useDatepicker({
     defaultSelected: kravdato,
     toDate: iDag,
-    onDateChange: oppdaterKravdato,
+    onDateChange: (dato) => {
+      // setSelected under kaller onDateChange med samme dato. Den synkroniseringen er ingen endring.
+      if (dato !== kravdato) {
+        oppdaterKravdato(dato);
+      }
+    },
   });
 
-  const erLåst = låst || erLesevisning;
   const kanLagre = kravdato !== undefined && årsak !== "";
-
-  const håndterLagring = async () => {
-    const suksess = await lagre();
-    if (suksess) {
-      settLåst(true);
-    }
-  };
 
   useEffect(() => {
     setSelected(kravdato);
@@ -86,14 +80,10 @@ export default function ArsakBehandling() {
     <VStack gap="space-24">
       <Box shadow="dialog" background="neutral-soft" padding="space-24" borderRadius="4">
         <VStack gap="space-24" style={{ position: "relative" }}>
-          {låst && !erLesevisning && (
-            <RedigerOgSlettKnapper onRediger={() => settLåst(false)} onSlett={tilbakestill} />
-          )}
-
           <VStack gap="space-16">
             <div style={{ maxWidth: "24rem" }}>
               <DatePicker {...datepickerProps}>
-                <DatePicker.Input {...inputProps} label="Kravdato" readOnly={erLåst} />
+                <DatePicker.Input {...inputProps} label="Kravdato" readOnly={erLesevisning} />
               </DatePicker>
             </div>
 
@@ -101,7 +91,7 @@ export default function ArsakBehandling() {
               label="Årsak til behandling"
               onChange={(e) => oppdaterÅrsak(e.target.value as ÅrsakType)}
               value={årsak}
-              disabled={erLåst}
+              disabled={erLesevisning}
               style={{ maxWidth: "24rem" }}
             >
               <option value="" disabled>
@@ -117,21 +107,23 @@ export default function ArsakBehandling() {
               label="Beskrivelse av årsak (fylles ut ved behov)"
               onChange={(e) => oppdaterBeskrivelse(e.target.value)}
               value={beskrivelse}
-              readOnly={erLåst}
+              readOnly={erLesevisning}
             />
           </VStack>
 
-          {!låst && (
+          {!erLesevisning && (
             <div>
-              <Button
-                onClick={håndterLagring}
-                disabled={!kanLagre || erLesevisning}
-                loading={laster}
-              >
+              <Button onClick={lagre} disabled={!kanLagre || laster} loading={laster}>
                 Lagre
               </Button>
             </div>
           )}
+
+          <div role="status">
+            {erLagret && !laster && !feilmelding && !erLesevisning && (
+              <InlineMessage status="success">Endringene er lagret</InlineMessage>
+            )}
+          </div>
 
           {feilmelding && (
             <Alert variant="error" size="small">
@@ -141,7 +133,10 @@ export default function ArsakBehandling() {
         </VStack>
       </Box>
 
-      <StegNavigering stegPath={STEG_PATH} nesteDisabled={!erLagret} />
+      <StegNavigering
+        stegPath={STEG_PATH}
+        nesteDisabled={laster || (!erLesevisning && !erLagret)}
+      />
     </VStack>
   );
 }
