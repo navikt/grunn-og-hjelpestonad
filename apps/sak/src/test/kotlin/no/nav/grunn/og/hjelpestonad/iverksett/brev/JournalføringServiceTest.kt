@@ -57,7 +57,7 @@ class JournalføringServiceTest {
         val fagsakPersonId = UUID.randomUUID()
         val personident = "12345678901"
         val behandling = lagBehandling(behandlingId, fagsakId, BehandlingResultat.INNVILGET)
-        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.BARNETILSYN)
+        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.GRUNNSTØNAD)
         val brev = lagBrev(behandlingId)
         val mottaker = lagBrevmottaker(behandlingId, personident)
 
@@ -88,7 +88,7 @@ class JournalføringServiceTest {
         val personident = "12345678901"
         val vergeIdent = "98765432109"
         val behandling = lagBehandling(behandlingId, fagsakId, BehandlingResultat.INNVILGET)
-        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.SKOLEPENGER)
+        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.HJELPESTØNAD)
         val brev = lagBrev(behandlingId)
         val mottakere =
             listOf(
@@ -120,7 +120,7 @@ class JournalføringServiceTest {
         val personident = "12345678901"
         val orgnr = "123456789"
         val behandling = lagBehandling(behandlingId, fagsakId, BehandlingResultat.AVSLÅTT)
-        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.BARNETILSYN)
+        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.GRUNNSTØNAD)
         val brev = lagBrev(behandlingId)
         val mottaker =
             Brevmottaker(
@@ -176,7 +176,7 @@ class JournalføringServiceTest {
         val fagsakPersonId = UUID.randomUUID()
         val personident = "12345678901"
         val behandling = lagBehandling(behandlingId, fagsakId, BehandlingResultat.INNVILGET)
-        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.BARNETILSYN)
+        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.GRUNNSTØNAD)
 
         every { behandlingService.hentBehandling(behandlingId) } returns behandling
         every { fagsakRepository.findById(fagsakId) } returns Optional.of(fagsak)
@@ -195,7 +195,7 @@ class JournalføringServiceTest {
         val fagsakPersonId = UUID.randomUUID()
         val personident = "12345678901"
         val behandling = lagBehandling(behandlingId, fagsakId, BehandlingResultat.INNVILGET)
-        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.BARNETILSYN)
+        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.GRUNNSTØNAD)
         val brevUtenPdf =
             Brev(
                 behandlingId = behandlingId,
@@ -220,7 +220,7 @@ class JournalføringServiceTest {
         val fagsakPersonId = UUID.randomUUID()
         val personident = "12345678901"
         val behandling = lagBehandling(behandlingId, fagsakId, BehandlingResultat.INNVILGET)
-        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.BARNETILSYN)
+        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.GRUNNSTØNAD)
         val brev = lagBrev(behandlingId)
 
         every { behandlingService.hentBehandling(behandlingId) } returns behandling
@@ -236,17 +236,17 @@ class JournalføringServiceTest {
 
     @Test
     fun `vedtaksbrevForStønadType skal returnere korrekt dokumenttype`() {
-        assertThat(journalføringService.vedtaksbrevForStønadType(StønadType.BARNETILSYN))
+        assertThat(journalføringService.vedtaksbrevForStønadType(StønadType.GRUNNSTØNAD))
             .isEqualTo(Dokumenttype.VEDTAKSBREV_BARNETILSYN)
-        assertThat(journalføringService.vedtaksbrevForStønadType(StønadType.SKOLEPENGER))
+        assertThat(journalføringService.vedtaksbrevForStønadType(StønadType.HJELPESTØNAD))
             .isEqualTo(Dokumenttype.VEDTAKSBREV_SKOLEPENGER)
     }
 
     @Test
     fun `lagStønadtypeTekst skal returnere korrekt tekst`() {
-        assertThat(journalføringService.lagStønadtypeTekst(StønadType.BARNETILSYN))
+        assertThat(journalføringService.lagStønadtypeTekst(StønadType.GRUNNSTØNAD))
             .isEqualTo("stønad til barnetilsyn")
-        assertThat(journalføringService.lagStønadtypeTekst(StønadType.SKOLEPENGER))
+        assertThat(journalføringService.lagStønadtypeTekst(StønadType.HJELPESTØNAD))
             .isEqualTo("stønad til skolepenger")
     }
 

@@ -45,20 +45,20 @@ class FagsakControllerRolleTest {
 
     private val personident = "12345678910"
     private val fagsakPersonId = UUID.randomUUID()
-    private val hentUrl = "/api/fagsak/fagsak-person/$fagsakPersonId/BARNETILSYN"
+    private val hentUrl = "/api/fagsak/fagsak-person/$fagsakPersonId/GRUNNSTØNAD"
     private val fagsak =
         FagsakResponse(
             id = UUID.randomUUID(),
             fagsakPersonId = fagsakPersonId,
             personident = personident,
-            stønadstype = StønadType.BARNETILSYN,
+            stønadstype = StønadType.GRUNNSTØNAD,
             eksternId = 1L,
         )
 
     @Test
     @WithMockUser(roles = ["SAKSBEHANDLER"])
     fun `saksbehandler får hente fagsak`() {
-        every { fagsakService.hentFagsak(fagsakPersonId, StønadType.BARNETILSYN) } returns fagsak
+        every { fagsakService.hentFagsak(fagsakPersonId, StønadType.GRUNNSTØNAD) } returns fagsak
 
         mockMvc.get(hentUrl).andExpect { status { isOk() } }
     }
@@ -66,7 +66,7 @@ class FagsakControllerRolleTest {
     @Test
     @WithMockUser(roles = ["BESLUTTER"])
     fun `beslutter får hente fagsak`() {
-        every { fagsakService.hentFagsak(fagsakPersonId, StønadType.BARNETILSYN) } returns fagsak
+        every { fagsakService.hentFagsak(fagsakPersonId, StønadType.GRUNNSTØNAD) } returns fagsak
 
         mockMvc.get(hentUrl).andExpect { status { isOk() } }
     }
@@ -74,7 +74,7 @@ class FagsakControllerRolleTest {
     @Test
     @WithMockUser(roles = ["LESETILGANG"])
     fun `bruker med lesetilgang får hente fagsak`() {
-        every { fagsakService.hentFagsak(fagsakPersonId, StønadType.BARNETILSYN) } returns fagsak
+        every { fagsakService.hentFagsak(fagsakPersonId, StønadType.GRUNNSTØNAD) } returns fagsak
 
         mockMvc.get(hentUrl).andExpect { status { isOk() } }
     }
@@ -91,7 +91,7 @@ class FagsakControllerRolleTest {
     @Test
     @WithMockUser(roles = ["SAKSBEHANDLER"])
     fun `saksbehandler får opprette fagsak`() {
-        every { fagsakService.hentEllerOpprettFagsak(personident, StønadType.BARNETILSYN) } returns fagsak
+        every { fagsakService.hentEllerOpprettFagsak(personident, StønadType.GRUNNSTØNAD) } returns fagsak
 
         opprettFagsak().andExpect { status { isOk() } }
     }
@@ -109,6 +109,6 @@ class FagsakControllerRolleTest {
         mockMvc.post("/api/fagsak") {
             with(csrf())
             contentType = MediaType.APPLICATION_JSON
-            content = """{"personident":"$personident","stønadstype":"BARNETILSYN"}"""
+            content = """{"personident":"$personident","stønadstype":"GRUNNSTØNAD"}"""
         }
 }
