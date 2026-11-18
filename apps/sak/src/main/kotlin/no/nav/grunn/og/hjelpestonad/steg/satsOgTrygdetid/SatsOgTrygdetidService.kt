@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.steg.satsogtrygdetid
+package no.nav.grunn.og.hjelpestonad.steg.satsOgTrygdetid
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType

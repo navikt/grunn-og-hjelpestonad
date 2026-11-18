@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.steg.satsogtrygdetid
+package no.nav.grunn.og.hjelpestonad.steg.satsOgTrygdetid
 
 import io.mockk.every
 import io.mockk.mockk

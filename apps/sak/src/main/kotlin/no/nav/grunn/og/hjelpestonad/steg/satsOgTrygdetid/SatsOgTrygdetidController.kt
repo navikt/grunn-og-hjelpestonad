@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.steg.satsogtrygdetid
+package no.nav.grunn.og.hjelpestonad.steg.satsOgTrygdetid
 
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
