@@ -76,11 +76,20 @@ fun validerVedtaksresultatMotBeregning(
     resultatType: ResultatType,
     harBeregnedeAndeler: Boolean,
 ) {
-    if (resultatType == ResultatType.INNVILGET && !harBeregnedeAndeler) {
-        throw UgyldigInput("Vedtaket er en innvilgelse, men beregningen har ingen andeler. Kontroller vedtaksresultatet og grunnlaget før du sender til beslutter.")
-    }
-    if (resultatType == ResultatType.AVSLÅTT && harBeregnedeAndeler) {
-        throw UgyldigInput("Vedtaket er et avslag, men beregningen har andeler. Kontroller vedtaksresultatet og grunnlaget før du sender til beslutter.")
+    when (resultatType) {
+        ResultatType.INNVILGET -> {
+            if (!harBeregnedeAndeler) {
+                throw UgyldigInput("Vedtaket er en innvilgelse, men beregningen har ingen andeler. Kontroller vedtaksresultatet og grunnlaget før du sender til beslutter.")
+            }
+        }
+
+        ResultatType.AVSLÅTT -> {
+            if (harBeregnedeAndeler) {
+                throw UgyldigInput("Vedtaket er et avslag, men beregningen har andeler. Kontroller vedtaksresultatet og grunnlaget før du sender til beslutter.")
+            }
+        }
+
+        ResultatType.HENLAGT, ResultatType.OPPHØR -> Unit
     }
 }
 
