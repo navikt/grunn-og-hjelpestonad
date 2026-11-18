@@ -32,7 +32,7 @@ data class SatsOgTrygdetidFeilResponse(
 @PreAuthorize("hasRole('SAKSBEHANDLER')")
 @RequestMapping("/api/behandling/{behandlingId}/sats-og-trygdetid")
 class SatsOgTrygdetidController(
-    private val satsOgTrygdetidStegService: SatsOgTrygdetidStegService,
+    private val satsOgTrygdetidService: SatsOgTrygdetidService,
     private val tilgangService: TilgangService,
 ) {
     @PostMapping("/fullfor")
@@ -41,7 +41,7 @@ class SatsOgTrygdetidController(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<Void> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        satsOgTrygdetidStegService.fullførSteg(behandlingId)
+        satsOgTrygdetidService.fullførSteg(behandlingId)
         return ResponseEntity.noContent().build()
     }
 

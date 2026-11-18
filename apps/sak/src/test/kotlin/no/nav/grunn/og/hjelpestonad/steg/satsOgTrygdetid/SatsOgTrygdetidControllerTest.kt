@@ -30,7 +30,7 @@ class SatsOgTrygdetidControllerTest {
     private lateinit var mockMvc: MockMvc
 
     @MockkBean(relaxed = true)
-    private lateinit var satsOgTrygdetidStegService: SatsOgTrygdetidStegService
+    private lateinit var satsOgTrygdetidService: SatsOgTrygdetidService
 
     @MockkBean(relaxed = true)
     private lateinit var tilgangService: TilgangService
@@ -43,7 +43,7 @@ class SatsOgTrygdetidControllerTest {
         mockMvc.post(url).andExpect { status { isNoContent() } }
         verifyOrder {
             tilgangService.validerTilgangTilBehandling(behandlingId)
-            satsOgTrygdetidStegService.fullførSteg(behandlingId)
+            satsOgTrygdetidService.fullførSteg(behandlingId)
         }
     }
 
@@ -51,12 +51,12 @@ class SatsOgTrygdetidControllerTest {
     fun `manglende persontilgang stopper før beregning`() {
         every { tilgangService.validerTilgangTilBehandling(behandlingId) } throws ManglerTilgangTilPersonFeil(avvisningskode = null)
         mockMvc.post(url).andExpect { status { isForbidden() } }
-        verify(exactly = 0) { satsOgTrygdetidStegService.fullførSteg(any()) }
+        verify(exactly = 0) { satsOgTrygdetidService.fullførSteg(any()) }
     }
 
     @Test
     fun `manglende trygdetid returneres som strukturert valideringsfeil`() {
-        every { satsOgTrygdetidStegService.fullførSteg(behandlingId) } throws
+        every { satsOgTrygdetidService.fullførSteg(behandlingId) } throws
             UtledningAvTilkjentYtelseFeil(
                 listOf(Utledningsfeil(Valideringsnøkkel.Trygdetid, TilkjentYtelseUtleder.TRYGDETID_MANGLER)),
             )
