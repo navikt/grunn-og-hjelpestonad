@@ -89,7 +89,9 @@ fun validerVedtaksresultatMotBeregning(
             }
         }
 
-        ResultatType.HENLAGT, ResultatType.OPPHØR -> Unit
+        ResultatType.HENLAGT, ResultatType.OPPHØR -> {
+            Unit
+        }
     }
 }
 
