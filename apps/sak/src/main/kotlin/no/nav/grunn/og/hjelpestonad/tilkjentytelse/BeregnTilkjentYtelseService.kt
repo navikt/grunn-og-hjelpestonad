@@ -4,12 +4,8 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingValidering
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VurderteInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidService
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
-import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.EkstrautgifterRegler
 import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifterService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
 import org.springframework.stereotype.Service
@@ -37,16 +33,7 @@ class BeregnTilkjentYtelseService(
 
         val vilkårMedlemskapPerioder = vilkårMedlemskapService.hentPerioder(behandlingId)
         val vilkårDiagnosePerioder = vilkårDiagnoseService.hentPerioder(behandlingId)
-        val inngangsvilkårsfeil =
-            VilkårVurderingValidering.valider(
-                VurderteInngangsvilkår(behandlingId, vilkårMedlemskapPerioder, vilkårDiagnosePerioder),
-            )
-        if (inngangsvilkårsfeil.isNotEmpty()) throw VilkårValideringFeil(inngangsvilkårsfeil)
-
         val vilkårEkstrautgifterPerioder = vilkårEkstrautgifterService.hentPerioder(behandlingId)
-        vilkårEkstrautgifterPerioder.forEach {
-            EkstrautgifterRegler.validerDiagnoserOppfyltIHelePerioden(it, vilkårDiagnosePerioder)
-        }
         val utlededeAndeler =
             TilkjentYtelseUtleder.utled(
                 vilkårMedlemskapPerioder,

@@ -1,11 +1,15 @@
 package no.nav.grunn.og.hjelpestonad.tilkjentytelse
 
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.trygdetid.Trygdetid
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidKilde
 import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
 import no.nav.grunn.og.hjelpestonad.vilkår.Vurdering
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
+import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.Ekstrautgift
+import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.EkstrautgifterRegler
+import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.Hjemmelbokstav
 import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.Sats
 import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifter
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
@@ -63,6 +67,77 @@ class TilkjentYtelseUtlederTest {
             )
 
         assertThat(andeler).isEmpty()
+    }
+
+    @Test
+    fun `manglende medlemskap gir vilkårsvalideringsfeil`() {
+        val feil =
+            assertFailsWith<VilkårValideringFeil> {
+                utled(medlemskap = emptyList(), diagnoser = listOf(diagnose(fraOgMedDato = "2026-03-01", tilOgMedDato = null)))
+            }
+
+        assertThat(feil.feil).containsExactly(
+            no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsfeil(
+                VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
+                "Du må vurdere medlemskap i folketrygden.",
+            ),
+        )
+    }
+
+    @Test
+    fun `manglende diagnoser gir vilkårsvalideringsfeil`() {
+        val feil =
+            assertFailsWith<VilkårValideringFeil> {
+                utled(medlemskap = listOf(medlemskap(fraOgMedDato = "2026-03-01", tilOgMedDato = null)), diagnoser = emptyList())
+            }
+
+        assertThat(feil.feil).containsExactly(
+            no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsfeil(
+                VilkårType.DIAGNOSE,
+                "Du må vurdere om det foreligger en varig sykdom, skade eller lyte.",
+            ),
+        )
+    }
+
+    @Test
+    fun `manglende medlemskap og diagnoser rapporteres i samme rekkefølge som før`() {
+        val feil = assertFailsWith<VilkårValideringFeil> { utled(medlemskap = emptyList(), diagnoser = emptyList()) }
+
+        assertThat(feil.feil.map { it.vilkårType }).containsExactly(
+            VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
+            VilkårType.DIAGNOSE,
+        )
+        assertThat(feil.feil.map { it.melding }).containsExactly(
+            "Du må vurdere medlemskap i folketrygden.",
+            "Du må vurdere om det foreligger en varig sykdom, skade eller lyte.",
+        )
+    }
+
+    @Test
+    fun `diagnosedekning valideres før tidlig retur når inngangsvilkårene ikke er oppfylt`() {
+        val feil =
+            assertFailsWith<UgyldigInput> {
+                utled(
+                    medlemskap = listOf(medlemskap(fraOgMedDato = "2026-03-01", tilOgMedDato = null, vurdering = Vurdering.NEI)),
+                    diagnoser = listOf(diagnose(fraOgMedDato = "2026-04-01", tilOgMedDato = null)),
+                    ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "2026-03-01", tilOgMedDato = null, sats = Sats.SATS_2, diagnosekoder = setOf(DIABETES_TYPE_1))),
+                )
+            }
+
+        assertThat(feil).hasMessage(EkstrautgifterRegler.DIAGNOSE_IKKE_OPPFYLT_I_HELE_PERIODEN)
+    }
+
+    @Test
+    fun `gyldig diagnosedekning tillater utledning`() {
+        val andeler =
+            utled(
+                medlemskap = listOf(medlemskap(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
+                diagnoser = listOf(diagnose(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
+                ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "2026-03-01", tilOgMedDato = null, sats = Sats.SATS_2, diagnosekoder = setOf(DIABETES_TYPE_1))),
+                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, teller = 40)),
+            )
+
+        assertAndeler(faktiske = andeler, andel(fom = "2026-04", tom = null, beløp = "1146"))
     }
 
     @Test
@@ -542,13 +617,14 @@ class TilkjentYtelseUtlederTest {
         tilOgMedDato: String?,
         sats: Sats?,
         vurdering: Vurdering = if (sats == null) Vurdering.NEI else Vurdering.JA,
+        diagnosekoder: Set<String> = emptySet(),
     ) = VilkårEkstrautgifter(
         behandlingId = behandlingId,
         vurdering = vurdering,
         sats = sats,
         fraOgMedDato = dato(fraOgMedDato),
         tilOgMedDato = dato(tilOgMedDato),
-    )
+    ).medEkstrautgifter(if (diagnosekoder.isEmpty()) emptyList() else listOf(Ekstrautgift(Hjemmelbokstav.A, diagnosekoder)))
 
     private fun trygdetid(
         fraOgMedDato: String?,
