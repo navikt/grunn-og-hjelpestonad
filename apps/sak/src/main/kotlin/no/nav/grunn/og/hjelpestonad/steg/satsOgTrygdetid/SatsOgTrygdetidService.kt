@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.steg.satsOgTrygdetid
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
@@ -18,10 +19,11 @@ class SatsOgTrygdetidService(
 ) {
     @Transactional
     fun fullførSteg(behandlingId: UUID) {
-        behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID)
 
         beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(behandlingId)
+        behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
         endringshistorikkService.registrerEndring(behandlingId, EndringType.SATS_OG_TRYGDETID_FULLFØRT)
     }
 }

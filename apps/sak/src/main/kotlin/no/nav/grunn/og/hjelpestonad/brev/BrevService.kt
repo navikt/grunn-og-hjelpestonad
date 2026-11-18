@@ -2,6 +2,7 @@ package no.nav.grunn.og.hjelpestonad.brev
 
 import efterlatte.prosessering.spring.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
@@ -33,8 +34,8 @@ class BrevService(
         behandlingId: UUID,
         brevRequest: BrevRequest,
     ) {
-        behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
         val brev =
             Brev(
                 behandlingId = behandlingId,

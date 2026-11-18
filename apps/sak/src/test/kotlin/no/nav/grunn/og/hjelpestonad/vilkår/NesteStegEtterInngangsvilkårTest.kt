@@ -1,7 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.NesteStegEtterInngangsvilkår
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PeriodeMedOppfylteInngangsvilkår
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.utledStegEtterInngangsvilkår
 import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDate
 import kotlin.test.Test
@@ -14,13 +15,11 @@ class NesteStegEtterInngangsvilkårTest {
 
     @Test
     fun `perioder med oppfylte inngangsvilkår går videre til sats og trygdetid`() {
-        assertThat(NesteStegEtterInngangsvilkår.utled(listOf(periode)))
-            .isEqualTo(NesteStegEtterInngangsvilkår.SATS_OG_TRYGDETID)
+        assertThat(utledStegEtterInngangsvilkår(listOf(periode))).isEqualTo(BehandlingSteg.SATS_OG_TRYGDETID)
     }
 
     @Test
-    fun `ingen rett i noen måned hopper rett til simulering`() {
-        assertThat(NesteStegEtterInngangsvilkår.utled(emptyList()))
-            .isEqualTo(NesteStegEtterInngangsvilkår.SIMULERING)
+    fun `ingen rett i noen måned hopper over sats og trygdetid til vedtak og brev`() {
+        assertThat(utledStegEtterInngangsvilkår(emptyList())).isEqualTo(BehandlingSteg.VEDTAK_OG_BREV)
     }
 }

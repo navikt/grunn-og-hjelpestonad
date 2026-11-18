@@ -10,6 +10,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.Årsak
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandling
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandlingService
@@ -64,7 +65,6 @@ class BeslutterServiceTest {
             taskService = taskService,
             ansvarligSaksbehandlerService = ansvarligSaksbehandlerService,
             vedtakService = vedtakService,
-            årsakBehandlingService = årsakBehandlingService,
         )
 
     @Test
@@ -141,6 +141,17 @@ class BeslutterServiceTest {
                 any(),
             )
         }
+    }
+
+    @Test
+    fun `sendTilBeslutter kaller validerKanEndreSteg med VEDTAK_OG_BREV`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
+        every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
+
+        beslutterService.sendTilBeslutter(behandlingId)
+
+        verify { behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) }
     }
 
     @Test
@@ -291,6 +302,24 @@ class BeslutterServiceTest {
                 any(),
             )
         }
+    }
+
+    @Test
+    fun `underkjent vedtak endrer ikke nåværende steg`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
+        every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
+
+        beslutterService.besluttVedtak(
+            behandlingId,
+            BeslutteVedtakRequest(
+                godkjent = false,
+                årsakUnderkjent = ÅrsakUnderkjent.VILKÅR,
+                begrunnelse = "Vilkår må vurderes på nytt",
+            ),
+        )
+
+        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
     }
 
     @Test

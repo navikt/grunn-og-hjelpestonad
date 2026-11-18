@@ -4,7 +4,7 @@ import efterlatte.prosessering.spring.TaskService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
-import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
@@ -38,11 +38,11 @@ class BeslutterService(
     private val taskService: TaskService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val vedtakService: VedtakService,
-    private val årsakBehandlingService: ÅrsakBehandlingService,
 ) {
     @Transactional
     fun sendTilBeslutter(behandlingId: UUID) {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
         validerKanSendeTilBeslutter(behandlingId)
 
         brevService.oppdaterSaksbehandlerForBrev(behandlingId)

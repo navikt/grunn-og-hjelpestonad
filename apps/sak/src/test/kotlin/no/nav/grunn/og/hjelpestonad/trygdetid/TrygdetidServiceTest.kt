@@ -4,7 +4,11 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import no.nav.grunn.og.hjelpestonad.behandling.Behandling
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
@@ -23,10 +27,11 @@ import kotlin.test.assertFailsWith
 class TrygdetidServiceTest {
     private val repository = mockk<TrygdetidRepository>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
+    private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val service =
         TrygdetidService(
             repository,
-            mockk<BehandlingService>(relaxed = true),
+            behandlingService,
             endringshistorikkService,
             mockk<AnsvarligSaksbehandlerService>(relaxed = true),
             mockk(relaxed = true),
@@ -37,6 +42,7 @@ class TrygdetidServiceTest {
     init {
         every { repository.insertAll(any()) } answers { firstArg() }
         every { repository.findByBehandlingId(any()) } returns emptyList()
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(BehandlingSteg.SATS_OG_TRYGDETID)
     }
 
     @Test
@@ -233,5 +239,15 @@ class TrygdetidServiceTest {
         begrunnelse = begrunnelse,
         fraOgMedDato = fraOgMedDato,
         tilOgMedDato = tilOgMedDato,
+    )
+
+    private fun behandling(
+        nåværendeSteg: BehandlingSteg,
+        status: BehandlingStatus = BehandlingStatus.UTREDES,
+    ) = Behandling(
+        fagsakId = UUID.randomUUID(),
+        status = status,
+        resultat = BehandlingResultat.IKKE_SATT,
+        nåværendeSteg = nåværendeSteg,
     )
 }

@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.brev
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.brev.domain.Brevmottaker
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevmottakerRolle
 import no.nav.grunn.og.hjelpestonad.brev.domain.MottakerType
@@ -32,7 +33,7 @@ class BrevmottakerServiceTest {
                 ),
             )
 
-        every { behandlingService.validerBehandlingErRedigerbar(behandlingId) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
+        every { behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
 
         assertThatThrownBy { brevmottakerService.oppdaterBrevmottakere(behandlingId, brevmottakere) }
             .isInstanceOf(Feil::class.java)

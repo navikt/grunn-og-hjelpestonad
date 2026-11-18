@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.vedtak
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
@@ -29,8 +30,8 @@ class VedtakService(
         vedtakRequest: VedtakRequest,
         behandlingId: UUID,
     ): UUID {
-        behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
         when (vedtakRequest.resultatType) {
             ResultatType.INNVILGET, ResultatType.OPPHØR -> {
                 if (tilkjentYtelseService.hentTilkjentYtelse(behandlingId) == null) {

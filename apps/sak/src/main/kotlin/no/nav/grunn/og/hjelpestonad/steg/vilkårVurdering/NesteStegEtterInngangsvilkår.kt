@@ -1,16 +1,9 @@
 package no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering
 
-enum class NesteStegEtterInngangsvilkår {
-    /** Det finnes perioder med oppfylte inngangsvilkår, som må vurderes for sats og trygdetid. */
-    SATS_OG_TRYGDETID,
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 
-    /**
-     * Ingen rett i noen måned. Sats og trygdetid hoppes over.
-     */
-    SIMULERING,
-    ;
-
-    companion object {
-        fun utled(perioder: List<PeriodeMedOppfylteInngangsvilkår>): NesteStegEtterInngangsvilkår = if (perioder.isEmpty()) SIMULERING else SATS_OG_TRYGDETID
-    }
-}
+/**
+ * Steget behandlingen går til når inngangsvilkårene er fullført. Perioder med oppfylte inngangsvilkår må vurderes
+ * for sats og trygdetid. Uten rett i noen måned hoppes sats og trygdetid over.
+ */
+fun utledStegEtterInngangsvilkår(perioder: List<PeriodeMedOppfylteInngangsvilkår>): BehandlingSteg = if (perioder.isEmpty()) BehandlingSteg.VEDTAK_OG_BREV else BehandlingSteg.SATS_OG_TRYGDETID

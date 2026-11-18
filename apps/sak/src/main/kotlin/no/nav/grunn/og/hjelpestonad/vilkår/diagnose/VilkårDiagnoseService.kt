@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.vilkår.diagnose
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.periode.Endringstyper
@@ -31,6 +32,8 @@ class VilkårDiagnoseService(
         tilkjentYtelseService,
     ) {
     override val periodebeskrivelse = "vilkårsvurdering for ${VilkårType.DIAGNOSE.name}"
+
+    override val steg = BehandlingSteg.INNGANGSVILKÅR
 
     /** Bare perioder vurdert til ja kopieres. */
     override fun skalKopieres(periode: VilkårDiagnose) = periode.erVilkårOppfylt()

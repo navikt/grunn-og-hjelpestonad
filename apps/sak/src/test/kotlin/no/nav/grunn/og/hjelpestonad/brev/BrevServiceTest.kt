@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevmalDto
 import no.nav.grunn.og.hjelpestonad.brev.domain.InformasjonOmBrukerDto
@@ -102,7 +103,7 @@ class BrevServiceTest {
         val behandlingId = UUID.randomUUID()
         val brevRequest = gyldigBrevRequest()
 
-        every { behandlingService.validerBehandlingErRedigerbar(behandlingId) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
+        every { behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
 
         assertThatThrownBy { brevService.mellomlagreBrev(behandlingId, brevRequest) }
             .isInstanceOf(Feil::class.java)

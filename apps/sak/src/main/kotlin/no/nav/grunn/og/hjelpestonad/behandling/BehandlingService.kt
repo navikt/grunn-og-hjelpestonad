@@ -16,15 +16,8 @@ class BehandlingService(
 
     fun validerBehandlingErRedigerbar(behandlingId: UUID) {
         val behandling = behandlingRepository.findByIdOrNull(behandlingId) ?: error("Fant ikke behandling med id=$behandlingId")
-        if (!behandling.erRedigerbar()) {
-            throw Feil(
-                melding = "Behandlingen er ikke redigerbar. Status: ${behandling.status}",
-                httpStatus = HttpStatus.BAD_REQUEST,
-            )
-        }
+        behandling.validerErRedigerbar()
     }
-
-    fun erBehandlingRedigerbar(behandlingId: UUID): Boolean = behandlingRepository.findByIdOrNull(behandlingId)?.erRedigerbar() ?: false
 
     fun hentBehandling(behandlingId: UUID): Behandling? = behandlingRepository.findByIdOrNull(behandlingId)
 
@@ -33,6 +26,35 @@ class BehandlingService(
             melding = "Fant ikke behandling med id=$behandlingId",
             httpStatus = HttpStatus.NOT_FOUND,
         )
+
+    /**
+     * Sjekker at saksbehandler kan endre eller fullføre [steg]. Behandlingen må være redigerbar, og steget
+     * må være nådd. Trenger du behandlingen etterpå, hent den og bruk `Behandling.validerKanEndre`.
+     */
+    fun validerKanEndreSteg(
+        behandlingId: UUID,
+        steg: BehandlingSteg,
+    ) = hentBehandlingEllerKast(behandlingId).validerKanEndre(steg)
+
+    /**
+     * For operasjoner som bare leser, som simulering. Sjekker steget bare mens behandlingen er redigerbar.
+     * Etter sending til beslutter kan ikke grunnlaget endres, og beslutter skal kunne se alt.
+     */
+    fun validerHarNåddStegHvisRedigerbar(
+        behandlingId: UUID,
+        steg: BehandlingSteg,
+    ) {
+        val behandling = hentBehandlingEllerKast(behandlingId)
+        if (behandling.erRedigerbar()) behandling.validerHarNådd(steg)
+    }
+
+    fun settNåværendeSteg(
+        behandlingId: UUID,
+        nåværendeSteg: BehandlingSteg,
+    ) {
+        val behandling = hentBehandlingEllerKast(behandlingId)
+        behandlingRepository.update(behandling.copy(nåværendeSteg = nåværendeSteg))
+    }
 
     fun hentBehandlingerFraFagsak(fagsakId: UUID): List<Behandling> = behandlingRepository.findAllByFagsakId(fagsakId)
 
@@ -46,7 +68,7 @@ class BehandlingService(
         behandlingId: UUID,
         status: BehandlingStatus,
     ) {
-        val behandling = behandlingRepository.findByIdOrNull(behandlingId) ?: error("Fant ikke behandling med id=$behandlingId for oppdatering av BehandlingStatus")
+        val behandling = hentBehandlingEllerKast(behandlingId)
         val oppdatertBehandling =
             behandling.copy(
                 status = status,
@@ -58,7 +80,7 @@ class BehandlingService(
         behandlingId: UUID,
         resultat: BehandlingResultat,
     ) {
-        val behandling = behandlingRepository.findByIdOrNull(behandlingId) ?: error("Fant ikke behandling med id=$behandlingId for oppdatering av BehandlingResultat")
+        val behandling = hentBehandlingEllerKast(behandlingId)
         val oppdatertBehandling =
             behandling.copy(
                 resultat = resultat,
@@ -66,5 +88,3 @@ class BehandlingService(
         behandlingRepository.update(oppdatertBehandling)
     }
 }
-
-private fun Behandling.erRedigerbar(): Boolean = status in setOf(BehandlingStatus.OPPRETTET, BehandlingStatus.UTREDES)

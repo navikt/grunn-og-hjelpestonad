@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.brev
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.brev.domain.Brevmottaker
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import org.springframework.stereotype.Service
@@ -20,8 +21,8 @@ class BrevmottakerService(
         behandlingId: UUID,
         brevmottakere: List<Brevmottaker>,
     ): List<Brevmottaker> {
-        behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
         brevmottakerRepository.deleteAllByBehandlingId(behandlingId)
         return brevmottakerRepository.insertAll(
             brevmottakere.map { it.copy(behandlingId = behandlingId) },

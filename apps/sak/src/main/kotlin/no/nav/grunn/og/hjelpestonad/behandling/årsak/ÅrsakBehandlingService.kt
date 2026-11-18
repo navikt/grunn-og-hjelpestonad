@@ -2,10 +2,12 @@ package no.nav.grunn.og.hjelpestonad.behandling.årsak
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Service
@@ -17,40 +19,38 @@ class ÅrsakBehandlingService(
 ) {
     fun hentÅrsakBehandling(behandlingId: UUID): ÅrsakBehandling? = årsakBehandlingRepository.findById(behandlingId).orElse(null)
 
+    @Transactional
     fun lagreÅrsakForBehandling(
         behandlingId: UUID,
         årsakBehandlingRequest: ÅrsakBehandlingRequest,
     ): ÅrsakBehandling {
-        behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
-        val eksisterendeÅrsak = hentÅrsakBehandling(behandlingId)
+        val eksisterendeÅrsak = hentÅrsakBehandling(behandlingId) ?: return lagreNyÅrsak(behandlingId, årsakBehandlingRequest)
 
+        val oppdatertÅrsak =
+            eksisterendeÅrsak.copy(
+                kravdato = årsakBehandlingRequest.kravdato,
+                årsak = årsakBehandlingRequest.årsak,
+                beskrivelse = årsakBehandlingRequest.beskrivelse,
+            )
+        if (oppdatertÅrsak == eksisterendeÅrsak) {
+            return eksisterendeÅrsak
+        }
+        return oppdaterÅrsak(behandlingId, oppdatertÅrsak)
+    }
+
+    private fun lagreNyÅrsak(
+        behandlingId: UUID,
+        årsakBehandlingRequest: ÅrsakBehandlingRequest,
+    ): ÅrsakBehandling {
         behandlingService.oppdaterBehandlingStatus(
             behandlingId = behandlingId,
             status = BehandlingStatus.UTREDES,
         )
-
-        if (eksisterendeÅrsak == null) {
-            val årsak =
-                årsakBehandlingRepository.insert(
-                    ÅrsakBehandling(
-                        behandlingId = behandlingId,
-                        kravdato = årsakBehandlingRequest.kravdato,
-                        årsak = årsakBehandlingRequest.årsak,
-                        beskrivelse = årsakBehandlingRequest.beskrivelse,
-                    ),
-                )
-            endringshistorikkService.registrerEndring(
-                behandlingId = behandlingId,
-                endringType = EndringType.ÅRSAK_LAGRET,
-                detaljer = "Årsak: ${årsakBehandlingRequest.årsak}",
-            )
-            return årsak
-        }
-
-        val oppdatert =
-            årsakBehandlingRepository.update(
-                eksisterendeÅrsak.copy(
+        val lagretÅrsak =
+            årsakBehandlingRepository.insert(
+                ÅrsakBehandling(
+                    behandlingId = behandlingId,
                     kravdato = årsakBehandlingRequest.kravdato,
                     årsak = årsakBehandlingRequest.årsak,
                     beskrivelse = årsakBehandlingRequest.beskrivelse,
@@ -58,9 +58,28 @@ class ÅrsakBehandlingService(
             )
         endringshistorikkService.registrerEndring(
             behandlingId = behandlingId,
-            endringType = EndringType.ÅRSAK_OPPDATERT,
+            endringType = EndringType.ÅRSAK_LAGRET,
             detaljer = "Årsak: ${årsakBehandlingRequest.årsak}",
         )
-        return oppdatert
+        behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
+        return lagretÅrsak
+    }
+
+    private fun oppdaterÅrsak(
+        behandlingId: UUID,
+        oppdatertÅrsak: ÅrsakBehandling,
+    ): ÅrsakBehandling {
+        behandlingService.oppdaterBehandlingStatus(
+            behandlingId = behandlingId,
+            status = BehandlingStatus.UTREDES,
+        )
+        val lagretÅrsak = årsakBehandlingRepository.update(oppdatertÅrsak)
+        endringshistorikkService.registrerEndring(
+            behandlingId = behandlingId,
+            endringType = EndringType.ÅRSAK_OPPDATERT,
+            detaljer = "Årsak: ${oppdatertÅrsak.årsak}",
+        )
+        behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
+        return lagretÅrsak
     }
 }
