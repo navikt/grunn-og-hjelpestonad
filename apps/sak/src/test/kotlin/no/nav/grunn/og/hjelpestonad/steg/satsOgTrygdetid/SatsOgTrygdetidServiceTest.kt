@@ -8,11 +8,8 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
-import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
-import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
@@ -26,8 +23,7 @@ class SatsOgTrygdetidServiceTest {
 
     @Test
     fun `validerer behandling og ansvar før beregning og registrerer historikk etter beregning`() {
-        val andelerTilkjentYtelse = setOf(andel())
-        every { beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(behandlingId) } returns andelerTilkjentYtelse
+        every { beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(behandlingId) } returns Unit
 
         service.fullførSteg(behandlingId)
 
@@ -35,17 +31,17 @@ class SatsOgTrygdetidServiceTest {
             behandlingService.validerBehandlingErRedigerbar(behandlingId)
             ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
             beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(behandlingId)
-            endringshistorikkService.registrerEndring(behandlingId, EndringType.SATS_OG_TRYGDETID_FULLFØRT, "1 andeler, fra 2026-03-01 til 2029-11-30")
+            endringshistorikkService.registrerEndring(behandlingId, EndringType.SATS_OG_TRYGDETID_FULLFØRT, null)
         }
     }
 
     @Test
-    fun `registrerer historikk for tom beregning`() {
-        every { beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(behandlingId) } returns emptySet()
+    fun `registrerer historikk uten detaljer`() {
+        every { beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(behandlingId) } returns Unit
 
         service.fullførSteg(behandlingId)
 
-        verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.SATS_OG_TRYGDETID_FULLFØRT, "0 andeler") }
+        verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.SATS_OG_TRYGDETID_FULLFØRT, null) }
     }
 
     @Test
@@ -76,12 +72,4 @@ class SatsOgTrygdetidServiceTest {
 
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
-
-    private fun andel() =
-        AndelTilkjentYtelse(
-            beløp = BigDecimal("830.85"),
-            fom = LocalDate.of(2026, 3, 1),
-            tom = LocalDate.of(2029, 11, 30),
-            kildeBehandlingId = behandlingId,
-        )
 }

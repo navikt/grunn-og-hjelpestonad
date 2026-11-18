@@ -21,12 +21,7 @@ class SatsOgTrygdetidService(
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
 
-        val andelerTilkjentYtelse = beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(behandlingId)
-        endringshistorikkService.registrerEndring(
-            behandlingId,
-            EndringType.SATS_OG_TRYGDETID_FULLFØRT,
-            "${andelerTilkjentYtelse.size} andeler" +
-                (andelerTilkjentYtelse.minOfOrNull { it.fom }?.let { ", fra $it til ${andelerTilkjentYtelse.maxOf { andel -> andel.tom }}" } ?: ""),
-        )
+        beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(behandlingId)
+        endringshistorikkService.registrerEndring(behandlingId, EndringType.SATS_OG_TRYGDETID_FULLFØRT)
     }
 }
