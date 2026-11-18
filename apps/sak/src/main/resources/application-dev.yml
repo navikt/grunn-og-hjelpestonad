@@ -2,8 +2,6 @@ nais:
     miljo: dev
 
 oppdrag:
-    # Midlertidig: simuler og iverksett med en testandel når behandlingen mangler tilkjent ytelse.
-    bruk-testandel-hvis-mangler: true
     iverksetting:
         # Midlertidig: endepunkt for å teste iverksetting mot oppdrag. Skal ikke settes i prod.
         testendepunkt-aktivert: true

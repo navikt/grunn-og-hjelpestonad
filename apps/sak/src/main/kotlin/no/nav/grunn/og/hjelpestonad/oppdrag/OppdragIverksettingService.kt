@@ -43,7 +43,7 @@ class OppdragIverksettingService(
         if (oppdragResultat.status == OppdragStatus.INGEN_ENDRING) {
             logger.info("Behandling={} endrer ikke utbetalingen, sender ikke oppdrag", behandlingId)
             tellIverksetting("ingen_endring")
-            return Iverksettingsresultat.IngenEndring(oppdragResultat = oppdragResultat, testandel = lagretUtbetalingsoppdrag.testandel)
+            return Iverksettingsresultat.IngenEndring(oppdragResultat = oppdragResultat)
         }
 
         // Alle statuser utenom OPPRETTET er satt etter at OS tok imot oppdraget, så det sendes ikke på nytt.
@@ -60,7 +60,7 @@ class OppdragIverksettingService(
         tellIverksetting(if (iverksettUtfall == IverksettUtfall.ALLEREDE_SENDT) "allerede_sendt" else "ok")
 
         oppdragResultatRepository.oppdaterStatus(behandlingId, OppdragStatus.LAGT_PÅ_KØ, kvitteringsmelding = null)
-        return Iverksettingsresultat.Sendt(oppdragResultat = oppdragResultat, testandel = lagretUtbetalingsoppdrag.testandel)
+        return Iverksettingsresultat.Sendt(oppdragResultat = oppdragResultat)
     }
 
     /**
@@ -99,7 +99,6 @@ sealed interface Iverksettingsresultat {
     /** Generatoren fant ingen endring mot forrige behandling. Oppdraget er lagret med status `INGEN_ENDRING`, men ikke sendt. */
     data class IngenEndring(
         val oppdragResultat: OppdragResultat,
-        val testandel: Testandel?,
     ) : Iverksettingsresultat
 
     /**
@@ -108,7 +107,6 @@ sealed interface Iverksettingsresultat {
      */
     data class Sendt(
         val oppdragResultat: OppdragResultat,
-        val testandel: Testandel?,
     ) : Iverksettingsresultat
 
     /**
@@ -125,6 +123,4 @@ data class OppdragIverksettingResponse(
     /** Behandlings-ID-en oppdraget er lagret med i `familie-oppdrag-backend` (vår eksterne behandlings-ID). */
     val behandlingsId: String,
     val antallPerioder: Int,
-    /** Satt når behandlingen manglet tilkjent ytelse og vi iverksatte med en testandel. */
-    val testandel: Testandel?,
 )

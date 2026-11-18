@@ -4,7 +4,7 @@ import { simulerMotOppdrag } from "~/api/generated/sdk.gen";
 import type { OppdragSimuleringResponse } from "~/api/generated/types.gen";
 import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 import { formaterDato } from "~/komponenter/infotrygd/formatering";
-import { formaterBelop, formaterIsoMånedÅr } from "~/utils/utils";
+import { formaterBelop } from "~/utils/utils";
 
 /**
  * Midlertidig visning for å teste integrasjonen mot familie-oppdrag-backend.
@@ -51,19 +51,6 @@ export const OppdragSimulering: React.FC<{ behandlingId: string }> = ({ behandli
             <LocalAlert.Title>Simuleringen feilet</LocalAlert.Title>
           </LocalAlert.Header>
           <LocalAlert.Content>{feilmelding}</LocalAlert.Content>
-        </LocalAlert>
-      )}
-
-      {resultat?.testandel && (
-        <LocalAlert status="warning">
-          <LocalAlert.Header>
-            <LocalAlert.Title>Simulert med testandel</LocalAlert.Title>
-          </LocalAlert.Header>
-          <LocalAlert.Content>
-            Behandlingen har ingen tilkjent ytelse. Vi simulerte med{" "}
-            {formaterBelop(resultat.testandel.beløp)} for{" "}
-            {formaterIsoMånedÅr(resultat.testandel.fom)}.
-          </LocalAlert.Content>
         </LocalAlert>
       )}
 
