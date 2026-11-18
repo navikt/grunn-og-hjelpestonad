@@ -84,8 +84,8 @@ class JournalføringService(
 
     fun vedtaksbrevForStønadType(stønadType: StønadType): Dokumenttype =
         when (stønadType) {
-            StønadType.BARNETILSYN -> Dokumenttype.VEDTAKSBREV_BARNETILSYN
-            StønadType.SKOLEPENGER -> Dokumenttype.VEDTAKSBREV_SKOLEPENGER
+            StønadType.GRUNNSTØNAD -> Dokumenttype.VEDTAKSBREV_BARNETILSYN
+            StønadType.HJELPESTØNAD -> Dokumenttype.VEDTAKSBREV_SKOLEPENGER
         }
 
     fun hentVariantformat(dokument: Dokument): String =
@@ -97,8 +97,8 @@ class JournalføringService(
 
     fun lagStønadtypeTekst(stønadstype: StønadType): String =
         when (stønadstype) {
-            StønadType.BARNETILSYN -> "stønad til barnetilsyn"
-            StønadType.SKOLEPENGER -> "stønad til skolepenger"
+            StønadType.GRUNNSTØNAD -> "stønad til barnetilsyn"
+            StønadType.HJELPESTØNAD -> "stønad til skolepenger"
         }
 
     private fun Brevmottaker.tilAvsenderMottaker(): AvsenderMottaker =

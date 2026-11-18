@@ -200,14 +200,14 @@ class AnsvarligSaksbehandlerServiceTest {
         ) = Oppgave(
             behandlingId = behandlingId,
             gsakOppgaveId = gsakOppgaveId,
-            type = OppgavetypeEYO.BEH_SAK.name,
+            type = OppgavetypeGRU.BEH_SAK.name,
         )
 
         private fun lagGosysOppgave(tilordnetRessurs: String?) =
             OppgaveDto(
                 id = 12345L,
-                tema = Tema.EYO,
-                oppgavetype = OppgavetypeEYO.BEH_SAK.name,
+                tema = Tema.GRU,
+                oppgavetype = OppgavetypeGRU.BEH_SAK.name,
                 tilordnetRessurs = tilordnetRessurs,
             )
 

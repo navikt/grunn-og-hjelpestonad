@@ -32,7 +32,7 @@ class UtbetalingsoppdragServiceTest {
     private val tilkjentYtelseService = mockk<TilkjentYtelseService>()
     private val oppdragResultatRepository = mockk<OppdragResultatRepository>()
 
-    private val fagsak = Fagsak(fagsakPersonId = java.util.UUID.randomUUID(), eksternId = 2L, stønadstype = StønadType.BARNETILSYN)
+    private val fagsak = Fagsak(fagsakPersonId = java.util.UUID.randomUUID(), eksternId = 2L, stønadstype = StønadType.GRUNNSTØNAD)
     private val behandling =
         Behandling(
             eksternId = 1L,

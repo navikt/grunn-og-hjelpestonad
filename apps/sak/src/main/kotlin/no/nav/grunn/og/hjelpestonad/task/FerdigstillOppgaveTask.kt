@@ -3,7 +3,7 @@ package no.nav.grunn.og.hjelpestonad.task
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
-import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeEYO
+import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeGRU
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -32,6 +32,6 @@ class FerdigstillOppgaveTask(
 
 data class FerdigstillOppgaveTaskData(
     val behandlingId: UUID,
-    val oppgavetype: OppgavetypeEYO,
+    val oppgavetype: OppgavetypeGRU,
     val unik: LocalDateTime = LocalDateTime.now(),
 )

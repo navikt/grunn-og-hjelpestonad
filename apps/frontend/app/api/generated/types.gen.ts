@@ -287,14 +287,14 @@ export type InfotrygdGjeldendePerioderResponse = {
 
 export type FagsakRequest = {
     personident: string;
-    stønadstype: 'BARNETILSYN' | 'SKOLEPENGER';
+    stønadstype: 'GRUNNSTØNAD' | 'HJELPESTØNAD';
 };
 
 export type FagsakResponse = {
     id: string;
     fagsakPersonId: string;
     personident: string;
-    stønadstype: 'BARNETILSYN' | 'SKOLEPENGER';
+    stønadstype: 'GRUNNSTØNAD' | 'HJELPESTØNAD';
     eksternId: number;
 };
 
@@ -1226,7 +1226,7 @@ export type HentFagsakData = {
     body?: never;
     path: {
         fagsakPersonId: string;
-        stonadstype: 'BARNETILSYN' | 'SKOLEPENGER';
+        stonadstype: 'GRUNNSTØNAD' | 'HJELPESTØNAD';
     };
     query?: never;
     url: '/api/fagsak/fagsak-person/{fagsakPersonId}/{stonadstype}';

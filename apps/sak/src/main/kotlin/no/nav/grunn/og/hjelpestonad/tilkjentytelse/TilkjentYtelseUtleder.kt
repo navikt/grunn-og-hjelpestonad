@@ -11,10 +11,13 @@ import no.nav.familie.tidslinje.utvidelser.tilPerioderIkkeNull
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.felles.periode.tilTidslinje
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PerioderMedOppfylteInngangsvilkårUtleder
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingValidering
 import no.nav.grunn.og.hjelpestonad.trygdetid.Trygdetid
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidRegler
 import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
+import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.EkstrautgifterRegler
 import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifter
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import java.math.BigDecimal
@@ -58,6 +61,15 @@ object TilkjentYtelseUtleder {
         ekstrautgifter: List<VilkårEkstrautgifter>,
         trygdetid: List<Trygdetid>,
     ): List<UtledetAndel> {
+        val inngangsvilkårsfeil = VilkårVurderingValidering.valider(medlemskap, diagnoser)
+        if (inngangsvilkårsfeil.isNotEmpty()) throw VilkårValideringFeil(inngangsvilkårsfeil)
+
+        ekstrautgifter.forEach { vilkårEkstrautgifter ->
+            if (!EkstrautgifterRegler.erDiagnoseneOppfyltIHelePerioden(vilkårEkstrautgifter, diagnoser)) {
+                throw UgyldigInput(EkstrautgifterRegler.DIAGNOSE_IKKE_OPPFYLT_I_HELE_PERIODEN)
+            }
+        }
+
         val perioderMedOppfylteInngangsvilkår = PerioderMedOppfylteInngangsvilkårUtleder.utled(medlemskap, diagnoser)
         if (perioderMedOppfylteInngangsvilkår.isEmpty()) return emptyList()
 

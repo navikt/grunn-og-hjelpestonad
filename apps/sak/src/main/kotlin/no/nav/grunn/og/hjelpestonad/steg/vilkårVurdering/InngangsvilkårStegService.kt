@@ -36,9 +36,10 @@ class InngangsvilkårStegService(
         if (feil.isNotEmpty()) throw VilkårValideringFeil(feil)
 
         val perioder = PerioderMedOppfylteInngangsvilkårUtleder.utled(vurderteInngangsvilkår)
-        if (perioder.isEmpty()) beregnTilkjentYtelseService.lagreTilkjentYtelseUtenAndeler(behandlingId)
+        val nesteSteg = NesteStegEtterInngangsvilkår.utled(perioder)
+        if (nesteSteg == NesteStegEtterInngangsvilkår.SIMULERING) beregnTilkjentYtelseService.lagreTilkjentYtelseUtenAndeler(behandlingId)
         registrerEndringshistorikk(behandlingId, perioder)
-        return InngangsvilkårResultat(perioder = perioder, nesteSteg = NesteStegEtterInngangsvilkår.utled(perioder))
+        return InngangsvilkårResultat(perioder = perioder, nesteSteg = nesteSteg)
     }
 
     fun hentPerioder(behandlingId: UUID): List<PeriodeMedOppfylteInngangsvilkår> = PerioderMedOppfylteInngangsvilkårUtleder.utled(hentVurderteInngangsvilkår(behandlingId))

@@ -1,15 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.tilkjentytelse
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
-import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
-import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
-import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingValidering
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VurderteInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidService
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
-import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.EkstrautgifterRegler
 import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifterService
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
 import org.springframework.stereotype.Service
@@ -26,27 +19,13 @@ class BeregnTilkjentYtelseService(
     private val vilkårDiagnoseService: VilkårDiagnoseService,
     private val vilkårEkstrautgifterService: VilkårEkstrautgifterService,
     private val trygdetidService: TrygdetidService,
-    private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
-    private val endringshistorikkService: EndringshistorikkService,
     private val clock: Clock = Clock.systemDefaultZone(),
 ) {
     @Transactional
-    fun fullførSteg(behandlingId: UUID) {
-        behandlingService.validerBehandlingErRedigerbar(behandlingId)
-        ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
-
+    fun beregnOgLagreTilkjentYtelse(behandlingId: UUID) {
         val vilkårMedlemskapPerioder = vilkårMedlemskapService.hentPerioder(behandlingId)
         val vilkårDiagnosePerioder = vilkårDiagnoseService.hentPerioder(behandlingId)
-        val inngangsvilkårsfeil =
-            VilkårVurderingValidering.valider(
-                VurderteInngangsvilkår(behandlingId, vilkårMedlemskapPerioder, vilkårDiagnosePerioder),
-            )
-        if (inngangsvilkårsfeil.isNotEmpty()) throw VilkårValideringFeil(inngangsvilkårsfeil)
-
         val vilkårEkstrautgifterPerioder = vilkårEkstrautgifterService.hentPerioder(behandlingId)
-        vilkårEkstrautgifterPerioder.forEach {
-            EkstrautgifterRegler.validerDiagnoserOppfyltIHelePerioden(it, vilkårDiagnosePerioder)
-        }
         val utlededeAndeler =
             TilkjentYtelseUtleder.utled(
                 vilkårMedlemskapPerioder,
@@ -56,15 +35,9 @@ class BeregnTilkjentYtelseService(
             )
         val andelerTilkjentYtelse = fyllInnManglendeSluttdato(utlededeAndeler, YearMonth.now(clock), behandlingId)
         lagreTilkjentYtelse(behandlingId, andelerTilkjentYtelse)
-        endringshistorikkService.registrerEndring(
-            behandlingId,
-            EndringType.SATS_OG_TRYGDETID_FULLFØRT,
-            "${andelerTilkjentYtelse.size} andeler" +
-                (andelerTilkjentYtelse.minOfOrNull { it.fom }?.let { ", fra $it til ${andelerTilkjentYtelse.maxOf { andel -> andel.tom }}" } ?: ""),
-        )
     }
 
-    /** Brukes også når steg 1 hopper over sats og trygdetid fordi inngangsvilkårene ikke er oppfylt. */
+    /** Brukes når inngangsvilkårene ikke er oppfylt og sats og trygdetid hoppes over. */
     @Transactional
     fun lagreTilkjentYtelseUtenAndeler(behandlingId: UUID) = lagreTilkjentYtelse(behandlingId, emptySet())
 
@@ -74,13 +47,11 @@ class BeregnTilkjentYtelseService(
     ) {
         val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
         val forrigeStartmåned = behandling.forrigeBehandlingId?.let { tilkjentYtelseService.hentTilkjentYtelse(it)?.startmåned }
-        val startmåned =
-            if (andelerTilkjentYtelse.isEmpty() && forrigeStartmåned == null) {
-                // Ingen utbetaling i en førstegangsbehandling. Startmåneden brukes ikke til et oppdrag.
-                YearMonth.now(clock)
-            } else {
-                utledStartmåned(andelerTilkjentYtelse, forrigeStartmåned, opphørsmåned = null)
-            }
+        if (andelerTilkjentYtelse.isEmpty() && forrigeStartmåned == null) {
+            tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
+            return
+        }
+        val startmåned = utledStartmåned(andelerTilkjentYtelse, forrigeStartmåned, opphørsmåned = null)
         tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
         tilkjentYtelseService.lagre(TilkjentYtelse(behandlingId = behandlingId, startmåned = startmåned, andelerTilkjentYtelse = andelerTilkjentYtelse))
     }

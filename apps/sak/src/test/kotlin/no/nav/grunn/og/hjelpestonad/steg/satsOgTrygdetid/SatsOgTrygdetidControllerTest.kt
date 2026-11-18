@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.tilkjentytelse
+package no.nav.grunn.og.hjelpestonad.steg.satsOgTrygdetid
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -7,6 +7,10 @@ import io.mockk.verifyOrder
 import no.nav.grunn.og.hjelpestonad.ApplicationLocalSetup
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.ManglerTilgangTilPersonFeil
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseUtleder
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.UtledningAvTilkjentYtelseFeil
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.Utledningsfeil
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.Valideringsnøkkel
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -26,7 +30,7 @@ class SatsOgTrygdetidControllerTest {
     private lateinit var mockMvc: MockMvc
 
     @MockkBean(relaxed = true)
-    private lateinit var beregnTilkjentYtelseService: BeregnTilkjentYtelseService
+    private lateinit var satsOgTrygdetidService: SatsOgTrygdetidService
 
     @MockkBean(relaxed = true)
     private lateinit var tilgangService: TilgangService
@@ -39,7 +43,7 @@ class SatsOgTrygdetidControllerTest {
         mockMvc.post(url).andExpect { status { isNoContent() } }
         verifyOrder {
             tilgangService.validerTilgangTilBehandling(behandlingId)
-            beregnTilkjentYtelseService.fullførSteg(behandlingId)
+            satsOgTrygdetidService.fullførSteg(behandlingId)
         }
     }
 
@@ -47,12 +51,12 @@ class SatsOgTrygdetidControllerTest {
     fun `manglende persontilgang stopper før beregning`() {
         every { tilgangService.validerTilgangTilBehandling(behandlingId) } throws ManglerTilgangTilPersonFeil(avvisningskode = null)
         mockMvc.post(url).andExpect { status { isForbidden() } }
-        verify(exactly = 0) { beregnTilkjentYtelseService.fullførSteg(any()) }
+        verify(exactly = 0) { satsOgTrygdetidService.fullførSteg(any()) }
     }
 
     @Test
     fun `manglende trygdetid returneres som strukturert valideringsfeil`() {
-        every { beregnTilkjentYtelseService.fullførSteg(behandlingId) } throws
+        every { satsOgTrygdetidService.fullførSteg(behandlingId) } throws
             UtledningAvTilkjentYtelseFeil(
                 listOf(Utledningsfeil(Valideringsnøkkel.Trygdetid, TilkjentYtelseUtleder.TRYGDETID_MANGLER)),
             )

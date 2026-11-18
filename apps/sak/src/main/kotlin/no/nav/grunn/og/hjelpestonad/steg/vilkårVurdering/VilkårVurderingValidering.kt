@@ -1,6 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering
 
 import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
+import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
+import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 
 data class Valideringsfeil(
     val vilkårType: VilkårType,
@@ -8,9 +10,14 @@ data class Valideringsfeil(
 )
 
 object VilkårVurderingValidering {
-    fun valider(vurderteInngangsvilkår: VurderteInngangsvilkår): List<Valideringsfeil> =
+    fun valider(vurderteInngangsvilkår: VurderteInngangsvilkår): List<Valideringsfeil> = valider(vurderteInngangsvilkår.medlemskap, vurderteInngangsvilkår.diagnoser)
+
+    fun valider(
+        medlemskap: List<VilkårMedlemskap>,
+        diagnoser: List<VilkårDiagnose>,
+    ): List<Valideringsfeil> =
         buildList {
-            if (vurderteInngangsvilkår.medlemskap.isEmpty()) {
+            if (medlemskap.isEmpty()) {
                 add(
                     Valideringsfeil(
                         VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
@@ -18,7 +25,7 @@ object VilkårVurderingValidering {
                     ),
                 )
             }
-            if (vurderteInngangsvilkår.diagnoser.isEmpty()) {
+            if (diagnoser.isEmpty()) {
                 add(
                     Valideringsfeil(
                         VilkårType.DIAGNOSE,
