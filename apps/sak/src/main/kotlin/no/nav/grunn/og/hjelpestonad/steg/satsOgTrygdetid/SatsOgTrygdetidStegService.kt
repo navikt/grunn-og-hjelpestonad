@@ -1,9 +1,15 @@
-package no.nav.grunn.og.hjelpestonad.tilkjentytelse
+package no.nav.grunn.og.hjelpestonad.steg.satsogtrygdetid
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseUtleder
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.fyllInnManglendeSluttdato
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.utledStartmåned
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidService
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
 import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifterService
@@ -15,7 +21,7 @@ import java.time.YearMonth
 import java.util.UUID
 
 @Service
-class BeregnTilkjentYtelseService(
+class SatsOgTrygdetidStegService(
     private val behandlingService: BehandlingService,
     private val tilkjentYtelseService: TilkjentYtelseService,
     private val vilkårMedlemskapService: VilkårMedlemskapService,

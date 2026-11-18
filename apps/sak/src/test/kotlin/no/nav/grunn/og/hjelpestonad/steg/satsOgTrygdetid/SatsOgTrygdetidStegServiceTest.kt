@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.tilkjentytelse
+package no.nav.grunn.og.hjelpestonad.steg.satsogtrygdetid
 
 import io.mockk.every
 import io.mockk.mockk
@@ -14,6 +14,12 @@ import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.oppdrag.Oppdragsgrunnlag
 import no.nav.grunn.og.hjelpestonad.oppdrag.lagUtbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseUtleder
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.UtledningAvTilkjentYtelseFeil
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.Utledningsfeil
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.Valideringsnøkkel
 import no.nav.grunn.og.hjelpestonad.trygdetid.Trygdetid
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidKilde
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidService
@@ -38,7 +44,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
-class BeregnTilkjentYtelseServiceTest {
+class SatsOgTrygdetidStegServiceTest {
     private val behandlingId = UUID.randomUUID()
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val tilkjentYtelseService = mockk<TilkjentYtelseService>(relaxed = true)
@@ -47,7 +53,7 @@ class BeregnTilkjentYtelseServiceTest {
     private val ekstrautgifterService = mockk<VilkårEkstrautgifterService>()
     private val trygdetidService = mockk<TrygdetidService>()
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
-    private val service = BeregnTilkjentYtelseService(behandlingService, tilkjentYtelseService, medlemskapService, diagnoseService, ekstrautgifterService, trygdetidService, ansvarligSaksbehandlerService, mockk<EndringshistorikkService>(relaxed = true), Clock.fixed(Instant.parse("2026-11-17T12:00:00Z"), ZoneOffset.UTC))
+    private val service = SatsOgTrygdetidStegService(behandlingService, tilkjentYtelseService, medlemskapService, diagnoseService, ekstrautgifterService, trygdetidService, ansvarligSaksbehandlerService, mockk<EndringshistorikkService>(relaxed = true), Clock.fixed(Instant.parse("2026-11-17T12:00:00Z"), ZoneOffset.UTC))
     private val fraOgMedDato = LocalDate.of(2026, 3, 1)
     private val behandling = Behandling(fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT)
 

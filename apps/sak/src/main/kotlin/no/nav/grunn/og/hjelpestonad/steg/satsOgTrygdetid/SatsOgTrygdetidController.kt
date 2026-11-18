@@ -1,10 +1,12 @@
-package no.nav.grunn.og.hjelpestonad.tilkjentytelse
+package no.nav.grunn.og.hjelpestonad.steg.satsogtrygdetid
 
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.UtledningAvTilkjentYtelseFeil
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.Valideringsnøkkel
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -30,7 +32,7 @@ data class SatsOgTrygdetidFeilResponse(
 @PreAuthorize("hasRole('SAKSBEHANDLER')")
 @RequestMapping("/api/behandling/{behandlingId}/sats-og-trygdetid")
 class SatsOgTrygdetidController(
-    private val beregnTilkjentYtelseService: BeregnTilkjentYtelseService,
+    private val satsOgTrygdetidStegService: SatsOgTrygdetidStegService,
     private val tilgangService: TilgangService,
 ) {
     @PostMapping("/fullfor")
@@ -39,7 +41,7 @@ class SatsOgTrygdetidController(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<Void> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        beregnTilkjentYtelseService.fullførSteg(behandlingId)
+        satsOgTrygdetidStegService.fullførSteg(behandlingId)
         return ResponseEntity.noContent().build()
     }
 
