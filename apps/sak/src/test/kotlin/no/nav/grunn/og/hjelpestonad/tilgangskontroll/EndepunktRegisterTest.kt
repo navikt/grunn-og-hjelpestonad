@@ -139,9 +139,17 @@ class EndepunktRegisterTest {
                 "ÅrsakBehandlingController#lagreÅrsakBehandling",
             )
 
-        // Tar ikke imot noe som peker på en person.
+        // Prosessering er et eksplisitt driftsunntak i dev (ADR-0009); øvrige peker ikke på en person.
         private val UTEN_PERSONSJEKK =
             setOf(
+                "ProsesseringController#hentStatusoversikt",
+                "ProsesseringController#hentTyper",
+                "ProsesseringController#hentTasks",
+                "ProsesseringController#hentTask",
+                "ProsesseringController#hentLogg",
+                "ProsesseringController#rekjor",
+                "ProsesseringController#avbryt",
+                "ProsesseringController#registrerAvvik",
                 "DiagnosekodeController#søkDiagnosekoder",
                 "UnleashController#hentFeatureToggles",
                 "TestDbController#hentTestData",

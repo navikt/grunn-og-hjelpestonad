@@ -74,6 +74,31 @@ Endepunkter uten personsjekk: `DiagnosekodeController`, `UnleashController` og
 `TestDbController`. Task-endepunktene (`/api/task/**`) forsvant da sak byttet fra
 familie-prosessering til efterlatte-prosessering, som ikke har endepunkter.
 
+### Driftsunntak for prosessering i dev
+
+Det nye `/api/prosessering/**` er et eksplisitt unntak fra personsjekken, kun i dev.
+Ansatte med et gyldig Azure-brukertoken, `NAVident` og gruppen
+`928636f4-fd0d-4149-978e-a6fb68bb19de` kan lese og administrere alle tasks.
+Dette inkluderer payload, metadata og feilmeldinger som kan inneholde fødselsnummer,
+helseopplysninger og stønadsopplysninger, også om skjermede personer.
+Gruppen er dermed en privilegert driftsrolle, ikke en saksbehandlerrolle.
+Tilgang til øvrige endepunkter og deres personsjekker endres ikke.
+
+Maskintoken skal avvises, også om tokenet har gruppen. Nais-regelen fra
+`efterlatte-verktoy` i namespace `etterlatte` åpner nettverket og preautoriserer
+OBO-kall; den erstatter ikke brukerens gruppekrav.
+
+**Status:** API-et er stengt av en tilgangsstub som avviser alle kall. Unntaket
+trer ikke i kraft før tilgangskontrollen er implementert og gjennomgått.
+Controller, sikkerhetskjede og tilgangsstub er avgrenset til `dev`, og er
+deaktivert hvis `prod` eller `local-mock` også er aktive.
+
+Utlevering av tasks og hendelseslogg samt utførte operatørhandlinger logges med
+task-id og NAV-ident til `secureLogger`, uten payload eller avvikstekst.
+Sensitive feildetaljer skal bare logges til `secureLogger`. Svar skal ikke
+mellomlagres. Task-endepunktene er klassifisert som driftsunntak i
+`EndepunktRegisterTest`.
+
 ### Svar ved avslag og feil
 
 - Avslag gir `403` med en melding per avvisningskode, for eksempel «Du har ikke

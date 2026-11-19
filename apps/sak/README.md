@@ -72,3 +72,62 @@ docker compose --profile mock down -v   # Slett data
 Actuator eksponerer liveness og readiness på `/internal/health/liveness` og
 `/internal/health/readiness`. Prometheus-metrikker er tilgjengelige på
 `/internal/prometheus` og inkluderer Spring Boot-, JVM-, database- og Kafka-metrikker.
+
+## Prosessering i efterlatte-verktoy (kun dev)
+
+**Ikke bruksklart:** `ProsesseringTilgang.krevTilgang` er en sikkerhetsstub som
+avviser alle kall. Tilgangskontrollen må skrives og gjennomgås før API-et åpnes.
+De deaktiverte testskjelettene i `ProsesseringTilgangTest` beskriver deler av
+tilgangskravene og må aktiveres og suppleres.
+
+Admin-API-et følger `/api/prosessering/task`-kontrakten i
+[efterlatte-verktoy](https://github.com/navikt/efterlatte-verktoy/pull/25):
+statusoversikt, typer, paginert liste, enkeltoppslag, logg, rekjøring, avbryt og avvik.
+Listefilteret bruker `status`, `type`, `side` (fra 1) og `antallPerSide` (1–100).
+Skriveoperasjoner krever `versjon`; avvik krever også en ikke-tom `melding`.
+Konflikter gir `409`, og task-endring og historikk lagres i samme transaksjon.
+Rekjøring beholder `antallFeil`.
+
+### Tilgang og sensitive opplysninger
+
+Den planlagte tilgangen er Azure OBO-brukertoken med `NAVident` og gruppen
+`928636f4-fd0d-4149-978e-a6fb68bb19de` (`prosessering.rolle`). Maskintoken skal
+avvises. Gruppen gir lesing og administrasjon av **alle tasks uten personsjekk**,
+også tasks med sensitive opplysninger. Se det avgrensede driftsunntaket i
+[ADR-0009](../../docs/adr/ADR-0009-tilgangskontroll-mot-person.md#driftsunntak-for-prosessering-i-dev).
+Ingen saksbehandlerroller eller øvrige endepunkter skal åpnes.
+
+API-et, sikkerhetskjeden og tilgangsstubben er bare aktive med `dev`, og aldri
+sammen med `prod` eller `local-mock`. Eksisterende validering av signatur,
+utsteder, audience og utløp beholdes. Svar mellomlagres ikke. Utlevering av tasks
+og hendelseslogg samt utførte handlinger logges til `secureLogger` med NAV-ident
+og task-id, uten payload og avvikstekst. Sensitive feildetaljer må aldri sendes
+til vanlig logg.
+
+### Tilkobling, utrulling og tilbakeføring
+
+Dev-manifestet tillater inbound fra `efterlatte-verktoy` i namespace `etterlatte`
+og inkluderer prosesseringsgruppen i Azure-claims. På verktøysiden brukes:
+
+| Innstilling | Verdi |
+|---|---|
+| Base-URL | `http://grunn-og-hjelpestonad.grunn-og-hjelp` |
+| OBO-scope | `api://dev-gcp.grunn-og-hjelp.grunn-og-hjelpestonad/.default` |
+| API-variant | `kontrakt` |
+
+Begge repoer må deployes til dev etter at tilgangskontrollen er ferdig. Bruk
+eksisterende backend-workflows; ingen nye ressurser eller migrasjoner kreves.
+Verktøyets PR beskriver tilgangskontrollen som ferdig, men den er foreløpig en
+stub i dette repoet.
+
+Før API-et regnes som åpnet:
+
+- Bekreft at riktig gruppe får tilgang, mens feil gruppe, manglende `NAVident`
+  og maskintoken avvises.
+- Bekreft liste, statusoversikt og historikk, samt rekjøring og avvik på testtasks.
+- Følg HTTP-statuskoder og responstider i eksisterende HTTP-metrikker, og
+  handlingslogger i Team Logs. Bekreft at sensitivt innhold ikke finnes i vanlig logg.
+- Bekreft at API-et ikke registreres med prod-profil.
+
+Tilbakeføring: deploy forrige backend-versjon og fjern inbound-regelen for
+verktøyet. Dette stenger tilgang, men angrer ikke utførte operatørhandlinger.
