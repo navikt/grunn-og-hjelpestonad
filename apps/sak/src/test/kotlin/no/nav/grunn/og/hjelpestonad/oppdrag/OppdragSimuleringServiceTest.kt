@@ -58,12 +58,12 @@ class OppdragSimuleringServiceTest {
     fun `validerer steget før oppdraget lages og simuleres, og returnerer resultatet fra klienten`() {
         every { behandlingStegService.validerHarNåddStegHvisRedigerbar(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) } just runs
         every { utbetalingsoppdragService.lagUtbetalingsoppdrag(behandlingId, innloggetSaksbehandlerIdent) } returns
-            UtbetalingsoppdragForBehandling(utbetalingsoppdrag = utbetalingsoppdrag, testandel = null)
+            UtbetalingsoppdragForBehandling(utbetalingsoppdrag = utbetalingsoppdrag)
         every { oppdragClient.simuler(utbetalingsoppdrag) } returns detaljertSimuleringResultat
 
         val oppdragSimuleringResponse = service.simuler(behandlingId)
 
-        assertThat(oppdragSimuleringResponse).isEqualTo(OppdragSimuleringResponse(resultat = detaljertSimuleringResultat, testandel = null))
+        assertThat(oppdragSimuleringResponse).isEqualTo(OppdragSimuleringResponse(resultat = detaljertSimuleringResultat))
         verifyOrder {
             behandlingStegService.validerHarNåddStegHvisRedigerbar(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
             utbetalingsoppdragService.lagUtbetalingsoppdrag(behandlingId, innloggetSaksbehandlerIdent)
