@@ -80,7 +80,7 @@ class BeslutterServiceTest {
 
         verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
         verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.SENDT_TIL_BESLUTTER) }
-        verify { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }
+        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } //TODO fjern exactly = 0 når vi lagrer vedtak
         verify {
             taskService.opprett(
                 FerdigstillOppgaveTask.TYPE,
@@ -157,21 +157,22 @@ class BeslutterServiceTest {
     }
 
     @Test
-    fun `manglende beregning stopper sending før status oppgaver og brev endres`() {
+    fun `sending til beslutter krever foreløpig ikke beregning`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
         every { oppgaveService.hentAktivOppgavetype(behandlingId) } returns OppgavetypeGRU.BEH_SAK
         every { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } throws Feil("Fullfør beregningen", HttpStatus.BAD_REQUEST)
 
-        assertThatThrownBy { beslutterService.sendTilBeslutter(behandlingId) }.isInstanceOf(Feil::class.java)
+        beslutterService.sendTilBeslutter(behandlingId)
 
-        verifyIngenEndringer()
-        verify(exactly = 0) { brevService.oppdaterSaksbehandlerForBrev(any()) }
+        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }  //TODO fjern exactly = 0 når vi lagrer vedtak
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
+        verify { brevService.oppdaterSaksbehandlerForBrev(behandlingId) }
     }
 
     @Test
-    fun `vedtaksresultatkontroll kjøres ved revurdering`() {
+    fun `revurdering kan sendes til beslutter uten vedtaksresultatkontroll`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES).copy(forrigeBehandlingId = UUID.randomUUID())
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
@@ -179,7 +180,8 @@ class BeslutterServiceTest {
 
         beslutterService.sendTilBeslutter(behandlingId)
 
-        verify(exactly = 1) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }
+        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }  //TODO fjern exactly = 0 når vi lagrer vedtak
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
     }
 
     @Test
