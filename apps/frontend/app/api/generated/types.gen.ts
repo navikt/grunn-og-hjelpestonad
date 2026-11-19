@@ -5,7 +5,7 @@ export type ClientOptions = {
 };
 
 export type Valideringsfeil = {
-    vilkårType: 'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN' | 'DIAGNOSE' | 'NØDVENDIGE_EKSTRAUTGIFTER';
+    nøkkel: 'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN' | 'DIAGNOSE' | 'NØDVENDIGE_EKSTRAUTGIFTER' | 'TRYGDETID';
     melding: string;
 };
 
@@ -13,17 +13,6 @@ export type VilkårValideringFeilResponse = {
     melding: string;
     status: number;
     feil: Array<Valideringsfeil>;
-};
-
-export type SatsOgTrygdetidFeilResponse = {
-    melding: string;
-    status: number;
-    feil: Array<SatsOgTrygdetidValideringsfeil>;
-};
-
-export type SatsOgTrygdetidValideringsfeil = {
-    nøkkel: 'inngangsvilkår' | 'ekstrautgifter' | 'trygdetid';
-    melding: string;
 };
 
 export type GrunnstønadPeriode = {
@@ -961,7 +950,7 @@ export type FullførSatsOgTrygdetidData = {
 };
 
 export type FullførSatsOgTrygdetidErrors = {
-    400: SatsOgTrygdetidFeilResponse;
+    400: VilkårValideringFeilResponse;
 };
 
 export type FullførSatsOgTrygdetidError = FullførSatsOgTrygdetidErrors[keyof FullførSatsOgTrygdetidErrors];
