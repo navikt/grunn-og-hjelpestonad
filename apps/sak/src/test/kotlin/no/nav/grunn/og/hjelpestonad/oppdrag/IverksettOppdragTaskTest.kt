@@ -5,20 +5,39 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.UUID
+import kotlin.time.Duration.Companion.minutes
 
 class IverksettOppdragTaskTest {
     private val oppdragIverksettingService = mockk<OppdragIverksettingService>()
-    private val klokke = Clock.fixed(Instant.parse("2026-11-09T12:00:00Z"), ZoneOffset.UTC)
+    private val klokke = Clock.fixed(Instant.parse("2026-11-13T20:00:00Z"), ZoneOffset.UTC)
     private val task = IverksettOppdragTask(oppdragIverksettingService, klokke)
 
     @Test
-    fun `sendt oppdrag oppretter status-task med første forsøk etter 30 sekunder`() {
+    fun `feil ved sending prøves igjen etter 15 minutter uten å opprette statustask`() {
+        val behandlingId = UUID.randomUUID()
+        val saksbehandlerId = "Z123456"
+        val kontekst = kontekst(behandlingId, saksbehandlerId)
+        val sendingFeilet = IllegalStateException("Sending feilet")
+        every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } throws sendingFeilet
+
+        assertThatThrownBy { task.utfor(kontekst) }.isSameAs(sendingFeilet)
+
+        assertThat(task.retry.maxAntallFeil).isEqualTo(3)
+        assertThat(task.retry.backoff(1)).isEqualTo(15.minutes)
+        assertThat(task.retry.backoff(2)).isEqualTo(15.minutes)
+        verifiserIngenNesteTask(kontekst)
+    }
+
+    @Test
+    fun `sendt oppdrag oppretter status-task etter 30 sekunder også utenfor åpningstid`() {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
@@ -30,7 +49,7 @@ class IverksettOppdragTaskTest {
         verify(exactly = 1) {
             kontekst.opprettNesteTask(
                 type = HentOppdragStatusTask.TYPE,
-                payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId, forsøk = 1),
+                payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId),
                 triggerTid = klokke.instant().plusSeconds(30),
             )
         }
@@ -49,7 +68,7 @@ class IverksettOppdragTaskTest {
         verify(exactly = 1) {
             kontekst.opprettNesteTask(
                 type = HentOppdragStatusTask.TYPE,
-                payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId, forsøk = 1),
+                payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId),
                 triggerTid = klokke.instant().plusSeconds(30),
             )
         }
