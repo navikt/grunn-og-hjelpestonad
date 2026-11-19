@@ -305,7 +305,7 @@ class BeslutterServiceTest {
     }
 
     @Test
-    fun `underkjent vedtak endrer ikke nåværende steg`() {
+    fun `underkjent vedtak endrer ikke gjeldende steg`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
         every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
@@ -319,7 +319,7 @@ class BeslutterServiceTest {
             ),
         )
 
-        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
     }
 
     @Test

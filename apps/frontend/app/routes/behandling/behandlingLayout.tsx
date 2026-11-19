@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Outlet, useLocation, useNavigate, useParams, useRevalidator } from "react-router";
 import { BehandlingContext, type ÅrsakState } from "~/fellesContext/BehandlingContext";
 import { BehandlingFaner, type BehandlingSteg } from "~/komponenter/navbar/BehandlingFaner";
-import { erFaneLåst, visningsnavnForNåværendeSteg } from "~/komponenter/navbar/behandlingFaneRegel";
+import { erFaneLåst, visningsnavnForGjeldendeSteg } from "~/komponenter/navbar/behandlingFaneRegel";
 import { Side } from "~/komponenter/layout/Side";
 import { HøyreMeny } from "~/komponenter/behandling/høyremeny/HøyreMeny";
 import { hentBehandling, hentÅrsakBehandling } from "~/api/generated/sdk.gen";
@@ -192,19 +192,19 @@ export default function BehandlingLayout() {
     return () => document.removeEventListener("visibilitychange", hentBehandlingNårFanenBlirSynlig);
   }, [hentBehandlingPåNytt]);
 
-  // En låst fane i URL-en sender brukeren til fanen for nåværendeSteg, med en melding.
+  // En låst fane i URL-en sender brukeren til fanen for gjeldende steg, med en melding.
   useEffect(() => {
     if (!behandling || !aktivFane || !erFaneLåst(aktivFane.behandlingssteg, behandling)) return;
 
-    const fanenSomHørerTilNåværendeSteg = BEHANDLING_STEG_LISTE.find(
-      (steg) => steg.behandlingssteg === behandling.nåværendeSteg
+    const fanenSomHørerTilGjeldendeSteg = BEHANDLING_STEG_LISTE.find(
+      (steg) => steg.behandlingssteg === behandling.gjeldendeSteg
     );
-    if (!fanenSomHørerTilNåværendeSteg) return;
+    if (!fanenSomHørerTilGjeldendeSteg) return;
 
-    navigate(fanenSomHørerTilNåværendeSteg.path, {
+    navigate(fanenSomHørerTilGjeldendeSteg.path, {
       replace: true,
       state: {
-        låstFaneMelding: `Fullfør «${visningsnavnForNåværendeSteg(behandling.nåværendeSteg)}» før du går videre.`,
+        låstFaneMelding: `Fullfør «${visningsnavnForGjeldendeSteg(behandling.gjeldendeSteg)}» før du går videre.`,
       },
     });
   }, [behandling, aktivFane, navigate]);

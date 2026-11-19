@@ -8,11 +8,11 @@ export function useBehandlingSteg() {
     throw new Error("useBehandlingSteg må brukes innenfor BehandlingContext med behandlingSteg");
   }
 
-  const finnSteg = (nåværendeStegPath: StegPath, indexRetning: number) => {
-    const nåværendeIndex = stegListe.findIndex((steg) => steg.path === nåværendeStegPath);
-    const targetIndex = nåværendeIndex + indexRetning;
+  const finnSteg = (gjeldendeStegPath: StegPath, indexRetning: number) => {
+    const gjeldendeIndex = stegListe.findIndex((steg) => steg.path === gjeldendeStegPath);
+    const targetIndex = gjeldendeIndex + indexRetning;
 
-    if (nåværendeIndex === -1 || targetIndex < 0 || targetIndex >= stegListe.length) {
+    if (gjeldendeIndex === -1 || targetIndex < 0 || targetIndex >= stegListe.length) {
       return null;
     }
 

@@ -61,7 +61,7 @@ class PeriodeMedBegrunnelseServiceTest {
 
         lagService(BehandlingSteg.SATS_OG_TRYGDETID).lagrePeriode(behandlingId, TestPeriodeRequest())
 
-        verify(exactly = 1) { behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID) }
+        verify(exactly = 1) { behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID) }
     }
 
     @Test
@@ -72,7 +72,7 @@ class PeriodeMedBegrunnelseServiceTest {
 
         lagService(BehandlingSteg.SATS_OG_TRYGDETID).slettPeriode(behandlingId, periode.id)
 
-        verify(exactly = 1) { behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID) }
+        verify(exactly = 1) { behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID) }
     }
 
     @Test
@@ -81,7 +81,7 @@ class PeriodeMedBegrunnelseServiceTest {
 
         lagService(BehandlingSteg.SATS_OG_TRYGDETID).lagrePeriode(behandlingId, TestPeriodeRequest())
 
-        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
     }
 
     @Test
@@ -92,7 +92,7 @@ class PeriodeMedBegrunnelseServiceTest {
 
         lagService(BehandlingSteg.SATS_OG_TRYGDETID).slettPeriode(behandlingId, periode.id)
 
-        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
     }
 
     @Test
@@ -107,7 +107,7 @@ class PeriodeMedBegrunnelseServiceTest {
         verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
         verify(exactly = 0) { repository.insertAll(any()) }
         verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
-        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 
@@ -124,7 +124,7 @@ class PeriodeMedBegrunnelseServiceTest {
         assertThat(feil.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
         verify(exactly = 0) { repository.deleteById(any()) }
         verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
-        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 
@@ -154,7 +154,7 @@ class PeriodeMedBegrunnelseServiceTest {
         assertThat(feil.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
         verify(exactly = 0) { repository.deleteById(any()) }
         verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
-        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 
@@ -169,13 +169,13 @@ class PeriodeMedBegrunnelseServiceTest {
         )
 
     private fun behandling(
-        nåværendeSteg: BehandlingSteg,
+        gjeldendeSteg: BehandlingSteg,
         status: BehandlingStatus = BehandlingStatus.UTREDES,
     ) = Behandling(
         fagsakId = UUID.randomUUID(),
         status = status,
         resultat = BehandlingResultat.IKKE_SATT,
-        nåværendeSteg = nåværendeSteg,
+        gjeldendeSteg = gjeldendeSteg,
     )
 
     @Test

@@ -11,7 +11,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-/** Kjører mot Postgres, så migreringen V59 (navarende_steg) testes på ekte. */
+/** Kjører mot Postgres, så migreringen V59 (gjeldende_steg) testes på ekte. */
 class BehandlingRepositoryTest(
     private val behandlingRepository: BehandlingRepository,
     private val behandlingService: BehandlingService,
@@ -22,16 +22,16 @@ class BehandlingRepositoryTest(
     fun `ny behandling starter på steget ÅRSAK`() {
         val behandlingId = opprettBehandling()
 
-        assertThat(behandlingRepository.findById(behandlingId).orElseThrow().nåværendeSteg).isEqualTo(BehandlingSteg.ÅRSAK)
+        assertThat(behandlingRepository.findById(behandlingId).orElseThrow().gjeldendeSteg).isEqualTo(BehandlingSteg.ÅRSAK)
     }
 
     @Test
-    fun `settNåværendeSteg lagrer det nye steget`() {
+    fun `settGjeldendeSteg lagrer det nye steget`() {
         val behandlingId = opprettBehandling()
 
-        behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
+        behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
 
-        assertThat(behandlingRepository.findById(behandlingId).orElseThrow().nåværendeSteg).isEqualTo(BehandlingSteg.INNGANGSVILKÅR)
+        assertThat(behandlingRepository.findById(behandlingId).orElseThrow().gjeldendeSteg).isEqualTo(BehandlingSteg.INNGANGSVILKÅR)
     }
 
     private fun opprettBehandling(): UUID {

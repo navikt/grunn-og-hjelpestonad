@@ -475,7 +475,7 @@ export type BehandlingResponse = {
     opprettet: string;
     opprettetAv: string;
     resultat: 'INNVILGET' | 'OPPHØRT' | 'AVSLÅTT' | 'IKKE_SATT' | 'HENLAGT';
-    nåværendeSteg: 'ÅRSAK' | 'INNGANGSVILKÅR' | 'SATS_OG_TRYGDETID' | 'VEDTAK_OG_BREV';
+    gjeldendeSteg: 'ÅRSAK' | 'INNGANGSVILKÅR' | 'SATS_OG_TRYGDETID' | 'VEDTAK_OG_BREV';
 };
 
 export type HentBehandlingerRequest = {

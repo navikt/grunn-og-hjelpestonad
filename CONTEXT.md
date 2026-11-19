@@ -72,8 +72,8 @@ Brøken x/40 fra søkers alderspensjon eller uføretrygd. Er 40/40 når søker i
 Ett av stegene saksbehandler fullfører i en behandling, i fast rekkefølge: årsak, inngangsvilkår, sats og trygdetid, og vedtak og brev. Simulering hører til vedtak og brev.
 _Avoid_: Fane, side
 
-**Nåværende steg**:
-Steget saksbehandler skal fullføre nå. Alle steg før det er fullført. Saksbehandler kan endre steg før nåværende steg, men ikke senere steg. En endring setter nåværende steg tilbake til steget som ble endret.
+**Gjeldende steg**:
+Steget saksbehandler skal fullføre nå. Alle steg før det er fullført. Saksbehandler kan endre tidligere steg, men ikke senere steg. En endring flytter behandlingen tilbake til steget som ble endret.
 _Avoid_: Aktivt steg, fremdrift
 
 **Migrering**:

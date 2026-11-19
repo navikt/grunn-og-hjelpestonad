@@ -101,7 +101,7 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         repository.deleteByBehandlingId(behandlingId)
         repository.insertAll(perioder)
         tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
-        førBehandlingTilbakeTilSteget(behandlingId, behandling.nåværendeSteg)
+        førBehandlingTilbakeTilSteget(behandlingId, behandling.gjeldendeSteg)
 
         val endringType = if (eksisterendePeriode == null) endringstyper.opprettet else endringstyper.oppdatert
         registrerEndring(behandlingId, endringType, periode)
@@ -120,7 +120,7 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
 
         repository.deleteById(periode.id)
         tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
-        førBehandlingTilbakeTilSteget(behandlingId, behandling.nåværendeSteg)
+        førBehandlingTilbakeTilSteget(behandlingId, behandling.gjeldendeSteg)
 
         registrerEndring(behandlingId, endringstyper.slettet, periode)
     }
@@ -128,9 +128,9 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
     /** Behandlingen må fullføre [steg] på nytt. Står den allerede tidligere i flyten, blir den stående. */
     private fun førBehandlingTilbakeTilSteget(
         behandlingId: UUID,
-        nåværendeSteg: BehandlingSteg,
+        gjeldendeSteg: BehandlingSteg,
     ) {
-        if (steg.rekkefølge < nåværendeSteg.rekkefølge) behandlingService.settNåværendeSteg(behandlingId, steg)
+        if (steg.rekkefølge < gjeldendeSteg.rekkefølge) behandlingService.settGjeldendeSteg(behandlingId, steg)
     }
 
     protected abstract fun endringsdetalj(periode: P): String

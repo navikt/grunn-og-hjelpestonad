@@ -42,7 +42,7 @@ function VilkårSide() {
 
   const håndterNeste = () =>
     fullfør(async (resultat) => {
-      // Fullføringen kan flytte nåværendeSteg, så behandlingen hentes på nytt før navigering.
+      // Fullføringen kan flytte gjeldende steg, så behandlingen hentes på nytt før navigering.
       await hentBehandlingPåNytt();
 
       switch (resultat.nesteSteg) {

@@ -1,4 +1,4 @@
-# ADR-0017: Backend eier nåværende steg i behandlingen
+# ADR-0017: Backend eier gjeldende steg i behandlingen
 
 **Dato:** 2026-11-18
 **Status:** Foreslått
@@ -19,10 +19,10 @@ kreve at saksbehandler fullfører stegene på nytt.
 
 ## Beslutning
 
-### Behandlingen lagrer nåværende steg
+### Behandlingen lagrer gjeldende steg
 
-`behandling.navarende_steg` lagrer ett av `ÅRSAK`, `INNGANGSVILKÅR`,
-`SATS_OG_TRYGDETID` og `VEDTAK_OG_BREV`. Alle steg før nåværende steg er
+`behandling.gjeldende_steg` lagrer ett av `ÅRSAK`, `INNGANGSVILKÅR`,
+`SATS_OG_TRYGDETID` og `VEDTAK_OG_BREV`. Alle steg før gjeldende steg er
 fullført. Steget er atskilt fra `BehandlingStatus`, som beskriver hvor
 behandlingen er i totrinnskontrollen.
 
@@ -31,7 +31,7 @@ Rekkefølgen verdiene står i, har ingen betydning.
 
 ### Fullføring setter steget direkte
 
-| Handling | Nytt nåværende steg |
+| Handling | Nytt gjeldende steg |
 |---|---|
 | Lagre ny eller endret årsak | `INNGANGSVILKÅR` |
 | Lagre samme årsak når steget står senere | Uendret, ingenting lagres |
@@ -64,7 +64,7 @@ Godkjenning har ikke eget stegvern. Status `FATTER_VEDTAK` nås bare gjennom
 send til beslutter, som krever `VEDTAK_OG_BREV`.
 
 Frontend låser senere faner mens behandlingen er redigerbar, og sender en
-direkte URL til nåværende steg.
+direkte URL til gjeldende steg.
 
 ### Eksisterende behandlinger starter på årsak
 

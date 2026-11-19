@@ -23,7 +23,7 @@ class SatsOgTrygdetidService(
         behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID)
 
         beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(behandlingId)
-        behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
+        behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
         endringshistorikkService.registrerEndring(behandlingId, EndringType.SATS_OG_TRYGDETID_FULLFØRT)
     }
 }

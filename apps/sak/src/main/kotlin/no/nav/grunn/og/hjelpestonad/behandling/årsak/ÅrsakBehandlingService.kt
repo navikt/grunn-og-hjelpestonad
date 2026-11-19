@@ -62,7 +62,7 @@ class ÅrsakBehandlingService(
             endringType = EndringType.ÅRSAK_LAGRET,
             detaljer = "Årsak: ${årsakBehandlingRequest.årsak}",
         )
-        behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
+        behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
         return lagretÅrsak
     }
 
@@ -80,7 +80,7 @@ class ÅrsakBehandlingService(
             endringType = EndringType.ÅRSAK_OPPDATERT,
             detaljer = "Årsak: ${oppdatertÅrsak.årsak}",
         )
-        behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
+        behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
         return lagretÅrsak
     }
 }

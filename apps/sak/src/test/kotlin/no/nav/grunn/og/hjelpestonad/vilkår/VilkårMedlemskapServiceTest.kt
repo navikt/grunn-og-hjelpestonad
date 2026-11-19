@@ -285,12 +285,12 @@ class VilkårMedlemskapServiceTest {
     }
 
     private fun behandling(
-        nåværendeSteg: BehandlingSteg,
+        gjeldendeSteg: BehandlingSteg,
         status: BehandlingStatus = BehandlingStatus.UTREDES,
     ) = Behandling(
         fagsakId = UUID.randomUUID(),
         status = status,
         resultat = BehandlingResultat.IKKE_SATT,
-        nåværendeSteg = nåværendeSteg,
+        gjeldendeSteg = gjeldendeSteg,
     )
 }

@@ -48,7 +48,7 @@ Avklart 2026-11-18. Se [ADR-0017](../../../docs/adr/ADR-0017-backend-eier-naavae
 - `apps/sak/src/main/kotlin/no/nav/grunn/og/hjelpestonad/behandling/` (`Behandling.kt`, `BehandlingSteg.kt`, `BehandlingService.kt`, `årsak/ÅrsakBehandlingService.kt`)
 - `apps/sak/src/main/kotlin/no/nav/grunn/og/hjelpestonad/steg/vilkårVurdering/InngangsvilkårStegService.kt`
 - `apps/sak/src/main/kotlin/no/nav/grunn/og/hjelpestonad/steg/satsOgTrygdetid/SatsOgTrygdetidService.kt`
-- `apps/sak/src/main/resources/db/migration/V59__behandling_navarende_steg.sql`
+- `apps/sak/src/main/resources/db/migration/V59__behandling_gjeldende_steg.sql`
 - `apps/frontend/app/routes/behandling/behandlingLayout.tsx`
 - `apps/frontend/app/komponenter/navbar/BehandlingFaner.tsx` og `behandlingFaneRegel.ts`
 - Hookene for perioder, som henter behandlingen på nytt etter lagring og sletting

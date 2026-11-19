@@ -39,7 +39,7 @@ class InngangsvilkårStegService(
         val perioder = PerioderMedOppfylteInngangsvilkårUtleder.utled(vurderteInngangsvilkår)
         val nesteSteg = utledStegEtterInngangsvilkår(perioder)
         if (nesteSteg == BehandlingSteg.VEDTAK_OG_BREV) beregnTilkjentYtelseService.lagreTilkjentYtelseUtenAndeler(behandlingId)
-        behandlingService.settNåværendeSteg(behandlingId, nesteSteg)
+        behandlingService.settGjeldendeSteg(behandlingId, nesteSteg)
         registrerEndringshistorikk(behandlingId, perioder)
         return InngangsvilkårResultat(perioder = perioder, nesteSteg = nesteSteg)
     }

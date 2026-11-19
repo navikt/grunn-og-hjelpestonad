@@ -76,22 +76,22 @@ class BehandlingServiceTest {
     }
 
     @Test
-    fun `settNåværendeSteg skriver det nye steget til behandlingen`() {
+    fun `settGjeldendeSteg skriver det nye steget til behandlingen`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingRepository.findByIdOrNull(behandlingId) } returns lagBehandling(behandlingId, BehandlingStatus.UTREDES)
         val oppdatertBehandling = slot<Behandling>()
         every { behandlingRepository.update(capture(oppdatertBehandling)) } answers { firstArg() }
 
-        behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
+        behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
 
-        assertThat(oppdatertBehandling.captured.nåværendeSteg).isEqualTo(BehandlingSteg.INNGANGSVILKÅR)
+        assertThat(oppdatertBehandling.captured.gjeldendeSteg).isEqualTo(BehandlingSteg.INNGANGSVILKÅR)
     }
 
     @Test
-    fun `validerKanEndreSteg kaster feil når steget er senere enn nåværende steg`() {
+    fun `validerKanEndreSteg kaster feil når steget er senere enn gjeldende steg`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingRepository.findByIdOrNull(behandlingId) } returns
-            lagBehandling(behandlingId, BehandlingStatus.UTREDES, nåværendeSteg = BehandlingSteg.SATS_OG_TRYGDETID)
+            lagBehandling(behandlingId, BehandlingStatus.UTREDES, gjeldendeSteg = BehandlingSteg.SATS_OG_TRYGDETID)
 
         assertThatThrownBy { behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) }
             .isInstanceOf(Feil::class.java)
@@ -116,7 +116,7 @@ class BehandlingServiceTest {
     fun `validerKanEndreSteg kaster ikke når steget er nådd`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingRepository.findByIdOrNull(behandlingId) } returns
-            lagBehandling(behandlingId, BehandlingStatus.UTREDES, nåværendeSteg = BehandlingSteg.VEDTAK_OG_BREV)
+            lagBehandling(behandlingId, BehandlingStatus.UTREDES, gjeldendeSteg = BehandlingSteg.VEDTAK_OG_BREV)
 
         assertThatCode { behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID) }
             .doesNotThrowAnyException()
@@ -134,12 +134,12 @@ class BehandlingServiceTest {
     private fun lagBehandling(
         behandlingId: UUID,
         status: BehandlingStatus,
-        nåværendeSteg: BehandlingSteg = BehandlingSteg.ÅRSAK,
+        gjeldendeSteg: BehandlingSteg = BehandlingSteg.ÅRSAK,
     ) = Behandling(
         id = behandlingId,
         fagsakId = UUID.randomUUID(),
         status = status,
         resultat = BehandlingResultat.IKKE_SATT,
-        nåværendeSteg = nåværendeSteg,
+        gjeldendeSteg = gjeldendeSteg,
     )
 }

@@ -47,7 +47,7 @@ export default function SatsOgTrygdetid() {
       { path: { behandlingId }, throwOnError: true },
       {
         onSuccess: async () => {
-          // Fullføringen flytter nåværendeSteg, så behandlingen hentes på nytt før navigering.
+          // Fullføringen flytter gjeldende steg, så behandlingen hentes på nytt før navigering.
           await hentBehandlingPåNytt();
           navigerTilNeste();
         },

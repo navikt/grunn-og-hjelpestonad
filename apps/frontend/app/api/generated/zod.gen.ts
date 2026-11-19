@@ -577,7 +577,7 @@ export const zBehandlingResponse = z.object({
         'IKKE_SATT',
         'HENLAGT'
     ]),
-    nåværendeSteg: z.enum([
+    gjeldendeSteg: z.enum([
         'ÅRSAK',
         'INNGANGSVILKÅR',
         'SATS_OG_TRYGDETID',

@@ -1,10 +1,10 @@
 import type { BehandlingResponse } from "~/api/generated/types.gen";
 
-export type NåværendeSteg = BehandlingResponse["nåværendeSteg"];
-export type BehandlingForFaner = Pick<BehandlingResponse, "status" | "nåværendeSteg">;
+export type GjeldendeSteg = BehandlingResponse["gjeldendeSteg"];
+export type BehandlingForFaner = Pick<BehandlingResponse, "status" | "gjeldendeSteg">;
 
-// Backend-stegene i rekkefølge. Et steg er nådd når det står på samme plass som nåværendeSteg eller før.
-const NÅVÆRENDE_STEG_REKKEFØLGE: readonly NåværendeSteg[] = [
+// Backend-stegene i rekkefølge. Et steg er nådd når det står på samme plass som gjeldendeSteg eller før.
+const GJELDENDE_STEG_REKKEFØLGE: readonly GjeldendeSteg[] = [
   "ÅRSAK",
   "INNGANGSVILKÅR",
   "SATS_OG_TRYGDETID",
@@ -12,7 +12,7 @@ const NÅVÆRENDE_STEG_REKKEFØLGE: readonly NåværendeSteg[] = [
 ];
 
 // Visningsnavnene må samsvare med backend, fordi de vises i meldingen «Fullfør «…» før du går videre.».
-const VISNINGSNAVN_FOR_NÅVÆRENDE_STEG: Record<NåværendeSteg, string> = {
+const VISNINGSNAVN_FOR_GJELDENDE_STEG: Record<GjeldendeSteg, string> = {
   ÅRSAK: "Årsak behandling",
   INNGANGSVILKÅR: "Vilkår",
   SATS_OG_TRYGDETID: "Sats og trygdetid",
@@ -26,22 +26,22 @@ function erBehandlingRedigerbar(status: BehandlingResponse["status"]): boolean {
 }
 
 // Uten behandling (ikke lastet ennå) brukes ÅRSAK, fordi det er første steg.
-export function visningsnavnForNåværendeSteg(nåværendeSteg: NåværendeSteg | undefined): string {
-  return VISNINGSNAVN_FOR_NÅVÆRENDE_STEG[nåværendeSteg ?? "ÅRSAK"];
+export function visningsnavnForGjeldendeSteg(gjeldendeSteg: GjeldendeSteg | undefined): string {
+  return VISNINGSNAVN_FOR_GJELDENDE_STEG[gjeldendeSteg ?? "ÅRSAK"];
 }
 
 // Før behandlingen er lastet er bare årsak åpen. Når den er lastet og ikke redigerbar, er alle faner åpne.
-// Ellers er en fane låst når steget den hører til kommer etter nåværendeSteg.
+// Ellers er en fane låst når steget den hører til kommer etter gjeldendeSteg.
 export function erFaneLåst(
-  faneSteg: NåværendeSteg,
+  faneSteg: GjeldendeSteg,
   behandling: BehandlingForFaner | undefined
 ): boolean {
   if (!behandling) return faneSteg !== "ÅRSAK";
   if (!erBehandlingRedigerbar(behandling.status)) return false;
 
-  return indeksIRekkefølge(faneSteg) > indeksIRekkefølge(behandling.nåværendeSteg);
+  return indeksIRekkefølge(faneSteg) > indeksIRekkefølge(behandling.gjeldendeSteg);
 }
 
-function indeksIRekkefølge(steg: NåværendeSteg): number {
-  return NÅVÆRENDE_STEG_REKKEFØLGE.indexOf(steg);
+function indeksIRekkefølge(steg: GjeldendeSteg): number {
+  return GJELDENDE_STEG_REKKEFØLGE.indexOf(steg);
 }

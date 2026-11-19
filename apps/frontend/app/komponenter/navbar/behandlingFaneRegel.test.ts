@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { erFaneLåst, visningsnavnForNåværendeSteg } from "./behandlingFaneRegel.ts";
+import { erFaneLåst, visningsnavnForGjeldendeSteg } from "./behandlingFaneRegel.ts";
 
 describe("erFaneLåst", () => {
   it("låser alle faner unntatt årsak før behandlingen er lastet", () => {
@@ -9,8 +9,8 @@ describe("erFaneLåst", () => {
     assert.equal(erFaneLåst("VEDTAK_OG_BREV", undefined), true);
   });
 
-  it("åpner faner til og med nåværendeSteg og låser senere steg når behandlingen er redigerbar", () => {
-    const behandling = { status: "UTREDES" as const, nåværendeSteg: "INNGANGSVILKÅR" as const };
+  it("åpner faner til og med gjeldendeSteg og låser senere steg når behandlingen er redigerbar", () => {
+    const behandling = { status: "UTREDES" as const, gjeldendeSteg: "INNGANGSVILKÅR" as const };
 
     assert.equal(erFaneLåst("ÅRSAK", behandling), false);
     assert.equal(erFaneLåst("INNGANGSVILKÅR", behandling), false);
@@ -19,16 +19,16 @@ describe("erFaneLåst", () => {
   });
 
   it("åpner alle faner når behandlingen ikke er redigerbar", () => {
-    const behandling = { status: "FATTER_VEDTAK" as const, nåværendeSteg: "ÅRSAK" as const };
+    const behandling = { status: "FATTER_VEDTAK" as const, gjeldendeSteg: "ÅRSAK" as const };
 
     assert.equal(erFaneLåst("INNGANGSVILKÅR", behandling), false);
     assert.equal(erFaneLåst("VEDTAK_OG_BREV", behandling), false);
   });
 });
 
-describe("visningsnavnForNåværendeSteg", () => {
+describe("visningsnavnForGjeldendeSteg", () => {
   it("bruker samme visningsnavn som backend", () => {
-    assert.equal(visningsnavnForNåværendeSteg("VEDTAK_OG_BREV"), "Simulering og brev");
-    assert.equal(visningsnavnForNåværendeSteg(undefined), "Årsak behandling");
+    assert.equal(visningsnavnForGjeldendeSteg("VEDTAK_OG_BREV"), "Simulering og brev");
+    assert.equal(visningsnavnForGjeldendeSteg(undefined), "Årsak behandling");
   });
 });

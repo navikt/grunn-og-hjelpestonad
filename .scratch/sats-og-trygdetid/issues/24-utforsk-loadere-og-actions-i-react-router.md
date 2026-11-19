@@ -6,7 +6,7 @@ Status: ready-for-human
 
 Oppfølging av ticket 22 ([ADR-0017](../../../docs/adr/ADR-0017-backend-eier-naavaerende-steg.md)). Tas i en egen PR, fordi valget gjelder hele frontend.
 
-Fanene i en behandling låses ut fra `behandling.nåværendeSteg`. Frontend må derfor hente behandlingen på nytt etter alt som kan flytte steget. I dag skjer det på fire måter:
+Fanene i en behandling låses ut fra `behandling.gjeldendeSteg`. Frontend må derfor hente behandlingen på nytt etter alt som kan flytte steget. I dag skjer det på fire måter:
 
 - `behandlingLayout.tsx` henter behandlingen i en effekt med `useState` og `AbortController`, og gjør det på nytt når fanen blir synlig (`visibilitychange`).
 - Lagring av årsak og fullføring av inngangsvilkår og sats og trygdetid kaller `hentBehandlingPåNytt` før navigering.

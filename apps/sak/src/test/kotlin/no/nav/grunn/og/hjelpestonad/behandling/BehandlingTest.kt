@@ -9,8 +9,8 @@ import kotlin.test.Test
 
 class BehandlingTest {
     @Test
-    fun `validerHarNådd kaster for steg som kommer etter nåværende steg`() {
-        assertThatThrownBy { lagBehandling(nåværendeSteg = BehandlingSteg.INNGANGSVILKÅR).validerHarNådd(BehandlingSteg.SATS_OG_TRYGDETID) }
+    fun `validerHarNådd kaster for steg som kommer etter gjeldende steg`() {
+        assertThatThrownBy { lagBehandling(gjeldendeSteg = BehandlingSteg.INNGANGSVILKÅR).validerHarNådd(BehandlingSteg.SATS_OG_TRYGDETID) }
             .isInstanceOf(Feil::class.java)
             .hasMessage("Fullfør «Vilkår» før du går videre.")
             .extracting("httpStatus")
@@ -18,14 +18,14 @@ class BehandlingTest {
     }
 
     @Test
-    fun `validerHarNådd kaster ikke for samme steg som nåværende steg`() {
-        assertThatCode { lagBehandling(nåværendeSteg = BehandlingSteg.SATS_OG_TRYGDETID).validerHarNådd(BehandlingSteg.SATS_OG_TRYGDETID) }
+    fun `validerHarNådd kaster ikke for samme steg som gjeldende steg`() {
+        assertThatCode { lagBehandling(gjeldendeSteg = BehandlingSteg.SATS_OG_TRYGDETID).validerHarNådd(BehandlingSteg.SATS_OG_TRYGDETID) }
             .doesNotThrowAnyException()
     }
 
     @Test
-    fun `validerHarNådd kaster ikke for steg før nåværende steg`() {
-        assertThatCode { lagBehandling(nåværendeSteg = BehandlingSteg.SATS_OG_TRYGDETID).validerHarNådd(BehandlingSteg.INNGANGSVILKÅR) }
+    fun `validerHarNådd kaster ikke for steg før gjeldende steg`() {
+        assertThatCode { lagBehandling(gjeldendeSteg = BehandlingSteg.SATS_OG_TRYGDETID).validerHarNådd(BehandlingSteg.INNGANGSVILKÅR) }
             .doesNotThrowAnyException()
     }
 
@@ -51,7 +51,7 @@ class BehandlingTest {
     @Test
     fun `validerKanEndre kaster når behandlingen ikke er redigerbar`() {
         assertThatThrownBy {
-            lagBehandling(status = BehandlingStatus.FATTER_VEDTAK, nåværendeSteg = BehandlingSteg.VEDTAK_OG_BREV)
+            lagBehandling(status = BehandlingStatus.FATTER_VEDTAK, gjeldendeSteg = BehandlingSteg.VEDTAK_OG_BREV)
                 .validerKanEndre(BehandlingSteg.ÅRSAK)
         }.isInstanceOf(Feil::class.java)
             .hasMessage("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
@@ -61,7 +61,7 @@ class BehandlingTest {
 
     @Test
     fun `validerKanEndre kaster når steget ikke er nådd`() {
-        assertThatThrownBy { lagBehandling(nåværendeSteg = BehandlingSteg.INNGANGSVILKÅR).validerKanEndre(BehandlingSteg.SATS_OG_TRYGDETID) }
+        assertThatThrownBy { lagBehandling(gjeldendeSteg = BehandlingSteg.INNGANGSVILKÅR).validerKanEndre(BehandlingSteg.SATS_OG_TRYGDETID) }
             .isInstanceOf(Feil::class.java)
             .hasMessage("Fullfør «Vilkår» før du går videre.")
             .extracting("httpStatus")
@@ -70,11 +70,11 @@ class BehandlingTest {
 
     private fun lagBehandling(
         status: BehandlingStatus = BehandlingStatus.UTREDES,
-        nåværendeSteg: BehandlingSteg = BehandlingSteg.ÅRSAK,
+        gjeldendeSteg: BehandlingSteg = BehandlingSteg.ÅRSAK,
     ) = Behandling(
         fagsakId = UUID.randomUUID(),
         status = status,
         resultat = BehandlingResultat.IKKE_SATT,
-        nåværendeSteg = nåværendeSteg,
+        gjeldendeSteg = gjeldendeSteg,
     )
 }

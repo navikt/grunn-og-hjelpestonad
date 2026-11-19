@@ -48,12 +48,12 @@ class BehandlingService(
         if (behandling.erRedigerbar()) behandling.validerHarNådd(steg)
     }
 
-    fun settNåværendeSteg(
+    fun settGjeldendeSteg(
         behandlingId: UUID,
-        nåværendeSteg: BehandlingSteg,
+        gjeldendeSteg: BehandlingSteg,
     ) {
         val behandling = hentBehandlingEllerKast(behandlingId)
-        behandlingRepository.update(behandling.copy(nåværendeSteg = nåværendeSteg))
+        behandlingRepository.update(behandling.copy(gjeldendeSteg = gjeldendeSteg))
     }
 
     fun hentBehandlingerFraFagsak(fagsakId: UUID): List<Behandling> = behandlingRepository.findAllByFagsakId(fagsakId)

@@ -2,7 +2,7 @@ package no.nav.grunn.og.hjelpestonad.behandling
 
 /**
  * Stegene i en behandling. [rekkefølge] bestemmer hvilke steg som kommer før andre, og brukes når et steg
- * sammenlignes med nåværende steg. Rekkefølgen i koden under har ingen betydning.
+ * sammenlignes med gjeldende steg. Rekkefølgen i koden under har ingen betydning.
  */
 enum class BehandlingSteg(
     val rekkefølge: Int,

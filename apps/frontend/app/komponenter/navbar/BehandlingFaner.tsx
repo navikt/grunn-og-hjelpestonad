@@ -3,7 +3,7 @@ import { HStack } from "@navikt/ds-react";
 import { NavLink } from "react-router";
 import { PadlockLockedIcon } from "@navikt/aksel-icons";
 import styles from "./Navbar.module.css";
-import { erFaneLåst, type BehandlingForFaner, type NåværendeSteg } from "./behandlingFaneRegel";
+import { erFaneLåst, type BehandlingForFaner, type GjeldendeSteg } from "./behandlingFaneRegel";
 
 export type Steg = "Årsak behandling" | "Vilkår" | "Sats og trygdetid" | "Simulering" | "Brev";
 export type StegPath = "arsak-behandling" | "vilkar" | "sats-og-trygdetid" | "simulering" | "brev";
@@ -11,7 +11,7 @@ export type StegPath = "arsak-behandling" | "vilkar" | "sats-og-trygdetid" | "si
 export type BehandlingSteg = {
   path: StegPath;
   navn: Steg;
-  behandlingssteg: NåværendeSteg;
+  behandlingssteg: GjeldendeSteg;
 };
 
 type BehandlingFanerProps = {

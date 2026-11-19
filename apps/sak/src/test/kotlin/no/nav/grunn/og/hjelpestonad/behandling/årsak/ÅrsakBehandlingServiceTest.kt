@@ -61,7 +61,7 @@ class ÅrsakBehandlingServiceTest {
         verify(exactly = 0) { årsakBehandlingRepository.insert(any<ÅrsakBehandling>()) }
         verify(exactly = 0) { årsakBehandlingRepository.update(any<ÅrsakBehandling>()) }
         verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(any(), any()) }
-        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 
@@ -98,7 +98,7 @@ class ÅrsakBehandlingServiceTest {
 
         årsakBehandlingService.lagreÅrsakForBehandling(behandlingId, request())
 
-        verify(exactly = 1) { behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR) }
+        verify(exactly = 1) { behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR) }
     }
 
     @Test
@@ -110,7 +110,7 @@ class ÅrsakBehandlingServiceTest {
         årsakBehandlingService.lagreÅrsakForBehandling(behandlingId, request(årsak = Årsak.NYE_OPPLYSNINGER))
 
         verify(exactly = 1) { årsakBehandlingRepository.update(any<ÅrsakBehandling>()) }
-        verify(exactly = 1) { behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR) }
+        verify(exactly = 1) { behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR) }
     }
 
     @Test
@@ -125,7 +125,7 @@ class ÅrsakBehandlingServiceTest {
         verify(exactly = 0) { årsakBehandlingRepository.update(any<ÅrsakBehandling>()) }
         verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
-        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
     }
 
     @Test
@@ -139,7 +139,7 @@ class ÅrsakBehandlingServiceTest {
         verify(exactly = 0) { årsakBehandlingRepository.update(any<ÅrsakBehandling>()) }
         verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
-        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
     }
 
     private fun request(

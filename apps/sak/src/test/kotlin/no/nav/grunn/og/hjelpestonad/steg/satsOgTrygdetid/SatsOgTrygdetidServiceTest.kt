@@ -34,7 +34,7 @@ class SatsOgTrygdetidServiceTest {
             ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
             behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID)
             beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(behandlingId)
-            behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
+            behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
             endringshistorikkService.registrerEndring(behandlingId, EndringType.SATS_OG_TRYGDETID_FULLFØRT, null)
         }
     }
@@ -47,7 +47,7 @@ class SatsOgTrygdetidServiceTest {
         assertFailsWith<Feil> { service.fullførSteg(behandlingId) }
 
         verify(exactly = 0) { beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(any()) }
-        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 
@@ -57,7 +57,7 @@ class SatsOgTrygdetidServiceTest {
 
         assertFailsWith<IllegalStateException> { service.fullførSteg(behandlingId) }
 
-        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
     }
 
     @Test

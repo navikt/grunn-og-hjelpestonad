@@ -19,8 +19,8 @@ data class Behandling(
     val status: BehandlingStatus,
     val resultat: BehandlingResultat,
     /** Steget saksbehandler skal fullføre nå. Alle steg før det er fullført. */
-    @Column("navarende_steg")
-    val nåværendeSteg: BehandlingSteg = BehandlingSteg.ÅRSAK,
+    @Column("gjeldende_steg")
+    val gjeldendeSteg: BehandlingSteg = BehandlingSteg.ÅRSAK,
     @Embedded(onEmpty = Embedded.OnEmpty.USE_EMPTY)
     val sporbar: Sporbar = Sporbar(),
 )
@@ -36,11 +36,11 @@ fun Behandling.validerErRedigerbar() {
     }
 }
 
-/** Kaster hvis [steg] kommer etter nåværende steg, altså ikke er nådd ennå. */
+/** Kaster hvis [steg] kommer etter gjeldende steg, altså ikke er nådd ennå. */
 fun Behandling.validerHarNådd(steg: BehandlingSteg) {
-    if (steg.rekkefølge > nåværendeSteg.rekkefølge) {
+    if (steg.rekkefølge > gjeldendeSteg.rekkefølge) {
         throw Feil(
-            melding = "Fullfør «${nåværendeSteg.visningsnavn}» før du går videre.",
+            melding = "Fullfør «${gjeldendeSteg.visningsnavn}» før du går videre.",
             httpStatus = HttpStatus.BAD_REQUEST,
         )
     }

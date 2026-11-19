@@ -93,7 +93,7 @@ class InngangsvilkårStegServiceTest {
     fun `fullførSteg setter SATS_OG_TRYGDETID når det finnes perioder med oppfylte inngangsvilkår`() {
         service.fullførSteg(behandlingId)
 
-        verify(exactly = 1) { behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID) }
+        verify(exactly = 1) { behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID) }
     }
 
     @Test
@@ -102,7 +102,7 @@ class InngangsvilkårStegServiceTest {
 
         service.fullførSteg(behandlingId)
 
-        verify(exactly = 1) { behandlingService.settNåværendeSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) }
+        verify(exactly = 1) { behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) }
     }
 
     @Test
