@@ -93,7 +93,62 @@ class BeslutterServiceTest {
             taskService.opprett(
                 OpprettOppgaveTask.TYPE,
                 match<OpprettOppgaveTaskData> {
-                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.GOD_VED
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
+                },
+                any(),
+                any(),
+            )
+        }
+    }
+
+    @Test
+    fun `sending til beslutter oppretter behandle vedtak oppgave`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
+        every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
+        every { oppgaveService.hentAktivOppgavetype(behandlingId) } returns OppgavetypeGRU.BEH_SAK
+
+        beslutterService.sendTilBeslutter(behandlingId)
+
+        verify(exactly = 1) {
+            taskService.opprett(
+                OpprettOppgaveTask.TYPE,
+                match<OpprettOppgaveTaskData> {
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
+                },
+                any(),
+                any(),
+            )
+        }
+    }
+
+    @Test
+    fun `sending til beslutter avvises naar behandle vedtak oppgave allerede finnes`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
+        every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns
+            behandleSakOppgave(behandlingId).copy(type = OppgavetypeGRU.BEH_VED.name)
+
+        assertThatThrownBy { beslutterService.sendTilBeslutter(behandlingId) }
+            .isInstanceOf(IllegalStateException::class.java)
+            .hasMessageContaining("oppgave av typen Behandle vedtak")
+
+        verifyIngenEndringer()
+    }
+
+    @Test
+    fun `godkjent vedtak ferdigstiller behandle vedtak oppgave`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
+        every { vedtakService.hentVedtak(behandlingId) } returns null
+
+        beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
+
+        verify(exactly = 1) {
+            taskService.opprett(
+                FerdigstillOppgaveTask.TYPE,
+                match<FerdigstillOppgaveTaskData> {
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
                 },
                 any(),
                 any(),
@@ -162,7 +217,7 @@ class BeslutterServiceTest {
             taskService.opprett(
                 FerdigstillOppgaveTask.TYPE,
                 match<FerdigstillOppgaveTaskData> {
-                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.GOD_VED
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
                 },
                 any(),
                 any(),
@@ -298,7 +353,7 @@ class BeslutterServiceTest {
             taskService.opprett(
                 FerdigstillOppgaveTask.TYPE,
                 match<FerdigstillOppgaveTaskData> {
-                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.GOD_VED
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
                 },
                 any(),
                 any(),

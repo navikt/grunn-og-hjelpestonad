@@ -64,7 +64,7 @@ class BeslutterService(
 
         taskService.opprett(
             OpprettOppgaveTask.TYPE,
-            OpprettOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeGRU.GOD_VED),
+            OpprettOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeGRU.BEH_VED),
         )
     }
 
@@ -111,7 +111,7 @@ class BeslutterService(
 
         taskService.opprett(
             FerdigstillOppgaveTask.TYPE,
-            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeGRU.GOD_VED),
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeGRU.BEH_VED),
         )
 
         if (vedtak?.resultatType == ResultatType.INNVILGET) {
@@ -157,7 +157,7 @@ class BeslutterService(
 
         taskService.opprett(
             FerdigstillOppgaveTask.TYPE,
-            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeGRU.GOD_VED),
+            FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeGRU.BEH_VED),
         )
 
         taskService.opprett(
@@ -183,13 +183,13 @@ class BeslutterService(
             oppgaveService.hentOppgaveForBehandling(behandlingId)
                 ?: throw IllegalStateException("Fant ikke oppgave for behandling med id $behandlingId")
 
-        val finnesFatterVedtakOppgaveFraFør = oppgave.type == OppgavetypeGRU.GOD_VED.name
+        val finnesFatterVedtakOppgaveFraFør = oppgave.type == OppgavetypeGRU.BEH_VED.name
         if (finnesFatterVedtakOppgaveFraFør) {
             throw IllegalStateException(
-                "Det finnes allerede en oppgave av typen Godkjenne vedtak for behandling med id $behandlingId. " +
+                "Det finnes allerede en oppgave av typen Behandle vedtak for behandling med id $behandlingId. " +
                     "Behandlingen kan ikke sendes til beslutter på nytt før eksisterende oppgave er ferdigstilt.",
             )
         }
-        vedtakService.validerVedtaksresultatMotBeregning(behandlingId)
+        // vedtakService.validerVedtaksresultatMotBeregning(behandlingId) TODO legge inn igjen når vi starter å lagre vedtak?
     }
 }

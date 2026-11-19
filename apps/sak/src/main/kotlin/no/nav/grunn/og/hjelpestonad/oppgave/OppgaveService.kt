@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.oppgave
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import jakarta.validation.constraints.Pattern
@@ -85,8 +86,8 @@ class OppgaveService(
         )
     }
 
-    fun opprettGodkjennVedtakOppgave(behandlingId: UUID) {
-        logger.info("Oppretter godkjenn vedtak oppgave for behandling=$behandlingId")
+    fun opprettBehandleVedtakOppgave(behandlingId: UUID) {
+        logger.info("Oppretter behandle vedtak oppgave for behandling=$behandlingId")
 
         val fagsak = hentFagsakForBehandling(behandlingId)
         val fagsakPerson = fagsakPersonRepository.findByIdOrNull(fagsak.fagsakPersonId) ?: throw IllegalStateException("Finner ikke fagsakPerson")
@@ -102,8 +103,8 @@ class OppgaveService(
                 behandlingstema = fagsak.stønadstype.tilBehandlingstema(),
                 fristFerdigstillelse = OppgaveUtil.lagFristForOppgave().format(DateTimeFormatter.ISO_DATE),
                 aktivDato = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
-                oppgavetype = OppgavetypeGRU.GOD_VED,
-                beskrivelse = "Godkjenn vedtak for behandling=$behandlingId",
+                oppgavetype = OppgavetypeGRU.BEH_VED,
+                beskrivelse = "Behandle vedtak for behandling=$behandlingId",
                 tilordnetRessurs = null,
                 behandlesAvApplikasjon = "grunn-og-hjelpestonad",
                 tildeltEnhetsnr = gosysOppgave.tildeltEnhetsnr ?: throw IllegalStateException("Oppgave mangler tildeltEnhetsnr"),
@@ -115,7 +116,7 @@ class OppgaveService(
             Oppgave(
                 behandlingId = behandlingId,
                 gsakOppgaveId = oppgave.id ?: throw IllegalStateException("Oppgave-respons mangler id"),
-                type = OppgavetypeGRU.GOD_VED.name,
+                type = OppgavetypeGRU.BEH_VED.name,
             ),
         )
     }
@@ -161,7 +162,7 @@ class OppgaveService(
     fun hentOppgaveForBehandling(behandlingId: UUID): Oppgave? =
         oppgaveRepository.finnSisteOppgaveForBehandling(
             behandlingId = behandlingId,
-            types = listOf(OppgavetypeGRU.BEH_SAK.name, OppgavetypeGRU.GOD_VED.name),
+            types = listOf(OppgavetypeGRU.BEH_SAK.name, OppgavetypeGRU.BEH_VED.name),
         )
 
     fun ferdigstillOppgaveForType(
@@ -300,8 +301,11 @@ enum class OppgavetypeGRU(
     BEH_SAK(
         term = "Behandle sak",
     ),
-    GOD_VED(
-        term = "Godkjenne vedtak",
+
+    // Allerede lagrede task-payloader kan inneholde den tidligere, ugyldige oppgavetypen.
+    @JsonAlias("GOD_VED")
+    BEH_VED(
+        term = "Behandle vedtak",
     ),
     VURD_HENV(
         term = "Vurder henvendelse",

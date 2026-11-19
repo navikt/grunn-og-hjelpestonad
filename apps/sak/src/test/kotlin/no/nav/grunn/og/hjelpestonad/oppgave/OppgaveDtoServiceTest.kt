@@ -81,7 +81,7 @@ class OppgaveDtoServiceTest {
         every {
             oppgaveRepository.finnSisteOppgaveForBehandling(
                 behandling.id,
-                listOf(OppgavetypeGRU.BEH_SAK.name, OppgavetypeGRU.GOD_VED.name),
+                listOf(OppgavetypeGRU.BEH_SAK.name, OppgavetypeGRU.BEH_VED.name),
             )
         } answers { sisteOppgave }
         every { oppgaveRepository.findByBehandlingIdAndType(behandling.id, any()) } answers {
@@ -102,9 +102,9 @@ class OppgaveDtoServiceTest {
         service.opprettBehandleSakOppgave(behandling, "A123456", "4415")
         repeat(2) {
             service.ferdigstillOppgaveForType(behandling.id, OppgavetypeGRU.BEH_SAK)
-            service.opprettGodkjennVedtakOppgave(behandling.id)
-            assertThat(service.hentAktivOppgavetype(behandling.id)).isEqualTo(OppgavetypeGRU.GOD_VED)
-            service.ferdigstillOppgaveForType(behandling.id, OppgavetypeGRU.GOD_VED)
+            service.opprettBehandleVedtakOppgave(behandling.id)
+            assertThat(service.hentAktivOppgavetype(behandling.id)).isEqualTo(OppgavetypeGRU.BEH_VED)
+            service.ferdigstillOppgaveForType(behandling.id, OppgavetypeGRU.BEH_VED)
             service.opprettBehandleUnderkjentVedtakOppgave(behandling.id, "A123456")
             assertThat(service.hentAktivOppgavetype(behandling.id)).isEqualTo(OppgavetypeGRU.BEH_SAK)
         }
@@ -112,9 +112,9 @@ class OppgaveDtoServiceTest {
 
         assertThat(requests.map { it.oppgavetype }).containsExactly(
             OppgavetypeGRU.BEH_SAK,
-            OppgavetypeGRU.GOD_VED,
+            OppgavetypeGRU.BEH_VED,
             OppgavetypeGRU.BEH_SAK,
-            OppgavetypeGRU.GOD_VED,
+            OppgavetypeGRU.BEH_VED,
             OppgavetypeGRU.BEH_SAK,
         )
         requests.forEach {
