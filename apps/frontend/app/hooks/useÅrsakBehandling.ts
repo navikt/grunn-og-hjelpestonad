@@ -98,7 +98,7 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
         body: {
           kravdato: tilLocalDateString(årsakState.kravdato),
           årsak: årsakState.årsak,
-          beskrivelse: årsakState.beskrivelse,
+          beskrivelse: årsakState.beskrivelse ?? "",
         },
         throwOnError: true,
       });
