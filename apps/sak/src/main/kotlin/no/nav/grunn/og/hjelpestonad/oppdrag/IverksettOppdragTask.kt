@@ -60,7 +60,7 @@ class IverksettOppdragTask(
         kontekst.opprettNesteTask(
             type = HentOppdragStatusTask.TYPE,
             payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId = behandlingId),
-            triggerTid = nesteTidspunktIÅpningstid(clock.instant(), VENTETID_FØR_STATUS),
+            triggerTid = clock.instant().plus(VENTETID_FØR_STATUS),
         )
     }
 

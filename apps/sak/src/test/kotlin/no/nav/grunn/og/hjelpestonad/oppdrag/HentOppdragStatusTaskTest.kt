@@ -29,7 +29,7 @@ class HentOppdragStatusTaskTest {
     }
 
     @Test
-    fun `LAGT_PÅ_KØ prøver samme task igjen om 15 sekunder`() {
+    fun `LAGT_PÅ_KØ prøver samme task igjen om 10 sekunder`() {
         val behandlingId = UUID.randomUUID()
         val payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId)
         val kontekst = kontekst(payload)
@@ -40,8 +40,8 @@ class HentOppdragStatusTaskTest {
             .hasMessage("Venter på kvittering fra OS for behandling=$behandlingId")
 
         assertThat(task.retry.maxAntallFeil).isEqualTo(100)
-        assertThat(task.retry.backoff(1)).isEqualTo(15.seconds)
-        assertThat(task.retry.backoff(99)).isEqualTo(15.seconds)
+        assertThat(task.retry.backoff(1)).isEqualTo(10.seconds)
+        assertThat(task.retry.backoff(99)).isEqualTo(10.seconds)
         verify(exactly = 0) {
             kontekst.opprettNesteTask<HentOppdragStatusTask.HentOppdragStatusTaskData>(any(), any(), any())
         }

@@ -10,7 +10,7 @@ import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Poller til OS har kvittert. Samme task prøver igjen hvert 15. sekund ved manglende kvittering eller feil.
+ * Poller til OS har kvittert. Samme task prøver igjen hvert 10. sekund ved manglende kvittering eller feil.
  * Motoren stopper den etter 100 feil.
  */
 @Service

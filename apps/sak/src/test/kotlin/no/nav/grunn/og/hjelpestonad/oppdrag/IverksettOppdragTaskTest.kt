@@ -17,7 +17,7 @@ import kotlin.time.Duration.Companion.minutes
 
 class IverksettOppdragTaskTest {
     private val oppdragIverksettingService = mockk<OppdragIverksettingService>()
-    private val klokke = Clock.fixed(Instant.parse("2026-11-09T12:00:00Z"), ZoneOffset.UTC)
+    private val klokke = Clock.fixed(Instant.parse("2026-11-13T20:00:00Z"), ZoneOffset.UTC)
     private val task = IverksettOppdragTask(oppdragIverksettingService, klokke)
 
     @Test
@@ -37,7 +37,7 @@ class IverksettOppdragTaskTest {
     }
 
     @Test
-    fun `sendt oppdrag oppretter status-task med første forsøk etter 30 sekunder`() {
+    fun `sendt oppdrag oppretter status-task etter 30 sekunder også utenfor åpningstid`() {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
