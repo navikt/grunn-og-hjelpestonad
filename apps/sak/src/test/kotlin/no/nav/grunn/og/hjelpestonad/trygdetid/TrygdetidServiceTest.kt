@@ -29,6 +29,7 @@ class TrygdetidServiceTest {
             mockk<BehandlingService>(relaxed = true),
             endringshistorikkService,
             mockk<AnsvarligSaksbehandlerService>(relaxed = true),
+            mockk(relaxed = true),
         )
 
     private val behandlingId = UUID.randomUUID()

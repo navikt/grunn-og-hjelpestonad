@@ -170,7 +170,6 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
         assertThat(opphør.periodeId).isEqualTo(0L)
         assertThat(opphør.opphør?.opphørDatoFom).isEqualTo(LocalDate.parse("2025-04-01"))
         assertThat(nyttForsøk.oppdragResultat.utbetalingsoppdrag).isEqualTo(revurderingOppdrag.utbetalingsoppdrag)
-        assertThat(nyttForsøk.testandel).isNull()
         assertThat(oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, unntattBehandlingId = UUID.randomUUID()).map { it.tom })
             .containsExactly(LocalDate.parse("2025-03-31"))
     }

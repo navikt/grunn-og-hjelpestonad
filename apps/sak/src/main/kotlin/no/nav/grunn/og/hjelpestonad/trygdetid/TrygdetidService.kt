@@ -6,6 +6,7 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.periode.Endringstyper
 import no.nav.grunn.og.hjelpestonad.felles.periode.PeriodeMedBegrunnelseService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -15,6 +16,7 @@ class TrygdetidService(
     behandlingService: BehandlingService,
     endringshistorikkService: EndringshistorikkService,
     ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
+    tilkjentYtelseService: TilkjentYtelseService,
 ) : PeriodeMedBegrunnelseService<Trygdetid, TrygdetidRequest>(
         trygdetidRepository,
         behandlingService,
@@ -25,6 +27,7 @@ class TrygdetidService(
             oppdatert = EndringType.TRYGDETID_OPPDATERT,
             slettet = EndringType.TRYGDETID_SLETTET,
         ),
+        tilkjentYtelseService,
     ) {
     override val periodebeskrivelse = "trygdetid"
 

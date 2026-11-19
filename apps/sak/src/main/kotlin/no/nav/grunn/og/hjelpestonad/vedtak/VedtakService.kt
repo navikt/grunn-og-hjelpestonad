@@ -5,9 +5,9 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
-import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vedtak.BeregningUtils.beregnBarnetilsynperiode
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -22,9 +22,24 @@ class VedtakService(
     private val behandlingService: BehandlingService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val tilkjentYtelseService: TilkjentYtelseService,
-    private val beregnTilkjentYtelseService: BeregnTilkjentYtelseService,
 ) {
     fun hentVedtak(behandlingId: UUID): Vedtak? = vedtakRepository.findByBehandlingId(behandlingId)
+
+    fun validerVedtaksresultatMotBeregning(behandlingId: UUID) {
+        val vedtak = hentVedtak(behandlingId) ?: throw Feil("Lagre vedtaket før du sender behandlingen til beslutter", HttpStatus.BAD_REQUEST)
+        when (vedtak.resultatType) {
+            ResultatType.INNVILGET, ResultatType.AVSLÅTT -> {}
+
+            ResultatType.OPPHØR, ResultatType.HENLAGT -> {
+                return
+            }
+        }
+
+        val tilkjentYtelse =
+            tilkjentYtelseService.hentTilkjentYtelse(behandlingId)
+                ?: throw Feil("Fullfør vilkår og sats og trygdetid på nytt før du sender behandlingen til beslutter", HttpStatus.BAD_REQUEST)
+        validerVedtaksresultatMotBeregning(vedtak.resultatType, tilkjentYtelse.andelerTilkjentYtelse.isNotEmpty())
+    }
 
     @Transactional
     fun lagreVedtak(
@@ -33,12 +48,19 @@ class VedtakService(
     ): UUID {
         behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        when (vedtakRequest.resultatType) {
+            ResultatType.INNVILGET, ResultatType.OPPHØR -> {
+                if (tilkjentYtelseService.hentTilkjentYtelse(behandlingId) == null) {
+                    throw Feil("Fullfør sats og trygdetid før du lagrer vedtaket")
+                }
+            }
+
+            ResultatType.AVSLÅTT, ResultatType.HENLAGT -> {}
+        }
         if (vedtakRepository.findByBehandlingId(behandlingId) != null) {
-            tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
             vedtakRepository.deleteByBehandlingId(behandlingId)
         }
         val vedtak = vedtakRepository.insert(vedtakRequest.tilVedtak(behandlingId))
-        beregnTilkjentYtelseService.opprettEllerOppdaterTilkjentYtelse(behandlingId, vedtak)
 
         endringshistorikkService.registrerEndring(
             behandlingId = behandlingId,
@@ -51,7 +73,6 @@ class VedtakService(
     fun slettVedtakHvisFinnes(behandlingId: UUID) {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         if (vedtakRepository.findByBehandlingId(behandlingId) != null) {
-            tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
             vedtakRepository.deleteByBehandlingId(behandlingId)
         }
     }

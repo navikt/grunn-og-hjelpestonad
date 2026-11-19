@@ -33,12 +33,12 @@ class KopierVilkårServiceTest {
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
 
     private val vilkårDiagnoseService =
-        VilkårDiagnoseService(diagnoseRepository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService)
+        VilkårDiagnoseService(diagnoseRepository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService, mockk(relaxed = true))
 
     private val kopierVilkårService =
         KopierVilkårService(
             vilkårMedlemskapService =
-                VilkårMedlemskapService(medlemskapRepository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService),
+                VilkårMedlemskapService(medlemskapRepository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService, mockk(relaxed = true)),
             vilkårDiagnoseService = vilkårDiagnoseService,
             vilkårEkstrautgifterService =
                 VilkårEkstrautgifterService(
@@ -47,6 +47,7 @@ class KopierVilkårServiceTest {
                     endringshistorikkService,
                     ansvarligSaksbehandlerService,
                     vilkårDiagnoseService,
+                    mockk(relaxed = true),
                 ),
         )
 

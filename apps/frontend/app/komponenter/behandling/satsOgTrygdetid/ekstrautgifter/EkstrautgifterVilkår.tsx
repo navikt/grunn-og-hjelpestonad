@@ -16,7 +16,10 @@ import { useEkstrautgifterVilkårSkjema } from "./useEkstrautgifterVilkårSkjema
 import { EkstrautgifterSkjema } from "./EkstrautgifterSkjema";
 import { hentUnikeDiagnoserVurdertTilJa, lagDiagnoseVisning } from "./diagnoser";
 
-export const EkstrautgifterVilkår: React.FC<{ behandlingId: string }> = ({ behandlingId }) => {
+export const EkstrautgifterVilkår: React.FC<{
+  behandlingId: string;
+  åpneVedFeil?: number;
+}> = ({ behandlingId, åpneVedFeil }) => {
   const ekstrautgiftPerioder = usePerioder(behandlingId, hentEkstrautgifterPerioderFraBackend);
   const diagnosePerioder = usePerioder(behandlingId, hentDiagnosePerioderFraBackend);
   const { lagreEkstrautgifter, slettEkstrautgifter } = useEkstrautgifterVilkårApi();
@@ -89,6 +92,7 @@ export const EkstrautgifterVilkår: React.FC<{ behandlingId: string }> = ({ beha
       skjema={skjema}
       endringer={endringer}
       leggTil={{ tekst: "Legg til periode", åpne: skjema.åpneNyPeriode }}
+      åpneVedFeil={åpneVedFeil}
     >
       <div aria-live="polite">{diagnoseMelding}</div>
       {henterDiagnoser && (

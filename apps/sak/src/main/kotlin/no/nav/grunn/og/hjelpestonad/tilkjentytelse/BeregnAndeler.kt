@@ -1,38 +1,27 @@
 package no.nav.grunn.og.hjelpestonad.tilkjentytelse
 
-import no.nav.grunn.og.hjelpestonad.vedtak.BarnetilsynBeregning
-import no.nav.grunn.og.hjelpestonad.vedtak.BeløpsperioderResponse
-import no.nav.grunn.og.hjelpestonad.vedtak.BeregningUtils.beregnBarnetilsynperiode
-import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
-import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
+import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
+import java.time.YearMonth
 import java.util.UUID
 
-// TODO: Beregningen er arvet fra barnetilsyn i forken og er feil for grunnstønad.
-// Andelene skal beregnes fra sats og trygdetid fra vilkårsvurderingen, som ikke er på plass ennå.
-fun beregnAndeler(
-    vedtak: Vedtak,
-    kildeBehandlingId: UUID,
+/** Fyller manglende sluttdato med beregningsmåneden pluss tre år. Eksplisitte sluttdatoer beholdes. */
+fun fyllInnManglendeSluttdato(
+    utlededeAndeler: List<UtledetAndel>,
+    beregningsmåned: YearMonth,
+    behandlingId: UUID,
 ): Set<AndelTilkjentYtelse> {
-    val beregninger =
-        vedtak.grunnstønadPerioder.map { periode ->
-            BarnetilsynBeregning(
-                datoFra = periode.datoFra,
-                datoTil = periode.datoTil,
-                utgifter = periode.utgifter,
-                barn = periode.barn,
-                periodetype = periode.periodetype,
+    val standardSluttmåned = beregningsmåned.plusYears(3)
+    return utlededeAndeler
+        .map { utledetAndel ->
+            val sluttmåned = utledetAndel.tilOgMedMåned ?: standardSluttmåned
+            if (sluttmåned < utledetAndel.fraOgMedMåned) {
+                throw UgyldigInput("Perioden starter etter standard sluttdato på tre år frem. Fyll ut en til og med-dato for perioden.")
+            }
+            AndelTilkjentYtelse(
+                beløp = utledetAndel.beløp,
+                fom = utledetAndel.fraOgMedMåned.atDay(1),
+                tom = sluttmåned.atEndOfMonth(),
+                kildeBehandlingId = behandlingId,
             )
-        }
-    return beregnBarnetilsynperiode(beregninger)
-        .filter { it.periodetype == PeriodetypeBarnetilsyn.ORDINÆR && it.beløp > 0 }
-        .map { it.tilAndelTilkjentYtelse(kildeBehandlingId) }
-        .toSet()
+        }.toSet()
 }
-
-private fun BeløpsperioderResponse.tilAndelTilkjentYtelse(kildeBehandlingId: UUID) =
-    AndelTilkjentYtelse(
-        beløp = this.beløp.toBigDecimal(),
-        fom = this.datoFra.atDay(1),
-        tom = this.datoTil.atEndOfMonth(),
-        kildeBehandlingId = kildeBehandlingId,
-    )

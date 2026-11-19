@@ -34,6 +34,7 @@ class VilkårDiagnoseServiceTest {
             behandlingService,
             endringshistorikkService,
             ansvarligSaksbehandlerService,
+            mockk(relaxed = true),
         )
 
     private val behandlingId = UUID.randomUUID()

@@ -10,6 +10,7 @@ import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.vilkår.Vurdering
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.erOppfyltTidslinje
+import java.time.LocalDate
 
 object EkstrautgifterRegler {
     const val FRA_OG_MED_MANGLER = "Ekstrautgiftene må ha en fra og med-dato når vilkåret er oppfylt."
@@ -87,14 +88,32 @@ object EkstrautgifterRegler {
         request: VilkårEkstrautgifterRequest,
         diagnosePerioder: List<VilkårDiagnose>,
     ) {
-        val periodeForEkstrautgift = Periode(true, request.fraOgMedDato, request.tilOgMedDato).tilTidslinje()
-        val diagnoserEtterKode = diagnosePerioder.groupBy { it.tidslinjenøkkel() }
-        val alleOppfylt =
-            request.diagnosekoder.all { kode ->
-                periodeForEkstrautgift.dekkesAv(diagnoserEtterKode[kode].orEmpty().erOppfyltTidslinje())
-            }
-        if (!alleOppfylt) {
+        if (!erDiagnosekoderOppfyltIHelePerioden(request.fraOgMedDato, request.tilOgMedDato, request.diagnosekoder, diagnosePerioder)) {
             throw UgyldigInput(DIAGNOSE_IKKE_OPPFYLT_I_HELE_PERIODEN)
+        }
+    }
+
+    fun erDiagnoseneOppfyltIHelePerioden(
+        vilkårEkstrautgifter: VilkårEkstrautgifter,
+        diagnosePerioder: List<VilkårDiagnose>,
+    ): Boolean =
+        erDiagnosekoderOppfyltIHelePerioden(
+            vilkårEkstrautgifter.fraOgMedDato,
+            vilkårEkstrautgifter.tilOgMedDato,
+            vilkårEkstrautgifter.ekstrautgifter.flatMapTo(mutableSetOf()) { it.diagnosekoder },
+            diagnosePerioder,
+        )
+
+    private fun erDiagnosekoderOppfyltIHelePerioden(
+        fraOgMedDato: LocalDate?,
+        tilOgMedDato: LocalDate?,
+        diagnosekoder: Set<String>,
+        diagnosePerioder: List<VilkårDiagnose>,
+    ): Boolean {
+        val periodeForEkstrautgift = Periode(true, fraOgMedDato, tilOgMedDato).tilTidslinje()
+        val diagnoserEtterKode = diagnosePerioder.groupBy { it.tidslinjenøkkel() }
+        return diagnosekoder.all { kode ->
+            periodeForEkstrautgift.dekkesAv(diagnoserEtterKode[kode].orEmpty().erOppfyltTidslinje())
         }
     }
 

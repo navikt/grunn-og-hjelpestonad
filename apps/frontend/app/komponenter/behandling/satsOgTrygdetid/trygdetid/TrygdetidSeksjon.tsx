@@ -15,7 +15,10 @@ import { hentTrygdetidPerioderFraBackend, useTrygdetidApi } from "./useTrygdetid
 import { kildeTekst, MAKS_TELLER, useTrygdetidSkjema } from "./useTrygdetidSkjema";
 import { TrygdetidSkjema } from "./TrygdetidSkjema";
 
-export const TrygdetidSeksjon: React.FC<{ behandlingId: string }> = ({ behandlingId }) => {
+export const TrygdetidSeksjon: React.FC<{
+  behandlingId: string;
+  åpneVedFeil?: number;
+}> = ({ behandlingId, åpneVedFeil }) => {
   const erLesevisning = useErLesevisning();
   const perioder = usePerioder(behandlingId, hentTrygdetidPerioderFraBackend);
   const { lagreTrygdetid, slettTrygdetid } = useTrygdetidApi();
@@ -30,16 +33,28 @@ export const TrygdetidSeksjon: React.FC<{ behandlingId: string }> = ({ behandlin
   });
 
   const [erÅpen, settErÅpen] = useState(false);
-  const initialÅpenSatt = useRef(false);
+  const [sistBehandletÅpneVedFeil, settSistBehandletÅpneVedFeil] = useState<number | undefined>();
+  const [initialÅpenSatt, settInitialÅpenSatt] = useState(false);
+  const seksjonsmålRef = useRef<HTMLButtonElement>(null);
+
+  // Avledet tilstand: justeres under rendering når propen endres, ikke i effect.
+  if (åpneVedFeil !== sistBehandletÅpneVedFeil) {
+    settSistBehandletÅpneVedFeil(åpneVedFeil);
+    if (åpneVedFeil) {
+      settErÅpen(true);
+    }
+  }
+
+  if (!initialÅpenSatt && !perioder.laster && perioder.data !== undefined) {
+    settInitialÅpenSatt(true);
+    settErÅpen(perioder.data.length === 0);
+  }
 
   useEffect(() => {
-    if (initialÅpenSatt.current || perioder.laster || perioder.data === undefined) {
-      return;
+    if (åpneVedFeil) {
+      requestAnimationFrame(() => seksjonsmålRef.current?.focus());
     }
-
-    initialÅpenSatt.current = true;
-    settErÅpen(perioder.data.length === 0);
-  }, [perioder.laster, perioder.data]);
+  }, [åpneVedFeil]);
 
   const visSkjema = !erLesevisning && skjema.erÅpent;
   const liste = perioder.data ?? [];
@@ -82,7 +97,9 @@ export const TrygdetidSeksjon: React.FC<{ behandlingId: string }> = ({ behandlin
 
   return (
     <Accordion.Item open={erÅpen} onOpenChange={settErÅpen}>
-      <Accordion.Header id="trygdetid">Trygdetid</Accordion.Header>
+      <Accordion.Header id="trygdetid" ref={seksjonsmålRef}>
+        Trygdetid
+      </Accordion.Header>
 
       <Accordion.Content>
         <VStack gap="space-24">

@@ -23,7 +23,7 @@ class IverksettOppdragTaskTest {
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
         every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns
-            Iverksettingsresultat.Sendt(oppdragResultat = oppdragResultat(), testandel = null)
+            Iverksettingsresultat.Sendt(oppdragResultat = oppdragResultat())
 
         task.utfor(kontekst)
 
@@ -74,7 +74,7 @@ class IverksettOppdragTaskTest {
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
         every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns
-            Iverksettingsresultat.IngenEndring(oppdragResultat = oppdragResultat(), testandel = null)
+            Iverksettingsresultat.IngenEndring(oppdragResultat = oppdragResultat())
 
         task.utfor(kontekst)
 

@@ -6,6 +6,7 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.periode.Endringstyper
 import no.nav.grunn.og.hjelpestonad.felles.periode.PeriodeMedBegrunnelseService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
 import org.springframework.stereotype.Service
@@ -18,6 +19,7 @@ class VilkårEkstrautgifterService(
     endringshistorikkService: EndringshistorikkService,
     ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val vilkårDiagnoseService: VilkårDiagnoseService,
+    tilkjentYtelseService: TilkjentYtelseService,
 ) : PeriodeMedBegrunnelseService<VilkårEkstrautgifter, VilkårEkstrautgifterRequest>(
         vilkårEkstrautgifterRepository,
         behandlingService,
@@ -28,6 +30,7 @@ class VilkårEkstrautgifterService(
             oppdatert = EndringType.VILKÅR_VURDERING_OPPDATERT,
             slettet = EndringType.VILKÅR_VURDERING_SLETTET,
         ),
+        tilkjentYtelseService,
     ) {
     private val vilkårType = VilkårType.NØDVENDIGE_EKSTRAUTGIFTER
 

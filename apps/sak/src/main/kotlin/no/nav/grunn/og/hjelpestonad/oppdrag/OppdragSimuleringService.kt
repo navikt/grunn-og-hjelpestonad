@@ -15,7 +15,6 @@ class OppdragSimuleringService(
     fun simuler(behandlingId: UUID): OppdragSimuleringResponse {
         val utbetalingsoppdragForBehandling = utbetalingsoppdragService.lagUtbetalingsoppdrag(behandlingId, SikkerhetContext.hentSaksbehandler())
         val utbetalingsoppdrag = utbetalingsoppdragForBehandling.utbetalingsoppdrag
-        val testandel = utbetalingsoppdragForBehandling.testandel
 
         val resultat =
             runCatching { oppdragClient.simuler(utbetalingsoppdrag) }
@@ -23,7 +22,7 @@ class OppdragSimuleringService(
                 .onFailure { tellSimulering("feilet") }
                 .getOrThrow()
 
-        return OppdragSimuleringResponse(resultat = resultat, testandel = testandel)
+        return OppdragSimuleringResponse(resultat = resultat)
     }
 
     private fun tellSimulering(resultat: String) = meterRegistry.counter("oppdrag_simulering", "resultat", resultat).increment()
@@ -31,6 +30,4 @@ class OppdragSimuleringService(
 
 data class OppdragSimuleringResponse(
     val resultat: DetaljertSimuleringResultat,
-    /** Satt når behandlingen manglet tilkjent ytelse og vi simulerte med en testandel. */
-    val testandel: Testandel?,
 )

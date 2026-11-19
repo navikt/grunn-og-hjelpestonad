@@ -120,6 +120,7 @@ class EndepunktRegisterTest {
                 "InngangsvilkårStegController#fullførInngangsvilkår",
                 "InngangsvilkårStegController#hentPerioderMedOppfylteInngangsvilkår",
                 "TrygdetidController#hentTrygdetidPerioder",
+                "SatsOgTrygdetidController#fullførSatsOgTrygdetid",
                 "TrygdetidController#lagreTrygdetidPeriode",
                 "TrygdetidController#slettTrygdetidPeriode",
                 "VedtakController#hentVedtak",
