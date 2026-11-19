@@ -80,7 +80,7 @@ class BeslutterServiceTest {
 
         verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
         verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.SENDT_TIL_BESLUTTER) }
-        verify { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }
+        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } // TODO fjern exactly = 0 når vi lagrer vedtak
         verify {
             taskService.opprett(
                 FerdigstillOppgaveTask.TYPE,
@@ -93,7 +93,7 @@ class BeslutterServiceTest {
             taskService.opprett(
                 OpprettOppgaveTask.TYPE,
                 match<OpprettOppgaveTaskData> {
-                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.GOD_VED
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
                 },
                 any(),
                 any(),
@@ -102,21 +102,77 @@ class BeslutterServiceTest {
     }
 
     @Test
-    fun `manglende beregning stopper sending før status oppgaver og brev endres`() {
+    fun `sending til beslutter oppretter behandle vedtak oppgave`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
+        every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
+        every { oppgaveService.hentAktivOppgavetype(behandlingId) } returns OppgavetypeGRU.BEH_SAK
+
+        beslutterService.sendTilBeslutter(behandlingId)
+
+        verify(exactly = 1) {
+            taskService.opprett(
+                OpprettOppgaveTask.TYPE,
+                match<OpprettOppgaveTaskData> {
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
+                },
+                any(),
+                any(),
+            )
+        }
+    }
+
+    @Test
+    fun `sending til beslutter avvises naar behandle vedtak oppgave allerede finnes`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
+        every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns
+            behandleSakOppgave(behandlingId).copy(type = OppgavetypeGRU.BEH_VED.name)
+
+        assertThatThrownBy { beslutterService.sendTilBeslutter(behandlingId) }
+            .isInstanceOf(IllegalStateException::class.java)
+            .hasMessageContaining("oppgave av typen Behandle vedtak")
+
+        verifyIngenEndringer()
+    }
+
+    @Test
+    fun `godkjent vedtak ferdigstiller behandle vedtak oppgave`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
+        every { vedtakService.hentVedtak(behandlingId) } returns null
+
+        beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
+
+        verify(exactly = 1) {
+            taskService.opprett(
+                FerdigstillOppgaveTask.TYPE,
+                match<FerdigstillOppgaveTaskData> {
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
+                },
+                any(),
+                any(),
+            )
+        }
+    }
+
+    @Test
+    fun `sending til beslutter krever foreløpig ikke beregning`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
         every { oppgaveService.hentAktivOppgavetype(behandlingId) } returns OppgavetypeGRU.BEH_SAK
         every { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } throws Feil("Fullfør beregningen", HttpStatus.BAD_REQUEST)
 
-        assertThatThrownBy { beslutterService.sendTilBeslutter(behandlingId) }.isInstanceOf(Feil::class.java)
+        beslutterService.sendTilBeslutter(behandlingId)
 
-        verifyIngenEndringer()
-        verify(exactly = 0) { brevService.oppdaterSaksbehandlerForBrev(any()) }
+        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } // TODO fjern exactly = 0 når vi lagrer vedtak
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
+        verify { brevService.oppdaterSaksbehandlerForBrev(behandlingId) }
     }
 
     @Test
-    fun `vedtaksresultatkontroll kjøres ved revurdering`() {
+    fun `revurdering kan sendes til beslutter uten vedtaksresultatkontroll`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES).copy(forrigeBehandlingId = UUID.randomUUID())
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
@@ -124,7 +180,8 @@ class BeslutterServiceTest {
 
         beslutterService.sendTilBeslutter(behandlingId)
 
-        verify(exactly = 1) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }
+        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } // TODO fjern exactly = 0 når vi lagrer vedtak
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
     }
 
     @Test
@@ -162,7 +219,7 @@ class BeslutterServiceTest {
             taskService.opprett(
                 FerdigstillOppgaveTask.TYPE,
                 match<FerdigstillOppgaveTaskData> {
-                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.GOD_VED
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
                 },
                 any(),
                 any(),
@@ -298,7 +355,7 @@ class BeslutterServiceTest {
             taskService.opprett(
                 FerdigstillOppgaveTask.TYPE,
                 match<FerdigstillOppgaveTaskData> {
-                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.GOD_VED
+                    it.behandlingId == behandlingId && it.oppgavetype == OppgavetypeGRU.BEH_VED
                 },
                 any(),
                 any(),
