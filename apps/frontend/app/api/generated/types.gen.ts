@@ -22,7 +22,7 @@ export type SatsOgTrygdetidFeilResponse = {
 };
 
 export type SatsOgTrygdetidValideringsfeil = {
-    nøkkel: string;
+    nøkkel: 'inngangsvilkår' | 'ekstrautgifter' | 'trygdetid';
     melding: string;
 };
 

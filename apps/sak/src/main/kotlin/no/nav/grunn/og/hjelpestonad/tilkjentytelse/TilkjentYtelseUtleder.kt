@@ -11,11 +11,12 @@ import no.nav.familie.tidslinje.utvidelser.tilPerioderIkkeNull
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.felles.periode.tilTidslinje
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PerioderMedOppfylteInngangsvilkårUtleder
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsfeil
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsnøkkel
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingValidering
 import no.nav.grunn.og.hjelpestonad.trygdetid.Trygdetid
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidRegler
-import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.EkstrautgifterRegler
 import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifter
@@ -29,25 +30,6 @@ data class UtledetAndel(
     val tilOgMedMåned: YearMonth?,
     val beløp: BigDecimal,
 )
-
-/** Hva en valideringsfeil gjelder. Trygdetid er ikke et vilkår og har derfor en egen nøkkel. */
-sealed interface Valideringsnøkkel {
-    data class Vilkår(
-        val vilkårType: VilkårType,
-    ) : Valideringsnøkkel
-
-    data object Trygdetid : Valideringsnøkkel
-}
-
-data class Utledningsfeil(
-    val nøkkel: Valideringsnøkkel,
-    val melding: String,
-)
-
-/** Grunnlaget for tilkjent ytelse når den ikke er komplett. Har høyst én feil per [Valideringsnøkkel]. */
-class UtledningAvTilkjentYtelseFeil(
-    val feil: List<Utledningsfeil>,
-) : RuntimeException("Grunnlaget for tilkjent ytelse er ikke komplett")
 
 object TilkjentYtelseUtleder {
     const val EKSTRAUTGIFTER_IKKE_VURDERT = "Du må vurdere nødvendige ekstrautgifter."
@@ -66,7 +48,14 @@ object TilkjentYtelseUtleder {
 
         ekstrautgifter.forEach { vilkårEkstrautgifter ->
             if (!EkstrautgifterRegler.erDiagnoseneOppfyltIHelePerioden(vilkårEkstrautgifter, diagnoser)) {
-                throw UgyldigInput(EkstrautgifterRegler.DIAGNOSE_IKKE_OPPFYLT_I_HELE_PERIODEN)
+                throw VilkårValideringFeil(
+                    listOf(
+                        Valideringsfeil(
+                            nøkkel = Valideringsnøkkel.NØDVENDIGE_EKSTRAUTGIFTER,
+                            melding = EkstrautgifterRegler.DIAGNOSE_IKKE_OPPFYLT_I_HELE_PERIODEN,
+                        ),
+                    ),
+                )
             }
         }
 
@@ -145,11 +134,11 @@ object TilkjentYtelseUtleder {
 
         val feil =
             listOfNotNull(
-                Utledningsfeil(Valideringsnøkkel.Vilkår(VilkårType.NØDVENDIGE_EKSTRAUTGIFTER), EKSTRAUTGIFTER_IKKE_VURDERT)
+                Valideringsfeil(Valideringsnøkkel.NØDVENDIGE_EKSTRAUTGIFTER, EKSTRAUTGIFTER_IKKE_VURDERT)
                     .takeUnless { ekstrautgifterVurdert },
-                Utledningsfeil(Valideringsnøkkel.Trygdetid, TRYGDETID_MANGLER).takeIf { hullITrygdetid },
+                Valideringsfeil(Valideringsnøkkel.TRYGDETID, TRYGDETID_MANGLER).takeIf { hullITrygdetid },
             )
-        if (feil.isNotEmpty()) throw UtledningAvTilkjentYtelseFeil(feil)
+        if (feil.isNotEmpty()) throw VilkårValideringFeil(feil)
     }
 
     /**

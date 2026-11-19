@@ -15,6 +15,7 @@ import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbeh
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.InngangsvilkårStegService
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PeriodeMedOppfylteInngangsvilkår
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsnøkkel
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
@@ -113,8 +114,8 @@ class InngangsvilkårStegServiceTest {
 
         assertThatThrownBy { service.fullførSteg(behandlingId) }
             .isInstanceOf(VilkårValideringFeil::class.java)
-            .extracting { (it as VilkårValideringFeil).feil.map { feil -> feil.vilkårType } }
-            .isEqualTo(listOf(VilkårType.DIAGNOSE))
+            .extracting { (it as VilkårValideringFeil).feil.map { feil -> feil.nøkkel } }
+            .isEqualTo(listOf(Valideringsnøkkel.DIAGNOSE))
 
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }

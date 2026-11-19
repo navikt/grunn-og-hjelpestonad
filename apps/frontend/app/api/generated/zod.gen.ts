@@ -18,7 +18,11 @@ export const zVilkårValideringFeilResponse = z.object({
 });
 
 export const zSatsOgTrygdetidValideringsfeil = z.object({
-    nøkkel: z.string(),
+    nøkkel: z.enum([
+        'inngangsvilkår',
+        'ekstrautgifter',
+        'trygdetid'
+    ]),
     melding: z.string()
 });
 

@@ -70,7 +70,7 @@ class InngangsvilkårStegController(
      */
     @ApiResponse(
         responseCode = "400",
-        description = "Vurderingen av inngangsvilkår er ikke komplett. Inneholder én feil per vilkår som mangler.",
+        description = "Vurderingen av inngangsvilkår er ikke komplett. Inneholder høyst én feil per valideringsnøkkel.",
         content = [Content(schema = Schema(implementation = VilkårValideringFeilResponse::class))],
     )
     @ExceptionHandler(VilkårValideringFeil::class)
