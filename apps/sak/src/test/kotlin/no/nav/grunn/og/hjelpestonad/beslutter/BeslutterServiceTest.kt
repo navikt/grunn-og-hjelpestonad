@@ -80,7 +80,7 @@ class BeslutterServiceTest {
 
         verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
         verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.SENDT_TIL_BESLUTTER) }
-        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } //TODO fjern exactly = 0 når vi lagrer vedtak
+        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } // TODO fjern exactly = 0 når vi lagrer vedtak
         verify {
             taskService.opprett(
                 FerdigstillOppgaveTask.TYPE,
@@ -166,7 +166,7 @@ class BeslutterServiceTest {
 
         beslutterService.sendTilBeslutter(behandlingId)
 
-        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }  //TODO fjern exactly = 0 når vi lagrer vedtak
+        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } // TODO fjern exactly = 0 når vi lagrer vedtak
         verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
         verify { brevService.oppdaterSaksbehandlerForBrev(behandlingId) }
     }
@@ -180,7 +180,7 @@ class BeslutterServiceTest {
 
         beslutterService.sendTilBeslutter(behandlingId)
 
-        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }  //TODO fjern exactly = 0 når vi lagrer vedtak
+        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } // TODO fjern exactly = 0 når vi lagrer vedtak
         verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
     }
 
