@@ -9,6 +9,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
@@ -30,12 +31,14 @@ private const val CØLIAKI = "K900"
 class VilkårDiagnoseServiceTest {
     private val repository = mockk<VilkårDiagnoseRepository>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val service =
         VilkårDiagnoseService(
             repository,
             behandlingService,
+            behandlingStegService,
             endringshistorikkService,
             ansvarligSaksbehandlerService,
             mockk(relaxed = true),

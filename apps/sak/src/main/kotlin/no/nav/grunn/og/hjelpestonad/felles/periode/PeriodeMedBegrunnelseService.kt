@@ -2,6 +2,7 @@ package no.nav.grunn.og.hjelpestonad.felles.periode
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.behandling.validerKanEndre
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
@@ -23,6 +24,7 @@ data class Endringstyper(
 abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : PeriodeMedBegrunnelseRequest>(
     private val repository: PeriodeMedBegrunnelseRepository<P>,
     private val behandlingService: BehandlingService,
+    private val behandlingStegService: BehandlingStegService,
     private val endringshistorikkService: EndringshistorikkService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val endringstyper: Endringstyper,
@@ -101,7 +103,7 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         repository.deleteByBehandlingId(behandlingId)
         repository.insertAll(perioder)
         tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
-        førBehandlingTilbakeTilSteget(behandlingId, behandling.gjeldendeSteg)
+        behandlingStegService.førTilbakeEtterPeriodeendring(behandling, steg)
 
         val endringType = if (eksisterendePeriode == null) endringstyper.opprettet else endringstyper.oppdatert
         registrerEndring(behandlingId, endringType, periode)
@@ -120,17 +122,9 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
 
         repository.deleteById(periode.id)
         tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
-        førBehandlingTilbakeTilSteget(behandlingId, behandling.gjeldendeSteg)
+        behandlingStegService.førTilbakeEtterPeriodeendring(behandling, steg)
 
         registrerEndring(behandlingId, endringstyper.slettet, periode)
-    }
-
-    /** Behandlingen må fullføre [steg] på nytt. Står den allerede tidligere i flyten, blir den stående. */
-    private fun førBehandlingTilbakeTilSteget(
-        behandlingId: UUID,
-        gjeldendeSteg: BehandlingSteg,
-    ) {
-        if (steg.rekkefølge < gjeldendeSteg.rekkefølge) behandlingService.settGjeldendeSteg(behandlingId, steg)
     }
 
     protected abstract fun endringsdetalj(periode: P): String

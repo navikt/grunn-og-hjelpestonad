@@ -31,6 +31,10 @@ Rekkefølgen verdiene står i, har ingen betydning.
 
 ### Fullføring setter steget direkte
 
+`BehandlingStegService` håndterer overganger og tilbakeføring. Tjenestene som
+fullfører steg eller endrer grunnlaget, beholder tilgangssjekker, beregninger,
+endringshistorikk og transaksjoner.
+
 | Handling | Nytt gjeldende steg |
 |---|---|
 | Lagre ny eller endret årsak | `INNGANGSVILKÅR` |
@@ -52,10 +56,10 @@ Det erstatter enumen `NesteStegEtterInngangsvilkår` fra ADR-0014, der
 
 ### Backend avviser steg som ikke er nådd
 
-`BehandlingService.validerKanEndreSteg` krever at behandlingen er redigerbar og
-at steget er nådd. Fullføring av inngangsvilkår og sats og trygdetid, endring av
-perioder, lagring av årsak, vedtak, mellomlagring av brev, brevmottakere og send
-til beslutter kaller den.
+`BehandlingStegService.validerKanEndreSteg` krever at behandlingen er redigerbar
+og at steget er nådd. Sjekken brukes for å fullføre inngangsvilkår eller sats og
+trygdetid, lagre årsak, vedtak eller brevmottakere, mellomlagre brev og sende til
+beslutter. Når perioder endres, sjekker backend behandlingen som allerede er hentet.
 
 Simulering bare leser. Den krever `VEDTAK_OG_BREV` mens behandlingen er
 redigerbar, men ikke etter sending til beslutter.

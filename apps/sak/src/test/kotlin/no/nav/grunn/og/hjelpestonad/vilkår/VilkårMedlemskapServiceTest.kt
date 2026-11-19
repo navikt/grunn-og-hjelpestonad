@@ -9,6 +9,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
@@ -36,9 +37,10 @@ import kotlin.test.Test
 class VilkårMedlemskapServiceTest {
     private val repository = mockk<VilkårMedlemskapRepository>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
-    private val service = VilkårMedlemskapService(repository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService, mockk(relaxed = true))
+    private val service = VilkårMedlemskapService(repository, behandlingService, behandlingStegService, endringshistorikkService, ansvarligSaksbehandlerService, mockk(relaxed = true))
 
     private val behandlingId = UUID.randomUUID()
 

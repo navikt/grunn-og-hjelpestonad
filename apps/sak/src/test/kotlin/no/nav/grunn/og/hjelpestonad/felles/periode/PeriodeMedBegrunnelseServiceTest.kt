@@ -9,6 +9,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
@@ -35,6 +36,7 @@ class PeriodeMedBegrunnelseServiceTest {
     private val repository = mockk<PeriodeMedBegrunnelseRepository<TestPeriode>>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = BehandlingStegService(behandlingService)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val tilkjentYtelseService = mockk<TilkjentYtelseService>(relaxed = true)
     private val service = lagService(BehandlingSteg.INNGANGSVILKÅR)
@@ -61,7 +63,7 @@ class PeriodeMedBegrunnelseServiceTest {
 
         lagService(BehandlingSteg.SATS_OG_TRYGDETID).lagrePeriode(behandlingId, TestPeriodeRequest())
 
-        verify(exactly = 1) { behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID) }
+        verify(exactly = 1) { behandlingService.oppdater(match { it.gjeldendeSteg == BehandlingSteg.SATS_OG_TRYGDETID }) }
     }
 
     @Test
@@ -72,7 +74,7 @@ class PeriodeMedBegrunnelseServiceTest {
 
         lagService(BehandlingSteg.SATS_OG_TRYGDETID).slettPeriode(behandlingId, periode.id)
 
-        verify(exactly = 1) { behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID) }
+        verify(exactly = 1) { behandlingService.oppdater(match { it.gjeldendeSteg == BehandlingSteg.SATS_OG_TRYGDETID }) }
     }
 
     @Test
@@ -81,7 +83,7 @@ class PeriodeMedBegrunnelseServiceTest {
 
         lagService(BehandlingSteg.SATS_OG_TRYGDETID).lagrePeriode(behandlingId, TestPeriodeRequest())
 
-        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.oppdater(any()) }
     }
 
     @Test
@@ -92,7 +94,7 @@ class PeriodeMedBegrunnelseServiceTest {
 
         lagService(BehandlingSteg.SATS_OG_TRYGDETID).slettPeriode(behandlingId, periode.id)
 
-        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.oppdater(any()) }
     }
 
     @Test
@@ -107,7 +109,7 @@ class PeriodeMedBegrunnelseServiceTest {
         verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
         verify(exactly = 0) { repository.insertAll(any()) }
         verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
-        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.oppdater(any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 
@@ -124,7 +126,7 @@ class PeriodeMedBegrunnelseServiceTest {
         assertThat(feil.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
         verify(exactly = 0) { repository.deleteById(any()) }
         verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
-        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.oppdater(any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 
@@ -154,7 +156,7 @@ class PeriodeMedBegrunnelseServiceTest {
         assertThat(feil.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
         verify(exactly = 0) { repository.deleteById(any()) }
         verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
-        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingService.oppdater(any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 
@@ -162,6 +164,7 @@ class PeriodeMedBegrunnelseServiceTest {
         TestPeriodeService(
             repository,
             behandlingService,
+            behandlingStegService,
             endringshistorikkService,
             ansvarligSaksbehandlerService,
             tilkjentYtelseService,
@@ -172,6 +175,8 @@ class PeriodeMedBegrunnelseServiceTest {
         gjeldendeSteg: BehandlingSteg,
         status: BehandlingStatus = BehandlingStatus.UTREDES,
     ) = Behandling(
+        // Samme id som behandlingId, så steget leses og skrives på behandlingen testen stubber.
+        id = behandlingId,
         fagsakId = UUID.randomUUID(),
         status = status,
         resultat = BehandlingResultat.IKKE_SATT,
@@ -292,6 +297,7 @@ class PeriodeMedBegrunnelseServiceTest {
     private class TestPeriodeService(
         repository: PeriodeMedBegrunnelseRepository<TestPeriode>,
         behandlingService: BehandlingService,
+        behandlingStegService: BehandlingStegService,
         endringshistorikkService: EndringshistorikkService,
         ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
         tilkjentYtelseService: TilkjentYtelseService,
@@ -299,6 +305,7 @@ class PeriodeMedBegrunnelseServiceTest {
     ) : PeriodeMedBegrunnelseService<TestPeriode, TestPeriodeRequest>(
             repository,
             behandlingService,
+            behandlingStegService,
             endringshistorikkService,
             ansvarligSaksbehandlerService,
             Endringstyper(opprettet = OPPRETTET, oppdatert = OPPDATERT, slettet = SLETTET),

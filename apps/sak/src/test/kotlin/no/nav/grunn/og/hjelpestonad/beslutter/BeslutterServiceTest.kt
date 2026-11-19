@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.beslutter
 import efterlatte.prosessering.TaskId
 import efterlatte.prosessering.TaskType
 import efterlatte.prosessering.spring.TaskService
+import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -11,6 +12,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.Årsak
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandling
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandlingService
@@ -46,6 +48,7 @@ import kotlin.test.Test
 
 class BeslutterServiceTest {
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val brevService = mockk<BrevService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val oppgaveService = mockk<OppgaveService>(relaxed = true)
@@ -58,6 +61,7 @@ class BeslutterServiceTest {
     private val beslutterService =
         BeslutterService(
             behandlingService = behandlingService,
+            behandlingStegService = behandlingStegService,
             brevService = brevService,
             endringshistorikkService = endringshistorikkService,
             oppgaveService = oppgaveService,
@@ -151,7 +155,7 @@ class BeslutterServiceTest {
 
         beslutterService.sendTilBeslutter(behandlingId)
 
-        verify { behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) }
+        verify { behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) }
     }
 
     @Test
@@ -319,7 +323,7 @@ class BeslutterServiceTest {
             ),
         )
 
-        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
+        verify { behandlingStegService wasNot Called }
     }
 
     @Test

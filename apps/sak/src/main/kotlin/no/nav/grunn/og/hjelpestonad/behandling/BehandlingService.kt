@@ -27,35 +27,6 @@ class BehandlingService(
             httpStatus = HttpStatus.NOT_FOUND,
         )
 
-    /**
-     * Sjekker at saksbehandler kan endre eller fullføre [steg]. Behandlingen må være redigerbar, og steget
-     * må være nådd. Trenger du behandlingen etterpå, hent den og bruk `Behandling.validerKanEndre`.
-     */
-    fun validerKanEndreSteg(
-        behandlingId: UUID,
-        steg: BehandlingSteg,
-    ) = hentBehandlingEllerKast(behandlingId).validerKanEndre(steg)
-
-    /**
-     * For operasjoner som bare leser, som simulering. Sjekker steget bare mens behandlingen er redigerbar.
-     * Etter sending til beslutter kan ikke grunnlaget endres, og beslutter skal kunne se alt.
-     */
-    fun validerHarNåddStegHvisRedigerbar(
-        behandlingId: UUID,
-        steg: BehandlingSteg,
-    ) {
-        val behandling = hentBehandlingEllerKast(behandlingId)
-        if (behandling.erRedigerbar()) behandling.validerHarNådd(steg)
-    }
-
-    fun settGjeldendeSteg(
-        behandlingId: UUID,
-        gjeldendeSteg: BehandlingSteg,
-    ) {
-        val behandling = hentBehandlingEllerKast(behandlingId)
-        behandlingRepository.update(behandling.copy(gjeldendeSteg = gjeldendeSteg))
-    }
-
     fun hentBehandlingerFraFagsak(fagsakId: UUID): List<Behandling> = behandlingRepository.findAllByFagsakId(fagsakId)
 
     fun finnesÅpenBehandling(fagsakId: UUID) = behandlingRepository.existsByFagsakIdAndStatusIsNot(fagsakId, BehandlingStatus.FERDIGSTILT)

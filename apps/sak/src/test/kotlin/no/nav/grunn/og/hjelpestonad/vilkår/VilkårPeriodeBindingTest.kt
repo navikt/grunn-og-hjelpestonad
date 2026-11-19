@@ -8,6 +8,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
@@ -34,6 +35,7 @@ class VilkårPeriodeBindingTest {
         VilkårDiagnoseService(
             repository,
             behandlingService,
+            mockk<BehandlingStegService>(relaxed = true),
             mockk<EndringshistorikkService>(relaxed = true),
             mockk<AnsvarligSaksbehandlerService>(relaxed = true),
             mockk(relaxed = true),

@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.behandling.årsak
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
@@ -14,6 +15,7 @@ import java.util.UUID
 class ÅrsakBehandlingService(
     private val årsakBehandlingRepository: ÅrsakBehandlingRepository,
     private val behandlingService: BehandlingService,
+    private val behandlingStegService: BehandlingStegService,
     private val endringshistorikkService: EndringshistorikkService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
 ) {
@@ -25,7 +27,7 @@ class ÅrsakBehandlingService(
         årsakBehandlingRequest: ÅrsakBehandlingRequest,
     ): ÅrsakBehandling {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
-        behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.ÅRSAK)
+        behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.ÅRSAK)
         val eksisterendeÅrsak = hentÅrsakBehandling(behandlingId) ?: return lagreNyÅrsak(behandlingId, årsakBehandlingRequest)
 
         val oppdatertÅrsak =
@@ -62,7 +64,7 @@ class ÅrsakBehandlingService(
             endringType = EndringType.ÅRSAK_LAGRET,
             detaljer = "Årsak: ${årsakBehandlingRequest.årsak}",
         )
-        behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
+        behandlingStegService.registrerLagretÅrsak(behandlingId)
         return lagretÅrsak
     }
 
@@ -80,7 +82,7 @@ class ÅrsakBehandlingService(
             endringType = EndringType.ÅRSAK_OPPDATERT,
             detaljer = "Årsak: ${oppdatertÅrsak.årsak}",
         )
-        behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
+        behandlingStegService.registrerLagretÅrsak(behandlingId)
         return lagretÅrsak
     }
 }

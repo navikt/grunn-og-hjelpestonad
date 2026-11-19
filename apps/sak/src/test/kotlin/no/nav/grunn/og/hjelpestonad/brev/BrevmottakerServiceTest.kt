@@ -2,8 +2,8 @@ package no.nav.grunn.og.hjelpestonad.brev
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.brev.domain.Brevmottaker
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevmottakerRolle
 import no.nav.grunn.og.hjelpestonad.brev.domain.MottakerType
@@ -16,9 +16,9 @@ import kotlin.test.Test
 
 class BrevmottakerServiceTest {
     private val brevmottakerRepository = mockk<BrevmottakerRepository>(relaxed = true)
-    private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
-    private val brevmottakerService = BrevmottakerService(brevmottakerRepository, behandlingService, ansvarligSaksbehandlerService)
+    private val brevmottakerService = BrevmottakerService(brevmottakerRepository, behandlingStegService, ansvarligSaksbehandlerService)
 
     @Test
     fun `oppdaterBrevmottakere kaster feil når behandling ikke er redigerbar`() {
@@ -33,7 +33,7 @@ class BrevmottakerServiceTest {
                 ),
             )
 
-        every { behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
+        every { behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
 
         assertThatThrownBy { brevmottakerService.oppdaterBrevmottakere(behandlingId, brevmottakere) }
             .isInstanceOf(Feil::class.java)

@@ -6,6 +6,7 @@ import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
@@ -22,9 +23,10 @@ import kotlin.test.Test
 class ÅrsakBehandlingServiceTest {
     private val årsakBehandlingRepository = mockk<ÅrsakBehandlingRepository>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
-    private val årsakBehandlingService = ÅrsakBehandlingService(årsakBehandlingRepository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService)
+    private val årsakBehandlingService = ÅrsakBehandlingService(årsakBehandlingRepository, behandlingService, behandlingStegService, endringshistorikkService, ansvarligSaksbehandlerService)
 
     @Test
     fun `lagreÅrsakForBehandling kaster ManglerTilgang når bruker ikke er ansvarlig saksbehandler`() {
@@ -47,7 +49,7 @@ class ÅrsakBehandlingServiceTest {
     @Test
     fun `lagreÅrsakForBehandling kaster og skriver ingenting når behandlingen er FATTER_VEDTAK`() {
         val behandlingId = UUID.randomUUID()
-        every { behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.ÅRSAK) } throws
+        every { behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.ÅRSAK) } throws
             Feil(
                 melding = "Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK",
                 httpStatus = HttpStatus.BAD_REQUEST,
@@ -61,7 +63,7 @@ class ÅrsakBehandlingServiceTest {
         verify(exactly = 0) { årsakBehandlingRepository.insert(any<ÅrsakBehandling>()) }
         verify(exactly = 0) { årsakBehandlingRepository.update(any<ÅrsakBehandling>()) }
         verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(any(), any()) }
-        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingStegService.registrerLagretÅrsak(any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 
@@ -98,7 +100,7 @@ class ÅrsakBehandlingServiceTest {
 
         årsakBehandlingService.lagreÅrsakForBehandling(behandlingId, request())
 
-        verify(exactly = 1) { behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR) }
+        verify(exactly = 1) { behandlingStegService.registrerLagretÅrsak(behandlingId) }
     }
 
     @Test
@@ -110,7 +112,7 @@ class ÅrsakBehandlingServiceTest {
         årsakBehandlingService.lagreÅrsakForBehandling(behandlingId, request(årsak = Årsak.NYE_OPPLYSNINGER))
 
         verify(exactly = 1) { årsakBehandlingRepository.update(any<ÅrsakBehandling>()) }
-        verify(exactly = 1) { behandlingService.settGjeldendeSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR) }
+        verify(exactly = 1) { behandlingStegService.registrerLagretÅrsak(behandlingId) }
     }
 
     @Test
@@ -125,7 +127,7 @@ class ÅrsakBehandlingServiceTest {
         verify(exactly = 0) { årsakBehandlingRepository.update(any<ÅrsakBehandling>()) }
         verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
-        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingStegService.registrerLagretÅrsak(any()) }
     }
 
     @Test
@@ -139,7 +141,7 @@ class ÅrsakBehandlingServiceTest {
         verify(exactly = 0) { årsakBehandlingRepository.update(any<ÅrsakBehandling>()) }
         verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
-        verify(exactly = 0) { behandlingService.settGjeldendeSteg(any(), any()) }
+        verify(exactly = 0) { behandlingStegService.registrerLagretÅrsak(any()) }
     }
 
     private fun request(
