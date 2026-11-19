@@ -9,12 +9,19 @@ import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 import { StegNavigering } from "~/komponenter/behandling/StegNavigering";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useStegNavigering } from "~/hooks/useStegNavigering";
+import type { Valideringsnøkkel } from "~/komponenter/behandling/vilkår/felles/valideringsfeilFra";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "Vilkår" }];
 }
 
 const STEG_PATH: StegPath = "vilkar";
+const hrefPåVilkårssiden: Record<Valideringsnøkkel, string> = {
+  MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN: "#vilkar-medlemskap",
+  DIAGNOSE: "#vilkar-diagnose",
+  NØDVENDIGE_EKSTRAUTGIFTER: "#vilkar-ekstrautgifter",
+  TRYGDETID: "#trygdetid",
+};
 
 export default function Vilkår() {
   return (
@@ -77,7 +84,7 @@ function VilkårSide() {
           heading="Du må vurdere disse vilkårene før du kan gå videre:"
         >
           {valideringsfeil.map((feil) => (
-            <ErrorSummary.Item key={feil.nøkkel} href={`#vilkar-${feil.nøkkel}`}>
+            <ErrorSummary.Item key={feil.nøkkel} href={hrefPåVilkårssiden[feil.nøkkel]}>
               {feil.melding}
             </ErrorSummary.Item>
           ))}

@@ -1,10 +1,11 @@
 package no.nav.grunn.og.hjelpestonad.tilkjentytelse
 
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsfeil
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsnøkkel
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.trygdetid.Trygdetid
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidKilde
-import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
 import no.nav.grunn.og.hjelpestonad.vilkår.Vurdering
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.Ekstrautgift
@@ -77,8 +78,8 @@ class TilkjentYtelseUtlederTest {
             }
 
         assertThat(feil.feil).containsExactly(
-            no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsfeil(
-                VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
+            Valideringsfeil(
+                Valideringsnøkkel.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
                 "Du må vurdere medlemskap i folketrygden.",
             ),
         )
@@ -92,8 +93,8 @@ class TilkjentYtelseUtlederTest {
             }
 
         assertThat(feil.feil).containsExactly(
-            no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsfeil(
-                VilkårType.DIAGNOSE,
+            Valideringsfeil(
+                Valideringsnøkkel.DIAGNOSE,
                 "Du må vurdere om det foreligger en varig sykdom, skade eller lyte.",
             ),
         )
@@ -103,9 +104,9 @@ class TilkjentYtelseUtlederTest {
     fun `manglende medlemskap og diagnoser rapporteres i samme rekkefølge som før`() {
         val feil = assertFailsWith<VilkårValideringFeil> { utled(medlemskap = emptyList(), diagnoser = emptyList()) }
 
-        assertThat(feil.feil.map { it.vilkårType }).containsExactly(
-            VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
-            VilkårType.DIAGNOSE,
+        assertThat(feil.feil.map { it.nøkkel }).containsExactly(
+            Valideringsnøkkel.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
+            Valideringsnøkkel.DIAGNOSE,
         )
         assertThat(feil.feil.map { it.melding }).containsExactly(
             "Du må vurdere medlemskap i folketrygden.",
@@ -114,9 +115,9 @@ class TilkjentYtelseUtlederTest {
     }
 
     @Test
-    fun `diagnosedekning valideres før tidlig retur når inngangsvilkårene ikke er oppfylt`() {
+    fun `diagnosedekning gir en generell valideringsfeil før tidlig retur når inngangsvilkårene ikke er oppfylt`() {
         val feil =
-            assertFailsWith<UgyldigInput> {
+            assertFailsWith<VilkårValideringFeil> {
                 utled(
                     medlemskap = listOf(medlemskap(fraOgMedDato = "2026-03-01", tilOgMedDato = null, vurdering = Vurdering.NEI)),
                     diagnoser = listOf(diagnose(fraOgMedDato = "2026-04-01", tilOgMedDato = null)),
@@ -124,7 +125,15 @@ class TilkjentYtelseUtlederTest {
                 )
             }
 
-        assertThat(feil).hasMessage(EkstrautgifterRegler.DIAGNOSE_IKKE_OPPFYLT_I_HELE_PERIODEN)
+        assertThat(feil.message).isEqualTo("Valideringen er ikke komplett")
+        assertThat(feil.feil).containsExactly(
+            Valideringsfeil(
+                nøkkel = Valideringsnøkkel.NØDVENDIGE_EKSTRAUTGIFTER,
+                melding = EkstrautgifterRegler.DIAGNOSE_IKKE_OPPFYLT_I_HELE_PERIODEN,
+            ),
+        )
+        assertThat(feil.message + feil.feil.joinToString { it.melding })
+            .doesNotContain(DIABETES_TYPE_1, "2026-03-01", "2026-04-01", behandlingId.toString())
     }
 
     @Test
@@ -143,7 +152,7 @@ class TilkjentYtelseUtlederTest {
     @Test
     fun `perioder med oppfylte inngangsvilkår uten vurderte ekstrautgifter gir feil på ekstrautgiftene`() {
         val feil =
-            assertFailsWith<UtledningAvTilkjentYtelseFeil> {
+            assertFailsWith<VilkårValideringFeil> {
                 utled(
                     medlemskap = listOf(medlemskap(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
                     diagnoser = listOf(diagnose(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
@@ -152,8 +161,8 @@ class TilkjentYtelseUtlederTest {
             }.feil
 
         assertThat(feil).containsExactly(
-            Utledningsfeil(
-                nøkkel = Valideringsnøkkel.Vilkår(vilkårType = VilkårType.NØDVENDIGE_EKSTRAUTGIFTER),
+            Valideringsfeil(
+                nøkkel = Valideringsnøkkel.NØDVENDIGE_EKSTRAUTGIFTER,
                 melding = TilkjentYtelseUtleder.EKSTRAUTGIFTER_IKKE_VURDERT,
             ),
         )
@@ -162,7 +171,7 @@ class TilkjentYtelseUtlederTest {
     @Test
     fun `ekstrautgifter vurdert bare utenfor inngangsvilkårene regnes som ikke vurdert`() {
         val feil =
-            assertFailsWith<UtledningAvTilkjentYtelseFeil> {
+            assertFailsWith<VilkårValideringFeil> {
                 utled(
                     medlemskap = listOf(medlemskap(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-30")),
                     diagnoser = listOf(diagnose(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-30")),
@@ -171,13 +180,13 @@ class TilkjentYtelseUtlederTest {
                 )
             }.feil
 
-        assertThat(feil.map { it.nøkkel }).containsExactly(Valideringsnøkkel.Vilkår(vilkårType = VilkårType.NØDVENDIGE_EKSTRAUTGIFTER))
+        assertThat(feil.map { it.nøkkel }).containsExactly(Valideringsnøkkel.NØDVENDIGE_EKSTRAUTGIFTER)
     }
 
     @Test
     fun `hull i trygdetiden der søker har rett gir én feil på trygdetid`() {
         val feil =
-            assertFailsWith<UtledningAvTilkjentYtelseFeil> {
+            assertFailsWith<VilkårValideringFeil> {
                 utled(
                     medlemskap = listOf(medlemskap(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
                     diagnoser = listOf(diagnose(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
@@ -190,7 +199,7 @@ class TilkjentYtelseUtlederTest {
                 )
             }.feil
 
-        assertThat(feil).containsExactly(Utledningsfeil(nøkkel = Valideringsnøkkel.Trygdetid, melding = TilkjentYtelseUtleder.TRYGDETID_MANGLER))
+        assertThat(feil).containsExactly(Valideringsfeil(nøkkel = Valideringsnøkkel.TRYGDETID, melding = TilkjentYtelseUtleder.TRYGDETID_MANGLER))
     }
 
     @Test

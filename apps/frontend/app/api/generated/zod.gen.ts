@@ -3,10 +3,11 @@
 import * as z from 'zod';
 
 export const zValideringsfeil = z.object({
-    vilkårType: z.enum([
+    nøkkel: z.enum([
         'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN',
         'DIAGNOSE',
-        'NØDVENDIGE_EKSTRAUTGIFTER'
+        'NØDVENDIGE_EKSTRAUTGIFTER',
+        'TRYGDETID'
     ]),
     melding: z.string()
 });
@@ -15,17 +16,6 @@ export const zVilkårValideringFeilResponse = z.object({
     melding: z.string(),
     status: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
     feil: z.array(zValideringsfeil)
-});
-
-export const zSatsOgTrygdetidValideringsfeil = z.object({
-    nøkkel: z.string(),
-    melding: z.string()
-});
-
-export const zSatsOgTrygdetidFeilResponse = z.object({
-    melding: z.string(),
-    status: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    feil: z.array(zSatsOgTrygdetidValideringsfeil)
 });
 
 export const zGrunnstønadPeriode = z.object({

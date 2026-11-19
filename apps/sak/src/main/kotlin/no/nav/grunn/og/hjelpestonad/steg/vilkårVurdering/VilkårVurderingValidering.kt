@@ -1,11 +1,17 @@
 package no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering
 
-import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 
+enum class Valideringsnøkkel {
+    MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
+    DIAGNOSE,
+    NØDVENDIGE_EKSTRAUTGIFTER,
+    TRYGDETID,
+}
+
 data class Valideringsfeil(
-    val vilkårType: VilkårType,
+    val nøkkel: Valideringsnøkkel,
     val melding: String,
 )
 
@@ -20,7 +26,7 @@ object VilkårVurderingValidering {
             if (medlemskap.isEmpty()) {
                 add(
                     Valideringsfeil(
-                        VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
+                        Valideringsnøkkel.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN,
                         "Du må vurdere medlemskap i folketrygden.",
                     ),
                 )
@@ -28,7 +34,7 @@ object VilkårVurderingValidering {
             if (diagnoser.isEmpty()) {
                 add(
                     Valideringsfeil(
-                        VilkårType.DIAGNOSE,
+                        Valideringsnøkkel.DIAGNOSE,
                         "Du må vurdere om det foreligger en varig sykdom, skade eller lyte.",
                     ),
                 )

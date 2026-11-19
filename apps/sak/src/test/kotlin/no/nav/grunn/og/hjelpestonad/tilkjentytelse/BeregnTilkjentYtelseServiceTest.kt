@@ -12,6 +12,8 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.oppdrag.Oppdragsgrunnlag
 import no.nav.grunn.og.hjelpestonad.oppdrag.lagUtbetalingsoppdrag
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsnøkkel
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.trygdetid.Trygdetid
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidKilde
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidService
@@ -124,7 +126,7 @@ class BeregnTilkjentYtelseServiceTest {
     @Test
     fun `hull i trygdetid stopper fullføring uten å endre lagret beregning`() {
         every { trygdetidService.hentPerioder(behandlingId) } returns emptyList()
-        assertFailsWith<UtledningAvTilkjentYtelseFeil> { service.beregnOgLagreTilkjentYtelse(behandlingId) }
+        assertFailsWith<VilkårValideringFeil> { service.beregnOgLagreTilkjentYtelse(behandlingId) }
         verify(exactly = 0) { tilkjentYtelseService.lagre(any()) }
         verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
     }
@@ -165,13 +167,15 @@ class BeregnTilkjentYtelseServiceTest {
     }
 
     @Test
-    fun `diagnose endret etter lagring av ekstrautgifter stopper beregningen`() {
+    fun `diagnosedekningsfeil etter lagring av ekstrautgifter bevarer lagret ytelse`() {
         every { ekstrautgifterService.hentPerioder(behandlingId) } returns
             listOf(
                 VilkårEkstrautgifter(behandlingId = behandlingId, vurdering = Vurdering.JA, sats = Sats.SATS_2, fraOgMedDato = fraOgMedDato)
                     .medEkstrautgifter(listOf(Ekstrautgift(Hjemmelbokstav.A, setOf("G35")))),
             )
-        assertFailsWith<UgyldigInput> { service.beregnOgLagreTilkjentYtelse(behandlingId) }
+        val feil = assertFailsWith<VilkårValideringFeil> { service.beregnOgLagreTilkjentYtelse(behandlingId) }
+        assertThat(feil.feil.single().nøkkel).isEqualTo(Valideringsnøkkel.NØDVENDIGE_EKSTRAUTGIFTER)
         verify(exactly = 0) { tilkjentYtelseService.lagre(any()) }
+        verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
     }
 }
