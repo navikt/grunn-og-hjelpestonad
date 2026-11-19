@@ -6,10 +6,8 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakRepository
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
-import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
@@ -17,7 +15,6 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.LocalDate
-import java.time.YearMonth
 import java.util.UUID
 
 /**
@@ -31,8 +28,6 @@ class UtbetalingsoppdragService(
     private val fagsakService: FagsakService,
     private val tilkjentYtelseService: TilkjentYtelseService,
     private val oppdragResultatRepository: OppdragResultatRepository,
-    @Value("\${oppdrag.bruk-testandel-hvis-mangler:false}")
-    private val brukTestandelHvisMangler: Boolean,
     private val clock: Clock = Clock.systemDefaultZone(),
 ) {
     private val logger = LoggerFactory.getLogger(UtbetalingsoppdragService::class.java)
@@ -49,7 +44,7 @@ class UtbetalingsoppdragService(
         if (!beregning.oppdrag.harEndringFraForrigeBehandling) {
             throw Feil("Behandlingen endrer ikke utbetalingen", HttpStatus.BAD_REQUEST)
         }
-        return UtbetalingsoppdragForBehandling(utbetalingsoppdrag = beregning.oppdrag.utbetalingsoppdrag, testandel = beregning.testandel)
+        return UtbetalingsoppdragForBehandling(utbetalingsoppdrag = beregning.oppdrag.utbetalingsoppdrag)
     }
 
     /**
@@ -70,7 +65,7 @@ class UtbetalingsoppdragService(
         val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
         oppdragResultatRepository.findByIdOrNull(behandlingId)?.let {
             logger.info("Oppdrag for behandling={} finnes fra før med status={}, bruker det lagrede", behandlingId, it.status)
-            return LagretUtbetalingsoppdrag(oppdragResultat = it, testandel = null)
+            return LagretUtbetalingsoppdrag(oppdragResultat = it)
         }
 
         val statusPåForrige = oppdragResultatRepository.finnStatusPåSisteOppdrag(behandling.fagsakId, unntattBehandlingId = behandlingId)
@@ -91,7 +86,7 @@ class UtbetalingsoppdragService(
             oppdragResultat.utbetalingsoppdrag.utbetalingsperiode.size,
             beregning.oppdrag.utbetalingsandeler.size,
         )
-        return LagretUtbetalingsoppdrag(oppdragResultat = oppdragResultat, testandel = beregning.testandel)
+        return LagretUtbetalingsoppdrag(oppdragResultat = oppdragResultat)
     }
 
     /** ID-en `familie-oppdrag-backend` bruker for oppdraget til behandlingen, se [OppdragId]. */
@@ -116,26 +111,10 @@ class UtbetalingsoppdragService(
 
         // Tilkjent ytelse uten andeler er et opphør når fagsaken har en kjede, og ingenting ellers.
         // Mangler tilkjent ytelse helt, er den ikke beregnet ennå.
-        val manglerAndeler = tilkjentYtelse == null || (andelerTilkjentYtelse.isEmpty() && sisteUtbetalingsandelPerKjedeIFagsak.isEmpty())
-        val testandel =
-            when {
-                !manglerAndeler -> {
-                    null
-                }
-
-                brukTestandelHvisMangler -> {
-                    logger.info("Behandling={} mangler tilkjent ytelse, bruker testandel", behandling.id)
-                    lagTestandel(behandling.id, YearMonth.now(clock))
-                }
-
-                tilkjentYtelse == null -> {
-                    throw Feil("Behandlingen har ingen tilkjent ytelse", HttpStatus.BAD_REQUEST)
-                }
-
-                else -> {
-                    return null
-                }
-            }
+        if (tilkjentYtelse != null && andelerTilkjentYtelse.isEmpty() && sisteUtbetalingsandelPerKjedeIFagsak.isEmpty()) return null
+        if (tilkjentYtelse == null) {
+            throw Feil("Fullfør sats og trygdetid før du simulerer eller iverksetter mot Oppdrag", HttpStatus.BAD_REQUEST)
+        }
 
         val oppdrag =
             lagUtbetalingsoppdrag(
@@ -146,40 +125,19 @@ class UtbetalingsoppdragService(
                     personIdent = fagsakService.hentAktivIdent(fagsak.id),
                     saksbehandlerId = saksbehandlerId,
                     vedtaksdato = LocalDate.now(clock),
-                    andelerTilkjentYtelse = testandel?.let { listOf(it) } ?: andelerTilkjentYtelse.sortedBy { it.fom },
+                    andelerTilkjentYtelse = andelerTilkjentYtelse.sortedBy { it.fom },
                     utbetalingsandelerForrigeBehandling = utbetalingsandelerForrigeBehandling,
                     sisteAndelIHverKjedeForFagsak = sisteUtbetalingsandelPerKjedeIFagsak,
                 ),
             )
         return Beregning(
             oppdrag = oppdrag,
-            testandel = testandel?.let { Testandel(fom = it.fom, tom = it.tom, beløp = tilUtbetalingsbeløp(it.beløp)) },
         )
     }
 
     private data class Beregning(
         val oppdrag: BeregnetOppdrag,
-        val testandel: Testandel?,
     )
-
-    companion object {
-        private const val TESTANDEL_BELØP = 1000
-
-        /**
-         * TODO: Midlertidig, bare for å teste integrasjonen i dev før behandlingen lager tilkjent ytelse
-         * (issue 09 og 10 i planen for sats og trygdetid). Fjern når den flyten er på plass.
-         */
-        private fun lagTestandel(
-            behandlingId: UUID,
-            måned: YearMonth,
-        ): AndelTilkjentYtelse =
-            AndelTilkjentYtelse(
-                beløp = TESTANDEL_BELØP.toBigDecimal(),
-                fom = måned.atDay(1),
-                tom = måned.atEndOfMonth(),
-                kildeBehandlingId = behandlingId,
-            )
-    }
 }
 
 private fun BeregnetOppdrag.tilOppdragResultat(behandling: Behandling) =
@@ -193,18 +151,8 @@ private fun BeregnetOppdrag.tilOppdragResultat(behandling: Behandling) =
 
 data class UtbetalingsoppdragForBehandling(
     val utbetalingsoppdrag: Utbetalingsoppdrag,
-    /** Satt når behandlingen manglet tilkjent ytelse og oppdraget ble laget med en testandel. */
-    val testandel: Testandel?,
 )
 
 data class LagretUtbetalingsoppdrag(
     val oppdragResultat: OppdragResultat,
-    /** Satt når oppdraget ble laget nå med en testandel. Null når oppdraget fantes fra før. */
-    val testandel: Testandel?,
-)
-
-data class Testandel(
-    val fom: LocalDate,
-    val tom: LocalDate,
-    val beløp: Int,
 )

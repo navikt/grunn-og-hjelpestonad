@@ -190,5 +190,6 @@ class BeslutterService(
                     "Behandlingen kan ikke sendes til beslutter på nytt før eksisterende oppgave er ferdigstilt.",
             )
         }
+        vedtakService.validerVedtaksresultatMotBeregning(behandlingId)
     }
 }

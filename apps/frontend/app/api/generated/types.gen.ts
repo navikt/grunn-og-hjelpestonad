@@ -144,7 +144,6 @@ export type DetaljertSimuleringResultat = {
 
 export type OppdragSimuleringResponse = {
     resultat: DetaljertSimuleringResultat;
-    testandel?: Testandel | null;
 };
 
 export type SimuleringMottaker = {
@@ -166,17 +165,10 @@ export type SimulertPostering = {
     klassekode?: string | null;
 };
 
-export type Testandel = {
-    fom: string;
-    tom: string;
-    beløp: number;
-};
-
 export type OppdragIverksettingResponse = {
     saksnummer: string;
     behandlingsId: string;
     antallPerioder: number;
-    testandel?: Testandel | null;
 };
 
 export type InfotrygdStonaderRequest = {

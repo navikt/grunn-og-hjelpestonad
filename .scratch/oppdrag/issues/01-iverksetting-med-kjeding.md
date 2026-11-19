@@ -30,7 +30,6 @@ ADR: [ADR-0011](../../../docs/adr/ADR-0011-avrunding-og-utbetalingsgrunnlag-hoer
 - Avvist oppdrag eller manglende kvittering etter 100 forsøk gir en stoppet task. Saksbehandler ser ingenting, og ingen får varsel.
 - Statustasken poller hvert 15. minutt på hverdager mellom 06 og 21, som i familie-ba-sak, men tar ikke hensyn til helligdager. Én helligdag bruker 60 av de 100 forsøkene, så to helligdager på rad (jul, påske) stopper tasken før OS åpner.
 - Fagsaker som ble sendt fra testendepunktet før V52, har kjeder i OS som vi ikke kjenner. Ikke bruk dem.
-- Testandelen (1000 kr for inneværende måned) brukes når tilkjent ytelse mangler. Den fjernes når issue 10 i sats-og-trygdetid er ferdig.
 - `opphørAlleKjederFra` er alltid `null`. ADR-0013 beskriver når den skal settes: ved revurdering der startmåned flyttes bakover og er før første nye andel, eller det ikke finnes nye andeler. Det er ikke koblet inn ennå.
 
 ## Til neste PR
