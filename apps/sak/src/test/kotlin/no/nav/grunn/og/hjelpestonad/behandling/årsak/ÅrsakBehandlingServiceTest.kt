@@ -93,7 +93,7 @@ class ÅrsakBehandlingServiceTest {
     }
 
     @Test
-    fun `ny årsak setter INNGANGSVILKÅR`() {
+    fun `lagring av ny årsak kaller registrerLagretÅrsak`() {
         val behandlingId = UUID.randomUUID()
         every { årsakBehandlingRepository.findById(behandlingId) } returns Optional.empty()
         every { årsakBehandlingRepository.insert(any<ÅrsakBehandling>()) } answers { firstArg<ÅrsakBehandling>() }
