@@ -200,22 +200,14 @@ export const zDetaljertSimuleringResultat = z.object({
     simuleringMottaker: z.array(zSimuleringMottaker)
 });
 
-export const zTestandel = z.object({
-    fom: z.iso.date(),
-    tom: z.iso.date(),
-    beløp: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
-});
-
 export const zOppdragSimuleringResponse = z.object({
-    resultat: zDetaljertSimuleringResultat,
-    testandel: zTestandel.nullish()
+    resultat: zDetaljertSimuleringResultat
 });
 
 export const zOppdragIverksettingResponse = z.object({
     saksnummer: z.string(),
     behandlingsId: z.string(),
-    antallPerioder: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    testandel: zTestandel.nullish()
+    antallPerioder: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
 });
 
 export const zInfotrygdStonaderRequest = z.object({

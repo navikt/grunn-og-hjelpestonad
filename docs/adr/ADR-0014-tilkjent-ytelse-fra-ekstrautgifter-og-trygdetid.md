@@ -130,6 +130,16 @@ Saksbehandler velger fortsatt resultatet. I en førstegangsbehandling krever
 For revurderinger må sjekken sammenligne med forrige behandling. Den bygger vi
 sammen med revurdering og opphør.
 
+Koblingen mellom beregning og oppdrag støtter foreløpig en enkel
+førstegangsbehandling. Før sending til beslutter må beregningen finnes, og
+vedtaksresultatet må stemme med om beregningen har andeler.
+
+Opphør virker ikke i denne koblingen og må implementeres før opphørsvedtak
+kan brukes. `opphørFom` avgrenser ikke de beregnede andelene som sendes til
+Oppdrag. Løsningen må koble opphørsdatoen til utbetalingsgrunnlaget og
+kontrollere det mot tidligere utbetalinger. Revurdering og migrering uten
+sluttdato inngår heller ikke i denne leveransen.
+
 ### Kopiering til ny behandling
 
 En ny behandling kopierer `JA`-rader for medlemskap, diagnose og ekstrautgifter.

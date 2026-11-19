@@ -8,6 +8,7 @@ import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vedtak.BeregningUtils.beregnBarnetilsynperiode
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -24,6 +25,22 @@ class VedtakService(
     private val tilkjentYtelseService: TilkjentYtelseService,
 ) {
     fun hentVedtak(behandlingId: UUID): Vedtak? = vedtakRepository.findByBehandlingId(behandlingId)
+
+    fun validerVedtaksresultatMotBeregning(behandlingId: UUID) {
+        val vedtak = hentVedtak(behandlingId) ?: throw Feil("Lagre vedtaket før du sender behandlingen til beslutter", HttpStatus.BAD_REQUEST)
+        when (vedtak.resultatType) {
+            ResultatType.INNVILGET, ResultatType.AVSLÅTT -> {}
+
+            ResultatType.OPPHØR, ResultatType.HENLAGT -> {
+                return
+            }
+        }
+
+        val tilkjentYtelse =
+            tilkjentYtelseService.hentTilkjentYtelse(behandlingId)
+                ?: throw Feil("Fullfør vilkår og sats og trygdetid på nytt før du sender behandlingen til beslutter", HttpStatus.BAD_REQUEST)
+        validerVedtaksresultatMotBeregning(vedtak.resultatType, tilkjentYtelse.andelerTilkjentYtelse.isNotEmpty())
+    }
 
     @Transactional
     fun lagreVedtak(
