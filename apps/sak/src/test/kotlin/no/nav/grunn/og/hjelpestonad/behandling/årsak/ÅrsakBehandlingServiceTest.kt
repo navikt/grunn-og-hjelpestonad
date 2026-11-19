@@ -8,10 +8,12 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.springframework.http.HttpStatus
 import java.time.LocalDate
 import java.util.Optional
 import java.util.UUID
@@ -40,6 +42,27 @@ class ÅrsakBehandlingServiceTest {
         assertThatThrownBy { årsakBehandlingService.lagreÅrsakForBehandling(behandlingId, request) }
             .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
+    }
+
+    @Test
+    fun `lagreÅrsakForBehandling kaster og skriver ingenting når behandlingen er FATTER_VEDTAK`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.ÅRSAK) } throws
+            Feil(
+                melding = "Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK",
+                httpStatus = HttpStatus.BAD_REQUEST,
+            )
+
+        assertThatThrownBy { årsakBehandlingService.lagreÅrsakForBehandling(behandlingId, request()) }
+            .isInstanceOf(Feil::class.java)
+            .hasMessageContaining("Behandlingen er ikke redigerbar")
+
+        verify(exactly = 0) { årsakBehandlingRepository.findById(any()) }
+        verify(exactly = 0) { årsakBehandlingRepository.insert(any<ÅrsakBehandling>()) }
+        verify(exactly = 0) { årsakBehandlingRepository.update(any<ÅrsakBehandling>()) }
+        verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(any(), any()) }
+        verify(exactly = 0) { behandlingService.settNåværendeSteg(any(), any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 
     @Test

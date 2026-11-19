@@ -25,6 +25,7 @@ class ÅrsakBehandlingService(
         årsakBehandlingRequest: ÅrsakBehandlingRequest,
     ): ÅrsakBehandling {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        behandlingService.validerKanEndreSteg(behandlingId, BehandlingSteg.ÅRSAK)
         val eksisterendeÅrsak = hentÅrsakBehandling(behandlingId) ?: return lagreNyÅrsak(behandlingId, årsakBehandlingRequest)
 
         val oppdatertÅrsak =
