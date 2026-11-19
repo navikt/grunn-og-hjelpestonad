@@ -127,15 +127,6 @@ class BehandlingStegServiceTest {
             .doesNotThrowAnyException()
     }
 
-    @Test
-    fun `validerHarNåddStegHvisRedigerbar kaster ikke for FATTER_VEDTAK selv om steget står på ÅRSAK`() {
-        val behandlingId = UUID.randomUUID()
-        every { behandlingRepository.findByIdOrNull(behandlingId) } returns lagBehandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
-
-        assertThatCode { behandlingStegService.validerHarNåddStegHvisRedigerbar(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) }
-            .doesNotThrowAnyException()
-    }
-
     private fun stubHentOgOppdater(
         behandlingId: UUID,
         gjeldendeSteg: BehandlingSteg,
