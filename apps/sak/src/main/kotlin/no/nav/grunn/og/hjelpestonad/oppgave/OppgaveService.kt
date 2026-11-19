@@ -1,6 +1,5 @@
 package no.nav.grunn.og.hjelpestonad.oppgave
 
-import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import jakarta.validation.constraints.Pattern
@@ -301,9 +300,6 @@ enum class OppgavetypeGRU(
     BEH_SAK(
         term = "Behandle sak",
     ),
-
-    // Allerede lagrede task-payloader kan inneholde den tidligere, ugyldige oppgavetypen.
-    @JsonAlias("GOD_VED")
     BEH_VED(
         term = "Behandle vedtak",
     ),
