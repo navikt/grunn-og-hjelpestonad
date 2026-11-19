@@ -75,10 +75,12 @@ class BehandlingServiceTest {
     private fun lagBehandling(
         behandlingId: UUID,
         status: BehandlingStatus,
+        gjeldendeSteg: BehandlingSteg = BehandlingSteg.ÅRSAK,
     ) = Behandling(
         id = behandlingId,
         fagsakId = UUID.randomUUID(),
         status = status,
         resultat = BehandlingResultat.IKKE_SATT,
+        gjeldendeSteg = gjeldendeSteg,
     )
 }

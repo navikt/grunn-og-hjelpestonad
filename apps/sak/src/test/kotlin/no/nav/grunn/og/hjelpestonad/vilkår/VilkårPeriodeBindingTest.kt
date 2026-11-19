@@ -3,7 +3,12 @@ package no.nav.grunn.og.hjelpestonad.vilkår
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.grunn.og.hjelpestonad.behandling.Behandling
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
@@ -25,10 +30,12 @@ import kotlin.test.Test
  */
 class VilkårPeriodeBindingTest {
     private val repository = mockk<VilkårDiagnoseRepository>(relaxed = true)
+    private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val service =
         VilkårDiagnoseService(
             repository,
-            mockk<BehandlingService>(relaxed = true),
+            behandlingService,
+            mockk<BehandlingStegService>(relaxed = true),
             mockk<EndringshistorikkService>(relaxed = true),
             mockk<AnsvarligSaksbehandlerService>(relaxed = true),
             mockk(relaxed = true),
@@ -48,6 +55,7 @@ class VilkårPeriodeBindingTest {
         )
 
     init {
+        every { behandlingService.hentBehandlingEllerKast(egenBehandlingId) } returns behandling(BehandlingSteg.INNGANGSVILKÅR)
         every { repository.findById(fremmedPeriode.id) } returns Optional.of(fremmedPeriode)
         every { repository.findByBehandlingId(any()) } returns emptyList()
     }
@@ -79,4 +87,14 @@ class VilkårPeriodeBindingTest {
         verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
         verify(exactly = 0) { repository.insertAll(any()) }
     }
+
+    private fun behandling(
+        gjeldendeSteg: BehandlingSteg,
+        status: BehandlingStatus = BehandlingStatus.UTREDES,
+    ) = Behandling(
+        fagsakId = UUID.randomUUID(),
+        status = status,
+        resultat = BehandlingResultat.IKKE_SATT,
+        gjeldendeSteg = gjeldendeSteg,
+    )
 }

@@ -3,6 +3,7 @@ import { HStack } from "@navikt/ds-react";
 import { NavLink } from "react-router";
 import { PadlockLockedIcon } from "@navikt/aksel-icons";
 import styles from "./Navbar.module.css";
+import { erFaneLåst, type BehandlingForFaner, type GjeldendeSteg } from "./behandlingFaneRegel";
 
 export type Steg = "Årsak behandling" | "Vilkår" | "Sats og trygdetid" | "Simulering" | "Brev";
 export type StegPath = "arsak-behandling" | "vilkar" | "sats-og-trygdetid" | "simulering" | "brev";
@@ -10,20 +11,20 @@ export type StegPath = "arsak-behandling" | "vilkar" | "sats-og-trygdetid" | "si
 export type BehandlingSteg = {
   path: StegPath;
   navn: Steg;
-  kanStarte?: (ferdigeSteg: Steg[]) => boolean;
+  behandlingssteg: GjeldendeSteg;
 };
 
 type BehandlingFanerProps = {
   steg: BehandlingSteg[];
-  ferdigeSteg?: Steg[];
+  behandling?: BehandlingForFaner;
 };
 
-export const BehandlingFaner: React.FC<BehandlingFanerProps> = ({ steg, ferdigeSteg = [] }) => {
+export const BehandlingFaner: React.FC<BehandlingFanerProps> = ({ steg, behandling }) => {
   return (
     <nav className={styles.navbar}>
       <HStack>
         {steg.map((steg) => {
-          const kanStarte = steg.kanStarte ? steg.kanStarte(ferdigeSteg) : true;
+          const kanStarte = !erFaneLåst(steg.behandlingssteg, behandling);
 
           return (
             <NavLink
@@ -42,7 +43,7 @@ export const BehandlingFaner: React.FC<BehandlingFanerProps> = ({ steg, ferdigeS
             >
               {/* TODO: Er det riktige tagger? */}
               <HStack>
-                {!kanStarte && <PadlockLockedIcon title="a11y-title" fontSize="1.5rem" />}
+                {!kanStarte && <PadlockLockedIcon title="Låst" fontSize="1.5rem" />}
                 {steg.navn}
               </HStack>
             </NavLink>

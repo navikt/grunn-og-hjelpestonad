@@ -1,7 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.brev
 
 import efterlatte.prosessering.spring.TaskService
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
@@ -20,7 +21,7 @@ import java.util.UUID
 @Service
 class BrevService(
     private val brevRepository: BrevRepository,
-    private val behandlingService: BehandlingService,
+    private val behandlingStegService: BehandlingStegService,
     private val entraProxyClient: EntraProxyClient,
     private val endringshistorikkService: EndringshistorikkService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
@@ -33,8 +34,8 @@ class BrevService(
         behandlingId: UUID,
         brevRequest: BrevRequest,
     ) {
-        behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
         val brev =
             Brev(
                 behandlingId = behandlingId,

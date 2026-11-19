@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.sporbar.Sporbar
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
@@ -29,21 +30,23 @@ class KopierVilkårServiceTest {
     private val diagnoseRepository = mockk<VilkårDiagnoseRepository>()
     private val ekstrautgifterRepository = mockk<VilkårEkstrautgifterRepository>()
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
 
     private val vilkårDiagnoseService =
-        VilkårDiagnoseService(diagnoseRepository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService, mockk(relaxed = true))
+        VilkårDiagnoseService(diagnoseRepository, behandlingService, behandlingStegService, endringshistorikkService, ansvarligSaksbehandlerService, mockk(relaxed = true))
 
     private val kopierVilkårService =
         KopierVilkårService(
             vilkårMedlemskapService =
-                VilkårMedlemskapService(medlemskapRepository, behandlingService, endringshistorikkService, ansvarligSaksbehandlerService, mockk(relaxed = true)),
+                VilkårMedlemskapService(medlemskapRepository, behandlingService, behandlingStegService, endringshistorikkService, ansvarligSaksbehandlerService, mockk(relaxed = true)),
             vilkårDiagnoseService = vilkårDiagnoseService,
             vilkårEkstrautgifterService =
                 VilkårEkstrautgifterService(
                     ekstrautgifterRepository,
                     behandlingService,
+                    behandlingStegService,
                     endringshistorikkService,
                     ansvarligSaksbehandlerService,
                     vilkårDiagnoseService,

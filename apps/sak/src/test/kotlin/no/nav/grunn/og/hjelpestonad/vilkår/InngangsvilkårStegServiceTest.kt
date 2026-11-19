@@ -5,14 +5,15 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifyOrder
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
+import no.nav.grunn.og.hjelpestonad.behandling.utledStegEtterInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.InngangsvilkårStegService
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.NesteStegEtterInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PeriodeMedOppfylteInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
@@ -30,7 +31,7 @@ import kotlin.test.Test
 class InngangsvilkårStegServiceTest {
     private val vilkårMedlemskapService = mockk<VilkårMedlemskapService>(relaxed = true)
     private val vilkårDiagnoseService = mockk<VilkårDiagnoseService>(relaxed = true)
-    private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val beregnTilkjentYtelseService = mockk<BeregnTilkjentYtelseService>(relaxed = true)
@@ -39,7 +40,7 @@ class InngangsvilkårStegServiceTest {
         InngangsvilkårStegService(
             vilkårMedlemskapService,
             vilkårDiagnoseService,
-            behandlingService,
+            behandlingStegService,
             ansvarligSaksbehandlerService,
             endringshistorikkService,
             beregnTilkjentYtelseService,
@@ -49,11 +50,12 @@ class InngangsvilkårStegServiceTest {
 
     init {
         medKomplettGrunnlag()
+        every { behandlingStegService.registrerFullførteInngangsvilkår(any(), any()) } answers { utledStegEtterInngangsvilkår(secondArg()) }
     }
 
     @Test
     fun `fullførSteg kaster feil og skriver ingenting når behandling ikke er redigerbar`() {
-        every { behandlingService.validerBehandlingErRedigerbar(behandlingId) } throws
+        every { behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR) } throws
             Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
 
         assertThatThrownBy { service.fullførSteg(behandlingId) }
@@ -81,12 +83,28 @@ class InngangsvilkårStegServiceTest {
         service.fullførSteg(behandlingId)
 
         verifyOrder {
-            behandlingService.validerBehandlingErRedigerbar(behandlingId)
             ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+            behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
             vilkårMedlemskapService.hentPerioder(behandlingId)
             vilkårDiagnoseService.hentPerioder(behandlingId)
             endringshistorikkService.registrerEndring(behandlingId, EndringType.INNGANGSVILKÅR_VURDERING_FULLFØRT, any())
         }
+    }
+
+    @Test
+    fun `fullførSteg setter SATS_OG_TRYGDETID når det finnes perioder med oppfylte inngangsvilkår`() {
+        service.fullførSteg(behandlingId)
+
+        verify(exactly = 1) { behandlingStegService.registrerFullførteInngangsvilkår(behandlingId, harPerioderMedOppfylteInngangsvilkår = true) }
+    }
+
+    @Test
+    fun `fullførSteg setter VEDTAK_OG_BREV når ingen perioder har oppfylte inngangsvilkår`() {
+        medKomplettGrunnlag(medlemskapVurdering = Vurdering.NEI)
+
+        service.fullførSteg(behandlingId)
+
+        verify(exactly = 1) { behandlingStegService.registrerFullførteInngangsvilkår(behandlingId, harPerioderMedOppfylteInngangsvilkår = false) }
     }
 
     @Test
@@ -108,7 +126,7 @@ class InngangsvilkårStegServiceTest {
         assertThat(resultat.perioder).containsExactly(
             PeriodeMedOppfylteInngangsvilkår(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)),
         )
-        assertThat(resultat.nesteSteg).isEqualTo(NesteStegEtterInngangsvilkår.SATS_OG_TRYGDETID)
+        assertThat(resultat.nesteSteg).isEqualTo(BehandlingSteg.SATS_OG_TRYGDETID)
     }
 
     @Test
@@ -118,7 +136,7 @@ class InngangsvilkårStegServiceTest {
         val resultat = service.fullførSteg(behandlingId)
 
         assertThat(resultat.perioder).isEmpty()
-        assertThat(resultat.nesteSteg).isEqualTo(NesteStegEtterInngangsvilkår.SIMULERING)
+        assertThat(resultat.nesteSteg).isEqualTo(BehandlingSteg.VEDTAK_OG_BREV)
     }
 
     @Test
@@ -179,7 +197,7 @@ class InngangsvilkårStegServiceTest {
         assertThat(perioder).containsExactly(
             PeriodeMedOppfylteInngangsvilkår(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)),
         )
-        verify(exactly = 0) { behandlingService.validerBehandlingErRedigerbar(any()) }
+        verify(exactly = 0) { behandlingStegService.validerKanEndreSteg(any(), any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 

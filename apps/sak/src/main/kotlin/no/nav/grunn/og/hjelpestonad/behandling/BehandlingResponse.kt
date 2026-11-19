@@ -14,6 +14,7 @@ data class BehandlingResponse(
     val opprettet: LocalDateTime,
     val opprettetAv: String,
     val resultat: BehandlingResultat,
+    val gjeldendeSteg: BehandlingSteg,
 )
 
 fun Behandling.tilResponse(sisteEndring: BehandlingEndring? = null): BehandlingResponse =
@@ -27,4 +28,5 @@ fun Behandling.tilResponse(sisteEndring: BehandlingEndring? = null): BehandlingR
         opprettet = this.sporbar.opprettetTid,
         opprettetAv = this.sporbar.opprettetAv,
         resultat = this.resultat,
+        gjeldendeSteg = this.gjeldendeSteg,
     )

@@ -16,15 +16,8 @@ class BehandlingService(
 
     fun validerBehandlingErRedigerbar(behandlingId: UUID) {
         val behandling = behandlingRepository.findByIdOrNull(behandlingId) ?: error("Fant ikke behandling med id=$behandlingId")
-        if (!behandling.erRedigerbar()) {
-            throw Feil(
-                melding = "Behandlingen er ikke redigerbar. Status: ${behandling.status}",
-                httpStatus = HttpStatus.BAD_REQUEST,
-            )
-        }
+        behandling.validerErRedigerbar()
     }
-
-    fun erBehandlingRedigerbar(behandlingId: UUID): Boolean = behandlingRepository.findByIdOrNull(behandlingId)?.erRedigerbar() ?: false
 
     fun hentBehandling(behandlingId: UUID): Behandling? = behandlingRepository.findByIdOrNull(behandlingId)
 
@@ -46,7 +39,7 @@ class BehandlingService(
         behandlingId: UUID,
         status: BehandlingStatus,
     ) {
-        val behandling = behandlingRepository.findByIdOrNull(behandlingId) ?: error("Fant ikke behandling med id=$behandlingId for oppdatering av BehandlingStatus")
+        val behandling = hentBehandlingEllerKast(behandlingId)
         val oppdatertBehandling =
             behandling.copy(
                 status = status,
@@ -58,7 +51,7 @@ class BehandlingService(
         behandlingId: UUID,
         resultat: BehandlingResultat,
     ) {
-        val behandling = behandlingRepository.findByIdOrNull(behandlingId) ?: error("Fant ikke behandling med id=$behandlingId for oppdatering av BehandlingResultat")
+        val behandling = hentBehandlingEllerKast(behandlingId)
         val oppdatertBehandling =
             behandling.copy(
                 resultat = resultat,
@@ -66,5 +59,3 @@ class BehandlingService(
         behandlingRepository.update(oppdatertBehandling)
     }
 }
-
-private fun Behandling.erRedigerbar(): Boolean = status in setOf(BehandlingStatus.OPPRETTET, BehandlingStatus.UTREDES)

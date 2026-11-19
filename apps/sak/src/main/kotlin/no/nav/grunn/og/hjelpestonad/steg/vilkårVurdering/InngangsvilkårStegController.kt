@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -25,7 +26,7 @@ data class PeriodeMedOppfylteInngangsvilkårResponse(
 /** Inneholder aldri diagnose, jf. GDPR artikkel 9. */
 data class InngangsvilkårResponse(
     val perioder: List<PeriodeMedOppfylteInngangsvilkårResponse>,
-    val nesteSteg: NesteStegEtterInngangsvilkår,
+    val nesteSteg: BehandlingSteg,
 )
 
 private fun PeriodeMedOppfylteInngangsvilkår.tilResponse() = PeriodeMedOppfylteInngangsvilkårResponse(fraOgMedDato, tilOgMedDato)

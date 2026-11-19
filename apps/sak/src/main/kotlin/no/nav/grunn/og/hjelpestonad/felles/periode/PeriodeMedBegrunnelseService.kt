@@ -1,6 +1,9 @@
 package no.nav.grunn.og.hjelpestonad.felles.periode
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
+import no.nav.grunn.og.hjelpestonad.behandling.validerKanEndre
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
@@ -21,12 +24,16 @@ data class Endringstyper(
 abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : PeriodeMedBegrunnelseRequest>(
     private val repository: PeriodeMedBegrunnelseRepository<P>,
     private val behandlingService: BehandlingService,
+    private val behandlingStegService: BehandlingStegService,
     private val endringshistorikkService: EndringshistorikkService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val endringstyper: Endringstyper,
     private val tilkjentYtelseService: TilkjentYtelseService,
 ) {
     protected abstract val periodebeskrivelse: String
+
+    /** Steget periodene hører til. En endring fører behandlingen tilbake hit, men aldri fremover. */
+    protected abstract val steg: BehandlingSteg
 
     protected abstract fun nyPeriode(
         behandlingId: UUID,
@@ -81,8 +88,9 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         behandlingId: UUID,
         request: R,
     ): P {
-        behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
+        behandling.validerKanEndre(steg)
 
         validerBegrunnelse(request.begrunnelse)
         val eksisterendePeriode = request.id?.let { hentPeriodePåBehandling(behandlingId, it) }
@@ -95,6 +103,7 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         repository.deleteByBehandlingId(behandlingId)
         repository.insertAll(perioder)
         tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
+        behandlingStegService.førTilbakeEtterPeriodeendring(behandling, steg)
 
         val endringType = if (eksisterendePeriode == null) endringstyper.opprettet else endringstyper.oppdatert
         registrerEndring(behandlingId, endringType, periode)
@@ -106,12 +115,14 @@ abstract class PeriodeMedBegrunnelseService<P : PeriodeMedBegrunnelse<P>, R : Pe
         behandlingId: UUID,
         periodeId: UUID,
     ) {
-        behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
+        behandling.validerKanEndre(steg)
         val periode = hentPeriodePåBehandling(behandlingId, periodeId)
 
         repository.deleteById(periode.id)
         tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
+        behandlingStegService.førTilbakeEtterPeriodeendring(behandling, steg)
 
         registrerEndring(behandlingId, endringstyper.slettet, periode)
     }

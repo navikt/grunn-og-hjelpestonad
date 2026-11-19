@@ -28,7 +28,7 @@ function VilkårSide() {
   const feiloppsummeringRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
-  const { behandlingId } = useBehandlingContext();
+  const { behandlingId, hentBehandlingPåNytt } = useBehandlingContext();
   const { status: vilkårStatus } = useVilkårContext();
   const { fullfør, laster, valideringsfeil, feilmelding } = useFullførInngangsvilkår(behandlingId);
 
@@ -41,12 +41,15 @@ function VilkårSide() {
   }, [valideringsfeil]);
 
   const håndterNeste = () =>
-    fullfør((resultat) => {
+    fullfør(async (resultat) => {
+      // Fullføringen kan flytte gjeldende steg, så behandlingen hentes på nytt før navigering.
+      await hentBehandlingPåNytt();
+
       switch (resultat.nesteSteg) {
         case "SATS_OG_TRYGDETID":
           navigerTilNeste();
           return;
-        case "SIMULERING":
+        case "VEDTAK_OG_BREV":
           navigate("../simulering", { relative: "path" });
           return;
       }

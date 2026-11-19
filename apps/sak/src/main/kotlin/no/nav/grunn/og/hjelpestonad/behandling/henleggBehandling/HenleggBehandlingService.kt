@@ -27,9 +27,7 @@ class HenleggBehandlingService(
     @Transactional
     fun henleggBehandling(behandlingId: UUID) {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
-        val behandling =
-            behandlingService.hentBehandling(behandlingId)
-                ?: error("Fant ikke behandling med id=$behandlingId")
+        val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
 
         if (behandling.status in listOf(BehandlingStatus.FERDIGSTILT, BehandlingStatus.IVERKSETTER_VEDTAK)) {
             throw Feil(
