@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.prosessering
 
 import io.mockk.Called
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -18,6 +19,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
@@ -30,6 +32,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc
 
 @SpringJUnitWebConfig(ProsesseringSecurityTest.TestConfig::class)
 @ActiveProfiles("dev")
+@TestPropertySource(properties = ["prosessering.rolle=928636f4-fd0d-4149-978e-a6fb68bb19de"])
 class ProsesseringSecurityTest {
     @TestConfiguration
     @EnableWebMvc
@@ -61,6 +64,7 @@ class ProsesseringSecurityTest {
 
     @BeforeEach
     fun settOpp() {
+        clearMocks(prosesseringService, answers = false)
         mockMvc =
             MockMvcBuilders
                 .webAppContextSetup(webApplicationContext)
@@ -69,7 +73,7 @@ class ProsesseringSecurityTest {
     }
 
     @Test
-    fun `alle endepunkter er stengt av stubben og kaller ikke servicen`() {
+    fun `alle endepunkter avviser systembruker selv med NAVident og riktig gruppe`() {
         val endepunkter =
             listOf(
                 HttpMethod.GET to "",
@@ -87,6 +91,10 @@ class ProsesseringSecurityTest {
                     request(endepunkt.first, "/api/prosessering/task${endepunkt.second}")
                         .with(
                             jwt().jwt {
+                                it.subject("maskinklient")
+                                it.claim("oid", "maskinklient")
+                                it.claim("idtyp", "app")
+                                it.claim("scp", "access_as_user")
                                 it.claim("NAVident", "Z123456")
                                 it.claim("groups", listOf("928636f4-fd0d-4149-978e-a6fb68bb19de"))
                             },
@@ -95,6 +103,24 @@ class ProsesseringSecurityTest {
                 ).andExpect(status().isForbidden)
         }
         verify { prosesseringService wasNot Called }
+    }
+
+    @Test
+    fun `ansatt med delegert token og riktig gruppe faar tilgang`() {
+        every { prosesseringService.hentStatusoversikt() } returns emptyList()
+        mockMvc
+            .perform(
+                request(HttpMethod.GET, "/api/prosessering/task/status-oversikt")
+                    .with(
+                        jwt().jwt {
+                            it.subject("bruker-subjekt")
+                            it.claim("oid", "bruker-objekt")
+                            it.claim("scp", "access_as_user")
+                            it.claim("NAVident", "Z123456")
+                            it.claim("groups", listOf("928636f4-fd0d-4149-978e-a6fb68bb19de"))
+                        },
+                    ),
+            ).andExpect(status().isOk)
     }
 
     @Test

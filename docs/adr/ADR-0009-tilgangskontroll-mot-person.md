@@ -88,9 +88,10 @@ Maskintoken skal avvises, også om tokenet har gruppen. Nais-regelen fra
 `efterlatte-verktoy` i namespace `etterlatte` åpner nettverket og preautoriserer
 OBO-kall; den erstatter ikke brukerens gruppekrav.
 
-**Status:** API-et er stengt av en tilgangsstub som avviser alle kall. Unntaket
-trer ikke i kraft før tilgangskontrollen er implementert og gjennomgått.
-Controller, sikkerhetskjede og tilgangsstub er avgrenset til `dev`, og er
+Tilgangskontrollen krever autentisert JWT, ikke-tom `NAVident`, prosesseringsgruppen
+og delegert tilgang (`scp`). Token med `idtyp=app`, manglende `sub`/`oid` eller
+lik `sub` og `oid` avvises, selv med riktig gruppe og `NAVident`.
+Controller, sikkerhetskjede og tilgangskontroll er avgrenset til `dev`, og er
 deaktivert hvis `prod` eller `local-mock` også er aktive.
 
 Utlevering av tasks og hendelseslogg samt utførte operatørhandlinger logges med

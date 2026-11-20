@@ -23,13 +23,13 @@ class ProsesseringController(
 ) {
     @GetMapping("/status-oversikt")
     fun hentStatusoversikt(authentication: Authentication): ResponseEntity<List<ProsesseringStatusTelling>> {
-        prosesseringTilgang.krevTilgang(authentication)
+        prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.hentStatusoversikt())
     }
 
     @GetMapping("/typer")
     fun hentTyper(authentication: Authentication): ResponseEntity<List<ProsesseringTypeTelling>> {
-        prosesseringTilgang.krevTilgang(authentication)
+        prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.hentTyper())
     }
 
@@ -41,7 +41,7 @@ class ProsesseringController(
         @RequestParam(defaultValue = "1") side: Int,
         @RequestParam(defaultValue = "25") antallPerSide: Int,
     ): ResponseEntity<ProsesseringTaskSide> {
-        val navIdent = prosesseringTilgang.krevTilgang(authentication)
+        val navIdent = prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.hentTasks(status, type, side, antallPerSide, navIdent))
     }
 
@@ -50,7 +50,7 @@ class ProsesseringController(
         authentication: Authentication,
         @PathVariable id: Long,
     ): ResponseEntity<ProsesseringTask> {
-        val navIdent = prosesseringTilgang.krevTilgang(authentication)
+        val navIdent = prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.hentTask(id, navIdent))
     }
 
@@ -59,7 +59,7 @@ class ProsesseringController(
         authentication: Authentication,
         @PathVariable id: Long,
     ): ResponseEntity<List<TaskLogg>> {
-        val navIdent = prosesseringTilgang.krevTilgang(authentication)
+        val navIdent = prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.hentLogg(id, navIdent))
     }
 
@@ -69,7 +69,7 @@ class ProsesseringController(
         @PathVariable id: Long,
         @RequestBody endring: ProsesseringEndring,
     ): ResponseEntity<ProsesseringTask> {
-        val navIdent = prosesseringTilgang.krevTilgang(authentication)
+        val navIdent = prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.endreTask(id, endring.versjon, ProsesseringHandling.REKJOR, navIdent))
     }
 
@@ -79,7 +79,7 @@ class ProsesseringController(
         @PathVariable id: Long,
         @RequestBody endring: ProsesseringEndring,
     ): ResponseEntity<ProsesseringTask> {
-        val navIdent = prosesseringTilgang.krevTilgang(authentication)
+        val navIdent = prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.endreTask(id, endring.versjon, ProsesseringHandling.AVBRYT, navIdent))
     }
 
@@ -89,7 +89,7 @@ class ProsesseringController(
         @PathVariable id: Long,
         @RequestBody avvik: ProsesseringAvvik,
     ): ResponseEntity<ProsesseringTask> {
-        val navIdent = prosesseringTilgang.krevTilgang(authentication)
+        val navIdent = prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.endreTask(id, avvik.versjon, ProsesseringHandling.AVVIK, navIdent, avvik.melding))
     }
 

@@ -10,7 +10,7 @@ import org.springframework.core.type.filter.AssignableTypeFilter
 class ProsesseringProfilTest {
     @ParameterizedTest
     @ValueSource(strings = ["prod", "local-mock", "integrasjonstest", "dev,prod", "dev,local-mock", "dev"])
-    fun `controller sikkerhetskjede og tilgangsstub finnes bare i dev`(profiler: String) {
+    fun `controller sikkerhetskjede og tilgangskontroll finnes bare i dev`(profiler: String) {
         val miljo = StandardEnvironment().apply { setActiveProfiles(*profiler.split(",").toTypedArray()) }
         val skanner = ClassPathScanningCandidateComponentProvider(false, miljo)
         skanner.addIncludeFilter(AssignableTypeFilter(ProsesseringController::class.java))

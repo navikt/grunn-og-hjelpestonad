@@ -75,10 +75,8 @@ Actuator eksponerer liveness og readiness på `/internal/health/liveness` og
 
 ## Prosessering i efterlatte-verktoy (kun dev)
 
-**Ikke bruksklart:** `ProsesseringTilgang.krevTilgang` er en sikkerhetsstub som
-avviser alle kall. Tilgangskontrollen må skrives og gjennomgås før API-et åpnes.
-De deaktiverte testskjelettene i `ProsesseringTilgangTest` beskriver deler av
-tilgangskravene og må aktiveres og suppleres.
+`ProsesseringTilgang.harRolleProsessering` kontrollerer brukertoken og
+prosesseringsgruppe før hvert API-kall. Tilkoblingen må prøves i dev før bruk.
 
 Admin-API-et følger `/api/prosessering/task`-kontrakten i
 [efterlatte-verktoy](https://github.com/navikt/efterlatte-verktoy/pull/25):
@@ -90,14 +88,16 @@ Rekjøring beholder `antallFeil`.
 
 ### Tilgang og sensitive opplysninger
 
-Den planlagte tilgangen er Azure OBO-brukertoken med `NAVident` og gruppen
-`928636f4-fd0d-4149-978e-a6fb68bb19de` (`prosessering.rolle`). Maskintoken skal
-avvises. Gruppen gir lesing og administrasjon av **alle tasks uten personsjekk**,
+Tilgangen krever Azure OBO-brukertoken med `NAVident` og gruppen
+`928636f4-fd0d-4149-978e-a6fb68bb19de` (`prosessering.rolle`). Maskintoken
+avvises: token med `idtyp=app`, lik `sub` og `oid`, eller manglende delegert
+tilgang (`scp`) gir avslag. `sub` og `oid` må være satt.
+Gruppen gir lesing og administrasjon av **alle tasks uten personsjekk**,
 også tasks med sensitive opplysninger. Se det avgrensede driftsunntaket i
 [ADR-0009](../../docs/adr/ADR-0009-tilgangskontroll-mot-person.md#driftsunntak-for-prosessering-i-dev).
 Ingen saksbehandlerroller eller øvrige endepunkter skal åpnes.
 
-API-et, sikkerhetskjeden og tilgangsstubben er bare aktive med `dev`, og aldri
+API-et, sikkerhetskjeden og tilgangskontrollen er bare aktive med `dev`, og aldri
 sammen med `prod` eller `local-mock`. Eksisterende validering av signatur,
 utsteder, audience og utløp beholdes. Svar mellomlagres ikke. Utlevering av tasks
 og hendelseslogg samt utførte handlinger logges til `secureLogger` med NAV-ident
@@ -115,10 +115,8 @@ og inkluderer prosesseringsgruppen i Azure-claims. På verktøysiden brukes:
 | OBO-scope | `api://dev-gcp.grunn-og-hjelp.grunn-og-hjelpestonad/.default` |
 | API-variant | `kontrakt` |
 
-Begge repoer må deployes til dev etter at tilgangskontrollen er ferdig. Bruk
+Begge repoer må deployes til dev med tilgangskontrollen på plass. Bruk
 eksisterende backend-workflows; ingen nye ressurser eller migrasjoner kreves.
-Verktøyets PR beskriver tilgangskontrollen som ferdig, men den er foreløpig en
-stub i dette repoet.
 
 Før API-et regnes som åpnet:
 

@@ -22,7 +22,7 @@ class ProsesseringControllerTest {
             .build()
 
     init {
-        every { prosesseringTilgang.krevTilgang(authentication) } returns "Z123456"
+        every { prosesseringTilgang.harRolleProsessering(authentication) } returns "Z123456"
     }
 
     @Test
@@ -66,7 +66,7 @@ class ProsesseringControllerTest {
                 status { isOk() }
                 jsonPath("$.length()") { value(5) }
             }
-        verify { prosesseringTilgang.krevTilgang(authentication) }
+        verify { prosesseringTilgang.harRolleProsessering(authentication) }
     }
 
     @Test
