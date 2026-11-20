@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.vedtak
 
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
@@ -19,7 +20,7 @@ import kotlin.text.isNullOrEmpty
 class VedtakService(
     private val vedtakRepository: VedtakRepository,
     private val endringshistorikkService: EndringshistorikkService,
-    private val behandlingService: BehandlingService,
+    private val behandlingStegService: BehandlingStegService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val tilkjentYtelseService: TilkjentYtelseService,
 ) {
@@ -46,8 +47,8 @@ class VedtakService(
         vedtakRequest: VedtakRequest,
         behandlingId: UUID,
     ): UUID {
-        behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
         when (vedtakRequest.resultatType) {
             ResultatType.INNVILGET, ResultatType.OPPHØR -> {
                 if (tilkjentYtelseService.hentTilkjentYtelse(behandlingId) == null) {

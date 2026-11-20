@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering
 
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.periode.formaterPeriode
@@ -14,30 +15,30 @@ import java.util.UUID
 
 data class InngangsvilkårResultat(
     val perioder: List<PeriodeMedOppfylteInngangsvilkår>,
-    val nesteSteg: NesteStegEtterInngangsvilkår,
+    val nesteSteg: BehandlingSteg,
 )
 
 @Service
 class InngangsvilkårStegService(
     private val vilkårMedlemskapService: VilkårMedlemskapService,
     private val vilkårDiagnoseService: VilkårDiagnoseService,
-    private val behandlingService: BehandlingService,
+    private val behandlingStegService: BehandlingStegService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val endringshistorikkService: EndringshistorikkService,
     private val beregnTilkjentYtelseService: BeregnTilkjentYtelseService,
 ) {
     @Transactional
     fun fullførSteg(behandlingId: UUID): InngangsvilkårResultat {
-        behandlingService.validerBehandlingErRedigerbar(behandlingId)
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
+        behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
 
         val vurderteInngangsvilkår = hentVurderteInngangsvilkår(behandlingId)
         val feil = VilkårVurderingValidering.valider(vurderteInngangsvilkår)
         if (feil.isNotEmpty()) throw VilkårValideringFeil(feil)
 
         val perioder = PerioderMedOppfylteInngangsvilkårUtleder.utled(vurderteInngangsvilkår)
-        val nesteSteg = NesteStegEtterInngangsvilkår.utled(perioder)
-        if (nesteSteg == NesteStegEtterInngangsvilkår.SIMULERING) beregnTilkjentYtelseService.lagreTilkjentYtelseUtenAndeler(behandlingId)
+        val nesteSteg = behandlingStegService.registrerFullførteInngangsvilkår(behandlingId, harPerioderMedOppfylteInngangsvilkår = perioder.isNotEmpty())
+        if (nesteSteg == BehandlingSteg.VEDTAK_OG_BREV) beregnTilkjentYtelseService.lagreTilkjentYtelseUtenAndeler(behandlingId)
         registrerEndringshistorikk(behandlingId, perioder)
         return InngangsvilkårResultat(perioder = perioder, nesteSteg = nesteSteg)
     }

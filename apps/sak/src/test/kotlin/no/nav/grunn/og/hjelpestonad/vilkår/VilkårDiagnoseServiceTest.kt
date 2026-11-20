@@ -4,7 +4,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import no.nav.grunn.og.hjelpestonad.behandling.Behandling
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
@@ -26,12 +31,14 @@ private const val CØLIAKI = "K900"
 class VilkårDiagnoseServiceTest {
     private val repository = mockk<VilkårDiagnoseRepository>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val service =
         VilkårDiagnoseService(
             repository,
             behandlingService,
+            behandlingStegService,
             endringshistorikkService,
             ansvarligSaksbehandlerService,
             mockk(relaxed = true),
@@ -40,6 +47,7 @@ class VilkårDiagnoseServiceTest {
     private val behandlingId = UUID.randomUUID()
 
     init {
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(BehandlingSteg.INNGANGSVILKÅR)
         every { repository.insertAll(any()) } answers { firstArg() }
         every { repository.findByBehandlingId(any()) } returns emptyList()
     }
@@ -250,9 +258,12 @@ class VilkårDiagnoseServiceTest {
 
     @Test
     fun `skriver ingenting når behandlingen ikke er redigerbar`() {
-        every { behandlingService.validerBehandlingErRedigerbar(behandlingId) } throws Feil("Behandlingen er ikke redigerbar")
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
+            behandling(BehandlingSteg.INNGANGSVILKÅR, status = BehandlingStatus.FATTER_VEDTAK)
 
-        assertThatThrownBy { service.lagrePeriode(behandlingId, request()) }.isInstanceOf(Feil::class.java)
+        assertThatThrownBy { service.lagrePeriode(behandlingId, request()) }
+            .isInstanceOf(Feil::class.java)
+            .hasMessage("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
 
         verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
         verify(exactly = 0) { repository.insertAll(any()) }
@@ -275,4 +286,14 @@ class VilkårDiagnoseServiceTest {
         assertThat(detaljer.captured).isEqualTo("${VilkårType.DIAGNOSE}, Vurdering: ${Vurdering.JA}, Periode: 01.01.2025 – 30.06.2025")
         assertThat(detaljer.captured).doesNotContain(DIABETES_TYPE_1).doesNotContain("Diabetes")
     }
+
+    private fun behandling(
+        gjeldendeSteg: BehandlingSteg,
+        status: BehandlingStatus = BehandlingStatus.UTREDES,
+    ) = Behandling(
+        fagsakId = UUID.randomUUID(),
+        status = status,
+        resultat = BehandlingResultat.IKKE_SATT,
+        gjeldendeSteg = gjeldendeSteg,
+    )
 }

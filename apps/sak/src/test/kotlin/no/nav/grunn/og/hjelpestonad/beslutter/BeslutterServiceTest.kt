@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.beslutter
 import efterlatte.prosessering.TaskId
 import efterlatte.prosessering.TaskType
 import efterlatte.prosessering.spring.TaskService
+import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -10,6 +11,8 @@ import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.Årsak
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandling
 import no.nav.grunn.og.hjelpestonad.behandling.årsak.ÅrsakBehandlingService
@@ -45,6 +48,7 @@ import kotlin.test.Test
 
 class BeslutterServiceTest {
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val brevService = mockk<BrevService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val oppgaveService = mockk<OppgaveService>(relaxed = true)
@@ -57,6 +61,7 @@ class BeslutterServiceTest {
     private val beslutterService =
         BeslutterService(
             behandlingService = behandlingService,
+            behandlingStegService = behandlingStegService,
             brevService = brevService,
             endringshistorikkService = endringshistorikkService,
             oppgaveService = oppgaveService,
@@ -64,7 +69,6 @@ class BeslutterServiceTest {
             taskService = taskService,
             ansvarligSaksbehandlerService = ansvarligSaksbehandlerService,
             vedtakService = vedtakService,
-            årsakBehandlingService = årsakBehandlingService,
         )
 
     @Test
@@ -228,6 +232,17 @@ class BeslutterServiceTest {
     }
 
     @Test
+    fun `sendTilBeslutter kaller validerKanEndreSteg med VEDTAK_OG_BREV`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
+        every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
+
+        beslutterService.sendTilBeslutter(behandlingId)
+
+        verify { behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) }
+    }
+
+    @Test
     fun `sendTilBeslutter avvises når behandlingen har status OPPRETTET`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.OPPRETTET)
@@ -375,6 +390,24 @@ class BeslutterServiceTest {
                 any(),
             )
         }
+    }
+
+    @Test
+    fun `underkjent vedtak endrer ikke gjeldende steg`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
+        every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
+
+        beslutterService.besluttVedtak(
+            behandlingId,
+            BeslutteVedtakRequest(
+                godkjent = false,
+                årsakUnderkjent = ÅrsakUnderkjent.VILKÅR,
+                begrunnelse = "Vilkår må vurderes på nytt",
+            ),
+        )
+
+        verify { behandlingStegService wasNot Called }
     }
 
     @Test

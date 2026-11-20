@@ -4,7 +4,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import no.nav.grunn.og.hjelpestonad.behandling.Behandling
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
@@ -31,6 +36,7 @@ private const val MS = "G35"
 class VilkårEkstrautgifterServiceTest {
     private val repository = mockk<VilkårEkstrautgifterRepository>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val vilkårDiagnoseService = mockk<VilkårDiagnoseService>()
@@ -38,6 +44,7 @@ class VilkårEkstrautgifterServiceTest {
         VilkårEkstrautgifterService(
             repository,
             behandlingService,
+            behandlingStegService,
             endringshistorikkService,
             ansvarligSaksbehandlerService,
             vilkårDiagnoseService,
@@ -48,6 +55,7 @@ class VilkårEkstrautgifterServiceTest {
     private val annenBehandlingId = UUID.randomUUID()
 
     init {
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(BehandlingSteg.SATS_OG_TRYGDETID)
         every { repository.insertAll(any()) } answers { firstArg() }
         every { repository.findByBehandlingId(any()) } returns emptyList()
         every { vilkårDiagnoseService.hentPerioder(behandlingId) } returns listOf(diagnose(behandlingId))
@@ -219,4 +227,14 @@ class VilkårEkstrautgifterServiceTest {
         assertThat(kopier.single().id).isNotEqualTo(oppfylt.id)
         assertThat(kopier.single().ekstrautgifter).containsExactly(Ekstrautgift(Hjemmelbokstav.B, setOf(MS)))
     }
+
+    private fun behandling(
+        gjeldendeSteg: BehandlingSteg,
+        status: BehandlingStatus = BehandlingStatus.UTREDES,
+    ) = Behandling(
+        fagsakId = UUID.randomUUID(),
+        status = status,
+        resultat = BehandlingResultat.IKKE_SATT,
+        gjeldendeSteg = gjeldendeSteg,
+    )
 }

@@ -4,15 +4,22 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import no.nav.grunn.og.hjelpestonad.behandling.Behandling
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.felles.sporbar.Sporbar
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import org.assertj.core.api.Assertions.assertThat
+import org.springframework.http.HttpStatus
 import java.time.LocalDate
 import java.util.Optional
 import java.util.UUID
@@ -29,16 +36,10 @@ class PeriodeMedBegrunnelseServiceTest {
     private val repository = mockk<PeriodeMedBegrunnelseRepository<TestPeriode>>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = BehandlingStegService(behandlingService)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val tilkjentYtelseService = mockk<TilkjentYtelseService>(relaxed = true)
-    private val service =
-        TestPeriodeService(
-            repository,
-            behandlingService,
-            endringshistorikkService,
-            ansvarligSaksbehandlerService,
-            tilkjentYtelseService,
-        )
+    private val service = lagService(BehandlingSteg.INNGANGSVILKÅR)
 
     private val behandlingId = UUID.randomUUID()
 
@@ -53,7 +54,134 @@ class PeriodeMedBegrunnelseServiceTest {
     init {
         every { repository.findByBehandlingId(any()) } returns emptyList()
         every { repository.insertAll(any()) } answers { firstArg() }
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(BehandlingSteg.INNGANGSVILKÅR)
     }
+
+    @Test
+    fun `lagring fører behandlingen tilbake til periodens steg når den står senere`() {
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(BehandlingSteg.VEDTAK_OG_BREV)
+
+        lagService(BehandlingSteg.SATS_OG_TRYGDETID).lagrePeriode(behandlingId, TestPeriodeRequest())
+
+        verify(exactly = 1) { behandlingService.oppdater(match { it.gjeldendeSteg == BehandlingSteg.SATS_OG_TRYGDETID }) }
+    }
+
+    @Test
+    fun `sletting fører behandlingen tilbake til periodens steg når den står senere`() {
+        val periode = TestPeriode(behandlingId = behandlingId, begrunnelse = "Test", fraOgMedDato = null, tilOgMedDato = null)
+        every { repository.findById(periode.id) } returns Optional.of(periode)
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(BehandlingSteg.VEDTAK_OG_BREV)
+
+        lagService(BehandlingSteg.SATS_OG_TRYGDETID).slettPeriode(behandlingId, periode.id)
+
+        verify(exactly = 1) { behandlingService.oppdater(match { it.gjeldendeSteg == BehandlingSteg.SATS_OG_TRYGDETID }) }
+    }
+
+    @Test
+    fun `lagring endrer ikke steget når behandlingen står på samme steg`() {
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(BehandlingSteg.SATS_OG_TRYGDETID)
+
+        lagService(BehandlingSteg.SATS_OG_TRYGDETID).lagrePeriode(behandlingId, TestPeriodeRequest())
+
+        verify(exactly = 0) { behandlingService.oppdater(any()) }
+    }
+
+    @Test
+    fun `sletting endrer ikke steget når behandlingen står på samme steg`() {
+        val periode = TestPeriode(behandlingId = behandlingId, begrunnelse = "Test", fraOgMedDato = null, tilOgMedDato = null)
+        every { repository.findById(periode.id) } returns Optional.of(periode)
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(BehandlingSteg.SATS_OG_TRYGDETID)
+
+        lagService(BehandlingSteg.SATS_OG_TRYGDETID).slettPeriode(behandlingId, periode.id)
+
+        verify(exactly = 0) { behandlingService.oppdater(any()) }
+    }
+
+    @Test
+    fun `lagring avvises når behandlingen ikke er redigerbar, og ingenting lagres`() {
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
+            behandling(BehandlingSteg.INNGANGSVILKÅR, status = BehandlingStatus.FATTER_VEDTAK)
+
+        val feil = assertFailsWith<Feil> { service.lagrePeriode(behandlingId, TestPeriodeRequest()) }
+
+        assertThat(feil.melding).isEqualTo("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
+        assertThat(feil.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
+        verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
+        verify(exactly = 0) { behandlingService.oppdater(any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
+    }
+
+    @Test
+    fun `sletting avvises når behandlingen ikke er redigerbar, og ingenting slettes`() {
+        val periode = TestPeriode(behandlingId = behandlingId, begrunnelse = "Test", fraOgMedDato = null, tilOgMedDato = null)
+        every { repository.findById(periode.id) } returns Optional.of(periode)
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
+            behandling(BehandlingSteg.INNGANGSVILKÅR, status = BehandlingStatus.FATTER_VEDTAK)
+
+        val feil = assertFailsWith<Feil> { service.slettPeriode(behandlingId, periode.id) }
+
+        assertThat(feil.melding).isEqualTo("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
+        assertThat(feil.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
+        verify(exactly = 0) { repository.deleteById(any()) }
+        verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
+        verify(exactly = 0) { behandlingService.oppdater(any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
+    }
+
+    @Test
+    fun `lagring avvises når periodens steg ikke er nådd, og ingenting lagres`() {
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(BehandlingSteg.INNGANGSVILKÅR)
+
+        val feil = assertFailsWith<Feil> { lagService(BehandlingSteg.SATS_OG_TRYGDETID).lagrePeriode(behandlingId, TestPeriodeRequest()) }
+
+        assertThat(feil.melding).isEqualTo("Fullfør «Vilkår» før du går videre.")
+        assertThat(feil.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
+        verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
+        verify(exactly = 0) { repository.insertAll(any()) }
+        verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
+    }
+
+    @Test
+    fun `sletting avvises når periodens steg ikke er nådd, og ingenting slettes`() {
+        val periode = TestPeriode(behandlingId = behandlingId, begrunnelse = "Test", fraOgMedDato = null, tilOgMedDato = null)
+        every { repository.findById(periode.id) } returns Optional.of(periode)
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(BehandlingSteg.INNGANGSVILKÅR)
+
+        val feil = assertFailsWith<Feil> { lagService(BehandlingSteg.SATS_OG_TRYGDETID).slettPeriode(behandlingId, periode.id) }
+
+        assertThat(feil.melding).isEqualTo("Fullfør «Vilkår» før du går videre.")
+        assertThat(feil.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
+        verify(exactly = 0) { repository.deleteById(any()) }
+        verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }
+        verify(exactly = 0) { behandlingService.oppdater(any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
+    }
+
+    private fun lagService(steg: BehandlingSteg) =
+        TestPeriodeService(
+            repository,
+            behandlingService,
+            behandlingStegService,
+            endringshistorikkService,
+            ansvarligSaksbehandlerService,
+            tilkjentYtelseService,
+            steg,
+        )
+
+    private fun behandling(
+        gjeldendeSteg: BehandlingSteg,
+        status: BehandlingStatus = BehandlingStatus.UTREDES,
+    ) = Behandling(
+        // Samme id som behandlingId, så steget leses og skrives på behandlingen testen stubber.
+        id = behandlingId,
+        fagsakId = UUID.randomUUID(),
+        status = status,
+        resultat = BehandlingResultat.IKKE_SATT,
+        gjeldendeSteg = gjeldendeSteg,
+    )
 
     @Test
     fun `detaljene for en periode uten vurdering har bare type og periode`() {
@@ -169,12 +297,15 @@ class PeriodeMedBegrunnelseServiceTest {
     private class TestPeriodeService(
         repository: PeriodeMedBegrunnelseRepository<TestPeriode>,
         behandlingService: BehandlingService,
+        behandlingStegService: BehandlingStegService,
         endringshistorikkService: EndringshistorikkService,
         ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
         tilkjentYtelseService: TilkjentYtelseService,
+        override val steg: BehandlingSteg,
     ) : PeriodeMedBegrunnelseService<TestPeriode, TestPeriodeRequest>(
             repository,
             behandlingService,
+            behandlingStegService,
             endringshistorikkService,
             ansvarligSaksbehandlerService,
             Endringstyper(opprettet = OPPRETTET, oppdatert = OPPDATERT, slettet = SLETTET),

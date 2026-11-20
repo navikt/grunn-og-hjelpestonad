@@ -1,6 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.vilkår.medlemskap
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.periode.Endringstyper
@@ -15,12 +17,14 @@ import java.util.UUID
 class VilkårMedlemskapService(
     vilkårMedlemskapRepository: VilkårMedlemskapRepository,
     behandlingService: BehandlingService,
+    behandlingStegService: BehandlingStegService,
     endringshistorikkService: EndringshistorikkService,
     ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     tilkjentYtelseService: TilkjentYtelseService,
 ) : PeriodeMedBegrunnelseService<VilkårMedlemskap, VilkårMedlemskapRequest>(
         vilkårMedlemskapRepository,
         behandlingService,
+        behandlingStegService,
         endringshistorikkService,
         ansvarligSaksbehandlerService,
         Endringstyper(
@@ -33,6 +37,8 @@ class VilkårMedlemskapService(
     private val vilkårType = VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN
 
     override val periodebeskrivelse = "vilkårsvurdering for ${vilkårType.name}"
+
+    override val steg = BehandlingSteg.INNGANGSVILKÅR
 
     /** Bare perioder vurdert til ja kopieres. */
     override fun skalKopieres(periode: VilkårMedlemskap) = periode.erVilkårOppfylt()

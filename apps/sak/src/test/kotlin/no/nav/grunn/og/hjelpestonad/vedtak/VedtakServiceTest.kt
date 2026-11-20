@@ -3,7 +3,8 @@ package no.nav.grunn.og.hjelpestonad.vedtak
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
@@ -22,10 +23,10 @@ import kotlin.test.assertFailsWith
 class VedtakServiceTest {
     private val vedtakRepository = mockk<VedtakRepository>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
-    private val behandlingService = mockk<BehandlingService>(relaxed = true)
+    private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val tilkjentYtelseService = mockk<TilkjentYtelseService>(relaxed = true)
-    private val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingService, ansvarligSaksbehandlerService, tilkjentYtelseService)
+    private val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingStegService, ansvarligSaksbehandlerService, tilkjentYtelseService)
 
     @Test
     fun `manglende vedtak eller slettet beregning stopper førstegangskontrollen`() {
@@ -75,7 +76,7 @@ class VedtakServiceTest {
                 grunnstønadPerioder = emptyList(),
             )
 
-        every { behandlingService.validerBehandlingErRedigerbar(behandlingId) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
+        every { behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
 
         assertThatThrownBy { vedtakService.lagreVedtak(vedtakRequest, behandlingId) }
             .isInstanceOf(Feil::class.java)

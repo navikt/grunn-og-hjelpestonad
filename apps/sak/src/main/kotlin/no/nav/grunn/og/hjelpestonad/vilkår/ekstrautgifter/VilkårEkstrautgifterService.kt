@@ -1,6 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter
 
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.periode.Endringstyper
@@ -16,6 +18,7 @@ import java.util.UUID
 class VilkårEkstrautgifterService(
     vilkårEkstrautgifterRepository: VilkårEkstrautgifterRepository,
     behandlingService: BehandlingService,
+    behandlingStegService: BehandlingStegService,
     endringshistorikkService: EndringshistorikkService,
     ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val vilkårDiagnoseService: VilkårDiagnoseService,
@@ -23,6 +26,7 @@ class VilkårEkstrautgifterService(
 ) : PeriodeMedBegrunnelseService<VilkårEkstrautgifter, VilkårEkstrautgifterRequest>(
         vilkårEkstrautgifterRepository,
         behandlingService,
+        behandlingStegService,
         endringshistorikkService,
         ansvarligSaksbehandlerService,
         Endringstyper(
@@ -35,6 +39,8 @@ class VilkårEkstrautgifterService(
     private val vilkårType = VilkårType.NØDVENDIGE_EKSTRAUTGIFTER
 
     override val periodebeskrivelse = "vilkårsvurdering for ${vilkårType.name}"
+
+    override val steg = BehandlingSteg.SATS_OG_TRYGDETID
 
     /** Bare perioder vurdert til ja kopieres. */
     override fun skalKopieres(periode: VilkårEkstrautgifter) = periode.erVilkårOppfylt()

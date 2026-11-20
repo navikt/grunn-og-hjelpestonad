@@ -514,7 +514,12 @@ export const zPeriodeMedOppfylteInngangsvilkårResponse = z.object({
 
 export const zInngangsvilkårResponse = z.object({
     perioder: z.array(zPeriodeMedOppfylteInngangsvilkårResponse),
-    nesteSteg: z.enum(['SATS_OG_TRYGDETID', 'SIMULERING'])
+    nesteSteg: z.enum([
+        'ÅRSAK',
+        'INNGANGSVILKÅR',
+        'SATS_OG_TRYGDETID',
+        'VEDTAK_OG_BREV'
+    ])
 });
 
 export const zOpplysningResponse = z.object({
@@ -563,6 +568,12 @@ export const zBehandlingResponse = z.object({
         'AVSLÅTT',
         'IKKE_SATT',
         'HENLAGT'
+    ]),
+    gjeldendeSteg: z.enum([
+        'ÅRSAK',
+        'INNGANGSVILKÅR',
+        'SATS_OG_TRYGDETID',
+        'VEDTAK_OG_BREV'
     ])
 });
 

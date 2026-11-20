@@ -105,7 +105,7 @@ export const useArsakBehandling = (behandlingId: string): UseÅrsakBehandling =>
 
       settErLagretOverstyring(true);
       oppdaterEndringshistorikk();
-      hentBehandlingPåNytt();
+      await hentBehandlingPåNytt();
       return true;
     } catch (feil: unknown) {
       settFeilmelding(feilmeldingFra(feil, "En uventet feil oppstod ved lagring"));
