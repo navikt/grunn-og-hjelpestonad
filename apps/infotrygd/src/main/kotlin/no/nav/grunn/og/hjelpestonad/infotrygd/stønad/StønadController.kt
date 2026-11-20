@@ -18,6 +18,7 @@ class StønadController(
     private val stønadRepository: StønadRepository,
     private val sakRepository: SakRepository,
     private val tilgangService: TilgangService,
+    private val migreringskandidatService: MigreringskandidatService,
 ) {
     @Operation(summary = "Sjekker om personidentene har vedtak eller saker i Infotrygd")
     @PostMapping("/eksisterer")
@@ -48,17 +49,25 @@ class StønadController(
     }
 
     @Operation(
-        summary = "Henter personer med løpende grunnstønad fra neste måned der siste vedtak er et førstegangsvedtak",
+        summary =
+            "Henter personer med løpende grunnstønad fra neste måned der siste vedtak er et førstegangsvedtak " +
+                "med oppgitt sats og hjemmelbokstav",
         description =
-            "Siste vedtak på stønaden har endringskode F. Med brukertoken fjernes personer saksbehandleren ikke " +
-                "har tilgang til, så svaret kan inneholde færre enn antall personer.",
+            "Siste vedtak på stønaden har endringskode F, alle t_gh-radene har sats_gs lik satsGrunnstonad, og " +
+                "siste evaluering har hjemmelbokstaven. Stønadene gås gjennom i partier, nyeste stønadId først. " +
+                "Med brukertoken fjernes personer saksbehandleren ikke har tilgang til, så svaret kan inneholde " +
+                "færre enn antall personer.",
     )
     @GetMapping("/migreringspersoner/forstegangsvedtak")
     fun hentPersonerForMigreringMedFørstegangsvedtak(
+        @RequestParam sats: Long,
+        @RequestParam hjemmelbokstav: String,
         @RequestParam antall: Int,
     ): PersonerForMigreringResponse {
         validerAntall(antall)
-        val personer = stønadRepository.finnPersonerForMigreringMedFørstegangsvedtak(antall)
+        require(sats > 0) { "sats må være større enn 0" }
+        require(hjemmelbokstav.isNotBlank()) { "hjemmelbokstav kan ikke være tom" }
+        val personer = migreringskandidatService.finnPersonerMedFørstegangsvedtak(sats, hjemmelbokstav, antall)
         return PersonerForMigreringResponse(tilgangService.filtrerPersonerMedTilgang(personer))
     }
 

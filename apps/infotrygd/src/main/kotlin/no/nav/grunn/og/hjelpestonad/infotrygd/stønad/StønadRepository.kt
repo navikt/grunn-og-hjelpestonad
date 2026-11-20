@@ -48,28 +48,6 @@ class StønadRepository(
     fun finnPersonerForMigrering(
         antall: Int,
         dagensDato: LocalDate = LocalDate.now(),
-    ): Set<String> = finnPersonerMedLøpendeSisteVedtak(Stønadstype.entries, endringskode = null, antall, dagensDato)
-
-    /**
-     * Som [finnPersonerForMigrering], men bare for grunnstønad og bare der siste vedtak har endringskode F
-     * (Førstegangsvedtak). Et siste vedtak med F og AN er med, som i /stonader.
-     */
-    fun finnPersonerForMigreringMedFørstegangsvedtak(
-        antall: Int,
-        dagensDato: LocalDate = LocalDate.now(),
-    ): Set<String> =
-        finnPersonerMedLøpendeSisteVedtak(
-            listOf(Stønadstype.GRUNNSTØNAD),
-            endringskode = ENDRINGSKODE_FØRSTEGANGSVEDTAK,
-            antall,
-            dagensDato,
-        )
-
-    private fun finnPersonerMedLøpendeSisteVedtak(
-        stønadstyper: List<Stønadstype>,
-        endringskode: String?,
-        antall: Int,
-        dagensDato: LocalDate,
     ): Set<String> =
         jdbcClient
             .sql(
@@ -92,18 +70,73 @@ class StønadRepository(
                 SELECT DISTINCT v.personnr
                 FROM siste_vedtak sv
                 JOIN vedtak v ON v.vedtak_id = sv.vedtak_id
-                WHERE (v.tom IS NULL OR v.tom > :nesteMåned)
-                  AND (CAST(:endringskode AS TEXT) IS NULL
-                       OR EXISTS (SELECT 1 FROM t_endring e WHERE e.vedtak_id = sv.vedtak_id AND e.kode = :endringskode))
+                WHERE v.tom IS NULL OR v.tom > :nesteMåned
                 ORDER BY v.personnr
                 LIMIT :antall
                 """.trimIndent(),
-            ).param("kodeRutiner", stønadstyper.map { it.kodeRutine })
-            .param("endringskode", endringskode)
-            .param("nesteMåned", YearMonth.from(dagensDato).plusMonths(1).atDay(1))
+            ).param("kodeRutiner", Stønadstype.entries.map { it.kodeRutine })
+            .param("nesteMåned", nesteMåned(dagensDato))
             .param("antall", antall)
             .queryAs<String>()
             .set()
+
+    /**
+     * Ett parti med løpende grunnstønader der siste vedtak har endringskode F (Førstegangsvedtak) og alle
+     * t_gh-radene har [satsGrunnstønad]. Siste vedtak velges før filteret på F og sats, slik at et eldre
+     * førstegangsvedtak ikke gir treff. Et siste vedtak med F og AN er med, som i /stonader.
+     *
+     * Partiet er sortert på stønadId synkende og starter under [førStønadId]. Vedtak med et annet
+     * person_lopenr enn stønaden er ikke med, siden tilgangen bare sjekkes for personen på vedtaket.
+     */
+    fun hentPartiMedFørstegangsvedtak(
+        satsGrunnstønad: Long,
+        førStønadId: Long?,
+        partistørrelse: Int,
+        dagensDato: LocalDate = LocalDate.now(),
+    ): List<Migreringskandidat> =
+        jdbcClient
+            .sql(
+                """
+                WITH siste_vedtak AS (
+                    SELECT s.stonad_id, max(v.vedtak_id) AS vedtak_id
+                    FROM t_stonad s
+                    JOIN t_vedtak v ON v.stonad_id = s.stonad_id
+                    WHERE s.kode_rutine = :kodeRutine
+                      AND s.oppdrag_id IS NOT NULL
+                      AND (CAST(:forStonadId AS BIGINT) IS NULL OR s.stonad_id < :forStonadId)
+                      AND EXISTS (SELECT 1 FROM t_endring e WHERE e.vedtak_id = v.vedtak_id AND e.kode NOT IN ('AN', 'UA'))
+                      AND (v.dato_innv_tom IS NULL OR v.dato_innv_fom < v.dato_innv_tom)
+                      AND (s.dato_opphor IS NULL OR s.dato_opphor > v.dato_innv_fom)
+                    GROUP BY s.stonad_id
+                )
+                SELECT l.personnr, s.stonad_id, v.vedtak_id
+                FROM siste_vedtak sv
+                JOIN t_stonad s ON s.stonad_id = sv.stonad_id
+                JOIN t_vedtak v ON v.vedtak_id = sv.vedtak_id
+                JOIN t_lopenr_fnr l ON l.person_lopenr = v.person_lopenr
+                WHERE v.person_lopenr = s.person_lopenr
+                  AND (least(s.dato_opphor, v.dato_innv_tom) IS NULL OR least(s.dato_opphor, v.dato_innv_tom) > :nesteMåned)
+                  AND EXISTS (SELECT 1 FROM t_endring e WHERE e.vedtak_id = v.vedtak_id AND e.kode = :endringskode)
+                  AND EXISTS (SELECT 1 FROM t_gh g WHERE g.vedtak_id = v.vedtak_id)
+                  AND NOT EXISTS (SELECT 1 FROM t_gh g WHERE g.vedtak_id = v.vedtak_id AND g.sats_gs IS DISTINCT FROM :satsGs)
+                ORDER BY s.stonad_id DESC
+                LIMIT :partistorrelse
+                """.trimIndent(),
+            ).param("kodeRutine", Stønadstype.GRUNNSTØNAD.kodeRutine)
+            .param("forStonadId", førStønadId)
+            .param("nesteMåned", nesteMåned(dagensDato))
+            .param("endringskode", ENDRINGSKODE_FØRSTEGANGSVEDTAK)
+            .param("satsGs", satsGrunnstønad)
+            .param("partistorrelse", partistørrelse)
+            .query { rs, _ ->
+                Migreringskandidat(
+                    personident = rs.getString("personnr"),
+                    stønadId = rs.getLong("stonad_id"),
+                    vedtakId = rs.getLong("vedtak_id"),
+                )
+            }.list()
+
+    private fun nesteMåned(dagensDato: LocalDate): LocalDate = YearMonth.from(dagensDato).plusMonths(1).atDay(1)
 
     private companion object {
         const val ENDRINGSKODE_FØRSTEGANGSVEDTAK = "F"

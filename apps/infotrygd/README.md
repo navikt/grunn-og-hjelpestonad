@@ -119,7 +119,7 @@ Målt i dev 2026-10-30. Hvordan `sak` bruker tallene, står i
 | `POST /api/infotrygd/stonader` | Stønadene for én stønadstype, som et tre fra `t_stonad` til vedtak, endringer, delytelser, `t_gh` og evaluering |
 | `POST /api/infotrygd/stonad/eksisterer` | Om personene har vedtak eller saker, og om vedtakene er løpende |
 | `GET /api/infotrygd/stonad/migreringspersoner` | Personer med løpende stønad fra neste måned |
-| `GET /api/infotrygd/stonad/migreringspersoner/forstegangsvedtak` | Som over, men bare grunnstønad der siste vedtak har endringskode `F` (Førstegangsvedtak) |
+| `GET /api/infotrygd/stonad/migreringspersoner/forstegangsvedtak` | Personer med løpende grunnstønad der siste vedtak har endringskode `F` (Førstegangsvedtak), sats `satsGrunnstonad` og hjemmelbokstav `hjemmelbokstav`. Se [Migreringspersoner med førstegangsvedtak](#migreringspersoner-med-førstegangsvedtak) |
 | `POST /api/infotrygd/saker/finn` | Saker fra `sa_sak_10` |
 | `GET /api/infotrygd/tabeller/*` | Kolonner og antall rader i replikatabellene |
 
@@ -147,6 +147,26 @@ personer fra `stonad/migreringspersoner`. Tilgangsmaskinen spørres ikke. Det
 avviker fra EF-appen. Grunnen er at alle kan gi seg selv gruppene i dev, og
 Infotrygd i dev har skarpe data. Se
 [ADR-0015](../../docs/adr/ADR-0015-sperre-adressebeskyttelse-i-dev.md).
+
+### Migreringspersoner med førstegangsvedtak
+
+`GET /stonad/migreringspersoner/forstegangsvedtak?satsGrunnstonad=1&hjemmelbokstav=F&antall=10`
+finner personer med løpende grunnstønad. Alle tre kravene gjelder siste vedtak på stønaden:
+
+- Vedtaket har endringskode `F`. Endringskode `F` (Førstegangsvedtak) og hjemmelbokstav `F` er ulike koder.
+- Alle `t_gh`-radene har `sats_gs` lik `satsGrunnstonad`. Vedtak uten `t_gh` er ikke med.
+- Evalueringen har hjemmelbokstaven, sammenlignet på trimmet tekst. Evalueringen hentes som i
+  [Evaluering](#evaluering), så en manglende eller motstridende hjemmelbokstav gir ikke treff.
+
+Siste vedtak velges før filteret på `F` og sats, med samme regel som `migreringspersoner`. Vedtak med et annet
+`person_lopenr` enn stønaden er ikke med.
+
+SQL-en finner kandidater med `F` og riktig sats i partier på 1 000, sortert på `stonad_id` synkende.
+Hjemmelbokstaven sjekkes i Kotlin for hvert parti. Endepunktet henter nye partier til det har `antall` personer
+eller har gått gjennom alle stønadene. En spørring som også sjekket hjemmelbokstaven i SQL, ble ikke ferdig i dev.
+
+Utvalget bygger på hjemmelbokstav, som er en helseopplysning (GDPR art. 9). Endepunktet skriver ikke til
+auditloggen, som `migreringspersoner`.
 
 ### Kontrakt mot sak
 
