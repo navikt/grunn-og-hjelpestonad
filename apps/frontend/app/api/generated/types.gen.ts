@@ -405,7 +405,7 @@ export type VilkårDiagnoseResponse = {
 
 export type TrygdetidRequest = {
     id?: string | null;
-    teller: number;
+    antallÅr: number;
     kilde: 'ALDERSPENSJON' | 'UFØRETRYGD' | 'MIGRERING' | 'INGEN';
     begrunnelse: string;
     fraOgMedDato?: string | null;
@@ -415,7 +415,7 @@ export type TrygdetidRequest = {
 export type TrygdetidResponse = {
     id: string;
     behandlingId: string;
-    teller: number;
+    antallÅr: number;
     kilde: 'ALDERSPENSJON' | 'UFØRETRYGD' | 'MIGRERING' | 'INGEN';
     begrunnelse: string;
     fraOgMedDato?: string | null;

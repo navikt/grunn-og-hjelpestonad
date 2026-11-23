@@ -7,7 +7,7 @@ import java.util.UUID
 data class TrygdetidResponse(
     val id: UUID,
     val behandlingId: UUID,
-    val teller: Int,
+    val antallÅr: Int,
     val kilde: TrygdetidKilde,
     val begrunnelse: String,
     val fraOgMedDato: LocalDate?,
@@ -16,7 +16,7 @@ data class TrygdetidResponse(
 
 data class TrygdetidRequest(
     override val id: UUID? = null,
-    val teller: Int,
+    val antallÅr: Int,
     val kilde: TrygdetidKilde,
     override val begrunnelse: String = "",
     override val fraOgMedDato: LocalDate? = null,
@@ -27,7 +27,7 @@ fun Trygdetid.tilResponse() =
     TrygdetidResponse(
         id = this.id,
         behandlingId = this.behandlingId,
-        teller = this.teller,
+        antallÅr = this.antallÅr,
         kilde = this.kilde,
         begrunnelse = this.begrunnelse,
         fraOgMedDato = this.fraOgMedDato,

@@ -57,7 +57,7 @@ class BeregnTilkjentYtelseServiceTest {
                 VilkårEkstrautgifter(behandlingId = behandlingId, vurdering = Vurdering.JA, sats = Sats.SATS_2, fraOgMedDato = fraOgMedDato)
                     .medEkstrautgifter(listOf(Ekstrautgift(Hjemmelbokstav.A, setOf("E109")))),
             )
-        every { trygdetidService.hentPerioder(behandlingId) } returns listOf(Trygdetid(behandlingId = behandlingId, teller = 29, kilde = TrygdetidKilde.ALDERSPENSJON, fraOgMedDato = fraOgMedDato))
+        every { trygdetidService.hentPerioder(behandlingId) } returns listOf(Trygdetid(behandlingId = behandlingId, antallÅr = 29, kilde = TrygdetidKilde.ALDERSPENSJON, fraOgMedDato = fraOgMedDato))
     }
 
     @Test
