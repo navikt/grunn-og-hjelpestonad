@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientResponseException
 import org.springframework.web.client.body
+import tools.jackson.databind.JsonNode
 
 /**
  * Klient mot `familie-oppdrag-backend` (teamfamilie), som sender videre til Oppdragsystemet (OS).
@@ -32,13 +33,19 @@ class OppdragClient(
 ) {
     private val restClient = restClientBuilder.clone().baseUrl(url).build()
 
-    fun simuler(utbetalingsoppdrag: Utbetalingsoppdrag): DetaljertSimuleringResultat =
-        post<DetaljertSimuleringResultat, DetaljertSimuleringResultat>(
+    fun simuler(utbetalingsoppdrag: Utbetalingsoppdrag): JsonNode =
+        post<JsonNode, JsonNode>(
             path = SIMULERING_PATH,
             body = utbetalingsoppdrag,
             handling = "Simulering mot oppdrag",
             token = Token.OBO,
-        ) { it.data }
+        ) { svar ->
+            // Jackson gir NullNode for `"data": null`, ikke null. Sjekken i kallEksternTjenesteMedRessurs ser bare null.
+            if (svar.data.isNull) {
+                throw Feil("Simulering mot oppdrag feilet, svaret mangler data", HttpStatus.BAD_GATEWAY)
+            }
+            svar.data
+        }
 
     /**
      * Sender oppdraget til OS. Et vellykket svar betyr bare at `familie-oppdrag-backend` har lagt oppdraget på køen.
