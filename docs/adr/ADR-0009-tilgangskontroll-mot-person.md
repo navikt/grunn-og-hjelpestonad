@@ -70,35 +70,9 @@ anbefalingen i dokumentasjonen, se «Komplett regelsett» under alternativer.
   plassert som «med personsjekk» eller «uten personsjekk». Testen ser ikke
   controllere som bare finnes i andre profiler.
 
-Endepunkter uten personsjekk: `DiagnosekodeController`, `UnleashController` og
-`TestDbController`. Task-endepunktene (`/api/task/**`) forsvant da sak byttet fra
-familie-prosessering til efterlatte-prosessering, som ikke har endepunkter.
-
-### Driftsunntak for prosessering i dev
-
-Det nye `/api/prosessering/**` er et eksplisitt unntak fra personsjekken, kun i dev.
-Ansatte med et gyldig Azure-brukertoken, `NAVident` og gruppen
-`928636f4-fd0d-4149-978e-a6fb68bb19de` kan lese og administrere alle tasks.
-Dette inkluderer payload, metadata og feilmeldinger som kan inneholde fødselsnummer,
-helseopplysninger og stønadsopplysninger, også om skjermede personer.
-Gruppen er dermed en privilegert driftsrolle, ikke en saksbehandlerrolle.
-Tilgang til øvrige endepunkter og deres personsjekker endres ikke.
-
-Maskintoken skal avvises, også om tokenet har gruppen. Nais-regelen fra
-`efterlatte-verktoy` i namespace `etterlatte` åpner nettverket og preautoriserer
-OBO-kall; den erstatter ikke brukerens gruppekrav.
-
-Tilgangskontrollen krever autentisert JWT, ikke-tom `NAVident`, prosesseringsgruppen
-og delegert tilgang (`scp`). Token med `idtyp=app`, manglende `sub`/`oid` eller
-lik `sub` og `oid` avvises, selv med riktig gruppe og `NAVident`.
-Controller, sikkerhetskjede og tilgangskontroll er avgrenset til `dev`, og er
-deaktivert hvis `prod` eller `local-mock` også er aktive.
-
-Utlevering av tasks og hendelseslogg samt utførte operatørhandlinger logges med
-task-id og NAV-ident til `secureLogger`, uten payload eller avvikstekst.
-Sensitive feildetaljer skal bare logges til `secureLogger`. Svar skal ikke
-mellomlagres. Task-endepunktene er klassifisert som driftsunntak i
-`EndepunktRegisterTest`.
+Endepunkter uten personsjekk: `DiagnosekodeController`, `UnleashController`,
+`TestDbController` og `/api/prosessering/**`. Tilgangskravene for prosessering
+er beskrevet i [backendens README](../../apps/sak/README.md#prosessering-i-efterlatte-verktoy-kun-dev).
 
 ### Svar ved avslag og feil
 
@@ -226,8 +200,8 @@ beslutninger. Forkastet fordi appen ikke er i prod og ikke har egen tilgangslogi
 - [ ] Test i dev med testbrukere: én med kode 6 og én skjermet.
 - [ ] Prod-manifest: outbound-regel til `populasjonstilgangskontroll` i namespace
       `tilgangsmaskin`.
-- [x] Sjekk tilgangskontrollen på `/api/task/**`. Endepunktene er fjernet sammen
-      med familie-prosessering.
+- [ ] Sjekk tilgangskontrollen på `/api/prosessering/**`. Endepunktene har
+      gruppekrav, men ingen personsjekk.
 - [ ] Sjekk barn når barn blir en del av saken.
 - [ ] Vurder regelsettet på nytt når Nav stiller krav om å sjekke avdøde brukere.
 - [ ] Auditlogg: database for økonominære handlinger og ArcSight via `AuditLogger`.
