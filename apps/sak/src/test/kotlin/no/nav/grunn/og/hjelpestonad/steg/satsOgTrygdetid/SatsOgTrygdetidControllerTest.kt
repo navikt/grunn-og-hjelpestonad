@@ -5,6 +5,7 @@ import io.mockk.every
 import io.mockk.verify
 import io.mockk.verifyOrder
 import no.nav.grunn.og.hjelpestonad.ApplicationLocalSetup
+import no.nav.grunn.og.hjelpestonad.oppdrag.OppdragSimuleringService
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.ManglerTilgangTilPersonFeil
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseUtleder
@@ -33,6 +34,9 @@ class SatsOgTrygdetidControllerTest {
     private lateinit var satsOgTrygdetidService: SatsOgTrygdetidService
 
     @MockkBean(relaxed = true)
+    private lateinit var oppdragSimuleringService: OppdragSimuleringService
+
+    @MockkBean(relaxed = true)
     private lateinit var tilgangService: TilgangService
 
     private val behandlingId = UUID.randomUUID()
@@ -45,6 +49,25 @@ class SatsOgTrygdetidControllerTest {
             tilgangService.validerTilgangTilBehandling(behandlingId)
             satsOgTrygdetidService.fullførSteg(behandlingId)
         }
+    }
+
+    @Test
+    fun `simulerer etter at tilkjent ytelse er lagret`() {
+        mockMvc.post(url).andExpect { status { isNoContent() } }
+        verifyOrder {
+            satsOgTrygdetidService.fullførSteg(behandlingId)
+            oppdragSimuleringService.simulerEtterNyTilkjentYtelse(behandlingId)
+        }
+    }
+
+    @Test
+    fun `feil i fullførSteg gir ingen simulering`() {
+        every { satsOgTrygdetidService.fullførSteg(behandlingId) } throws
+            UtledningAvTilkjentYtelseFeil(
+                listOf(Utledningsfeil(Valideringsnøkkel.Trygdetid, TilkjentYtelseUtleder.TRYGDETID_MANGLER)),
+            )
+        mockMvc.post(url).andExpect { status { isBadRequest() } }
+        verify(exactly = 0) { oppdragSimuleringService.simulerEtterNyTilkjentYtelse(any()) }
     }
 
     @Test

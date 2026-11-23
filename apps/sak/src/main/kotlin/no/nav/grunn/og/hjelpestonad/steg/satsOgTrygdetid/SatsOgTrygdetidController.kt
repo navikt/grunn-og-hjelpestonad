@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.steg.satsOgTrygdetid
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import no.nav.grunn.og.hjelpestonad.oppdrag.OppdragSimuleringService
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.UtledningAvTilkjentYtelseFeil
@@ -33,6 +34,7 @@ data class SatsOgTrygdetidFeilResponse(
 @RequestMapping("/api/behandling/{behandlingId}/sats-og-trygdetid")
 class SatsOgTrygdetidController(
     private val satsOgTrygdetidService: SatsOgTrygdetidService,
+    private val oppdragSimuleringService: OppdragSimuleringService,
     private val tilgangService: TilgangService,
 ) {
     @PostMapping("/fullfor")
@@ -42,6 +44,9 @@ class SatsOgTrygdetidController(
     ): ResponseEntity<Void> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
         satsOgTrygdetidService.fullførSteg(behandlingId)
+        // Kjøres her og ikke i servicen: transaksjonen er committet når fullførSteg returnerer, så kallet mot Oppdrag
+        // holder ikke databasetilkobling.
+        oppdragSimuleringService.simulerEtterNyTilkjentYtelse(behandlingId)
         return ResponseEntity.noContent().build()
     }
 
