@@ -109,6 +109,13 @@ class ProsesseringRepository(
             versjon,
         ) == 1
 
+    /**
+     * Lagrer hendelsen i kallerens Spring-transaksjon, slik at hendelsen og taskens
+     * statusendring committes eller rulles tilbake sammen.
+     *
+     * Bruker JdbcTemplate i stedet for TaskLoggRepository.leggTil fra efterlatte-prosessering,
+     * fordi bibliotekets implementasjon lagrer hendelsen i en egen transaksjon.
+     */
     fun leggTilHendelse(
         taskId: Long,
         type: TaskLoggType,
@@ -116,7 +123,6 @@ class ProsesseringRepository(
         endretAv: String,
         node: String,
     ) {
-        // Bibliotekets leggTil åpner egen transaksjon; her må logg og status dele Spring-transaksjonen.
         jdbcTemplate.update(
             """
             INSERT INTO prosessering_task_hendelse (task_id, type, melding, endret_av, node)

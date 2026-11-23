@@ -17,10 +17,10 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @Profile("dev & !prod & !local-mock")
 class ProsesseringExceptionHandler {
     @ExceptionHandler(ProsesseringApiException::class)
-    fun haandterProsesseringsfeil(prosesseringApiException: ProsesseringApiException): ResponseEntity<ProblemDetail> = problem(prosesseringApiException.status, prosesseringApiException.detail)
+    fun håndterProsesseringsfeil(prosesseringApiException: ProsesseringApiException): ResponseEntity<ProblemDetail> = problem(prosesseringApiException.status, prosesseringApiException.detail)
 
     @ExceptionHandler(HttpMessageNotReadableException::class, MethodArgumentTypeMismatchException::class)
-    fun haandterUgyldigForespoersel(): ResponseEntity<ProblemDetail> = problem(HttpStatus.BAD_REQUEST, "Ugyldig forespørsel. Kontroller filter, paginering og påkrevde felt.")
+    fun håndterUgyldigForespoersel(): ResponseEntity<ProblemDetail> = problem(HttpStatus.BAD_REQUEST, "Ugyldig forespørsel. Kontroller filter, paginering og påkrevde felt.")
 
     private fun problem(
         status: HttpStatus,
