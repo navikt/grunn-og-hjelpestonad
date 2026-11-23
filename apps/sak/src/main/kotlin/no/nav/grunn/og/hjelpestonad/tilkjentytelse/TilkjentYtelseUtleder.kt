@@ -53,7 +53,7 @@ object TilkjentYtelseUtleder {
     const val EKSTRAUTGIFTER_IKKE_VURDERT = "Du må vurdere nødvendige ekstrautgifter."
     const val TRYGDETID_MANGLER = "Du må registrere trygdetid for hele perioden søker har rett til grunnstønad."
 
-    private val NEVNER = BigDecimal(TrygdetidRegler.MAKS_TELLER)
+    private val NEVNER = BigDecimal(TrygdetidRegler.FULL_TRYGDETID_I_ÅR)
 
     fun utled(
         medlemskap: List<VilkårMedlemskap>,
@@ -83,26 +83,26 @@ object TilkjentYtelseUtleder {
 
         val erVilkåreneOppfyltTidslinje = satsTidslinje.mapVerdi<Int, Boolean> { sats -> sats?.let { true } }
 
-        val satsOgTellerPerMåned =
+        val satsOgTrygdetidPerMåned =
             erVilkåreneOppfyltTidslinje
                 .forskyvTilHeleMåneder()
                 .kombinerMed(
                     satsTidslinje.forskyvTilHeleMåneder(),
-                    trygdetidTidslinje.mapVerdi { it?.teller }.forskyvTilHeleMåneder(),
-                ) { oppfylt, sats, teller ->
+                    trygdetidTidslinje.mapVerdi { it?.antallÅr }.forskyvTilHeleMåneder(),
+                ) { oppfylt, sats, trygdetidIÅr ->
                     if (oppfylt == true) {
-                        SatsOgTeller(
+                        SatsOgTrygdetid(
                             sats = checkNotNull(sats) { "Mangler sats i en måned der vilkårene er oppfylt." },
-                            teller = checkNotNull(teller) { "Mangler trygdetid i en måned der vilkårene er oppfylt." },
+                            trygdetidIÅr = checkNotNull(trygdetidIÅr) { "Mangler trygdetid i en måned der vilkårene er oppfylt." },
                         )
                     } else {
                         null
                     }
                 }
 
-        return satsOgTellerPerMåned
-            .kombinerMed(SATSBELØP_PER_MÅNED) { satsOgTeller, satsbeløpeneIPerioden ->
-                satsOgTeller?.let {
+        return satsOgTrygdetidPerMåned
+            .kombinerMed(SATSBELØP_PER_MÅNED) { satsOgTrygdetid, satsbeløpeneIPerioden ->
+                satsOgTrygdetid?.let {
                     utledBeløp(it, satsbeløpeneIPerioden)
                 }
             }.slåSammenLikePerioder()
@@ -153,17 +153,17 @@ object TilkjentYtelseUtleder {
     }
 
     /**
-     * Satsbeløp × teller / 40, eksakt. Bruker `divide` uten avrunding, fordi `/` i Kotlin beholder skalaen til
+     * Satsbeløp × trygdetid i år / 40, eksakt. Bruker `divide` uten avrunding, fordi `/` i Kotlin beholder skalaen til
      * satsbeløpet og runder.
      */
     private fun utledBeløp(
-        satsOgTeller: SatsOgTeller,
+        satsOgTrygdetid: SatsOgTrygdetid,
         satsbeløpeneIPerioden: List<Satsbeløp>?,
     ): BigDecimal? {
         val satsbeløp =
-            satsbeløpeneIPerioden?.singleOrNull { it.sats == satsOgTeller.sats }
-                ?: throw UgyldigInput("Finner ikke satsbeløp for sats ${satsOgTeller.sats}.")
-        return (satsbeløp.månedsbeløp.toBigDecimal() * satsOgTeller.teller.toBigDecimal()).divide(NEVNER).takeIf { it.signum() != 0 }
+            satsbeløpeneIPerioden?.singleOrNull { it.sats == satsOgTrygdetid.sats }
+                ?: throw UgyldigInput("Finner ikke satsbeløp for sats ${satsOgTrygdetid.sats}.")
+        return (satsbeløp.månedsbeløp.toBigDecimal() * satsOgTrygdetid.trygdetidIÅr.toBigDecimal()).divide(NEVNER).takeIf { it.signum() != 0 }
     }
 
     private val SATSBELØP_PER_MÅNED: Tidslinje<List<Satsbeløp>> =
@@ -182,9 +182,9 @@ object TilkjentYtelseUtleder {
             }.kombiner { it.toList() }
 }
 
-private data class SatsOgTeller(
+private data class SatsOgTrygdetid(
     val sats: Int,
-    val teller: Int,
+    val trygdetidIÅr: Int,
 )
 
 private fun <T> Tidslinje<T>.harVerdi(): Boolean = tilPerioderIkkeNull().isNotEmpty()

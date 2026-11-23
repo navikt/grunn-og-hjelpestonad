@@ -5,7 +5,7 @@ import {
   type PeriodeSkjemafeil,
 } from "~/komponenter/behandling/vilkår/felles/usePeriodeMedBegrunnelseSkjema";
 
-export const MAKS_TELLER = 40;
+export const FULL_TRYGDETID_I_ÅR = 40;
 
 export type TrygdetidKilde = TrygdetidResponse["kilde"];
 
@@ -18,10 +18,10 @@ export const kildeTekst: Record<TrygdetidKilde, string> = {
 };
 
 const KILDE_PÅKREVD = "Du må velge kilde for trygdetiden.";
-const TELLER_PÅKREVD = "Du må fylle ut teller.";
-const TELLER_UGYLDIG = `Teller må være et heltall fra 0 til ${MAKS_TELLER}.`;
+const ANTALL_ÅR_PÅKREVD = "Du må fylle ut trygdetiden.";
+const ANTALL_ÅR_UGYLDIG = `Trygdetiden må være et helt antall år fra 0 til ${FULL_TRYGDETID_I_ÅR}.`;
 
-type TrygdetidEkstraFelt = "kilde" | "teller";
+type TrygdetidEkstraFelt = "kilde" | "antallÅr";
 
 function erKildeValg(verdi: string): verdi is TrygdetidKilde | "" {
   return verdi === "" || Object.keys(kildeTekst).includes(verdi);
@@ -31,24 +31,24 @@ function feilKilde(kilde: TrygdetidKilde | ""): string | undefined {
   return kilde === "" ? KILDE_PÅKREVD : undefined;
 }
 
-function feilTeller(teller: string): string | undefined {
-  const renset = teller.trim();
-  if (renset === "") return TELLER_PÅKREVD;
-  if (!/^\d+$/.test(renset) || Number(renset) > MAKS_TELLER) return TELLER_UGYLDIG;
+function feilAntallÅr(antallÅr: string): string | undefined {
+  const renset = antallÅr.trim();
+  if (renset === "") return ANTALL_ÅR_PÅKREVD;
+  if (!/^\d+$/.test(renset) || Number(renset) > FULL_TRYGDETID_I_ÅR) return ANTALL_ÅR_UGYLDIG;
   return undefined;
 }
 
-function validerKildeOgTeller(
+function validerKildeOgAntallÅr(
   kilde: TrygdetidKilde | "",
-  teller: string
+  antallÅr: string
 ): PeriodeSkjemafeil<TrygdetidEkstraFelt> {
   const nyeFeil: PeriodeSkjemafeil<TrygdetidEkstraFelt> = {};
 
   const kildeFeil = feilKilde(kilde);
   if (kildeFeil) nyeFeil.kilde = kildeFeil;
 
-  const tellerFeil = feilTeller(teller);
-  if (tellerFeil) nyeFeil.teller = tellerFeil;
+  const antallÅrFeil = feilAntallÅr(antallÅr);
+  if (antallÅrFeil) nyeFeil.antallÅr = antallÅrFeil;
 
   return nyeFeil;
 }
@@ -56,21 +56,21 @@ function validerKildeOgTeller(
 export function useTrygdetidSkjema() {
   const [erMigrertPeriode, settErMigrertPeriode] = useState(false);
   const [kilde, settKilde] = useState<TrygdetidKilde | "">("");
-  const [teller, settTeller] = useState("");
+  const [antallÅr, settAntallÅr] = useState("");
 
   const periodeSkjema = usePeriodeMedBegrunnelseSkjema<TrygdetidEkstraFelt>({
-    ekstraValidering: () => validerKildeOgTeller(kilde, teller),
+    ekstraValidering: () => validerKildeOgAntallÅr(kilde, antallÅr),
     nullstillEkstra: () => {
       settKilde("");
       settErMigrertPeriode(false);
-      settTeller("");
+      settAntallÅr("");
     },
   });
 
   const åpneRedigeringAvPeriode = (periode: TrygdetidResponse) => {
     settKilde(periode.kilde);
     settErMigrertPeriode(periode.kilde === "MIGRERING");
-    settTeller(String(periode.teller));
+    settAntallÅr(String(periode.antallÅr));
     periodeSkjema.åpneRedigeringAvPeriode(periode);
   };
 
@@ -78,24 +78,24 @@ export function useTrygdetidSkjema() {
     if (!erKildeValg(verdi)) return;
 
     settKilde(verdi);
-    // Kilden «Ingen» gir alltid 40, så telleren settes og låses.
+    // Kilden «Ingen» gir ingen reduksjon, så trygdetiden settes til 40 år og låses.
     if (verdi === "INGEN") {
-      settTeller(String(MAKS_TELLER));
-      periodeSkjema.fjernFeil("teller");
+      settAntallÅr(String(FULL_TRYGDETID_I_ÅR));
+      periodeSkjema.fjernFeil("antallÅr");
     }
     periodeSkjema.validerValg("kilde", feilKilde(verdi));
   };
 
-  const endreTeller = (verdi: string) => {
-    settTeller(verdi);
-    periodeSkjema.validerValg("teller", feilTeller(verdi));
+  const endreAntallÅr = (verdi: string) => {
+    settAntallÅr(verdi);
+    periodeSkjema.validerValg("antallÅr", feilAntallÅr(verdi));
   };
 
   const verdier = (): TrygdetidRequest => {
     const periode = periodeSkjema.periodeVerdier();
     return {
       id: periode.id,
-      teller: kilde === "INGEN" ? MAKS_TELLER : Number(teller.trim()),
+      antallÅr: kilde === "INGEN" ? FULL_TRYGDETID_I_ÅR : Number(antallÅr.trim()),
       // forsøkLagre har validert at kilden er valgt før verdier() kalles.
       kilde: kilde as TrygdetidKilde,
       begrunnelse: periode.begrunnelse,
@@ -109,7 +109,7 @@ export function useTrygdetidSkjema() {
     redigererId: periodeSkjema.redigererId,
     kilde,
     erMigrertPeriode,
-    teller,
+    antallÅr,
     begrunnelse: periodeSkjema.begrunnelse,
     settBegrunnelse: periodeSkjema.settBegrunnelse,
     skjemafeil: periodeSkjema.skjemafeil,
@@ -125,7 +125,7 @@ export function useTrygdetidSkjema() {
     lukk: periodeSkjema.lukk,
     validerFelt: periodeSkjema.validerFelt,
     velgKilde,
-    endreTeller,
+    endreAntallÅr,
     forsøkLagre: periodeSkjema.forsøkLagre,
     verdier,
   };

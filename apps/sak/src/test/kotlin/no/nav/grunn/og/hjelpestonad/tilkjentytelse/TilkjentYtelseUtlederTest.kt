@@ -45,8 +45,8 @@ class TilkjentYtelseUtlederTest {
                     ),
                 trygdetid =
                     listOf(
-                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-09-09", teller = 40),
-                        trygdetid(fraOgMedDato = "2026-09-10", tilOgMedDato = null, teller = 30, kilde = TrygdetidKilde.ALDERSPENSJON),
+                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-09-09", antallÅr = 40),
+                        trygdetid(fraOgMedDato = "2026-09-10", tilOgMedDato = null, antallÅr = 30, kilde = TrygdetidKilde.ALDERSPENSJON),
                     ),
             )
 
@@ -134,7 +134,7 @@ class TilkjentYtelseUtlederTest {
                 medlemskap = listOf(medlemskap(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
                 diagnoser = listOf(diagnose(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
                 ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "2026-03-01", tilOgMedDato = null, sats = Sats.SATS_2, diagnosekoder = setOf(DIABETES_TYPE_1))),
-                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, teller = 40)),
+                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, antallÅr = 40)),
             )
 
         assertAndeler(faktiske = andeler, andel(fom = "2026-04", tom = null, beløp = "1146"))
@@ -147,7 +147,7 @@ class TilkjentYtelseUtlederTest {
                 utled(
                     medlemskap = listOf(medlemskap(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
                     diagnoser = listOf(diagnose(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
-                    trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, teller = 40)),
+                    trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, antallÅr = 40)),
                 )
             }.feil
 
@@ -167,7 +167,7 @@ class TilkjentYtelseUtlederTest {
                     medlemskap = listOf(medlemskap(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-30")),
                     diagnoser = listOf(diagnose(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-30")),
                     ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "2026-07-01", tilOgMedDato = null, sats = Sats.SATS_2)),
-                    trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, teller = 40)),
+                    trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, antallÅr = 40)),
                 )
             }.feil
 
@@ -184,8 +184,8 @@ class TilkjentYtelseUtlederTest {
                     ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "2026-03-01", tilOgMedDato = null, sats = Sats.SATS_2)),
                     trygdetid =
                         listOf(
-                            trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-05-31", teller = 40),
-                            trygdetid(fraOgMedDato = "2026-07-01", tilOgMedDato = "2026-08-31", teller = 40),
+                            trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-05-31", antallÅr = 40),
+                            trygdetid(fraOgMedDato = "2026-07-01", tilOgMedDato = "2026-08-31", antallÅr = 40),
                         ),
                 )
             }.feil
@@ -207,8 +207,8 @@ class TilkjentYtelseUtlederTest {
                     ),
                 trygdetid =
                     listOf(
-                        trygdetid(fraOgMedDato = "2026-01-01", tilOgMedDato = "2026-03-31", teller = 40),
-                        trygdetid(fraOgMedDato = "2026-07-01", tilOgMedDato = null, teller = 40),
+                        trygdetid(fraOgMedDato = "2026-01-01", tilOgMedDato = "2026-03-31", antallÅr = 40),
+                        trygdetid(fraOgMedDato = "2026-07-01", tilOgMedDato = null, antallÅr = 40),
                     ),
             )
 
@@ -232,8 +232,8 @@ class TilkjentYtelseUtlederTest {
                     ),
                 trygdetid =
                     listOf(
-                        trygdetid(fraOgMedDato = "2025-06-01", tilOgMedDato = "2025-12-31", teller = 10),
-                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-30", teller = 40),
+                        trygdetid(fraOgMedDato = "2025-06-01", tilOgMedDato = "2025-12-31", antallÅr = 10),
+                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-30", antallÅr = 40),
                     ),
             )
 
@@ -270,7 +270,7 @@ class TilkjentYtelseUtlederTest {
                         ekstrautgifter(fraOgMedDato = "2026-03-20", tilOgMedDato = "2026-05-10", sats = Sats.SATS_2),
                         ekstrautgifter(fraOgMedDato = "2026-06-10", tilOgMedDato = null, sats = Sats.SATS_2),
                     ),
-                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-01-01", tilOgMedDato = null, teller = 40)),
+                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-01-01", tilOgMedDato = null, antallÅr = 40)),
             )
 
         // Mars er siste måned for den første retten, og april er første måned for den andre. Juni er måneden den
@@ -293,7 +293,7 @@ class TilkjentYtelseUtlederTest {
                         ekstrautgifter(fraOgMedDato = "2026-01-01", tilOgMedDato = "2026-03-14", sats = Sats.SATS_2),
                         ekstrautgifter(fraOgMedDato = "2026-03-20", tilOgMedDato = null, sats = Sats.SATS_4),
                     ),
-                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-01-01", tilOgMedDato = null, teller = 40)),
+                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-01-01", tilOgMedDato = null, antallÅr = 40)),
             )
 
         // Mars er siste måned for den første retten. Den nye retten oppstår i mars og gjelder fra april.
@@ -317,8 +317,8 @@ class TilkjentYtelseUtlederTest {
                     ),
                 trygdetid =
                     listOf(
-                        trygdetid(fraOgMedDato = "2026-01-01", tilOgMedDato = "2026-03-16", teller = 30),
-                        trygdetid(fraOgMedDato = "2026-03-17", tilOgMedDato = null, teller = 40),
+                        trygdetid(fraOgMedDato = "2026-01-01", tilOgMedDato = "2026-03-16", antallÅr = 30),
+                        trygdetid(fraOgMedDato = "2026-03-17", tilOgMedDato = null, antallÅr = 40),
                     ),
             )
 
@@ -342,7 +342,7 @@ class TilkjentYtelseUtlederTest {
                         ekstrautgifter(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-14", sats = Sats.SATS_2),
                         ekstrautgifter(fraOgMedDato = "2026-06-15", tilOgMedDato = null, sats = Sats.SATS_4),
                     ),
-                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, teller = 40)),
+                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, antallÅr = 40)),
             )
 
         assertAndeler(
@@ -363,7 +363,7 @@ class TilkjentYtelseUtlederTest {
                         ekstrautgifter(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-14", sats = Sats.SATS_4),
                         ekstrautgifter(fraOgMedDato = "2026-06-15", tilOgMedDato = null, sats = Sats.SATS_2),
                     ),
-                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, teller = 40)),
+                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, antallÅr = 40)),
             )
 
         assertAndeler(
@@ -382,8 +382,8 @@ class TilkjentYtelseUtlederTest {
                 ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "2026-03-01", tilOgMedDato = null, sats = Sats.SATS_4)),
                 trygdetid =
                     listOf(
-                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-09-09", teller = 30),
-                        trygdetid(fraOgMedDato = "2026-09-10", tilOgMedDato = null, teller = 40),
+                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-09-09", antallÅr = 30),
+                        trygdetid(fraOgMedDato = "2026-09-10", tilOgMedDato = null, antallÅr = 40),
                     ),
             )
 
@@ -403,8 +403,8 @@ class TilkjentYtelseUtlederTest {
                 ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "2026-03-01", tilOgMedDato = null, sats = Sats.SATS_4)),
                 trygdetid =
                     listOf(
-                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-08-31", teller = 40),
-                        trygdetid(fraOgMedDato = "2026-09-01", tilOgMedDato = null, teller = 30),
+                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-08-31", antallÅr = 40),
+                        trygdetid(fraOgMedDato = "2026-09-01", tilOgMedDato = null, antallÅr = 30),
                     ),
             )
 
@@ -428,8 +428,8 @@ class TilkjentYtelseUtlederTest {
                     ),
                 trygdetid =
                     listOf(
-                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-14", teller = 40),
-                        trygdetid(fraOgMedDato = "2026-06-15", tilOgMedDato = null, teller = 30),
+                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-14", antallÅr = 40),
+                        trygdetid(fraOgMedDato = "2026-06-15", tilOgMedDato = null, antallÅr = 30),
                     ),
             )
 
@@ -449,7 +449,7 @@ class TilkjentYtelseUtlederTest {
                 medlemskap = listOf(medlemskap(fraOgMedDato = "2023-03-01", tilOgMedDato = null)),
                 diagnoser = listOf(diagnose(fraOgMedDato = "2023-03-01", tilOgMedDato = null)),
                 ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "2023-03-01", tilOgMedDato = null, sats = Sats.SATS_1)),
-                trygdetid = listOf(trygdetid(fraOgMedDato = "2023-03-01", tilOgMedDato = null, teller = 40)),
+                trygdetid = listOf(trygdetid(fraOgMedDato = "2023-03-01", tilOgMedDato = null, antallÅr = 40)),
             )
 
         assertAndeler(
@@ -461,13 +461,13 @@ class TilkjentYtelseUtlederTest {
     }
 
     @Test
-    fun `beløpet er satsbeløp ganger teller delt på 40, eksakt uten avrunding`() {
+    fun `beløpet er satsbeløp ganger trygdetid i år delt på 40, eksakt uten avrunding`() {
         val andeler =
             utled(
                 medlemskap = listOf(medlemskap(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
                 diagnoser = listOf(diagnose(fraOgMedDato = "2026-03-01", tilOgMedDato = null)),
                 ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "2026-03-01", tilOgMedDato = null, sats = Sats.SATS_5)),
-                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, teller = 1)),
+                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, antallÅr = 1)),
             )
 
         // 2 997 × 1 / 40 = 74,925
@@ -483,9 +483,9 @@ class TilkjentYtelseUtlederTest {
                 ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "2026-03-01", tilOgMedDato = null, sats = Sats.SATS_2)),
                 trygdetid =
                     listOf(
-                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-30", teller = 40),
-                        trygdetid(fraOgMedDato = "2026-07-01", tilOgMedDato = "2026-09-30", teller = 0),
-                        trygdetid(fraOgMedDato = "2026-10-01", tilOgMedDato = null, teller = 40),
+                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-30", antallÅr = 40),
+                        trygdetid(fraOgMedDato = "2026-07-01", tilOgMedDato = "2026-09-30", antallÅr = 0),
+                        trygdetid(fraOgMedDato = "2026-10-01", tilOgMedDato = null, antallÅr = 40),
                     ),
             )
 
@@ -510,8 +510,8 @@ class TilkjentYtelseUtlederTest {
                     ),
                 trygdetid =
                     listOf(
-                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-07-31", teller = 40),
-                        trygdetid(fraOgMedDato = "2026-08-01", tilOgMedDato = null, teller = 40, kilde = TrygdetidKilde.ALDERSPENSJON),
+                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-07-31", antallÅr = 40),
+                        trygdetid(fraOgMedDato = "2026-08-01", tilOgMedDato = null, antallÅr = 40, kilde = TrygdetidKilde.ALDERSPENSJON),
                     ),
             )
 
@@ -530,7 +530,7 @@ class TilkjentYtelseUtlederTest {
                         ekstrautgifter(fraOgMedDato = "2026-06-10", tilOgMedDato = "2026-06-19", sats = Sats.SATS_2),
                         ekstrautgifter(fraOgMedDato = "2026-06-20", tilOgMedDato = null, sats = Sats.SATS_3),
                     ),
-                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, teller = 40)),
+                trygdetid = listOf(trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = null, antallÅr = 40)),
             )
 
         // Reduksjonen til sats 2 venter til juli, og da er satsen alt økt til 3.
@@ -550,8 +550,8 @@ class TilkjentYtelseUtlederTest {
                 ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "2026-03-01", tilOgMedDato = null, sats = Sats.SATS_2)),
                 trygdetid =
                     listOf(
-                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-30", teller = 40),
-                        trygdetid(fraOgMedDato = "2026-07-01", tilOgMedDato = null, teller = 0, kilde = TrygdetidKilde.ALDERSPENSJON),
+                        trygdetid(fraOgMedDato = "2026-03-01", tilOgMedDato = "2026-06-30", antallÅr = 40),
+                        trygdetid(fraOgMedDato = "2026-07-01", tilOgMedDato = null, antallÅr = 0, kilde = TrygdetidKilde.ALDERSPENSJON),
                     ),
             )
 
@@ -566,7 +566,7 @@ class TilkjentYtelseUtlederTest {
                 medlemskap = listOf(medlemskap(fraOgMedDato = "1996-11-01", tilOgMedDato = null)),
                 diagnoser = listOf(diagnose(fraOgMedDato = "1996-11-01", tilOgMedDato = null)),
                 ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = "1996-11-01", tilOgMedDato = null, sats = Sats.SATS_2)),
-                trygdetid = listOf(trygdetid(fraOgMedDato = "1996-11-01", tilOgMedDato = null, teller = 40)),
+                trygdetid = listOf(trygdetid(fraOgMedDato = "1996-11-01", tilOgMedDato = null, antallÅr = 40)),
             )
         }
     }
@@ -578,7 +578,7 @@ class TilkjentYtelseUtlederTest {
         medlemskap = listOf(medlemskap(fraOgMedDato = fraOgMed, tilOgMedDato = tilOgMed)),
         diagnoser = listOf(diagnose(fraOgMedDato = fraOgMed, tilOgMedDato = tilOgMed)),
         ekstrautgifter = listOf(ekstrautgifter(fraOgMedDato = fraOgMed, tilOgMedDato = tilOgMed, sats = Sats.SATS_2)),
-        trygdetid = listOf(trygdetid(fraOgMedDato = fraOgMed, tilOgMedDato = tilOgMed, teller = 40)),
+        trygdetid = listOf(trygdetid(fraOgMedDato = fraOgMed, tilOgMedDato = tilOgMed, antallÅr = 40)),
     )
 
     private fun utled(
@@ -629,11 +629,11 @@ class TilkjentYtelseUtlederTest {
     private fun trygdetid(
         fraOgMedDato: String?,
         tilOgMedDato: String?,
-        teller: Int,
-        kilde: TrygdetidKilde = if (teller == 40) TrygdetidKilde.INGEN else TrygdetidKilde.UFØRETRYGD,
+        antallÅr: Int,
+        kilde: TrygdetidKilde = if (antallÅr == 40) TrygdetidKilde.INGEN else TrygdetidKilde.UFØRETRYGD,
     ) = Trygdetid(
         behandlingId = behandlingId,
-        teller = teller,
+        antallÅr = antallÅr,
         kilde = kilde,
         fraOgMedDato = dato(fraOgMedDato),
         tilOgMedDato = dato(tilOgMedDato),

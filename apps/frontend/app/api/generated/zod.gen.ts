@@ -480,7 +480,7 @@ export const zVilkårDiagnoseResponse = z.object({
 
 export const zTrygdetidRequest = z.object({
     id: z.uuid().nullish(),
-    teller: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    antallÅr: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
     kilde: z.enum([
         'ALDERSPENSJON',
         'UFØRETRYGD',
@@ -495,7 +495,7 @@ export const zTrygdetidRequest = z.object({
 export const zTrygdetidResponse = z.object({
     id: z.uuid(),
     behandlingId: z.uuid(),
-    teller: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    antallÅr: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
     kilde: z.enum([
         'ALDERSPENSJON',
         'UFØRETRYGD',
