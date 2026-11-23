@@ -127,31 +127,45 @@ export type AnsvarligSaksbehandlerResponse = {
     rolle: 'INNLOGGET_SAKSBEHANDLER' | 'ANNEN_SAKSBEHANDLER' | 'IKKE_SATT';
 };
 
-export type DetaljertSimuleringResultat = {
-    simuleringMottaker: Array<SimuleringMottaker>;
+export type NesteUtbetaling = {
+    fom: string;
+    tom: string;
+    forfallsdato: string;
+    beløp: number;
 };
 
-export type OppdragSimuleringResponse = {
-    resultat: DetaljertSimuleringResultat;
+export type SimuleringResponse = {
+    status: 'IKKE_SIMULERT' | 'SIMULERT' | 'INGEN_ENDRING' | 'FEILET';
+    simulertTidspunkt?: string | null;
+    oppsummering?: Simuleringsoppsummering | null;
 };
 
-export type SimuleringMottaker = {
-    simulertPostering: Array<SimulertPostering>;
-    mottakerNummer?: string | null;
-    mottakerType?: string | null;
+export type Simuleringsbeløp = {
+    nyttBeløp: number;
+    tidligereUtbetalt: number;
+    resultat: number;
+    feilutbetaling: number;
+    etterbetaling: number;
+    manuellPostering: number;
 };
 
-export type SimulertPostering = {
-    fagOmrådeKode?: string | null;
-    erFeilkonto?: boolean | null;
+export type Simuleringsoppsummering = {
     fom?: string | null;
-    tom?: string | null;
-    betalingType?: string | null;
-    beløp?: number | null;
-    posteringType?: string | null;
-    forfallsdato?: string | null;
-    utenInntrekk?: boolean | null;
-    klassekode?: string | null;
+    tomSisteUtbetaling?: string | null;
+    feilutbetaling: number;
+    etterbetaling: number;
+    nesteUtbetaling?: NesteUtbetaling | null;
+    ukjenteFagområdekoder: Array<'BARNETRYGD' | 'BARNETRYGD_MANUELT' | 'BARNETRYGD_INFOTRYGD' | 'BARNETRYGD_INFOTRYGD_MANUELT' | 'ENSLIG_FORSØRGER_OVERGANGSSTØNAD' | 'ENSLIG_FORSØRGER_OVERGANGSSTØNAD_INFOTRYGD' | 'ENSLIG_FORSØRGER_OVERGANGSSTØNAD_MANUELL_POSTERING' | 'ENSLIG_FORSØRGER_OVERGANGSSTØNAD_MANUELL_POSTERING_INFOTRYGD' | 'ENSLIG_FORSØRGER_SKOLEPENGER' | 'ENSLIG_FORSØRGER_SKOLEPENGER_INFOTRYGD' | 'ENSLIG_FORSØRGER_BARNETILSYN' | 'ENSLIG_FORSØRGER_BARNETILSYN_MANUELL_POSTERING' | 'ENSLIG_FORSØRGER_BARNETILSYN_INFOTRYGD' | 'TILBAKEKREVING_EF_MANUELL_POSTERING' | 'KONTANTSTØTTE' | 'KONTANTSTØTTE_MANUELT' | 'KONTANTSTØTTE_INFOTRYGD' | 'KONTANTSTØTTE_INFOTRYGD_MANUELT' | 'GRUNNSTØNAD_INFOTRYGD' | 'GRUNNSTØNAD_INFOTRYGD_MANUELT' | 'HJELPESTØNAD_INFOTRYGD' | 'HJELPESTØNAD_INFOTRYGD_MANUELT' | 'GRUNN_OG_HJELPESTØNAD_TILBAKEKREVING_MANUELT'>;
+    perioder: Array<Simuleringsperiode>;
+};
+
+export type Simuleringsperiode = {
+    fom: string;
+    tom: string;
+    antallMåneder: number;
+    erNesteUtbetaling: boolean;
+    beløpPerMåned: Simuleringsbeløp;
+    sumForPerioden: Simuleringsbeløp;
 };
 
 export type OppdragIverksettingResponse = {
@@ -631,6 +645,21 @@ export type HentAnsvarligSaksbehandlerResponses = {
 
 export type HentAnsvarligSaksbehandlerResponse = HentAnsvarligSaksbehandlerResponses[keyof HentAnsvarligSaksbehandlerResponses];
 
+export type HentSimuleringData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/oppdrag/simulering/{behandlingId}';
+};
+
+export type HentSimuleringResponses = {
+    200: SimuleringResponse;
+};
+
+export type HentSimuleringResponse = HentSimuleringResponses[keyof HentSimuleringResponses];
+
 export type SimulerMotOppdragData = {
     body?: never;
     path: {
@@ -641,7 +670,7 @@ export type SimulerMotOppdragData = {
 };
 
 export type SimulerMotOppdragResponses = {
-    200: OppdragSimuleringResponse;
+    200: SimuleringResponse;
 };
 
 export type SimulerMotOppdragResponse = SimulerMotOppdragResponses[keyof SimulerMotOppdragResponses];
