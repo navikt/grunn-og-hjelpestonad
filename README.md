@@ -104,6 +104,16 @@ er tydelig hvilken app som berøres.
 Alle kjører ukentlig mandag kl. 06:00 (Europe/Oslo) med fem dagers cooldown.
 npm-oppdateringer henter `@navikt`-pakker via `READER_TOKEN`.
 
+## Tilgang for saksbehandler i dev
+
+Det kreves at saksbehandler du bruker har tilgang til enhet saksbehandleren er tilknyttet. For utviklere blir dette:
+
+```text
+2970
+```
+
+Administrering av saksbehandlere i dev gjøres i [IDA](https://ida.intern.nav.no). Logg inn med din NAV-ident.
+
 ## Feillogging i Kotlin-tjenestene
 
 Sak og infotrygd skiller mellom vanlig logg (stdout, videresendt til Loki/Elastic)
