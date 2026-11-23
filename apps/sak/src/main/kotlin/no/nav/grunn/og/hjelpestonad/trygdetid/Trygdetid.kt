@@ -42,15 +42,15 @@ data class Trygdetid(
 }
 
 object TrygdetidRegler {
-    /** Full trygdetid. Trygdetidsbrøken er antall år / [FULL_TRYGDETID_I_ÅR]. */
-    const val FULL_TRYGDETID_I_ÅR = 40
+    /** Full trygdetid i år. Trygdetidsbrøken er [Trygdetid.antallÅr] / [FULL_TRYGDETID]. */
+    const val FULL_TRYGDETID = 40
 
     fun valider(request: TrygdetidRequest) {
-        if (request.antallÅr !in 0..FULL_TRYGDETID_I_ÅR) {
-            throw UgyldigInput("Trygdetiden må være mellom 0 og $FULL_TRYGDETID_I_ÅR år")
+        if (request.antallÅr !in 0..FULL_TRYGDETID) {
+            throw UgyldigInput("Trygdetiden må være mellom 0 og $FULL_TRYGDETID år")
         }
-        if (request.kilde == TrygdetidKilde.INGEN && request.antallÅr != FULL_TRYGDETID_I_ÅR) {
-            throw UgyldigInput("Trygdetid uten kilde må være $FULL_TRYGDETID_I_ÅR år")
+        if (request.kilde == TrygdetidKilde.INGEN && request.antallÅr != FULL_TRYGDETID) {
+            throw UgyldigInput("Trygdetid uten kilde må være $FULL_TRYGDETID år")
         }
     }
 }

@@ -87,11 +87,11 @@ object TilkjentYtelseUtleder {
                 .kombinerMed(
                     satsTidslinje.forskyvTilHeleMåneder(),
                     trygdetidTidslinje.mapVerdi { it?.antallÅr }.forskyvTilHeleMåneder(),
-                ) { oppfylt, sats, trygdetidIÅr ->
+                ) { oppfylt, sats, antallÅr ->
                     if (oppfylt == true) {
                         SatsOgTrygdetid(
                             sats = checkNotNull(sats) { "Mangler sats i en måned der vilkårene er oppfylt." },
-                            trygdetidIÅr = checkNotNull(trygdetidIÅr) { "Mangler trygdetid i en måned der vilkårene er oppfylt." },
+                            trygdetid = checkNotNull(antallÅr) { "Mangler trygdetid i en måned der vilkårene er oppfylt." },
                         )
                     } else {
                         null
@@ -151,7 +151,7 @@ object TilkjentYtelseUtleder {
     }
 
     /**
-     * Satsbeløp × trygdetid i år / 40, eksakt. Bruker `divide` uten avrunding, fordi `/` i Kotlin beholder skalaen til
+     * Satsbeløp × trygdetid / full trygdetid, eksakt. Bruker `divide` uten avrunding, fordi `/` i Kotlin beholder skalaen til
      * satsbeløpet og runder.
      */
     private fun utledBeløp(
@@ -161,7 +161,7 @@ object TilkjentYtelseUtleder {
         val satsbeløp =
             satsbeløpeneIPerioden?.singleOrNull { it.sats == satsOgTrygdetid.sats }
                 ?: throw UgyldigInput("Finner ikke satsbeløp for sats ${satsOgTrygdetid.sats}.")
-        return (satsbeløp.månedsbeløp.toBigDecimal() * satsOgTrygdetid.trygdetidIÅr.toBigDecimal()).divide(TrygdetidRegler.FULL_TRYGDETID_I_ÅR.toBigDecimal()).takeIf { it.signum() != 0 }
+        return (satsbeløp.månedsbeløp.toBigDecimal() * satsOgTrygdetid.trygdetid.toBigDecimal()).divide(TrygdetidRegler.FULL_TRYGDETID.toBigDecimal()).takeIf { it.signum() != 0 }
     }
 
     private val SATSBELØP_PER_MÅNED: Tidslinje<List<Satsbeløp>> =
@@ -182,7 +182,7 @@ object TilkjentYtelseUtleder {
 
 private data class SatsOgTrygdetid(
     val sats: Int,
-    val trygdetidIÅr: Int,
+    val trygdetid: Int,
 )
 
 private fun <T> Tidslinje<T>.harVerdi(): Boolean = tilPerioderIkkeNull().isNotEmpty()

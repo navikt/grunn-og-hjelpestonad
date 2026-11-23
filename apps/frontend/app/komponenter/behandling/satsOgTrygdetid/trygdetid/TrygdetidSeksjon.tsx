@@ -12,7 +12,7 @@ import {
 import { usePerioder } from "~/komponenter/behandling/vilkår/felles/usePerioder";
 import { usePeriodeEndringer } from "~/komponenter/behandling/vilkår/felles/usePeriodeEndringer";
 import { hentTrygdetidPerioderFraBackend, useTrygdetidApi } from "./useTrygdetidApi";
-import { FULL_TRYGDETID_I_ÅR, kildeTekst, useTrygdetidSkjema } from "./useTrygdetidSkjema";
+import { FULL_TRYGDETID, kildeTekst, useTrygdetidSkjema } from "./useTrygdetidSkjema";
 import { TrygdetidSkjema } from "./TrygdetidSkjema";
 
 export const TrygdetidSeksjon: React.FC<{
@@ -88,8 +88,8 @@ export const TrygdetidSeksjon: React.FC<{
             // Kilden «Ingen» betyr at stønaden ikke reduseres, ikke at søker har 40 års trygdetid.
             verdi:
               periode.kilde === "INGEN"
-                ? `Ingen reduksjon (${FULL_TRYGDETID_I_ÅR}/${FULL_TRYGDETID_I_ÅR})`
-                : `${periode.antallÅr}/${FULL_TRYGDETID_I_ÅR}`,
+                ? `Ingen reduksjon (${FULL_TRYGDETID}/${FULL_TRYGDETID})`
+                : `${periode.antallÅr}/${FULL_TRYGDETID}`,
           },
           { etikett: "Kilde", verdi: kildeTekst[periode.kilde] },
           ...begrunnelseDetalj(periode.begrunnelse),

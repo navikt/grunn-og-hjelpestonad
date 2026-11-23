@@ -11,7 +11,7 @@ import {
   TextField,
   VStack,
 } from "@navikt/ds-react";
-import { FULL_TRYGDETID_I_ÅR, type TrygdetidSkjemaState } from "./useTrygdetidSkjema";
+import { FULL_TRYGDETID, type TrygdetidSkjemaState } from "./useTrygdetidSkjema";
 
 const ID_PREFIKS = "trygdetid";
 const FRA_OG_MED_ID = `${ID_PREFIKS}-fraOgMed`;
@@ -106,8 +106,8 @@ export const TrygdetidSkjema: React.FC<TrygdetidSkjemaProps> = ({ skjema, lagrer
           label="Trygdetid (år)"
           description={
             kildenErIngen
-              ? `Kilden «Ingen» gir ingen reduksjon, så trygdetiden er låst på ${FULL_TRYGDETID_I_ÅR} år.`
-              : `Helt antall år fra 0 til ${FULL_TRYGDETID_I_ÅR}, slik det står i alderspensjonen eller uføretrygden.`
+              ? `Kilden «Ingen» gir ingen reduksjon, så trygdetiden er låst på ${FULL_TRYGDETID} år.`
+              : `Helt antall år fra 0 til ${FULL_TRYGDETID}, slik det står i alderspensjonen eller uføretrygden.`
           }
           inputMode="numeric"
           readOnly={kildenErIngen}

@@ -5,7 +5,7 @@ import {
   type PeriodeSkjemafeil,
 } from "~/komponenter/behandling/vilkår/felles/usePeriodeMedBegrunnelseSkjema";
 
-export const FULL_TRYGDETID_I_ÅR = 40;
+export const FULL_TRYGDETID = 40;
 
 export type TrygdetidKilde = TrygdetidResponse["kilde"];
 
@@ -19,7 +19,7 @@ export const kildeTekst: Record<TrygdetidKilde, string> = {
 
 const KILDE_PÅKREVD = "Du må velge kilde for trygdetiden.";
 const ANTALL_ÅR_PÅKREVD = "Du må fylle ut trygdetiden.";
-const ANTALL_ÅR_UGYLDIG = `Trygdetiden må være et helt antall år fra 0 til ${FULL_TRYGDETID_I_ÅR}.`;
+const ANTALL_ÅR_UGYLDIG = `Trygdetiden må være et helt antall år fra 0 til ${FULL_TRYGDETID}.`;
 
 type TrygdetidEkstraFelt = "kilde" | "antallÅr";
 
@@ -34,7 +34,7 @@ function feilKilde(kilde: TrygdetidKilde | ""): string | undefined {
 function feilAntallÅr(antallÅr: string): string | undefined {
   const renset = antallÅr.trim();
   if (renset === "") return ANTALL_ÅR_PÅKREVD;
-  if (!/^\d+$/.test(renset) || Number(renset) > FULL_TRYGDETID_I_ÅR) return ANTALL_ÅR_UGYLDIG;
+  if (!/^\d+$/.test(renset) || Number(renset) > FULL_TRYGDETID) return ANTALL_ÅR_UGYLDIG;
   return undefined;
 }
 
@@ -80,7 +80,7 @@ export function useTrygdetidSkjema() {
     settKilde(verdi);
     // Kilden «Ingen» gir ingen reduksjon, så trygdetiden settes til 40 år og låses.
     if (verdi === "INGEN") {
-      settAntallÅr(String(FULL_TRYGDETID_I_ÅR));
+      settAntallÅr(String(FULL_TRYGDETID));
       periodeSkjema.fjernFeil("antallÅr");
     }
     periodeSkjema.validerValg("kilde", feilKilde(verdi));
@@ -95,7 +95,7 @@ export function useTrygdetidSkjema() {
     const periode = periodeSkjema.periodeVerdier();
     return {
       id: periode.id,
-      antallÅr: kilde === "INGEN" ? FULL_TRYGDETID_I_ÅR : Number(antallÅr.trim()),
+      antallÅr: kilde === "INGEN" ? FULL_TRYGDETID : Number(antallÅr.trim()),
       // forsøkLagre har validert at kilden er valgt før verdier() kalles.
       kilde: kilde as TrygdetidKilde,
       begrunnelse: periode.begrunnelse,
