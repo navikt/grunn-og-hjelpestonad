@@ -60,6 +60,7 @@ class OppdragSimuleringServiceTest {
             oppdragClient = oppdragClient,
             simuleringRepository = simuleringRepository,
             objectMapper = jacksonObjectMapper(),
+            meterRegistry = meterRegistry,
             clock = clock,
         )
 
