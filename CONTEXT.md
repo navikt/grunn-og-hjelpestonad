@@ -125,3 +125,23 @@ _Avoid_: Andel tilkjent ytelse, utbetalingsperiode
 **Infotrygd-beløp**:
 Månedsbeløpet for grunnstønad som Infotrygd har vedtatt for en måned. Er det samme som Oppdrag utbetaler, til ny løsning endrer det.
 _Avoid_: Utbetalt beløp, beløp fra Infotrygd
+
+**Simulering**:
+Svaret fra Oppdrag på hva et utbetalingsoppdrag vil gi, før det sendes. Lagres per behandling og oppsummeres per måned, se ADR-0018.
+_Avoid_: Beregning (det er tilkjent ytelse)
+
+**Feilutbetaling**:
+Beløp som allerede er utbetalt for en måned, men som bruker ikke har rett til etter denne behandlingen.
+_Avoid_: Tilbakekreving (det er saken som eventuelt kommer etterpå)
+
+**Etterbetaling**:
+Beløp bruker har rett til for måneder som har forfalt, men som ikke er utbetalt.
+_Avoid_: Neste utbetaling
+
+**Neste utbetaling**:
+Den første måneden i simuleringen som ikke er utbetalt ennå og ikke har feilutbetaling.
+_Avoid_: Etterbetaling
+
+**Manuell postering**:
+En postering økonomi har lagt inn for hånd i Oppdrag. Kjennes igjen på fagområdekoden. Vi har ikke kodene for grunnstønad ennå.
+_Avoid_: Korrigering

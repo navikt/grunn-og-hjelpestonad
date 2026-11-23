@@ -61,8 +61,10 @@ og at steget er nådd. Sjekken brukes for å fullføre inngangsvilkår eller sat
 trygdetid, lagre årsak, vedtak eller brevmottakere, mellomlagre brev og sende til
 beslutter. Når perioder endres, sjekker backend behandlingen som allerede er hentet.
 
-Simulering bare leser. Den krever `VEDTAK_OG_BREV` mens behandlingen er
-redigerbar, men ikke etter sending til beslutter.
+Simulering mot Oppdrag krever `VEDTAK_OG_BREV` og at behandlingen er redigerbar.
+Simuleringen lagres, men den er ikke et steg og flytter ikke steget. Den lagrede
+simuleringen kan leses også etter sending til beslutter. Se
+[ADR-0018](ADR-0018-simulering-lagres-og-oppsummeres.md).
 
 Godkjenning har ikke eget stegvern. Status `FATTER_VEDTAK` nås bare gjennom
 send til beslutter, som krever `VEDTAK_OG_BREV`.
