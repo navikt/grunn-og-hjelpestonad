@@ -140,7 +140,7 @@ class EndepunktRegisterTest {
                 "ÅrsakBehandlingController#lagreÅrsakBehandling",
             )
 
-        // Prosessering er et eksplisitt driftsunntak i dev (ADR-0009); øvrige peker ikke på en person.
+        // Prosessering har gruppekrav uten personsjekk (ADR-0009); øvrige peker ikke på en person.
         private val UTEN_PERSONSJEKK =
             setOf(
                 "ProsesseringController#hentStatusoversikt",
