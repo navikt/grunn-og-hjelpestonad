@@ -13,10 +13,18 @@ object SimuleringsperiodeSammenslåer {
         simuleringsmåneder: List<Simuleringsmåned>,
         fomNesteUtbetaling: LocalDate?,
     ): List<Simuleringsperiode> {
-        val månederFørNesteUtbetaling = simuleringsmåneder.filter { fomNesteUtbetaling == null || it.fom < fomNesteUtbetaling }
+        val månederTilOgMedNesteUtbetaling =
+            simuleringsmåneder.filter { fomNesteUtbetaling == null || it.fom <= fomNesteUtbetaling }
+        check(månederTilOgMedNesteUtbetaling.map { YearMonth.from(it.fom) }.distinct().size == månederTilOgMedNesteUtbetaling.size) {
+            "Flere simuleringsmåneder i samme kalendermåned"
+        }
+
+        val månederFørNesteUtbetaling =
+            månederTilOgMedNesteUtbetaling.filter { fomNesteUtbetaling == null || it.fom < fomNesteUtbetaling }
         val sammenslåttePerioder = månederFørNesteUtbetaling.tilSamenslåtteSimuleringsperioder()
 
-        val nesteSimuleringsmåned = simuleringsmåneder.singleOrNull { fomNesteUtbetaling != null && it.fom == fomNesteUtbetaling }
+        val nesteSimuleringsmåned =
+            månederTilOgMedNesteUtbetaling.singleOrNull { fomNesteUtbetaling != null && it.fom == fomNesteUtbetaling }
         val nestePeriode =
             nesteSimuleringsmåned?.let { nesteMåned ->
                 Simuleringsperiode(
