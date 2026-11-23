@@ -1,28 +1,11 @@
 package no.nav.grunn.og.hjelpestonad.prosessering
 
 import efterlatte.prosessering.Status
-import efterlatte.prosessering.Stoppaarsak
+import efterlatte.prosessering.Task
 import efterlatte.prosessering.TaskStateMachine
-import java.time.Instant
-
-data class ProsesseringTask(
-    val id: Long,
-    val type: String,
-    val status: Status,
-    val payload: String?,
-    val metadata: Map<String, String>,
-    val antallFeil: Int,
-    val stoppaarsak: Stoppaarsak?,
-    val sisteFeilmelding: String?,
-    val opprettetTid: Instant,
-    val triggerTid: Instant,
-    val plukketTid: Instant?,
-    val sistEndretTid: Instant,
-    val versjon: Long,
-)
 
 data class ProsesseringTaskSide(
-    val tasks: List<ProsesseringTask>,
+    val tasks: List<Task>,
     val side: Int,
     val antallPerSide: Int,
     val antallTotalt: Long,

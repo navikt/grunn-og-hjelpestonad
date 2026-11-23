@@ -2,24 +2,21 @@ package no.nav.grunn.og.hjelpestonad.prosessering
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Profile
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Component
 
 @Component
-@Profile("dev", "local-mock")
 class ProsesseringTilgang(
-    @param:Value("\${prosessering.rolle}") private val prosesseringRolle: String,
+    @param:Value("\${prosessering.rolle:}") private val prosesseringRolle: String,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    init {
-        require(prosesseringRolle.isNotBlank()) { "prosessering.rolle må være satt" }
-    }
-
     fun harRolleProsessering(authentication: Authentication): String {
+        if (prosesseringRolle.isBlank()) {
+            avvis("Prosesseringsgruppen er ikke konfigurert")
+        }
         if (authentication !is JwtAuthenticationToken || !authentication.isAuthenticated) {
             avvis("Mangler autentisert brukertoken")
         }

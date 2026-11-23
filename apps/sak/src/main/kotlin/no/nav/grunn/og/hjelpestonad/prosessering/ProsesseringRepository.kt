@@ -2,6 +2,7 @@ package no.nav.grunn.og.hjelpestonad.prosessering
 
 import efterlatte.prosessering.Status
 import efterlatte.prosessering.Stoppaarsak
+import efterlatte.prosessering.Task
 import efterlatte.prosessering.TaskLogg
 import efterlatte.prosessering.TaskLoggType
 import org.springframework.jdbc.core.JdbcTemplate
@@ -32,11 +33,11 @@ class ProsesseringRepository(
     fun hentTask(
         taskId: Long,
         laasForEndring: Boolean = false,
-    ): ProsesseringTask? =
+    ): Task? =
         jdbcTemplate
             .query(
                 "SELECT * FROM prosessering_task WHERE id = ?" + if (laasForEndring) " FOR UPDATE" else "",
-                { resultSet, _ -> tilProsesseringTask(resultSet) },
+                { resultSet, _ -> tilTask(resultSet) },
                 taskId,
             ).singleOrNull()
 
@@ -59,7 +60,7 @@ class ProsesseringRepository(
                 SELECT * FROM prosessering_task WHERE ${filter.sql}
                 ORDER BY sist_endret_tid DESC, id DESC LIMIT ? OFFSET ?
                 """.trimIndent(),
-                { resultSet, _ -> tilProsesseringTask(resultSet) },
+                { resultSet, _ -> tilTask(resultSet) },
                 *(filter.parametre + listOf(antallPerSide, (side.toLong() - 1) * antallPerSide)).toTypedArray(),
             )
         return ProsesseringTaskSide(
@@ -136,8 +137,8 @@ class ProsesseringRepository(
         )
     }
 
-    private fun tilProsesseringTask(resultSet: ResultSet): ProsesseringTask =
-        ProsesseringTask(
+    private fun tilTask(resultSet: ResultSet): Task =
+        Task(
             id = resultSet.getLong("id"),
             type = resultSet.getString("type"),
             status = Status.valueOf(resultSet.getString("status")),

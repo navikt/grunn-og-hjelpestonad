@@ -82,3 +82,5 @@ innlogging som Nav-ansatt med `NAVident` og gruppen
 API-et finnes også i `local-mock` på `http://localhost:8082/api/prosessering/task`
 med samme tilgangskrav. Mock-innloggingen gir brukertoken med prosesseringsgruppen.
 Start mock-oauth2-serveren på nytt etter endringer i `docker-compose.yml`.
+API-et er ikke profilavgrenset, men alle kall avvises hvis `prosessering.rolle`
+ikke er konfigurert. Gruppekonfigurasjon og verktøytilkobling er kun satt opp for dev og lokal mock.

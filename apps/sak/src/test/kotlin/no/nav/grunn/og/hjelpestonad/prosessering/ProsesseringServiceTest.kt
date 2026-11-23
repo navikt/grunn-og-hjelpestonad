@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.prosessering
 
 import efterlatte.prosessering.Status
+import efterlatte.prosessering.Task
 import efterlatte.prosessering.TaskLoggType
 import io.mockk.every
 import io.mockk.mockk
@@ -110,8 +111,8 @@ class ProsesseringServiceTest {
     }
 }
 
-internal fun prosesseringTask(status: Status = Status.STOPPET): ProsesseringTask =
-    ProsesseringTask(
+internal fun prosesseringTask(status: Status = Status.STOPPET): Task =
+    Task(
         id = 42,
         type = "TestTask",
         status = status,

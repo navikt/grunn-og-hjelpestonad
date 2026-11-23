@@ -104,6 +104,14 @@ class ProsesseringTilgangTest {
     }
 
     @Test
+    fun `manglende rollekonfigurasjon gir ikke tilgang`() {
+        for (prosesseringRolle in listOf("", " ")) {
+            assertThatThrownBy { ProsesseringTilgang(prosesseringRolle).harRolleProsessering(brukertoken()) }
+                .isInstanceOf(AccessDeniedException::class.java)
+        }
+    }
+
+    @Test
     fun `gruppen leses fra konfigurasjon`() {
         val annenProsesseringTilgang = ProsesseringTilgang("annen-gruppe")
         assertThat(annenProsesseringTilgang.harRolleProsessering(brukertoken(grupper = listOf("annen-gruppe"))))

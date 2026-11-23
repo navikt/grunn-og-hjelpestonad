@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.prosessering
 
 import efterlatte.prosessering.Status
+import efterlatte.prosessering.Task
 import efterlatte.prosessering.TaskLogg
 import efterlatte.prosessering.TaskLoggType
 import org.slf4j.LoggerFactory
@@ -40,10 +41,10 @@ class ProsesseringService(
     fun hentTask(
         taskId: Long,
         navIdent: String,
-    ): ProsesseringTask {
-        val prosesseringTask = krevTask(taskId)
+    ): Task {
+        val task = krevTask(taskId)
         secureLogger.info("Prosessering: utleverte task={} til NAVident={}", taskId, navIdent)
-        return prosesseringTask
+        return task
     }
 
     fun hentLogg(
@@ -63,18 +64,18 @@ class ProsesseringService(
         handling: ProsesseringHandling,
         navIdent: String,
         avviksmelding: String? = null,
-    ): ProsesseringTask {
+    ): Task {
         if (versjon < 0 || (handling == ProsesseringHandling.AVVIK && avviksmelding.isNullOrBlank())) {
             throw ProsesseringApiException(HttpStatus.BAD_REQUEST, "Versjon må være minst 0 og avvik må ha en melding")
         }
-        val prosesseringTask = krevTask(taskId, laasForEndring = true)
-        if (prosesseringTask.versjon != versjon) {
+        val task = krevTask(taskId, laasForEndring = true)
+        if (task.versjon != versjon) {
             throw ProsesseringApiException(HttpStatus.CONFLICT, "Noen andre har endret tasken. Hent den på nytt.")
         }
-        if (!handling.erTillattFra(prosesseringTask.status)) {
+        if (!handling.erTillattFra(task.status)) {
             throw ProsesseringApiException(
                 HttpStatus.CONFLICT,
-                "Handlingen $handling er ikke tillatt når tasken har status ${prosesseringTask.status}",
+                "Handlingen $handling er ikke tillatt når tasken har status ${task.status}",
             )
         }
         if (!prosesseringRepository.endreStatus(taskId, versjon, handling.nyStatus)) {
@@ -83,7 +84,7 @@ class ProsesseringService(
         prosesseringRepository.leggTilHendelse(
             taskId = taskId,
             type = TaskLoggType.STATUS_ENDRET,
-            melding = "${prosesseringTask.status} -> ${handling.nyStatus}",
+            melding = "${task.status} -> ${handling.nyStatus}",
             endretAv = navIdent,
             node = node,
         )
@@ -104,7 +105,7 @@ class ProsesseringService(
     private fun krevTask(
         taskId: Long,
         laasForEndring: Boolean = false,
-    ): ProsesseringTask =
+    ): Task =
         prosesseringRepository.hentTask(taskId, laasForEndring)
             ?: throw ProsesseringApiException(HttpStatus.NOT_FOUND, "Tasken finnes ikke")
 }

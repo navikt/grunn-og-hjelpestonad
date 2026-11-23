@@ -1,8 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.prosessering
 
 import efterlatte.prosessering.Status
+import efterlatte.prosessering.Task
 import efterlatte.prosessering.TaskLogg
-import org.springframework.context.annotation.Profile
 import org.springframework.http.CacheControl
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/prosessering/task")
-@Profile("dev", "local-mock")
 class ProsesseringController(
     private val prosesseringService: ProsesseringService,
     private val prosesseringTilgang: ProsesseringTilgang,
@@ -49,7 +48,7 @@ class ProsesseringController(
     fun hentTask(
         authentication: Authentication,
         @PathVariable id: Long,
-    ): ResponseEntity<ProsesseringTask> {
+    ): ResponseEntity<Task> {
         val navIdent = prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.hentTask(id, navIdent))
     }
@@ -68,7 +67,7 @@ class ProsesseringController(
         authentication: Authentication,
         @PathVariable id: Long,
         @RequestBody endring: ProsesseringEndring,
-    ): ResponseEntity<ProsesseringTask> {
+    ): ResponseEntity<Task> {
         val navIdent = prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.endreTask(id, endring.versjon, ProsesseringHandling.REKJOR, navIdent))
     }
@@ -78,7 +77,7 @@ class ProsesseringController(
         authentication: Authentication,
         @PathVariable id: Long,
         @RequestBody endring: ProsesseringEndring,
-    ): ResponseEntity<ProsesseringTask> {
+    ): ResponseEntity<Task> {
         val navIdent = prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.endreTask(id, endring.versjon, ProsesseringHandling.AVBRYT, navIdent))
     }
@@ -88,7 +87,7 @@ class ProsesseringController(
         authentication: Authentication,
         @PathVariable id: Long,
         @RequestBody avvik: ProsesseringAvvik,
-    ): ResponseEntity<ProsesseringTask> {
+    ): ResponseEntity<Task> {
         val navIdent = prosesseringTilgang.harRolleProsessering(authentication)
         return utenMellomlagring(prosesseringService.endreTask(id, avvik.versjon, ProsesseringHandling.AVVIK, navIdent, avvik.melding))
     }
