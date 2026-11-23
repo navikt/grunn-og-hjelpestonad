@@ -9,7 +9,7 @@
     "headers": {
       "Content-Type": "application/json"
     },
-    "body": "{\"data\":{\"simuleringMottaker\":[{\"mottakerNummer\":\"{{jsonPath request.body '$.aktoer'}}\",\"mottakerType\":\"BRUKER\",\"simulertPostering\":[{\"fagOmrådeKode\":\"{{jsonPath request.body '$.fagSystem'}}\",\"erFeilkonto\":false,\"fom\":\"{{jsonPath request.body '$.utbetalingsperiode[0].vedtakdatoFom'}}\",\"tom\":\"{{jsonPath request.body '$.utbetalingsperiode[0].vedtakdatoTom'}}\",\"betalingType\":\"DEBIT\",\"beløp\":{{jsonPath request.body '$.utbetalingsperiode[0].sats'}},\"posteringType\":\"YTELSE\",\"forfallsdato\":\"{{jsonPath request.body '$.utbetalingsperiode[0].vedtakdatoFom'}}\",\"utenInntrekk\":false,\"klassekode\":\"{{jsonPath request.body '$.utbetalingsperiode[0].klassifisering'}}\"}]}]},\"status\":\"SUKSESS\",\"melding\":\"Innhenting av data var vellykket\"}"
+    "bodyFileName": "familie-oppdrag-simulering.json"
   },
   "priority": 10
 }
