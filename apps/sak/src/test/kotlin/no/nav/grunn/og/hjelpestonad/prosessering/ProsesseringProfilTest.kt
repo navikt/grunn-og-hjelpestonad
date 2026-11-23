@@ -10,13 +10,15 @@ import org.springframework.core.type.filter.AssignableTypeFilter
 class ProsesseringProfilTest {
     @ParameterizedTest
     @ValueSource(strings = ["prod", "local-mock", "integrasjonstest", "dev,prod", "dev,local-mock", "dev"])
-    fun `controller sikkerhetskjede og tilgangskontroll finnes bare i dev`(profiler: String) {
+    fun `prosesseringskomponenter krever dev eller local-mock`(profiler: String) {
         val miljo = StandardEnvironment().apply { setActiveProfiles(*profiler.split(",").toTypedArray()) }
         val skanner = ClassPathScanningCandidateComponentProvider(false, miljo)
         skanner.addIncludeFilter(AssignableTypeFilter(ProsesseringController::class.java))
         skanner.addIncludeFilter(AssignableTypeFilter(ProsesseringSecurityConfig::class.java))
         skanner.addIncludeFilter(AssignableTypeFilter(ProsesseringTilgang::class.java))
+        skanner.addIncludeFilter(AssignableTypeFilter(ProsesseringExceptionHandler::class.java))
         val komponenter = skanner.findCandidateComponents("no.nav.grunn.og.hjelpestonad.prosessering")
-        assertThat(komponenter).hasSize(if (profiler == "dev") 3 else 0)
+        val harProsesseringsprofil = profiler.split(",").any { it in setOf("dev", "local-mock") }
+        assertThat(komponenter).hasSize(if (harProsesseringsprofil) 4 else 0)
     }
 }

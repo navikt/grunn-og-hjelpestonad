@@ -33,7 +33,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc
 @SpringJUnitWebConfig(ProsesseringSecurityTest.TestConfig::class)
 @ActiveProfiles("dev")
 @TestPropertySource(properties = ["prosessering.rolle=928636f4-fd0d-4149-978e-a6fb68bb19de"])
-class ProsesseringSecurityTest {
+open class ProsesseringSecurityTest {
     @TestConfiguration
     @EnableWebMvc
     @EnableWebSecurity
@@ -60,7 +60,7 @@ class ProsesseringSecurityTest {
     @Autowired
     private lateinit var prosesseringService: ProsesseringService
 
-    private lateinit var mockMvc: MockMvc
+    protected lateinit var mockMvc: MockMvc
 
     @BeforeEach
     fun settOpp() {
@@ -121,6 +121,24 @@ class ProsesseringSecurityTest {
                         },
                     ),
             ).andExpect(status().isOk)
+    }
+
+    @Test
+    fun `ansatt uten prosesseringsgruppen avvises`() {
+        mockMvc
+            .perform(
+                request(HttpMethod.GET, "/api/prosessering/task/status-oversikt")
+                    .with(
+                        jwt().jwt {
+                            it.subject("bruker-subjekt")
+                            it.claim("oid", "bruker-objekt")
+                            it.claim("scp", "access_as_user")
+                            it.claim("NAVident", "Z123456")
+                            it.claim("groups", listOf("annen-gruppe"))
+                        },
+                    ),
+            ).andExpect(status().isForbidden)
+        verify { prosesseringService wasNot Called }
     }
 
     @Test

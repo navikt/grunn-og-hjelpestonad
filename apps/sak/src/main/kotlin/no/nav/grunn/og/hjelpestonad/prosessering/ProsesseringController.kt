@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/prosessering/task")
-@Profile("dev & !prod & !local-mock")
+@Profile("dev", "local-mock")
 class ProsesseringController(
     private val prosesseringService: ProsesseringService,
     private val prosesseringTilgang: ProsesseringTilgang,

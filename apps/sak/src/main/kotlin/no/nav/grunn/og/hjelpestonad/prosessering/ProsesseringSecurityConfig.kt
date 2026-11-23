@@ -9,7 +9,7 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
-@Profile("dev & !prod & !local-mock")
+@Profile("dev", "local-mock")
 class ProsesseringSecurityConfig {
     @Bean
     @Order(1)

@@ -9,7 +9,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component
 
 @Component
-@Profile("dev & !prod & !local-mock")
+@Profile("dev", "local-mock")
 class ProsesseringTilgang(
     @param:Value("\${prosessering.rolle}") private val prosesseringRolle: String,
 ) {

@@ -14,7 +14,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 @RestControllerAdvice(assignableTypes = [ProsesseringController::class])
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@Profile("dev & !prod & !local-mock")
+@Profile("dev", "local-mock")
 class ProsesseringExceptionHandler {
     @ExceptionHandler(ProsesseringApiException::class)
     fun håndterProsesseringsfeil(prosesseringApiException: ProsesseringApiException): ResponseEntity<ProblemDetail> = problemDetail(prosesseringApiException.status, prosesseringApiException.detail)

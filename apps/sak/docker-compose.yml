@@ -40,9 +40,14 @@ services:
                           "requestParam": "code",
                           "match": "*",
                           "claims": {
+                            "sub": "mock-bruker-subjekt",
+                            "oid": "mock-bruker-objekt",
+                            "idtyp": "user",
+                            "scp": "access_as_user",
                             "NAVident": "A123456",
                             "groups": [
-                              "7ce9d1d2-d149-4324-832b-8d459762a102"
+                              "7ce9d1d2-d149-4324-832b-8d459762a102",
+                              "928636f4-fd0d-4149-978e-a6fb68bb19de"
                             ],
                             "name": "Mock Saksbehandler",
                             "preferred_username": "mock.saksbehandler@nav.no",
