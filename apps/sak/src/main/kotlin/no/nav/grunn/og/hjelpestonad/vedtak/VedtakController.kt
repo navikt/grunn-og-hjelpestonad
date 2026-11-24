@@ -1,5 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.vedtak
 
+import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
+import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -38,7 +40,7 @@ class VedtakController(
         @RequestBody vedtakRequest: VedtakRequest,
     ): ResponseEntity<Map<String, String>> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        vedtakService.validerKanLagreVedtak(vedtakRequest)
+        validerBarnetilsynRequest { BarnetilsynVedtakRegler.validerKanLagreVedtak(vedtakRequest) }
         vedtakService.lagreVedtak(vedtakRequest = vedtakRequest, behandlingId = behandlingId)
         return ResponseEntity.ok(mapOf("status" to "OK"))
     }
@@ -49,8 +51,8 @@ class VedtakController(
         @RequestBody barnetilsynBeregningRequest: BarnetilsynBeregningRequest,
     ): ResponseEntity<List<BeløpsperioderResponse>> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        vedtakService.validerKanBeregne(barnetilsynBeregningRequest)
-        return ResponseEntity.ok(vedtakService.lagBeløpsperioder(barnetilsynBeregningRequest))
+        validerBarnetilsynRequest { BarnetilsynVedtakRegler.validerKanBeregne(barnetilsynBeregningRequest) }
+        return ResponseEntity.ok(BeregningUtils.beregnBarnetilsynperiode(barnetilsynBeregningRequest.barnetilsynBeregning))
     }
 
     @GetMapping("{behandlingId}/historikk/{fra}")
@@ -60,5 +62,14 @@ class VedtakController(
     ): ResponseEntity<HistoriskVedtakResponse> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
         return ResponseEntity.ok(gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandlingId, fra))
+    }
+
+    private fun validerBarnetilsynRequest(valider: () -> Unit) {
+        try {
+            valider()
+        } catch (ugyldigInput: UgyldigInput) {
+            // De gamle barnetilsynsendepunktene returnerer 500 ved valideringsfeil.
+            throw Feil(ugyldigInput.melding)
+        }
     }
 }

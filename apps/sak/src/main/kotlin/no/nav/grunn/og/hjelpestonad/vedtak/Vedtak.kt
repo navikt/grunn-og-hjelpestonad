@@ -73,13 +73,9 @@ enum class ResultatType {
 
 fun utledVedtaksresultat(
     harOppfylteInngangsvilkår: Boolean,
-    harFullførtBeregning: Boolean,
     harBeregnedeAndeler: Boolean,
     erRevurdering: Boolean,
 ): ResultatType {
-    if (harOppfylteInngangsvilkår && !harFullførtBeregning) {
-        throw UgyldigInput("Fullfør sats og trygdetid før du sender behandlingen til beslutter.")
-    }
     if (!harOppfylteInngangsvilkår && harBeregnedeAndeler) {
         throw UgyldigInput("Beregningen stemmer ikke med inngangsvilkårene. Fullfør vilkårene på nytt.")
     }

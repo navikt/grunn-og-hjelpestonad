@@ -2,7 +2,6 @@ package no.nav.grunn.og.hjelpestonad.vedtak
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import io.mockk.justRun
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.ApplicationLocalSetup
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
@@ -37,6 +36,34 @@ class VedtakControllerTest {
     private lateinit var tilgangService: TilgangService
 
     @Test
+    fun `vedtak uten begrunnelse avvises før lagring med eksisterende feilformat`() {
+        mockMvc
+            .post("/api/vedtak/${UUID.randomUUID()}/lagre-vedtak") {
+                contentType = MediaType.APPLICATION_JSON
+                content = """{"resultatType":"AVSLÅTT","grunnstønadPerioder":[]}"""
+            }.andExpect {
+                status { isInternalServerError() }
+                jsonPath("$.melding") { value("Mangler begrunnelse") }
+                jsonPath("$.status") { value(500) }
+            }
+
+        verify(exactly = 0) { vedtakService.lagreVedtak(any(), any()) }
+    }
+
+    @Test
+    fun `beregning uten perioder avvises med eksisterende feilformat`() {
+        mockMvc
+            .post("/api/vedtak/${UUID.randomUUID()}/beregn") {
+                contentType = MediaType.APPLICATION_JSON
+                content = """{"barnetilsynBeregning":[]}"""
+            }.andExpect {
+                status { isInternalServerError() }
+                jsonPath("$.melding") { value("Ingen perioder") }
+                jsonPath("$.status") { value(500) }
+            }
+    }
+
+    @Test
     fun `Skal lagre vedtak fra json`() {
         val json = """{
   "resultatType": "INNVILGET",
@@ -58,8 +85,6 @@ class VedtakControllerTest {
   "opprettetTid": "2026-01-21T09:52:13.329Z",
   "opprettetAv": "mockSaksbehandler"
 }"""
-        justRun { vedtakService.validerKanLagreVedtak(any()) }
-
         every { vedtakService.lagreVedtak(any(), any()) } returns UUID.fromString("86460749-53d4-481b-8909-7286efc7eaad")
 
         val responseJson =
