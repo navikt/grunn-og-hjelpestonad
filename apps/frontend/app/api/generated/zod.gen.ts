@@ -167,31 +167,50 @@ export const zAnsvarligSaksbehandlerResponse = z.object({
     ])
 });
 
-export const zSimulertPostering = z.object({
-    fagOmrådeKode: z.string().nullish(),
-    erFeilkonto: z.boolean().nullish(),
+export const zNesteUtbetaling = z.object({
+    fom: z.iso.date(),
+    tom: z.iso.date(),
+    forfallsdato: z.iso.date(),
+    beløp: z.number()
+});
+
+export const zSimuleringsbeløp = z.object({
+    nyttBeløp: z.number(),
+    tidligereUtbetalt: z.number(),
+    resultat: z.number(),
+    feilutbetaling: z.number(),
+    etterbetaling: z.number(),
+    manuellPostering: z.number()
+});
+
+export const zSimuleringsperiode = z.object({
+    fom: z.iso.date(),
+    tom: z.iso.date(),
+    antallMåneder: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    erNesteUtbetaling: z.boolean(),
+    beløpPerMåned: zSimuleringsbeløp,
+    sumForPerioden: zSimuleringsbeløp
+});
+
+export const zSimuleringsoppsummering = z.object({
     fom: z.iso.date().nullish(),
-    tom: z.iso.date().nullish(),
-    betalingType: z.string().nullish(),
-    beløp: z.number().nullish(),
-    posteringType: z.string().nullish(),
-    forfallsdato: z.iso.date().nullish(),
-    utenInntrekk: z.boolean().nullish(),
-    klassekode: z.string().nullish()
+    tomSisteUtbetaling: z.iso.date().nullish(),
+    feilutbetaling: z.number(),
+    etterbetaling: z.number(),
+    nesteUtbetaling: zNesteUtbetaling.nullish(),
+    ukjenteFagområdekoder: z.array(z.string()),
+    perioder: z.array(zSimuleringsperiode)
 });
 
-export const zSimuleringMottaker = z.object({
-    simulertPostering: z.array(zSimulertPostering),
-    mottakerNummer: z.string().nullish(),
-    mottakerType: z.string().nullish()
-});
-
-export const zDetaljertSimuleringResultat = z.object({
-    simuleringMottaker: z.array(zSimuleringMottaker)
-});
-
-export const zOppdragSimuleringResponse = z.object({
-    resultat: zDetaljertSimuleringResultat
+export const zSimuleringResponse = z.object({
+    status: z.enum([
+        'IKKE_SIMULERT',
+        'SIMULERT',
+        'INGEN_ENDRING',
+        'FEILET'
+    ]),
+    simulertTidspunkt: z.iso.datetime({ local: true }).nullish(),
+    oppsummering: zSimuleringsoppsummering.nullish()
 });
 
 export const zOppdragIverksettingResponse = z.object({
@@ -746,6 +765,15 @@ export const zHentAnsvarligSaksbehandlerBody = zHentAnsvarligSaksbehandlerReques
  */
 export const zHentAnsvarligSaksbehandlerResponse = zAnsvarligSaksbehandlerResponse;
 
+export const zHentSimuleringPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zHentSimuleringResponse = zSimuleringResponse;
+
 export const zSimulerMotOppdragPath = z.object({
     behandlingId: z.uuid()
 });
@@ -753,7 +781,7 @@ export const zSimulerMotOppdragPath = z.object({
 /**
  * OK
  */
-export const zSimulerMotOppdragResponse = zOppdragSimuleringResponse;
+export const zSimulerMotOppdragResponse = zSimuleringResponse;
 
 export const zIverksettMotOppdragPath = z.object({
     behandlingId: z.uuid()
