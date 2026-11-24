@@ -42,7 +42,7 @@ class ProsesseringService(
         taskId: Long,
         navIdent: String,
     ): Task {
-        val task = krevTask(taskId)
+        val task = hentTaskEllerKast(taskId)
         secureLogger.info("Prosessering: utleverte task={} til NAVident={}", taskId, navIdent)
         return task
     }
@@ -51,7 +51,7 @@ class ProsesseringService(
         taskId: Long,
         navIdent: String,
     ): List<TaskLogg> {
-        krevTask(taskId)
+        hentTaskEllerKast(taskId)
         val taskLogg = prosesseringRepository.hentLogg(taskId)
         secureLogger.info("Prosessering: utleverte hendelseslogg for task={} til NAVident={}", taskId, navIdent)
         return taskLogg
@@ -68,7 +68,7 @@ class ProsesseringService(
         if (versjon < 0 || (handling == ProsesseringHandling.AVVIK && avviksmelding.isNullOrBlank())) {
             throw ProsesseringApiException(HttpStatus.BAD_REQUEST, "Versjon må være minst 0 og avvik må ha en melding")
         }
-        val task = krevTask(taskId, laasForEndring = true)
+        val task = hentTaskEllerKast(taskId, laasForEndring = true)
         if (task.versjon != versjon) {
             throw ProsesseringApiException(HttpStatus.CONFLICT, "Noen andre har endret tasken. Hent den på nytt.")
         }
@@ -97,12 +97,12 @@ class ProsesseringService(
                 node = node,
             )
         }
-        val oppdatertTask = krevTask(taskId)
+        val oppdatertTask = hentTaskEllerKast(taskId)
         secureLogger.info("Prosessering: handling={} utført for task={} av NAVident={}", handling, taskId, navIdent)
         return oppdatertTask
     }
 
-    private fun krevTask(
+    private fun hentTaskEllerKast(
         taskId: Long,
         laasForEndring: Boolean = false,
     ): Task =

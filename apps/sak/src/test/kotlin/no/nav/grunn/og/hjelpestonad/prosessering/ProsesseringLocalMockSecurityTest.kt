@@ -6,9 +6,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.YamlMapFactoryBean
-import org.springframework.beans.factory.config.YamlPropertiesFactoryBean
 import org.springframework.context.annotation.Import
-import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.FileSystemResource
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -33,12 +31,6 @@ class ProsesseringLocalMockSecurityTest : ProsesseringSecurityTest() {
 
     @Test
     fun `mock-token fra docker compose oppfyller lokal tilgangskonfigurasjon`() {
-        val lokaleEgenskaper =
-            YamlPropertiesFactoryBean()
-                .apply {
-                    setResources(ClassPathResource("application-local-mock.yml"))
-                }.`object`!!
-        val prosesseringRolle = lokaleEgenskaper.getProperty("prosessering.rolle")
         val composeKonfigurasjon =
             YamlMapFactoryBean()
                 .apply {
@@ -58,7 +50,6 @@ class ProsesseringLocalMockSecurityTest : ProsesseringSecurityTest() {
                 .claims { it.putAll(objectMapper.convertValue(claims, object : TypeReference<Map<String, Any>>() {})) }
                 .build()
         val authentication = JwtAuthenticationToken(mockBrukertoken, emptyList())
-        assertThat(ProsesseringTilgang(prosesseringRolle).harRolleProsessering(authentication)).isEqualTo("A123456")
         assertThat(localMockTilgang.harRolleProsessering(authentication)).isEqualTo("A123456")
         every { localMockJwtDecoder.decode("lokalt-brukertoken") } returns mockBrukertoken
         every { localMockProsesseringService.hentStatusoversikt() } returns emptyList()

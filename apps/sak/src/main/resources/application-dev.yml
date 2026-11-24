@@ -1,9 +1,6 @@
 nais:
     miljo: dev
 
-prosessering:
-    rolle: 928636f4-fd0d-4149-978e-a6fb68bb19de # Midlertidig 0000-GA-STDAPPS, bytt til egen prosesseringrolle når oprettet
-
 oppdrag:
     iverksetting:
         # Midlertidig: endepunkt for å teste iverksetting mot oppdrag. Skal ikke settes i prod.

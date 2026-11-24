@@ -158,17 +158,15 @@ class ProsesseringRepository(
         status: Status?,
         type: String?,
     ): TaskFilter {
-        val betingelser = mutableListOf("TRUE")
-        val parametre = mutableListOf<Any>()
-        if (status != null) {
-            betingelser.add("status = ?")
-            parametre.add(status.name)
-        }
-        if (type != null) {
-            betingelser.add("type = ?")
-            parametre.add(type)
-        }
-        return TaskFilter(betingelser.joinToString(" AND "), parametre)
+        val filterbetingelser =
+            listOfNotNull(
+                status?.let { "status = ?" to it.name },
+                type?.let { "type = ?" to it },
+            )
+        return TaskFilter(
+            sql = filterbetingelser.map { it.first }.ifEmpty { listOf("TRUE") }.joinToString(" AND "),
+            parametre = filterbetingelser.map { it.second },
+        )
     }
 
     private data class TaskFilter(

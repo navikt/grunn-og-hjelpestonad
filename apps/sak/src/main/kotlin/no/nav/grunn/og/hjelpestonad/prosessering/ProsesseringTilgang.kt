@@ -1,22 +1,17 @@
 package no.nav.grunn.og.hjelpestonad.prosessering
 
+import no.nav.grunn.og.hjelpestonad.security.Rolle
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Component
 
 @Component
-class ProsesseringTilgang(
-    @param:Value("\${prosessering.rolle:}") private val prosesseringRolle: String,
-) {
+class ProsesseringTilgang {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun harRolleProsessering(authentication: Authentication): String {
-        if (prosesseringRolle.isBlank()) {
-            avvis("Prosesseringsgruppen er ikke konfigurert")
-        }
         if (authentication !is JwtAuthenticationToken || !authentication.isAuthenticated) {
             avvis("Mangler autentisert brukertoken")
         }
@@ -38,8 +33,12 @@ class ProsesseringTilgang(
             avvis("Brukertoken mangler NAVident")
         }
         val grupper = claims["groups"] as? List<*>
-        if (grupper == null || grupper.any { it !is String } || prosesseringRolle !in grupper) {
-            avvis("Bruker mangler prosesseringsgruppen")
+        if (
+            grupper == null ||
+            grupper.any { it !is String } ||
+            Rolle.PROSESSERING !in Rolle.fraAzureGrupper(grupper.filterIsInstance<String>())
+        ) {
+            avvis("Bruker mangler prosesseringsrollen")
         }
         return navIdent
     }

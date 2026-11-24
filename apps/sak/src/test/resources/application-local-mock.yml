@@ -5,9 +5,6 @@
 server:
     port: 8082
 
-prosessering:
-    rolle: 928636f4-fd0d-4149-978e-a6fb68bb19de
-
 # Spring konfigurasjon
 spring:
     main:

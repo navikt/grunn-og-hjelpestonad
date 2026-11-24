@@ -19,7 +19,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
@@ -32,7 +31,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc
 
 @SpringJUnitWebConfig(ProsesseringSecurityTest.TestConfig::class)
 @ActiveProfiles("dev")
-@TestPropertySource(properties = ["prosessering.rolle=928636f4-fd0d-4149-978e-a6fb68bb19de"])
 open class ProsesseringSecurityTest {
     @TestConfiguration
     @EnableWebMvc

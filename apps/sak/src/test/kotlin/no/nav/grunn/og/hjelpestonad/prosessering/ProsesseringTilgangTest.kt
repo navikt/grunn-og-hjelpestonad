@@ -3,13 +3,14 @@ package no.nav.grunn.og.hjelpestonad.prosessering
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 
 class ProsesseringTilgangTest {
-    private val prosesseringTilgang = ProsesseringTilgang("928636f4-fd0d-4149-978e-a6fb68bb19de")
+    private val prosesseringTilgang = ProsesseringTilgang()
 
     @Test
     fun `ansatt med prosesseringsgruppen får tilgang`() {
@@ -104,19 +105,39 @@ class ProsesseringTilgangTest {
     }
 
     @Test
-    fun `manglende rollekonfigurasjon gir ikke tilgang`() {
-        for (prosesseringRolle in listOf("", " ")) {
-            assertThatThrownBy { ProsesseringTilgang(prosesseringRolle).harRolleProsessering(brukertoken()) }
-                .isInstanceOf(AccessDeniedException::class.java)
+    fun `prosesserings-API gir tilgang med riktig rolle uten konfigurasjon`() {
+        AnnotationConfigApplicationContext(ProsesseringTilgang::class.java).use { applicationContext ->
+            val prosesseringTilgangUtenKonfigurasjon = applicationContext.getBean(ProsesseringTilgang::class.java)
+            assertThat(prosesseringTilgangUtenKonfigurasjon.harRolleProsessering(brukertoken())).isEqualTo("Z123456")
         }
     }
 
     @Test
-    fun `gruppen leses fra konfigurasjon`() {
-        val annenProsesseringTilgang = ProsesseringTilgang("annen-gruppe")
-        assertThat(annenProsesseringTilgang.harRolleProsessering(brukertoken(grupper = listOf("annen-gruppe"))))
-            .isEqualTo("Z123456")
-        assertThatThrownBy { annenProsesseringTilgang.harRolleProsessering(brukertoken()) }
+    fun `andre applikasjonsroller gir ikke prosesseringstilgang`() {
+        val grupperUtenProsesseringsrolle =
+            listOf(
+                "7ce9d1d2-d149-4324-832b-8d459762a102",
+                "84c4a287-abd6-46c1-bf93-dbf90f1a326d",
+                "a181921e-2a55-4198-896b-0086cc805278",
+            )
+        assertThatThrownBy {
+            prosesseringTilgang.harRolleProsessering(brukertoken(grupper = grupperUtenProsesseringsrolle))
+        }.isInstanceOf(AccessDeniedException::class.java)
+    }
+
+    @Test
+    fun `gyldig prosesseringsgruppe sammen med ugyldig gruppetype avvises`() {
+        val ugyldigBrukertoken =
+            JwtAuthenticationToken(
+                Jwt
+                    .withTokenValue("test")
+                    .header("alg", "RS256")
+                    .claims { it.putAll(brukertoken().token.claims) }
+                    .claim("groups", listOf("928636f4-fd0d-4149-978e-a6fb68bb19de", 42))
+                    .build(),
+                emptyList(),
+            )
+        assertThatThrownBy { prosesseringTilgang.harRolleProsessering(ugyldigBrukertoken) }
             .isInstanceOf(AccessDeniedException::class.java)
     }
 
