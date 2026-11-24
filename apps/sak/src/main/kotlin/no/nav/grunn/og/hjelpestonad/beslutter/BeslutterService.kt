@@ -108,7 +108,7 @@ class BeslutterService(
 
         behandlingService.oppdaterBehandlingStatus(
             behandlingId = behandlingId,
-            status = BehandlingStatus.FERDIGSTILT,
+            status = if (vedtak.resultatType.endrerUtbetaling()) BehandlingStatus.IVERKSETTER_VEDTAK else BehandlingStatus.FERDIGSTILT,
         )
         endringshistorikkService.registrerEndring(
             behandlingId = behandlingId,
