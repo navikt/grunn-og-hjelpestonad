@@ -71,6 +71,25 @@ enum class ResultatType {
     OPPHØR,
 }
 
+fun utledVedtaksresultat(
+    harOppfylteInngangsvilkår: Boolean,
+    harBeregning: Boolean,
+    harBeregnedeAndeler: Boolean,
+    erRevurdering: Boolean,
+): ResultatType {
+    if (harOppfylteInngangsvilkår && !harBeregning) {
+        throw UgyldigInput("Fullfør sats og trygdetid før du sender behandlingen til beslutter.")
+    }
+    if (!harOppfylteInngangsvilkår && harBeregnedeAndeler) {
+        throw UgyldigInput("Beregningen stemmer ikke med inngangsvilkårene. Fullfør vilkårene på nytt.")
+    }
+    if (harBeregnedeAndeler) return ResultatType.INNVILGET
+    if (erRevurdering) {
+        throw UgyldigInput("Revurderingen har ingen andeler. Lagre et opphørsvedtak med opphørsdato før du sender til beslutter.")
+    }
+    return ResultatType.AVSLÅTT
+}
+
 /** Gjelder førstegangsbehandling. Revurdering og opphør krever sammenligning med forrige behandling. */
 fun validerVedtaksresultatMotBeregning(
     resultatType: ResultatType,

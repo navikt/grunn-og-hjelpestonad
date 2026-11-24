@@ -1,7 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.beslutter
 
 import efterlatte.prosessering.spring.TaskService
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingResultat
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
@@ -46,6 +45,8 @@ class BeslutterService(
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
         validerKanSendeTilBeslutter(behandlingId)
+        vedtakService.lagreVedtakFraBehandlingsgrunnlag(behandlingId)
+        vedtakService.validerVedtaksresultatMotBeregning(behandlingId)
 
         brevService.oppdaterSaksbehandlerForBrev(behandlingId)
         behandlingService.oppdaterBehandlingStatus(
@@ -93,13 +94,16 @@ class BeslutterService(
     }
 
     private fun godkjennVedtak(behandlingId: UUID) {
-        val vedtak = vedtakService.hentVedtak(behandlingId)
+        val vedtak =
+            vedtakService.hentVedtak(behandlingId)
+                ?: throw Feil("Behandlingen mangler vedtak. Underkjenn og send den tilbake til saksbehandler.", HttpStatus.BAD_REQUEST)
+        vedtakService.validerVedtaksresultatMotBeregning(behandlingId)
 
-        val resultat = (vedtak?.resultatType)?.tilBehandlingResultat() ?: BehandlingResultat.IKKE_SATT
+        val behandlingResultat = vedtak.resultatType.tilBehandlingResultat()
 
         behandlingService.oppdaterBehandlingResultat(
             behandlingId = behandlingId,
-            resultat = resultat,
+            resultat = behandlingResultat,
         )
 
         behandlingService.oppdaterBehandlingStatus(
@@ -116,11 +120,11 @@ class BeslutterService(
             FerdigstillOppgaveTaskData(behandlingId = behandlingId, oppgavetype = OppgavetypeGRU.BEH_VED),
         )
 
-        if (vedtak?.resultatType == ResultatType.INNVILGET) {
+        if (vedtak.resultatType == ResultatType.INNVILGET) {
             taskService.opprett(SendVedtakTilInfotrygdFeedTask.TYPE, behandlingId)
         }
 
-        if (vedtak?.resultatType?.endrerUtbetaling() == true) {
+        if (vedtak.resultatType.endrerUtbetaling()) {
             taskService.opprett(
                 IverksettOppdragTask.TYPE,
                 IverksettOppdragTask.IverksettOppdragTaskData(
@@ -192,6 +196,5 @@ class BeslutterService(
                     "Behandlingen kan ikke sendes til beslutter på nytt før eksisterende oppgave er ferdigstilt.",
             )
         }
-        // vedtakService.validerVedtaksresultatMotBeregning(behandlingId) TODO legge inn igjen når vi starter å lagre vedtak?
     }
 }
