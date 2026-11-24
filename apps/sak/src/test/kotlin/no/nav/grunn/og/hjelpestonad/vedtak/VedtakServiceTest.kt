@@ -16,6 +16,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.beslutter.BeslutterService
 import no.nav.grunn.og.hjelpestonad.beslutter.TotrinnskontrollService
 import no.nav.grunn.og.hjelpestonad.beslutter.dto.BeslutteVedtakRequest
+import no.nav.grunn.og.hjelpestonad.beslutter.ÅrsakUnderkjent
 import no.nav.grunn.og.hjelpestonad.brev.BrevService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
@@ -27,14 +28,26 @@ import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.oppgave.Oppgave
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeGRU
+import no.nav.grunn.og.hjelpestonad.steg.satsOgTrygdetid.SatsOgTrygdetidService
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.InngangsvilkårStegService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
+import no.nav.grunn.og.hjelpestonad.vilkår.Vurdering
+import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
+import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnoseService
+import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifter
+import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifterService
+import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.Regelverk
+import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
+import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
 import java.time.YearMonth
@@ -147,9 +160,67 @@ class VedtakServiceTest {
 
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
-    fun `sending og godkjenning lagrer vedtak og starter oppdrag bare ved innvilgelse`(harBeregnedeAndeler: Boolean) {
+    fun `ny sending etter underkjenning oppdaterer resultatet fra gjeldende grunnlag`(innvilgetEtterUnderkjenning: Boolean) {
         val behandlingId = UUID.randomUUID()
         var behandling = Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT)
+        var lagretVedtak: Vedtak? = null
+        var harBeregnedeAndeler = !innvilgetEtterUnderkjenning
+        val tilkjentYtelse =
+            TilkjentYtelse(
+                behandlingId = behandlingId,
+                startmåned = YearMonth.of(2026, 4),
+                andelerTilkjentYtelse =
+                    setOf(
+                        AndelTilkjentYtelse(
+                            beløp = 752.toBigDecimal(),
+                            fom = LocalDate.of(2026, 4, 1),
+                            tom = LocalDate.of(2029, 11, 30),
+                            kildeBehandlingId = behandlingId,
+                        ),
+                    ),
+            )
+        val oppgaveService = mockk<OppgaveService>(relaxed = true)
+        val taskService = mockk<TaskService>(relaxed = true)
+        val totrinnskontrollService = mockk<TotrinnskontrollService>(relaxed = true)
+        val beslutterService = BeslutterService(behandlingService, behandlingStegService, mockk<BrevService>(relaxed = true), endringshistorikkService, oppgaveService, totrinnskontrollService, taskService, ansvarligSaksbehandlerService, vedtakService)
+        every { behandlingService.hentBehandling(behandlingId) } answers { behandling }
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } answers { behandling }
+        every { behandlingService.oppdaterBehandlingStatus(behandlingId, any()) } answers { behandling = behandling.copy(status = secondArg()) }
+        every { behandlingService.oppdaterBehandlingResultat(behandlingId, any()) } answers { behandling = behandling.copy(resultat = secondArg()) }
+        every { vedtakRepository.findByBehandlingId(behandlingId) } answers { lagretVedtak }
+        every { vedtakRepository.insert(any<Vedtak>()) } answers { firstArg<Vedtak>().also { lagretVedtak = it } }
+        every { vedtakRepository.update(any<Vedtak>()) } answers { firstArg<Vedtak>().also { lagretVedtak = it } }
+        every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns Oppgave(behandlingId = behandlingId, gsakOppgaveId = 1L, type = OppgavetypeGRU.BEH_SAK.name)
+        every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
+        every { inngangsvilkårStegService.hentPerioder(behandlingId) } answers { if (harBeregnedeAndeler) listOf(mockk()) else emptyList() }
+        every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } answers { if (harBeregnedeAndeler) tilkjentYtelse else null }
+
+        beslutterService.sendTilBeslutter(behandlingId)
+        val opprinneligVedtak = requireNotNull(lagretVedtak)
+        assertThat(opprinneligVedtak.resultatType).isEqualTo(if (innvilgetEtterUnderkjenning) ResultatType.AVSLÅTT else ResultatType.INNVILGET)
+        beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = false, årsakUnderkjent = ÅrsakUnderkjent.VILKÅR, begrunnelse = "Vilkårene må vurderes på nytt"))
+        harBeregnedeAndeler = innvilgetEtterUnderkjenning
+
+        beslutterService.sendTilBeslutter(behandlingId)
+        beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
+
+        assertThat(lagretVedtak?.id).isEqualTo(opprinneligVedtak.id)
+        assertThat(lagretVedtak?.resultatType).isEqualTo(if (innvilgetEtterUnderkjenning) ResultatType.INNVILGET else ResultatType.AVSLÅTT)
+        assertThat(behandling.resultat).isEqualTo(if (innvilgetEtterUnderkjenning) BehandlingResultat.INNVILGET else BehandlingResultat.AVSLÅTT)
+        assertThat(behandling.status).isEqualTo(if (innvilgetEtterUnderkjenning) BehandlingStatus.IVERKSETTER_VEDTAK else BehandlingStatus.FERDIGSTILT)
+        verify(exactly = if (innvilgetEtterUnderkjenning) 1 else 0) {
+            taskService.opprett(IverksettOppdragTask.TYPE, IverksettOppdragTask.IverksettOppdragTaskData(behandlingId, "Z123456"), any(), any())
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource("true,true", "false,false", "false,true")
+    fun `sending og godkjenning lagrer vedtak og starter oppdrag bare ved innvilgelse`(
+        harBeregnedeAndeler: Boolean,
+        harOppfylteInngangsvilkår: Boolean,
+    ) {
+        val behandlingId = UUID.randomUUID()
+        var behandling = Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT, gjeldendeSteg = BehandlingSteg.VEDTAK_OG_BREV)
         var lagretVedtak: Vedtak? = null
         val oppgaveService = mockk<OppgaveService>(relaxed = true)
         val taskService = mockk<TaskService>(relaxed = true)
@@ -163,7 +234,7 @@ class VedtakServiceTest {
         every { vedtakRepository.insert(any<Vedtak>()) } answers { firstArg<Vedtak>().also { lagretVedtak = it } }
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns Oppgave(behandlingId = behandlingId, gsakOppgaveId = 1L, type = OppgavetypeGRU.BEH_SAK.name)
         every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
-        every { inngangsvilkårStegService.hentPerioder(behandlingId) } returns if (harBeregnedeAndeler) listOf(mockk()) else emptyList()
+        every { inngangsvilkårStegService.hentPerioder(behandlingId) } returns if (harOppfylteInngangsvilkår) listOf(mockk()) else emptyList()
         every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns
             if (harBeregnedeAndeler) {
                 TilkjentYtelse(
@@ -177,6 +248,35 @@ class VedtakServiceTest {
             } else {
                 null
             }
+
+        if (!harBeregnedeAndeler && harOppfylteInngangsvilkår) {
+            behandling = behandling.copy(gjeldendeSteg = BehandlingSteg.SATS_OG_TRYGDETID)
+            every { behandlingService.oppdater(any()) } answers { firstArg<Behandling>().also { behandling = it } }
+            val vilkårMedlemskapService = mockk<VilkårMedlemskapService>()
+            val vilkårDiagnoseService = mockk<VilkårDiagnoseService>()
+            val vilkårEkstrautgifterService = mockk<VilkårEkstrautgifterService>()
+            val fraOgMedDato = LocalDate.of(2026, 3, 1)
+            every { vilkårMedlemskapService.hentPerioder(behandlingId) } returns
+                listOf(
+                    VilkårMedlemskap(behandlingId = behandlingId, vurdering = Vurdering.JA, regelverk = Regelverk.NASJONALE_REGLER, fraOgMedDato = fraOgMedDato),
+                )
+            every { vilkårDiagnoseService.hentPerioder(behandlingId) } returns
+                listOf(
+                    VilkårDiagnose(behandlingId = behandlingId, vurdering = Vurdering.JA, kode = "E109", tekst = "Testdiagnose", erYrkesskade = false, fraOgMedDato = fraOgMedDato),
+                )
+            every { vilkårEkstrautgifterService.hentPerioder(behandlingId) } returns
+                listOf(
+                    VilkårEkstrautgifter(behandlingId = behandlingId, vurdering = Vurdering.NEI, sats = null, fraOgMedDato = fraOgMedDato),
+                )
+            val beregnTilkjentYtelseService = BeregnTilkjentYtelseService(behandlingService, tilkjentYtelseService, vilkårMedlemskapService, vilkårDiagnoseService, vilkårEkstrautgifterService, mockk(relaxed = true))
+            val satsOgTrygdetidService = SatsOgTrygdetidService(BehandlingStegService(behandlingService), beregnTilkjentYtelseService, ansvarligSaksbehandlerService, endringshistorikkService)
+
+            satsOgTrygdetidService.fullførSteg(behandlingId)
+
+            assertThat(behandling.gjeldendeSteg).isEqualTo(BehandlingSteg.VEDTAK_OG_BREV)
+            verify { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId) }
+            verify(exactly = 0) { tilkjentYtelseService.lagre(any()) }
+        }
 
         beslutterService.sendTilBeslutter(behandlingId)
         beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
