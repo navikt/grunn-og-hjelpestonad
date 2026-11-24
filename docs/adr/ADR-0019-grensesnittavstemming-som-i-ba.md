@@ -17,6 +17,17 @@ Neste vindu opprettes i samme databasetransaksjon som fullføringen av gjeldende
 Kjeden startes eksplisitt med `GrensesnittavstemmingService.opprettFørsteTask`.
 Operatørinngang avtales før aktivering, og en ny kjede skal ikke startes hvis en allerede er aktiv.
 
+## Midlertidige koder fra Oppdrag
+
+`IT28` er et midlertidig fagområde i dev, og `GHGSORMG` er en midlertidig klassekode.
+Vi venter på nye koder fra teamet som har ansvar for Oppdrag. Per 24. november 2026 er
+forventet levering om omtrent to måneder, rundt januar 2027. Tidspunktet er et estimat.
+
+Når kodene er avklart, må de oppdateres i `OppdragKoder.kt` og i `familie-oppdrag-backend`,
+inkludert komponentkodemappingen og `Fagsystem`-enumen for avstemmingsmetrikker.
+Avstemmingen må bruke samme fagområde som oppdragene i tidsvinduet. Overgangen må derfor
+også avklare hvordan eventuelle gjenstående IT28-vinduer skal avstemmes før kjeden bruker den nye koden.
+
 ## Aksepterte begrensninger
 
 Mottakeren sender avstemmingsmeldingene enkeltvis til MQ og registrerer forespørselens
