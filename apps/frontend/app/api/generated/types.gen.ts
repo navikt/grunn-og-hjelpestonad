@@ -1106,7 +1106,7 @@ export type LagreÅrsakBehandlingResponses = {
 
 export type LagreÅrsakBehandlingResponse = LagreÅrsakBehandlingResponses[keyof LagreÅrsakBehandlingResponses];
 
-export type HentHistoriskVedtakForBehanlingData = {
+export type HentHistoriskVedtakForBehandlingData = {
     body?: never;
     path: {
         behandlingId: string;
@@ -1116,11 +1116,11 @@ export type HentHistoriskVedtakForBehanlingData = {
     url: '/api/vedtak/{behandlingId}/historikk/{fra}';
 };
 
-export type HentHistoriskVedtakForBehanlingResponses = {
+export type HentHistoriskVedtakForBehandlingResponses = {
     200: HistoriskVedtakResponse;
 };
 
-export type HentHistoriskVedtakForBehanlingResponse = HentHistoriskVedtakForBehanlingResponses[keyof HentHistoriskVedtakForBehanlingResponses];
+export type HentHistoriskVedtakForBehandlingResponse = HentHistoriskVedtakForBehandlingResponses[keyof HentHistoriskVedtakForBehandlingResponses];
 
 export type HentVedtakData = {
     body?: never;

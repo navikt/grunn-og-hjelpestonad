@@ -1034,7 +1034,7 @@ export const zLagreÅrsakBehandlingPath = z.object({
  */
 export const zLagreÅrsakBehandlingResponse = zÅrsakBehandlingResponse;
 
-export const zHentHistoriskVedtakForBehanlingPath = z.object({
+export const zHentHistoriskVedtakForBehandlingPath = z.object({
     behandlingId: z.uuid(),
     fra: z.string()
 });
@@ -1042,7 +1042,7 @@ export const zHentHistoriskVedtakForBehanlingPath = z.object({
 /**
  * OK
  */
-export const zHentHistoriskVedtakForBehanlingResponse = zHistoriskVedtakResponse;
+export const zHentHistoriskVedtakForBehandlingResponse = zHistoriskVedtakResponse;
 
 export const zHentVedtakPath = z.object({
     behandlingId: z.uuid()
