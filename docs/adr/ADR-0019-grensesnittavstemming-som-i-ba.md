@@ -5,7 +5,7 @@
 
 ## Kontekst og beslutning
 
-Vi bruker BA-mønsteret for grensesnittavstemming mot Oppdrag: et lagret tidsvindu med stabil
+Vi bruker `familie-oppdrag-backend` og BA-mønsteret for grensesnittavstemming mot Oppdrag: et lagret tidsvindu med stabil
 `avstemmingId`, `maxAntallFeil = 1` og opprettelse av neste task etter vellykket svar.
 Vi velger dette fordi mønsteret har vært brukt i produksjon i flere år og har fungert for BA.
 Vi viderefører den etablerte håndteringen av usikkert leveringsutfall fremfor å innføre en egen
@@ -41,5 +41,5 @@ per melding nå, fordi det krever en annen leveringsmekanisme i mottakeren enn d
 ## Referanser
 
 - [BA-tasken](https://github.com/navikt/familie-ba-sak/blob/main/src/main/kotlin/no/nav/familie/ba/sak/task/GrensesnittavstemMotOppdrag.kt)
-- [Mottakerens avstemmingsservice](https://github.com/navikt/grunn-og-hjelp-oppdrag/blob/b9921f94e1181b6820a8202d6b7abd996921a59f/src/main/kotlin/no/nav/familie/oppdrag/service/GrensesnittavstemmingService.kt)
-- [Mottakerens MQ-konfigurasjon](https://github.com/navikt/grunn-og-hjelp-oppdrag/blob/b9921f94e1181b6820a8202d6b7abd996921a59f/src/main/kotlin/no/nav/familie/oppdrag/config/OppdragMQConfig.kt)
+- [Mottakerens avstemmingsservice](https://github.com/navikt/familie-oppdrag-backend/blob/91e21eec09491011e0aa9f90a7d0ffc7c660d55f/src/main/kotlin/no/nav/familie/oppdrag/service/GrensesnittavstemmingService.kt)
+- [Mottakerens MQ-konfigurasjon](https://github.com/navikt/familie-oppdrag-backend/blob/91e21eec09491011e0aa9f90a7d0ffc7c660d55f/src/main/kotlin/no/nav/familie/oppdrag/config/OppdragMQConfig.kt)
