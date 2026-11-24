@@ -143,17 +143,18 @@ class VedtakServiceTest {
     }
 
     @Test
-    fun `manglende beregning stopper vedtakslagring`() {
+    fun `ufullført sats og trygdetid stopper vedtakslagring`() {
         val behandlingId = UUID.randomUUID()
+        val behandlingStegService = BehandlingStegService(behandlingService)
+        val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingStegService, ansvarligSaksbehandlerService, tilkjentYtelseService, behandlingService, inngangsvilkårStegService)
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
-            Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT)
-        every { vedtakRepository.findByBehandlingId(behandlingId) } returns null
-        every { inngangsvilkårStegService.hentPerioder(behandlingId) } returns listOf(mockk())
-        every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns null
+            Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT, gjeldendeSteg = BehandlingSteg.SATS_OG_TRYGDETID)
 
-        assertFailsWith<UgyldigInput> { vedtakService.lagreVedtakFraBehandlingsgrunnlag(behandlingId) }
+        assertThatThrownBy { vedtakService.lagreVedtakFraBehandlingsgrunnlag(behandlingId) }
+            .isInstanceOf(Feil::class.java)
+            .hasMessage("Fullfør «${BehandlingSteg.SATS_OG_TRYGDETID.visningsnavn}» før du går videre.")
 
-        verify(exactly = 0) { vedtakRepository.insert(any()) }
+        verify { vedtakRepository wasNot Called }
         verify { endringshistorikkService wasNot Called }
     }
 
