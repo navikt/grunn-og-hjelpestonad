@@ -47,7 +47,6 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
 import java.time.YearMonth
@@ -162,7 +161,7 @@ class VedtakServiceTest {
     @ValueSource(booleans = [true, false])
     fun `ny sending etter underkjenning oppdaterer resultatet fra gjeldende grunnlag`(innvilgetEtterUnderkjenning: Boolean) {
         val behandlingId = UUID.randomUUID()
-        var behandling = Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT)
+        var behandling = Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT, gjeldendeSteg = BehandlingSteg.VEDTAK_OG_BREV)
         var lagretVedtak: Vedtak? = null
         var harBeregnedeAndeler = !innvilgetEtterUnderkjenning
         val tilkjentYtelse =
@@ -214,10 +213,9 @@ class VedtakServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource("true,true", "false,false", "false,true")
+    @ValueSource(booleans = [true, false])
     fun `sending og godkjenning lagrer vedtak og starter oppdrag bare ved innvilgelse`(
         harBeregnedeAndeler: Boolean,
-        harOppfylteInngangsvilkår: Boolean,
     ) {
         val behandlingId = UUID.randomUUID()
         var behandling = Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT, gjeldendeSteg = BehandlingSteg.VEDTAK_OG_BREV)
@@ -234,7 +232,7 @@ class VedtakServiceTest {
         every { vedtakRepository.insert(any<Vedtak>()) } answers { firstArg<Vedtak>().also { lagretVedtak = it } }
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns Oppgave(behandlingId = behandlingId, gsakOppgaveId = 1L, type = OppgavetypeGRU.BEH_SAK.name)
         every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
-        every { inngangsvilkårStegService.hentPerioder(behandlingId) } returns if (harOppfylteInngangsvilkår) listOf(mockk()) else emptyList()
+        every { inngangsvilkårStegService.hentPerioder(behandlingId) } returns if (harBeregnedeAndeler) listOf(mockk()) else emptyList()
         every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns
             if (harBeregnedeAndeler) {
                 TilkjentYtelse(
@@ -249,35 +247,6 @@ class VedtakServiceTest {
                 null
             }
 
-        if (!harBeregnedeAndeler && harOppfylteInngangsvilkår) {
-            behandling = behandling.copy(gjeldendeSteg = BehandlingSteg.SATS_OG_TRYGDETID)
-            every { behandlingService.oppdater(any()) } answers { firstArg<Behandling>().also { behandling = it } }
-            val vilkårMedlemskapService = mockk<VilkårMedlemskapService>()
-            val vilkårDiagnoseService = mockk<VilkårDiagnoseService>()
-            val vilkårEkstrautgifterService = mockk<VilkårEkstrautgifterService>()
-            val fraOgMedDato = LocalDate.of(2026, 3, 1)
-            every { vilkårMedlemskapService.hentPerioder(behandlingId) } returns
-                listOf(
-                    VilkårMedlemskap(behandlingId = behandlingId, vurdering = Vurdering.JA, regelverk = Regelverk.NASJONALE_REGLER, fraOgMedDato = fraOgMedDato),
-                )
-            every { vilkårDiagnoseService.hentPerioder(behandlingId) } returns
-                listOf(
-                    VilkårDiagnose(behandlingId = behandlingId, vurdering = Vurdering.JA, kode = "E109", tekst = "Testdiagnose", erYrkesskade = false, fraOgMedDato = fraOgMedDato),
-                )
-            every { vilkårEkstrautgifterService.hentPerioder(behandlingId) } returns
-                listOf(
-                    VilkårEkstrautgifter(behandlingId = behandlingId, vurdering = Vurdering.NEI, sats = null, fraOgMedDato = fraOgMedDato),
-                )
-            val beregnTilkjentYtelseService = BeregnTilkjentYtelseService(behandlingService, tilkjentYtelseService, vilkårMedlemskapService, vilkårDiagnoseService, vilkårEkstrautgifterService, mockk(relaxed = true))
-            val satsOgTrygdetidService = SatsOgTrygdetidService(BehandlingStegService(behandlingService), beregnTilkjentYtelseService, ansvarligSaksbehandlerService, endringshistorikkService)
-
-            satsOgTrygdetidService.fullførSteg(behandlingId)
-
-            assertThat(behandling.gjeldendeSteg).isEqualTo(BehandlingSteg.VEDTAK_OG_BREV)
-            verify { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId) }
-            verify(exactly = 0) { tilkjentYtelseService.lagre(any()) }
-        }
-
         beslutterService.sendTilBeslutter(behandlingId)
         beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
 
@@ -287,6 +256,62 @@ class VedtakServiceTest {
             verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
         }
         verify(exactly = if (harBeregnedeAndeler) 1 else 0) {
+            taskService.opprett(IverksettOppdragTask.TYPE, IverksettOppdragTask.IverksettOppdragTaskData(behandlingId, "Z123456"), any(), any())
+        }
+    }
+
+    @Test
+    fun `avslag på ekstrautgifter kan beregnes sendes til beslutter og godkjennes uten utbetaling`() {
+        val behandlingId = UUID.randomUUID()
+        var behandling = Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT, gjeldendeSteg = BehandlingSteg.SATS_OG_TRYGDETID)
+        var lagretVedtak: Vedtak? = null
+        val oppgaveService = mockk<OppgaveService>(relaxed = true)
+        val taskService = mockk<TaskService>(relaxed = true)
+        val totrinnskontrollService = mockk<TotrinnskontrollService>(relaxed = true)
+        val behandlingStegService = BehandlingStegService(behandlingService)
+        val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingStegService, ansvarligSaksbehandlerService, tilkjentYtelseService, behandlingService, inngangsvilkårStegService)
+        val beslutterService = BeslutterService(behandlingService, behandlingStegService, mockk<BrevService>(relaxed = true), endringshistorikkService, oppgaveService, totrinnskontrollService, taskService, ansvarligSaksbehandlerService, vedtakService)
+        every { behandlingService.hentBehandling(behandlingId) } answers { behandling }
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } answers { behandling }
+        every { behandlingService.oppdaterBehandlingStatus(behandlingId, any()) } answers { behandling = behandling.copy(status = secondArg()) }
+        every { behandlingService.oppdaterBehandlingResultat(behandlingId, any()) } answers { behandling = behandling.copy(resultat = secondArg()) }
+        every { vedtakRepository.findByBehandlingId(behandlingId) } answers { lagretVedtak }
+        every { vedtakRepository.insert(any<Vedtak>()) } answers { firstArg<Vedtak>().also { lagretVedtak = it } }
+        every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns Oppgave(behandlingId = behandlingId, gsakOppgaveId = 1L, type = OppgavetypeGRU.BEH_SAK.name)
+        every { inngangsvilkårStegService.hentPerioder(behandlingId) } returns listOf(mockk())
+        every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns null
+        every { behandlingService.oppdater(any()) } answers { firstArg<Behandling>().also { behandling = it } }
+        val vilkårMedlemskapService = mockk<VilkårMedlemskapService>()
+        val vilkårDiagnoseService = mockk<VilkårDiagnoseService>()
+        val vilkårEkstrautgifterService = mockk<VilkårEkstrautgifterService>()
+        val fraOgMedDato = LocalDate.of(2026, 3, 1)
+        every { vilkårMedlemskapService.hentPerioder(behandlingId) } returns
+            listOf(
+                VilkårMedlemskap(behandlingId = behandlingId, vurdering = Vurdering.JA, regelverk = Regelverk.NASJONALE_REGLER, fraOgMedDato = fraOgMedDato),
+            )
+        every { vilkårDiagnoseService.hentPerioder(behandlingId) } returns
+            listOf(
+                VilkårDiagnose(behandlingId = behandlingId, vurdering = Vurdering.JA, kode = "E109", tekst = "Testdiagnose", erYrkesskade = false, fraOgMedDato = fraOgMedDato),
+            )
+        every { vilkårEkstrautgifterService.hentPerioder(behandlingId) } returns
+            listOf(
+                VilkårEkstrautgifter(behandlingId = behandlingId, vurdering = Vurdering.NEI, sats = null, fraOgMedDato = fraOgMedDato),
+            )
+        val beregnTilkjentYtelseService = BeregnTilkjentYtelseService(behandlingService, tilkjentYtelseService, vilkårMedlemskapService, vilkårDiagnoseService, vilkårEkstrautgifterService, mockk(relaxed = true))
+        val satsOgTrygdetidService = SatsOgTrygdetidService(behandlingStegService, beregnTilkjentYtelseService, ansvarligSaksbehandlerService, endringshistorikkService)
+
+        satsOgTrygdetidService.fullførSteg(behandlingId)
+
+        assertThat(behandling.gjeldendeSteg).isEqualTo(BehandlingSteg.VEDTAK_OG_BREV)
+        verify { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId) }
+        verify(exactly = 0) { tilkjentYtelseService.lagre(any()) }
+        beslutterService.sendTilBeslutter(behandlingId)
+        beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
+
+        assertThat(behandling.resultat).isEqualTo(BehandlingResultat.AVSLÅTT)
+        assertThat(behandling.status).isEqualTo(BehandlingStatus.FERDIGSTILT)
+        assertThat(lagretVedtak?.resultatType).isEqualTo(ResultatType.AVSLÅTT)
+        verify(exactly = 0) {
             taskService.opprett(IverksettOppdragTask.TYPE, IverksettOppdragTask.IverksettOppdragTaskData(behandlingId, "Z123456"), any(), any())
         }
     }
