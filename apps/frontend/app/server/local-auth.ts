@@ -13,7 +13,6 @@ const LOCAL_AUTH_SESSION_MAX_AGE = 1000 * 60 * 60 * 8;
 const LOCAL_AUTH_BESLUTTER_CLIENT_ID = "beslutter";
 const LOCAL_AUTH_PUBLIC_PATHS = [
   "/oauth2/login",
-  "/oauth2/bytt-bruker",
   "/oauth2/callback",
   "/oauth2/logout",
   "/isAlive",
@@ -65,7 +64,6 @@ export function setupLocalAuth(app: Express, port: string | undefined): void {
 
 export function registerLocalAuthRoutes(app: Express): void {
   app.get("/oauth2/login", handleLocalLogin);
-  app.get("/oauth2/bytt-bruker", handleLocalLogin);
   app.get("/oauth2/callback", handleLocalAuthCallback);
   app.get("/oauth2/logout", handleLocalLogout);
   app.use(requireLocalAuthentication);

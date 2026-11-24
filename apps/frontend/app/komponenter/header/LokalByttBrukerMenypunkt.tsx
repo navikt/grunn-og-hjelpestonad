@@ -20,7 +20,7 @@ export const LokalByttBrukerMenypunkt: React.FC<LokalByttBrukerMenypunktProps> =
   const byttBrukerTekst = erInnloggetSomBeslutter
     ? "Bytt til saksbehandler (A123456)"
     : "Bytt til beslutter (B123456)";
-  const byttBrukerLenke = `/oauth2/bytt-bruker?bruker=${nesteBruker}&redirect=${encodeURIComponent(nåværendeSti)}`;
+  const byttBrukerLenke = `/oauth2/login?bruker=${nesteBruker}&redirect=${encodeURIComponent(nåværendeSti)}`;
 
   return (
     <li>
