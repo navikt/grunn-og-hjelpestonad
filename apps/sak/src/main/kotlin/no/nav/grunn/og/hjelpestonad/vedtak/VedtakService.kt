@@ -82,35 +82,6 @@ class VedtakService(
         validerVedtaksresultatMotBeregning(vedtak.resultatType, tilkjentYtelse?.andelerTilkjentYtelse?.isNotEmpty() == true)
     }
 
-    @Transactional
-    fun lagreVedtak(
-        vedtakRequest: VedtakRequest,
-        behandlingId: UUID,
-    ): UUID {
-        ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
-        behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
-        when (vedtakRequest.resultatType) {
-            ResultatType.INNVILGET, ResultatType.OPPHØR -> {
-                if (tilkjentYtelseService.hentTilkjentYtelse(behandlingId) == null) {
-                    throw Feil("Fullfør sats og trygdetid før du lagrer vedtaket")
-                }
-            }
-
-            ResultatType.AVSLÅTT, ResultatType.HENLAGT -> {}
-        }
-        if (vedtakRepository.findByBehandlingId(behandlingId) != null) {
-            vedtakRepository.deleteByBehandlingId(behandlingId)
-        }
-        val vedtak = vedtakRepository.insert(vedtakRequest.tilVedtak(behandlingId))
-
-        endringshistorikkService.registrerEndring(
-            behandlingId = behandlingId,
-            endringType = EndringType.VEDTAK_LAGRET,
-            detaljer = "Resultat: ${vedtakRequest.resultatType}",
-        )
-        return vedtak.behandlingId
-    }
-
     fun slettVedtakHvisFinnes(behandlingId: UUID) {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         if (vedtakRepository.findByBehandlingId(behandlingId) != null) {

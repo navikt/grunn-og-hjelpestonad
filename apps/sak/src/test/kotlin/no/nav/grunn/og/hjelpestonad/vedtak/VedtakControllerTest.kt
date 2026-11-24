@@ -9,16 +9,14 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
-import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.get
+import java.time.YearMonth
 import java.util.UUID
 
-@WebMvcTest(
-    VedtakController::class,
-)
+@WebMvcTest(VedtakController::class)
 @ContextConfiguration(classes = [ApplicationLocalSetup::class])
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("integrasjonstest")
@@ -36,69 +34,42 @@ class VedtakControllerTest {
     private lateinit var tilgangService: TilgangService
 
     @Test
-    fun `vedtak uten begrunnelse avvises før lagring med eksisterende feilformat`() {
-        mockMvc
-            .post("/api/vedtak/${UUID.randomUUID()}/lagre-vedtak") {
-                contentType = MediaType.APPLICATION_JSON
-                content = """{"resultatType":"AVSLÅTT","grunnstønadPerioder":[]}"""
-            }.andExpect {
-                status { isInternalServerError() }
-                jsonPath("$.melding") { value("Mangler begrunnelse") }
-                jsonPath("$.status") { value(500) }
-            }
+    fun `henter lagret vedtak`() {
+        val behandlingId = UUID.randomUUID()
+        every { vedtakService.hentVedtak(behandlingId) } returns
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
 
-        verify(exactly = 0) { vedtakService.lagreVedtak(any(), any()) }
-    }
-
-    @Test
-    fun `beregning uten perioder avvises med eksisterende feilformat`() {
-        mockMvc
-            .post("/api/vedtak/${UUID.randomUUID()}/beregn") {
-                contentType = MediaType.APPLICATION_JSON
-                content = """{"barnetilsynBeregning":[]}"""
-            }.andExpect {
-                status { isInternalServerError() }
-                jsonPath("$.melding") { value("Ingen perioder") }
-                jsonPath("$.status") { value(500) }
-            }
-    }
-
-    @Test
-    fun `Skal lagre vedtak fra json`() {
-        val json = """{
-  "resultatType": "INNVILGET",
-  "begrunnelse": "Mock begrunnelse",
-  "grunnstønadPerioder": [
-    {
-      "behandlingId": "86460749-53d4-481b-8909-7286efc7eaad",
-      "datoFra": "2024-01",
-      "datoTil": "2024-01",
-      "utgifter": 1000,
-      "barn": [
-        "b1e1d2c3-1111-2222-3333-444455556666"
-      ],
-      "periodetype": "ORDINÆR",
-      "aktivitetstype": "I_ARBEID"
-    }
-  ],
-  "saksbehandlerIdent": "mockIdent",
-  "opprettetTid": "2026-01-21T09:52:13.329Z",
-  "opprettetAv": "mockSaksbehandler"
-}"""
-        every { vedtakService.lagreVedtak(any(), any()) } returns UUID.fromString("86460749-53d4-481b-8909-7286efc7eaad")
-
-        val responseJson =
-            mockMvc
-                .post("/api/vedtak/86460749-53d4-481b-8909-7286efc7eaad/lagre-vedtak") {
-                    contentType = MediaType.APPLICATION_JSON
-                    content = json
-                }.andExpect {
-                    status { isOk() }
-                }.andReturn()
-                .response.contentAsString
-
-        verify(exactly = 1) {
-            vedtakService.lagreVedtak(any(), any())
+        mockMvc.get("/api/vedtak/$behandlingId/hent-vedtak").andExpect {
+            status { isOk() }
+            jsonPath("$.resultatType") { value("INNVILGET") }
+            jsonPath("$.grunnstønadPerioder") { isEmpty() }
         }
+
+        verify { tilgangService.validerTilgangTilBehandling(behandlingId) }
+    }
+
+    @Test
+    fun `manglende vedtak gir tomt svar`() {
+        val behandlingId = UUID.randomUUID()
+        every { vedtakService.hentVedtak(behandlingId) } returns null
+
+        mockMvc.get("/api/vedtak/$behandlingId/hent-vedtak").andExpect {
+            status { isNoContent() }
+        }
+    }
+
+    @Test
+    fun `henter historikk for forespurt måned`() {
+        val behandlingId = UUID.randomUUID()
+        val fraMåned = YearMonth.of(2026, 1)
+        every { gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandlingId, fraMåned) } returns
+            HistoriskVedtakResponse(grunnstønadPerioder = emptyList(), fraErFørTidligsteVedtak = true)
+
+        mockMvc.get("/api/vedtak/$behandlingId/historikk/$fraMåned").andExpect {
+            status { isOk() }
+            jsonPath("$.fraErFørTidligsteVedtak") { value(true) }
+        }
+
+        verify { tilgangService.validerTilgangTilBehandling(behandlingId) }
     }
 }

@@ -25,36 +25,6 @@ export type GrunnstønadPeriode = {
     aktivitetstype: 'I_ARBEID' | 'FORBIGÅENDE_SYKDOM' | 'IKKE_RELEVANT';
 };
 
-export type VedtakRequest = {
-    resultatType: 'INNVILGET' | 'AVSLÅTT' | 'HENLAGT' | 'OPPHØR';
-    begrunnelse?: string | null;
-    grunnstønadPerioder: Array<GrunnstønadPeriode>;
-    saksbehandlerIdent?: string | null;
-    opphørFom?: string | null;
-    beslutterIdent?: string | null;
-};
-
-export type BarnetilsynBeregning = {
-    datoFra: string;
-    datoTil: string;
-    utgifter: number;
-    barn: Array<string>;
-    periodetype: 'ORDINÆR' | 'INGEN_STØNAD';
-};
-
-export type BarnetilsynBeregningRequest = {
-    barnetilsynBeregning: Array<BarnetilsynBeregning>;
-};
-
-export type BeløpsperioderResponse = {
-    datoFra: string;
-    datoTil: string;
-    utgifter: number;
-    antallBarn: number;
-    beløp: number;
-    periodetype: 'ORDINÆR' | 'INGEN_STØNAD';
-};
-
 export type SøkRequest = {
     personident: string;
 };
@@ -547,38 +517,6 @@ export type TotrinnskontrollStatusResponse = {
     status: 'TOTRINNSKONTROLL_UNDERKJENT' | 'KAN_FATTE_VEDTAK' | 'IKKE_AUTORISERT' | 'UAKTUELT';
     totrinnskontroll?: TotrinnskontrollDto | null;
 };
-
-export type LagreVedtakData = {
-    body: VedtakRequest;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/vedtak/{behandlingId}/lagre-vedtak';
-};
-
-export type LagreVedtakResponses = {
-    200: {
-        [key: string]: string;
-    };
-};
-
-export type LagreVedtakResponse = LagreVedtakResponses[keyof LagreVedtakResponses];
-
-export type BeregnData = {
-    body: BarnetilsynBeregningRequest;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/vedtak/{behandlingId}/beregn';
-};
-
-export type BeregnResponses = {
-    200: Array<BeløpsperioderResponse>;
-};
-
-export type BeregnResponse = BeregnResponses[keyof BeregnResponses];
 
 export type SøkPersonData = {
     body: SøkRequest;

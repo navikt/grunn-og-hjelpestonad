@@ -43,27 +43,6 @@ data class GrunnstønadPeriode(
     val aktivitetstype: AktivitetstypeBarnetilsyn,
 )
 
-data class BarnetilsynBeregningRequest(
-    val barnetilsynBeregning: List<BarnetilsynBeregning>,
-)
-
-data class BarnetilsynBeregning(
-    val datoFra: YearMonth,
-    val datoTil: YearMonth,
-    val utgifter: BigDecimal,
-    val barn: List<UUID>,
-    val periodetype: PeriodetypeBarnetilsyn,
-)
-
-data class BeløpsperioderResponse(
-    val datoFra: YearMonth,
-    val datoTil: YearMonth,
-    val utgifter: BigDecimal,
-    val antallBarn: Int,
-    val beløp: Int,
-    val periodetype: PeriodetypeBarnetilsyn,
-)
-
 enum class ResultatType {
     INNVILGET,
     AVSLÅTT,
@@ -136,15 +115,6 @@ enum class AktivitetstypeBarnetilsyn {
     IKKE_RELEVANT,
 }
 
-data class VedtakRequest(
-    val resultatType: ResultatType,
-    val begrunnelse: String? = null,
-    val grunnstønadPerioder: List<GrunnstønadPeriode>,
-    val saksbehandlerIdent: String? = null,
-    val opphørFom: YearMonth? = null,
-    val beslutterIdent: String? = null,
-)
-
 data class VedtakResponse(
     val resultatType: ResultatType,
     val begrunnelse: String? = null,
@@ -153,17 +123,6 @@ data class VedtakResponse(
     val opphørFom: YearMonth? = null,
     val beslutterIdent: String? = null,
 )
-
-fun VedtakRequest.tilVedtak(behandlingId: UUID): Vedtak =
-    Vedtak(
-        behandlingId = behandlingId,
-        resultatType = this.resultatType,
-        begrunnelse = this.begrunnelse,
-        grunnstønadPerioder = this.grunnstønadPerioder.sortedBy { it.datoFra },
-        saksbehandlerIdent = SikkerhetContext.hentSaksbehandlerEllerSystembruker(),
-        opphørFom = this.opphørFom,
-        beslutterIdent = this.beslutterIdent,
-    )
 
 fun Vedtak.tilResponse(): VedtakResponse =
     VedtakResponse(

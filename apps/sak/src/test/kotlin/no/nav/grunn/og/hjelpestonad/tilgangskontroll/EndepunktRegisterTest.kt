@@ -125,8 +125,6 @@ class EndepunktRegisterTest {
                 "TrygdetidController#lagreTrygdetidPeriode",
                 "TrygdetidController#slettTrygdetidPeriode",
                 "VedtakController#hentVedtak",
-                "VedtakController#lagreVedtak",
-                "VedtakController#beregn",
                 "VedtakController#hentHistoriskVedtakForBehandling",
                 "VilkårDiagnoseController#hentDiagnosePerioder",
                 "VilkårDiagnoseController#lagreDiagnosePeriode",
