@@ -31,30 +31,40 @@ class VedtakService(
 ) {
     fun hentVedtak(behandlingId: UUID): Vedtak? = vedtakRepository.findByBehandlingId(behandlingId)
 
+    /**
+     * Utleder innvilgelse og avslag fra gjeldende grunnlag, også ved ny sending etter underkjenning.
+     * Se ADR-0019 for avgrensningen til førstegangsbehandling og utsatt tilpasning av historikk.
+     */
     @Transactional
     fun lagreVedtakFraBehandlingsgrunnlag(behandlingId: UUID) {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
-        if (hentVedtak(behandlingId) != null) return
+        val eksisterendeVedtak = hentVedtak(behandlingId)
+        if (eksisterendeVedtak != null && eksisterendeVedtak.resultatType !in setOf(ResultatType.INNVILGET, ResultatType.AVSLÅTT)) return
 
         val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
         val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(behandlingId)
         val resultatType =
             utledVedtaksresultat(
                 harOppfylteInngangsvilkår = inngangsvilkårStegService.hentPerioder(behandlingId).isNotEmpty(),
-                harBeregning = tilkjentYtelse != null,
+                // En fullført førstegangsberegning uten andeler lagrer ingen tilkjent ytelse.
+                harBeregning = tilkjentYtelse != null || behandling.gjeldendeSteg == BehandlingSteg.VEDTAK_OG_BREV,
                 harBeregnedeAndeler = tilkjentYtelse?.andelerTilkjentYtelse?.isNotEmpty() == true,
                 erRevurdering = behandling.forrigeBehandlingId != null,
             )
         val saksbehandlerIdent = SikkerhetContext.hentSaksbehandler()
-        vedtakRepository.insert(
-            Vedtak(
-                behandlingId = behandlingId,
-                resultatType = resultatType,
-                grunnstønadPerioder = emptyList(),
-                saksbehandlerIdent = saksbehandlerIdent,
-            ),
-        )
+        if (eksisterendeVedtak != null) {
+            vedtakRepository.update(eksisterendeVedtak.copy(resultatType = resultatType, saksbehandlerIdent = saksbehandlerIdent))
+        } else {
+            vedtakRepository.insert(
+                Vedtak(
+                    behandlingId = behandlingId,
+                    resultatType = resultatType,
+                    grunnstønadPerioder = emptyList(),
+                    saksbehandlerIdent = saksbehandlerIdent,
+                ),
+            )
+        }
         endringshistorikkService.registrerEndring(behandlingId, EndringType.VEDTAK_LAGRET, detaljer = "Resultat: $resultatType")
     }
 
