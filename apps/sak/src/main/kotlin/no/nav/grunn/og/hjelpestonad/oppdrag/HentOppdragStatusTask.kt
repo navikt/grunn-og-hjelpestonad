@@ -1,32 +1,32 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
+import efterlatte.prosessering.RetryPolicy
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
 import no.nav.grunn.og.hjelpestonad.task.lagTaskType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.time.Clock
-import java.time.Duration
 import java.util.UUID
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 /**
- * Poller til OS har kvittert. Mens oppdraget ligger på kø, prøver tasken igjen hvert 15. minutt, men bare på hverdager
- * mellom 06 og 21, når OS behandler køen (se [nesteTidspunktIÅpningstid]). Det er samme regel som i familie-ba-sak.
- *
- * Feil status gjør at tasken feiler og stopper etter retries, eventuelt behov for annen funksjonalitet ved feil fikses senere.
+ * Poller til OS har kvittert. Ventetiden starter på 10 sekunder og dobles opp til 15 minutter.
+ * Samlet planlagt ventetid er høyst 24 timer, uavhengig av miljø og åpningstid.
  */
 @Service
 class HentOppdragStatusTask(
     private val oppdragIverksettingService: OppdragIverksettingService,
-    private val clock: Clock = Clock.systemDefaultZone(),
 ) : TaskStep<HentOppdragStatusTask.HentOppdragStatusTaskData> {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override val type = TYPE
+    override val retry = RetryPolicy(maxAntallFeil = VENTETIDER.size + 1) { antallFeil -> VENTETIDER[antallFeil - 1] }
 
     override fun utfor(kontekst: TaskKontekst<HentOppdragStatusTaskData>) {
         val behandlingId = kontekst.payload.behandlingId
-        val antallForsøk = kontekst.payload.forsøk
         val oppdragStatusSvar = oppdragIverksettingService.hentStatus(behandlingId)
 
         when (oppdragStatusSvar.status) {
@@ -35,15 +35,7 @@ class HentOppdragStatusTask(
             }
 
             OppdragStatus.LAGT_PÅ_KØ -> {
-                if (antallForsøk >= MAKS_FORSØK) {
-                    throw IllegalStateException("Fikk ikke kvittering fra OS for behandling=$behandlingId etter $antallForsøk forsøk")
-                }
-
-                kontekst.opprettNesteTask<HentOppdragStatusTaskData>(
-                    type = TYPE,
-                    payload = HentOppdragStatusTaskData(behandlingId = behandlingId, forsøk = antallForsøk + 1),
-                    triggerTid = nesteTidspunktIÅpningstid(clock.instant(), VENTETID),
-                )
+                throw IllegalStateException("Venter på kvittering fra OS for behandling=$behandlingId")
             }
 
             else -> {
@@ -55,13 +47,19 @@ class HentOppdragStatusTask(
     companion object {
         val TYPE = lagTaskType<HentOppdragStatusTaskData>("hentOppdragStatus")
 
-        /** Som i familie-ba-sak. 100 forsøk hvert 15. minutt i åpningstiden er nesten to virkedager. */
-        const val MAKS_FORSØK = 100
-        private val VENTETID: Duration = Duration.ofMinutes(15)
+        private val VENTETIDER =
+            buildList {
+                var ventetid = 10.seconds
+                var samletVentetid = Duration.ZERO
+                while (samletVentetid + ventetid <= 24.hours) {
+                    add(ventetid)
+                    samletVentetid += ventetid
+                    ventetid = (ventetid * 2).coerceAtMost(15.minutes)
+                }
+            }
     }
 
     data class HentOppdragStatusTaskData(
         val behandlingId: UUID,
-        val forsøk: Int,
     )
 }
