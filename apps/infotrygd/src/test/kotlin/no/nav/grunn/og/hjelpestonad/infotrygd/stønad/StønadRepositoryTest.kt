@@ -43,6 +43,7 @@ class StønadRepositoryTest {
         opphør: String? = null,
         endringskode: String = "F",
         oppdragId: String? = "1",
+        tidspunktRegistrert: String = "2025-01-01 00:00:00",
     ) {
         testdata.lagre(
             ExodusTabell.T_STONAD,
@@ -59,6 +60,7 @@ class StønadRepositoryTest {
             "person_lopenr" to personLøpenr,
             "kode_rutine" to kodeRutine,
             "dato_innv_tom" to tom,
+            "tidspunkt_reg" to tidspunktRegistrert,
         )
         testdata.lagre(ExodusTabell.T_ENDRING, "vedtak_id" to vedtakId, "kode" to endringskode)
     }
@@ -223,16 +225,19 @@ class StønadRepositoryTest {
     }
 
     @Test
-    fun `kandidater med førstegangsvedtak er sortert på stønadId synkende`() {
+    fun `kandidater med førstegangsvedtak har nyeste vedtak først, og høyeste vedtakId ved likt tidspunkt`() {
         lagrePerson("1", "01017012345")
         lagrePerson("2", "02027012345")
         lagrePerson("3", "03037012345")
-        lagreVedtak("1", stønadId = "10", vedtakId = "100", kodeRutine = "GS", tom = null, endringskode = "F")
-        lagreVedtak("2", stønadId = "20", vedtakId = "200", kodeRutine = "GS", tom = null, endringskode = "F")
-        lagreVedtak("3", stønadId = "30", vedtakId = "300", kodeRutine = "GS", tom = null, endringskode = "F")
-        listOf("100", "200", "300").forEach { vedtakId -> lagreSatsGrunnstønad(vedtakId, satsGrunnstønad = "1") }
+        lagrePerson("4", "04047012345")
+        // Stønadene er opprettet i motsatt rekkefølge av vedtakene, så sortering på stønadId ville gitt feil svar.
+        lagreVedtak("1", stønadId = "10", vedtakId = "100", kodeRutine = "GS", tom = null, tidspunktRegistrert = "2026-10-01 12:00:00")
+        lagreVedtak("2", stønadId = "20", vedtakId = "200", kodeRutine = "GS", tom = null, tidspunktRegistrert = "2025-03-01 12:00:00")
+        lagreVedtak("3", stønadId = "30", vedtakId = "300", kodeRutine = "GS", tom = null, tidspunktRegistrert = "2024-05-01 12:00:00")
+        lagreVedtak("4", stønadId = "40", vedtakId = "400", kodeRutine = "GS", tom = null, tidspunktRegistrert = "2025-03-01 12:00:00")
+        listOf("100", "200", "300", "400").forEach { vedtakId -> lagreSatsGrunnstønad(vedtakId, satsGrunnstønad = "1") }
 
-        assertEquals(listOf("03037012345", "02027012345", "01017012345"), kandidatpersoner())
+        assertEquals(listOf("01017012345", "04047012345", "02027012345", "03037012345"), kandidatpersoner())
     }
 
     @Test

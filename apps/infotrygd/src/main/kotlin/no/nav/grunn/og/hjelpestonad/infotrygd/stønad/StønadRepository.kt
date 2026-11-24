@@ -85,8 +85,8 @@ class StønadRepository(
      * [satsGrunnstønad]. Siste vedtak velges før filteret på F og sats, slik at et eldre førstegangsvedtak ikke gir
      * treff. Et siste vedtak med F og AN er med, som i /stonader.
      *
-     * Sortert på stønadId synkende. Vedtak med et annet person_lopenr enn stønaden er ikke med, siden tilgangen bare
-     * sjekkes for personen på vedtaket.
+     * Sortert med nyeste vedtak først: tidspunkt_reg synkende, så vedtakId synkende. Vedtak med et annet
+     * person_lopenr enn stønaden er ikke med, siden tilgangen bare sjekkes for personen på vedtaket.
      */
     fun hentKandidaterMedFørstegangsvedtak(
         satsGrunnstønad: Long,
@@ -116,7 +116,7 @@ class StønadRepository(
                   AND EXISTS (SELECT 1 FROM t_endring e WHERE e.vedtak_id = v.vedtak_id AND e.kode = :endringskode)
                   AND EXISTS (SELECT 1 FROM t_gh g WHERE g.vedtak_id = v.vedtak_id)
                   AND NOT EXISTS (SELECT 1 FROM t_gh g WHERE g.vedtak_id = v.vedtak_id AND g.sats_gs IS DISTINCT FROM :satsGs)
-                ORDER BY s.stonad_id DESC
+                ORDER BY v.tidspunkt_reg DESC, v.vedtak_id DESC
                 """.trimIndent(),
             ).param("kodeRutine", Stønadstype.GRUNNSTØNAD.kodeRutine)
             .param("nesteMåned", nesteMåned(dagensDato))

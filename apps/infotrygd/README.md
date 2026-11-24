@@ -161,7 +161,8 @@ finner personer med løpende grunnstønad. Alle tre kravene gjelder siste vedtak
 Siste vedtak velges før filteret på `F` og sats, med samme regel som `migreringspersoner`. Vedtak med et annet
 `person_lopenr` enn stønaden er ikke med.
 
-Én spørring henter alle kandidatene med `F` og riktig sats, sortert på `stonad_id` synkende. Kotlin sjekker
+Én spørring henter alle kandidatene med `F` og riktig sats, med nyeste vedtak først: `t_vedtak.tidspunkt_reg`
+synkende, så `vedtak_id` synkende. Kotlin sjekker
 hjemmelbokstaven i biter på 1 000 vedtak og stopper når den har `antall` personer, eller når kandidatene er
 gått gjennom. En spørring som også sjekket hjemmelbokstaven i SQL, ble ikke ferdig i dev. Det gjorde heller ikke
 en versjon som hentet kandidatene i partier, fordi hvert parti gjentok grupperingen som finner siste vedtak.
