@@ -20,6 +20,7 @@ class GrensesnittavstemmingTask(
     override val type = TYPE
 
     // Som i BA: et feilet kall kan ha sendt deler av eller hele avstemmingen. Undersøk før manuell omkjøring.
+    // Reaper kan fortsatt gjenopprette tasken etter krasj. Se ADR-0019 om valget og aksepterte begrensninger.
     override val retry = RetryPolicy(maxAntallFeil = 1, backoff = { Duration.ZERO })
 
     override fun utfor(kontekst: TaskKontekst<GrensesnittavstemmingTaskData>) {
