@@ -17,7 +17,7 @@ import org.springframework.web.client.body
 /**
  * Klient mot `familie-oppdrag-backend` (teamfamilie), som sender videre til Oppdragsystemet (OS).
  *
- * Simulering bruker saksbehandlerens OBO-token. Iverksetting og status bruker apptoken (client credentials), fordi de
+ * Simulering bruker saksbehandlerens OBO-token. Iverksetting, status og avstemming bruker apptoken (client credentials), fordi de
  * kjøres fra tasker uten innlogget bruker. Tokenet sier derfor ikke hvem som behandlet saken. Det står i
  * `saksbehandlerId` i oppdraget, som `familie-oppdrag-backend` sender til OS både som saksbehandler og som attestant.
  */
@@ -67,6 +67,15 @@ class OppdragClient(
             OppdragStatusSvar(status = svar.data, melding = svar.melding?.takeIf { it.isNotBlank() })
         }
 
+    fun grensesnittavstem(grensesnittavstemmingRequest: GrensesnittavstemmingRequest) {
+        post<String, Unit>(
+            path = GRENSESNITTAVSTEMMING_PATH,
+            body = grensesnittavstemmingRequest,
+            handling = "Grensesnittavstemming mot oppdrag",
+            token = Token.APP,
+        ) { }
+    }
+
     private inline fun <reified T : Any, R> post(
         path: String,
         body: Any,
@@ -101,6 +110,7 @@ class OppdragClient(
         private const val SIMULERING_PATH = "/api/simulering/v1"
         private const val IVERKSETT_PATH = "/api/oppdrag"
         private const val STATUS_PATH = "/api/status"
+        private const val GRENSESNITTAVSTEMMING_PATH = "/api/grensesnittavstemming"
         private const val TJENESTENAVN = "familie-oppdrag-backend"
     }
 }
