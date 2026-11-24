@@ -62,14 +62,11 @@ class UtbetalingsoppdragServiceTest {
         )
 
     @Test
-    fun `tom beregning uten tidligere utbetaling gir bad request`() {
+    fun `tom beregning uten tidligere utbetaling gir null i simulering`() {
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns
             TilkjentYtelse(behandlingId = behandling.id, startmåned = YearMonth.of(2026, 11), andelerTilkjentYtelse = emptySet())
-        assertThatThrownBy { service().lagUtbetalingsoppdrag(behandling.id, "Z123456") }
-            .isInstanceOfSatisfying(Feil::class.java) {
-                assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
-                assertThat(it.message).contains("ingen andeler å utbetale")
-            }
+
+        assertThat(service().lagUtbetalingsoppdrag(behandling.id, "Z123456")).isNull()
     }
 
     @Test
@@ -89,10 +86,10 @@ class UtbetalingsoppdragServiceTest {
                     ),
             )
 
-        val resultat = service().lagUtbetalingsoppdrag(behandling.id, "Z123456")
+        val utbetalingsoppdragForBehandling = requireNotNull(service().lagUtbetalingsoppdrag(behandling.id, "Z123456"))
 
         assertThat(
-            resultat.utbetalingsoppdrag.utbetalingsperiode
+            utbetalingsoppdragForBehandling.utbetalingsoppdrag.utbetalingsperiode
                 .single()
                 .sats,
         ).isEqualByComparingTo("2500")
@@ -125,7 +122,7 @@ class UtbetalingsoppdragServiceTest {
         val service = service()
 
         val oppdragId = service.lagOppdragId(behandling.id)
-        val oppdrag = service.lagUtbetalingsoppdrag(behandling.id, "Z123456").utbetalingsoppdrag
+        val oppdrag = requireNotNull(service.lagUtbetalingsoppdrag(behandling.id, "Z123456")).utbetalingsoppdrag
 
         assertThat(oppdragId).isEqualTo(OppdragId(fagsystem = "IT28", personIdent = "12345678910", behandlingsId = "1"))
         assertThat(oppdragId.fagsystem).isEqualTo(oppdrag.fagSystem)
@@ -154,10 +151,10 @@ class UtbetalingsoppdragServiceTest {
         every { oppdragResultatRepository.finnSisteAndelPerKjede(fagsak.id, behandling.id) } returns listOf(sisteAndel)
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns tilkjentYtelseUtenAndeler()
 
-        val resultat = service().lagUtbetalingsoppdrag(behandling.id, "Z123456")
+        val utbetalingsoppdragForBehandling = requireNotNull(service().lagUtbetalingsoppdrag(behandling.id, "Z123456"))
 
         assertThat(
-            resultat.utbetalingsoppdrag.utbetalingsperiode
+            utbetalingsoppdragForBehandling.utbetalingsoppdrag.utbetalingsperiode
                 .single()
                 .opphør
                 ?.opphørDatoFom,
@@ -165,15 +162,14 @@ class UtbetalingsoppdragServiceTest {
     }
 
     @Test
-    fun `tilkjent ytelse uten andeler og uten kjede gir bad request i simulering`() {
+    fun `tilkjent ytelse uten andeler og uten kjede gir null i simulering`() {
         every { tilkjentYtelseService.hentTilkjentYtelse(behandling.id) } returns tilkjentYtelseUtenAndeler()
 
-        assertThatThrownBy { service().lagUtbetalingsoppdrag(behandling.id, "Z123456") }
-            .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST) }
+        assertThat(service().lagUtbetalingsoppdrag(behandling.id, "Z123456")).isNull()
     }
 
     @Test
-    fun `simulering uten endring mot forrige behandling gir bad request`() {
+    fun `simulering uten endring mot forrige behandling gir null`() {
         val forrige =
             Utbetalingsandel(
                 fom = LocalDate.of(2026, 1, 1),
@@ -201,8 +197,7 @@ class UtbetalingsoppdragServiceTest {
                     ),
             )
 
-        assertThatThrownBy { service().lagUtbetalingsoppdrag(behandling.id, "Z123456") }
-            .isInstanceOfSatisfying(Feil::class.java) { assertThat(it.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST) }
+        assertThat(service().lagUtbetalingsoppdrag(behandling.id, "Z123456")).isNull()
     }
 
     private val forrigeBehandlingId = java.util.UUID.randomUUID()

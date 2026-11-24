@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
+import no.nav.grunn.og.hjelpestonad.oppdrag.OppdragSimuleringService
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -42,6 +43,7 @@ private fun InngangsvilkårResultat.tilResponse() =
 @RequestMapping("/api/behandling/{behandlingId}/inngangsvilkar")
 class InngangsvilkårStegController(
     private val inngangsvilkårStegService: InngangsvilkårStegService,
+    private val oppdragSimuleringService: OppdragSimuleringService,
     private val tilgangService: TilgangService,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -52,7 +54,13 @@ class InngangsvilkårStegController(
         @PathVariable behandlingId: UUID,
     ): ResponseEntity<InngangsvilkårResponse> {
         tilgangService.validerTilgangTilBehandling(behandlingId)
-        return ResponseEntity.ok(inngangsvilkårStegService.fullførSteg(behandlingId).tilResponse())
+        val inngangsvilkårResultat = inngangsvilkårStegService.fullførSteg(behandlingId)
+        if (inngangsvilkårResultat.nesteSteg == BehandlingSteg.VEDTAK_OG_BREV) {
+            // Kjøres her og ikke i servicen: transaksjonen er committet når fullførSteg returnerer, så kallet mot Oppdrag
+            // holder ikke databasetilkobling.
+            oppdragSimuleringService.simulerEtterNyTilkjentYtelse(behandlingId)
+        }
+        return ResponseEntity.ok(inngangsvilkårResultat.tilResponse())
     }
 
     @GetMapping("/perioder")
@@ -70,7 +78,7 @@ class InngangsvilkårStegController(
      */
     @ApiResponse(
         responseCode = "400",
-        description = "Vurderingen av inngangsvilkår er ikke komplett. Inneholder én feil per vilkår som mangler.",
+        description = "Vurderingen av inngangsvilkår er ikke komplett. Inneholder høyst én feil per valideringsnøkkel.",
         content = [Content(schema = Schema(implementation = VilkårValideringFeilResponse::class))],
     )
     @ExceptionHandler(VilkårValideringFeil::class)

@@ -91,7 +91,7 @@ vurderer ett vilkår og legger inn trygdetiden:
   (§ 6-3 tredje ledd), og satsen regnes ikke ut på nytt når Stortinget endrer
   satsbeløpene. Satsen endres bare når vilkårene vurderes på nytt, eller når en
   standardsats endres med alderen.
-- **Trygdetid** har en teller fra 0 til 40 og en kilde, men ingen `JA`/`NEI`.
+- **Trygdetid** har et antall år fra 0 til 40 og en kilde, men ingen `JA`/`NEI`.
   Søker kan ha rett uansett trygdetid. Til trygdetiden hentes fra andre
   systemer, legger saksbehandler den inn for hånd med begrunnelse.
 

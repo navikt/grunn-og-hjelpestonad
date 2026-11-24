@@ -5,7 +5,7 @@ export type ClientOptions = {
 };
 
 export type Valideringsfeil = {
-    vilkårType: 'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN' | 'DIAGNOSE' | 'NØDVENDIGE_EKSTRAUTGIFTER';
+    nøkkel: 'MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN' | 'DIAGNOSE' | 'NØDVENDIGE_EKSTRAUTGIFTER' | 'TRYGDETID';
     melding: string;
 };
 
@@ -13,17 +13,6 @@ export type VilkårValideringFeilResponse = {
     melding: string;
     status: number;
     feil: Array<Valideringsfeil>;
-};
-
-export type SatsOgTrygdetidFeilResponse = {
-    melding: string;
-    status: number;
-    feil: Array<SatsOgTrygdetidValideringsfeil>;
-};
-
-export type SatsOgTrygdetidValideringsfeil = {
-    nøkkel: string;
-    melding: string;
 };
 
 export type GrunnstønadPeriode = {
@@ -138,31 +127,45 @@ export type AnsvarligSaksbehandlerResponse = {
     rolle: 'INNLOGGET_SAKSBEHANDLER' | 'ANNEN_SAKSBEHANDLER' | 'IKKE_SATT';
 };
 
-export type DetaljertSimuleringResultat = {
-    simuleringMottaker: Array<SimuleringMottaker>;
+export type NesteUtbetaling = {
+    fom: string;
+    tom: string;
+    forfallsdato: string;
+    beløp: number;
 };
 
-export type OppdragSimuleringResponse = {
-    resultat: DetaljertSimuleringResultat;
+export type SimuleringResponse = {
+    status: 'IKKE_SIMULERT' | 'SIMULERT' | 'INGEN_ENDRING' | 'FEILET';
+    simulertTidspunkt?: string | null;
+    oppsummering?: Simuleringsoppsummering | null;
 };
 
-export type SimuleringMottaker = {
-    simulertPostering: Array<SimulertPostering>;
-    mottakerNummer?: string | null;
-    mottakerType?: string | null;
+export type Simuleringsbeløp = {
+    nyttBeløp: number;
+    tidligereUtbetalt: number;
+    resultat: number;
+    feilutbetaling: number;
+    etterbetaling: number;
+    manuellPostering: number;
 };
 
-export type SimulertPostering = {
-    fagOmrådeKode?: string | null;
-    erFeilkonto?: boolean | null;
+export type Simuleringsoppsummering = {
     fom?: string | null;
-    tom?: string | null;
-    betalingType?: string | null;
-    beløp?: number | null;
-    posteringType?: string | null;
-    forfallsdato?: string | null;
-    utenInntrekk?: boolean | null;
-    klassekode?: string | null;
+    tomSisteUtbetaling?: string | null;
+    feilutbetaling: number;
+    etterbetaling: number;
+    nesteUtbetaling?: NesteUtbetaling | null;
+    ukjenteFagområdekoder: Array<string>;
+    perioder: Array<Simuleringsperiode>;
+};
+
+export type Simuleringsperiode = {
+    fom: string;
+    tom: string;
+    antallMåneder: number;
+    erNesteUtbetaling: boolean;
+    beløpPerMåned: Simuleringsbeløp;
+    sumForPerioden: Simuleringsbeløp;
 };
 
 export type OppdragIverksettingResponse = {
@@ -405,7 +408,7 @@ export type VilkårDiagnoseResponse = {
 
 export type TrygdetidRequest = {
     id?: string | null;
-    teller: number;
+    antallÅr: number;
     kilde: 'ALDERSPENSJON' | 'UFØRETRYGD' | 'MIGRERING' | 'INGEN';
     begrunnelse: string;
     fraOgMedDato?: string | null;
@@ -415,7 +418,7 @@ export type TrygdetidRequest = {
 export type TrygdetidResponse = {
     id: string;
     behandlingId: string;
-    teller: number;
+    antallÅr: number;
     kilde: 'ALDERSPENSJON' | 'UFØRETRYGD' | 'MIGRERING' | 'INGEN';
     begrunnelse: string;
     fraOgMedDato?: string | null;
@@ -642,6 +645,21 @@ export type HentAnsvarligSaksbehandlerResponses = {
 
 export type HentAnsvarligSaksbehandlerResponse = HentAnsvarligSaksbehandlerResponses[keyof HentAnsvarligSaksbehandlerResponses];
 
+export type HentSimuleringData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/oppdrag/simulering/{behandlingId}';
+};
+
+export type HentSimuleringResponses = {
+    200: SimuleringResponse;
+};
+
+export type HentSimuleringResponse = HentSimuleringResponses[keyof HentSimuleringResponses];
+
 export type SimulerMotOppdragData = {
     body?: never;
     path: {
@@ -652,7 +670,7 @@ export type SimulerMotOppdragData = {
 };
 
 export type SimulerMotOppdragResponses = {
-    200: OppdragSimuleringResponse;
+    200: SimuleringResponse;
 };
 
 export type SimulerMotOppdragResponse = SimulerMotOppdragResponses[keyof SimulerMotOppdragResponses];
@@ -961,7 +979,7 @@ export type FullførSatsOgTrygdetidData = {
 };
 
 export type FullførSatsOgTrygdetidErrors = {
-    400: SatsOgTrygdetidFeilResponse;
+    400: VilkårValideringFeilResponse;
 };
 
 export type FullførSatsOgTrygdetidError = FullførSatsOgTrygdetidErrors[keyof FullførSatsOgTrygdetidErrors];

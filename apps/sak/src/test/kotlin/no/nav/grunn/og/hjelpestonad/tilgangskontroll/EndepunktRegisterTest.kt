@@ -110,6 +110,7 @@ class EndepunktRegisterTest {
                 "IverksettVedtaksbrevController#lagIverksettVedtaksbrevTask",
                 "IverksettVedtaksbrevController#distribuerVedtaksbrev",
                 "OppdragSimuleringController#simulerMotOppdrag",
+                "OppdragSimuleringController#hentSimulering",
                 "OppdragIverksettingController#iverksettMotOppdrag",
                 "OppdragIverksettingController#hentOppdragStatus",
                 "OppgaveController#hentAnsvarligSaksbehandler",
