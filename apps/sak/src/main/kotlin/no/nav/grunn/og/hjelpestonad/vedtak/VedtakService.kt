@@ -40,15 +40,19 @@ class VedtakService(
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
         val eksisterendeVedtak = hentVedtak(behandlingId)
-        if (eksisterendeVedtak != null && eksisterendeVedtak.resultatType !in setOf(ResultatType.INNVILGET, ResultatType.AVSLÅTT)) return
+        when (eksisterendeVedtak?.resultatType) {
+            ResultatType.OPPHØR, ResultatType.HENLAGT -> return
+            ResultatType.INNVILGET, ResultatType.AVSLÅTT, null -> Unit
+        }
 
         val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
         val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(behandlingId)
+        val harFullførtStegeneFørVedtak = behandling.gjeldendeSteg == BehandlingSteg.VEDTAK_OG_BREV
+        val harFullførtBeregning = tilkjentYtelse != null || harFullførtStegeneFørVedtak
         val resultatType =
             utledVedtaksresultat(
                 harOppfylteInngangsvilkår = inngangsvilkårStegService.hentPerioder(behandlingId).isNotEmpty(),
-                // En fullført førstegangsberegning uten andeler lagrer ingen tilkjent ytelse.
-                harBeregning = tilkjentYtelse != null || behandling.gjeldendeSteg == BehandlingSteg.VEDTAK_OG_BREV,
+                harFullførtBeregning = harFullførtBeregning,
                 harBeregnedeAndeler = tilkjentYtelse?.andelerTilkjentYtelse?.isNotEmpty() == true,
                 erRevurdering = behandling.forrigeBehandlingId != null,
             )
