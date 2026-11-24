@@ -127,7 +127,7 @@ class EndepunktRegisterTest {
                 "VedtakController#hentVedtak",
                 "VedtakController#lagreVedtak",
                 "VedtakController#beregn",
-                "VedtakController#hentHistoriskVedtakForBehanling",
+                "VedtakController#hentHistoriskVedtakForBehandling",
                 "VilkårDiagnoseController#hentDiagnosePerioder",
                 "VilkårDiagnoseController#lagreDiagnosePeriode",
                 "VilkårDiagnoseController#slettDiagnosePeriode",
