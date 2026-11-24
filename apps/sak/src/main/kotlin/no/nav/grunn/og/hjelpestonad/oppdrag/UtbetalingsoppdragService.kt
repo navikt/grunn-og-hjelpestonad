@@ -32,18 +32,18 @@ class UtbetalingsoppdragService(
 ) {
     private val logger = LoggerFactory.getLogger(UtbetalingsoppdragService::class.java)
 
-    /** Til simulering. Leser kjeden på fagsaken, men lagrer ingenting. */
+    /**
+     * Til simulering. Leser kjeden på fagsaken, men lagrer ingenting.
+     * Returnerer `null` når simuleringen ikke har noe å sende til Oppdrag: ingen andeler og ingen kjede å opphøre,
+     * eller ingen endring fra forrige behandling.
+     */
     fun lagUtbetalingsoppdrag(
         behandlingId: UUID,
         saksbehandlerId: String,
-    ): UtbetalingsoppdragForBehandling {
+    ): UtbetalingsoppdragForBehandling? {
         val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
-        val beregning =
-            beregnUtbetalingsoppdrag(behandling, saksbehandlerId)
-                ?: throw Feil("Behandlingen har ingen andeler å utbetale og ingen tidligere utbetaling å opphøre", HttpStatus.BAD_REQUEST)
-        if (!beregning.oppdrag.harEndringFraForrigeBehandling) {
-            throw Feil("Behandlingen endrer ikke utbetalingen", HttpStatus.BAD_REQUEST)
-        }
+        val beregning = beregnUtbetalingsoppdrag(behandling, saksbehandlerId) ?: return null
+        if (!beregning.oppdrag.harEndringFraForrigeBehandling) return null
         return UtbetalingsoppdragForBehandling(utbetalingsoppdrag = beregning.oppdrag.utbetalingsoppdrag)
     }
 

@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.http.HttpStatus
-import java.math.BigDecimal
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.Duration
 import java.time.LocalDate
 import java.util.UUID
@@ -115,46 +115,38 @@ class OppdragClientTest {
     }
 
     @Test
-    fun `sender oppdraget med OBO-token og leser simuleringsresultatet`() {
-        stubSvar(
+    fun `sender oppdraget med OBO-token og returnerer data fra simuleringen uendret`() {
+        val simuleringsdataJson =
             """
             {
-              "data": {
-                "simuleringMottaker": [
-                  {
-                    "simulertPostering": [
-                      {
-                        "fagOmrådeKode": "IT28",
-                        "fom": "2026-01-01",
-                        "tom": "2026-01-31",
-                        "betalingType": "DEBIT",
-                        "beløp": 1234,
-                        "posteringType": "YTELSE",
-                        "forfallsdato": "2026-01-20",
-                        "utenInntrekk": false,
-                        "ukjentFelt": "x"
-                      }
-                    ],
-                    "mottakerNummer": "12345678910",
-                    "mottakerType": "BRUKER"
-                  }
-                ]
-              },
-              "status": "SUKSESS",
-              "melding": "Innhenting av data var vellykket"
+              "simuleringMottaker": [
+                {
+                  "simulertPostering": [
+                    {
+                      "fagOmrådeKode": "IT28",
+                      "fom": "2026-01-01",
+                      "tom": "2026-01-31",
+                      "betalingType": "DEBIT",
+                      "beløp": 1234,
+                      "posteringType": "YTELSE",
+                      "forfallsdato": "2026-01-20",
+                      "utenInntrekk": false,
+                      "ukjentFelt": "x"
+                    }
+                  ],
+                  "mottakerNummer": "12345678910",
+                  "mottakerType": "BRUKER"
+                }
+              ]
             }
-            """.trimIndent(),
+            """.trimIndent()
+        stubSvar(
+            """{"data": $simuleringsdataJson, "status": "SUKSESS", "melding": "Innhenting av data var vellykket"}""",
         )
 
-        val resultat = client.simuler(utbetalingsoppdrag)
+        val simuleringsrespons = client.simuler(utbetalingsoppdrag)
 
-        val postering =
-            resultat.simuleringMottaker
-                .single()
-                .simulertPostering
-                .single()
-        assertEquals(0, BigDecimal(1234).compareTo(postering.beløp))
-        assertEquals("IT28", postering.fagOmrådeKode)
+        assertEquals(jacksonObjectMapper().readTree(simuleringsdataJson), simuleringsrespons)
         verify(exactly = 1) { texasClient.hentOboToken(SCOPE) }
         verify(exactly = 0) { texasClient.hentMaskinToken(any()) }
         wireMockServer.verify(
