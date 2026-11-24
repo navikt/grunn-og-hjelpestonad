@@ -34,8 +34,11 @@ Vi lagrer svaret som det er, også `mottakerNummer`, som er fødselsnummeret. Et
 uendret svar er enklere å feilsøke mot Oppdrag, og fødselsnummeret ligger
 allerede i databasen. Når Oppdrag svarer med `SUKSESS` og et `data`-felt som ikke
 er `null`, lagrer vi `data` med status `SIMULERT` uten å oppsummere det først.
-Hvis Oppdrag-kallet feiler, svarkroppen er tom, statusen ikke er `SUKSESS` eller
-`data` mangler eller er `null`, lagrer vi `FEILET` uten `respons`.
+Hvis behandlingen ikke endrer utbetalingen (ingen andeler og ingen tidligere
+utbetaling å opphøre, eller ingen endring fra forrige behandling), kaller vi
+ikke Oppdrag og lagrer `INGEN_ENDRING` uten `respons`. Hvis Oppdrag-kallet
+feiler, svarkroppen er tom, statusen ikke er `SUKSESS` eller `data` mangler
+eller er `null`, lagrer vi `FEILET` uten `respons`.
 
 ### Vi simulerer etter ny tilkjent ytelse og når saksbehandler ber om det
 
@@ -47,10 +50,11 @@ Hvis Oppdrag-kallet feiler, svarkroppen er tom, statusen ikke er `SUKSESS` eller
   ansvarlig saksbehandler og `validerKanEndreSteg(VEDTAK_OG_BREV)`.
 - `GET /api/oppdrag/simulering/{behandlingId}` leser den lagrede simuleringen og
   kaller ikke Oppdrag. Saksbehandler, beslutter og lesetilgang kan hente den.
-  Vi prøver å oppsummere en `SIMULERT` rad ved hver henting. Hvis det feiler,
-  svarer API-et `FEILET` uten å endre raden. Det manuelle POST-kallet leser raden
-  rett etter lagring og gir samme svar. Vi prøver ikke å oppsummere rader som
-  allerede er lagret som `FEILET`.
+  Finnes det ingen rad, svarer API-et `IKKE_SIMULERT`. Vi prøver å oppsummere en
+  `SIMULERT` rad ved hver henting. Hvis det feiler, svarer API-et `FEILET` uten
+  å endre raden. Det manuelle POST-kallet leser raden rett etter lagring og gir
+  samme svar. Vi prøver ikke å oppsummere rader som allerede er lagret som
+  `FEILET`.
 - Simuleringen slettes i samme transaksjon som tilkjent ytelse, i
   `TilkjentYtelseService.slettTilkjentYtelseHvisFinnes`.
 
@@ -98,21 +102,22 @@ ingen egen rad. Hver periode har beløpet per måned og summen for perioden.
 Ti år uten endringer blir én rad.
 
 `perioder` slutter med neste utbetaling. Månedene etter er med i svaret fra
-Oppdrag, men vises ikke, som i ba-sak.
+Oppdrag, men vises ikke, som i ba-sak. Hvis to simuleringsmåneder til og med
+neste utbetaling faller i samme kalendermåned, svarer API-et `FEILET` uten
+oppsummering.
 
 ### Manuelle posteringer
 
-Manuelle posteringer på grunn- og hjelpestønad har kodene MIT28 og MGHTB.
+Manuelle posteringer på grunn- og hjelpestønad har kodene MIT28, MIT29 og MGHTB.
 familie-oppdrag sender navnet på `FagOmrådeKode` i familie-kontrakter, ikke
 koden. `MANUELLE_FAGOMRÅDEKODER` har derfor navnene fra kontraktene:
-`GRUNNSTØNAD_INFOTRYGD_MANUELT` og
-`GRUNN_OG_HJELPESTØNAD_TILBAKEKREVING_MANUELT`. MIT29
-(`HJELPESTØNAD_INFOTRYGD_MANUELT`) er bevisst ikke med. Perioder med manuell
-postering får en tagg i tabellen. Har en periode både manuell postering og et
-resultat som ikke er 0, viser frontend en advarsel om å sende oppgave til NØS,
-som i ba-sak. En postering med en annen kode enn disse,
-`GRUNNSTØNAD_INFOTRYGD` (IT28) og `HJELPESTØNAD_INFOTRYGD` (IT29), står i
-`ukjenteFagområdekoder`, og frontend viser et varsel.
+`GRUNNSTØNAD_INFOTRYGD_MANUELT`, `HJELPESTØNAD_INFOTRYGD_MANUELT` og
+`GRUNN_OG_HJELPESTØNAD_TILBAKEKREVING_MANUELT`. Perioder med manuell postering
+får en tagg i tabellen. Har en periode både manuell postering og et resultat som
+ikke er 0, viser frontend en advarsel om å sende oppgave til NØS, som i ba-sak.
+En postering med en annen kode enn disse tre, `GRUNNSTØNAD_INFOTRYGD` (IT28) og
+`HJELPESTØNAD_INFOTRYGD` (IT29), står i `ukjenteFagområdekoder`, og frontend
+viser et varsel.
 
 #### Finne simuleringer med manuelle posteringer
 
@@ -135,7 +140,11 @@ FROM simulering s
          JOIN behandling b ON b.id = s.behandling_id
          CROSS JOIN LATERAL jsonb_array_elements(s.respons -> 'simuleringMottaker') AS mottaker
          CROSS JOIN LATERAL jsonb_array_elements(mottaker -> 'simulertPostering') AS postering
-WHERE postering ->> 'fagOmrådeKode' IN ('GRUNNSTØNAD_INFOTRYGD_MANUELT', 'GRUNN_OG_HJELPESTØNAD_TILBAKEKREVING_MANUELT')
+WHERE postering ->> 'fagOmrådeKode' IN (
+    'GRUNNSTØNAD_INFOTRYGD_MANUELT',
+    'HJELPESTØNAD_INFOTRYGD_MANUELT',
+    'GRUNN_OG_HJELPESTØNAD_TILBAKEKREVING_MANUELT'
+)
 GROUP BY s.behandling_id, b.fagsak_id, s.status, s.opprettet_tid
 ORDER BY s.opprettet_tid DESC;
 ```

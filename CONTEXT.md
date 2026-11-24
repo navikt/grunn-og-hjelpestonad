@@ -143,5 +143,5 @@ Den første måneden i simuleringen som ikke er utbetalt ennå og ikke har feilu
 _Avoid_: Etterbetaling
 
 **Manuell postering**:
-En postering økonomi har lagt inn for hånd i Oppdrag. Kjennes igjen på fagområdekoden. Vi har ikke kodene for grunnstønad ennå.
+En postering økonomi har lagt inn for hånd i Oppdrag. Kjennes igjen på fagområdekoden (MIT28, MIT29 og MGHTB).
 _Avoid_: Korrigering
