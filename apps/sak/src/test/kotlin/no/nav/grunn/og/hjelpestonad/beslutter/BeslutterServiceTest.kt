@@ -318,7 +318,8 @@ class BeslutterServiceTest {
                 .map { (_, payload) -> payload },
         ).containsExactly(behandlingId)
         verify { behandlingService.oppdaterBehandlingResultat(behandlingId, BehandlingResultat.INNVILGET) }
-        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.IVERKSETTER_VEDTAK) }
+        verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
         verify {
             taskService.opprett(IverksettOppdragTask.TYPE, any<IverksettOppdragTask.IverksettOppdragTaskData>(), any(), any())
         }
@@ -343,6 +344,8 @@ class BeslutterServiceTest {
                 .filter { (type, _) -> type.navn == IverksettOppdragTask.TYPE.navn }
                 .map { (_, payload) -> payload },
         ).containsExactly(IverksettOppdragTask.IverksettOppdragTaskData(behandlingId = behandlingId, saksbehandlerId = "Z123456"))
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.IVERKSETTER_VEDTAK) }
+        verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
     }
 
     @Test

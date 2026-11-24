@@ -3,6 +3,8 @@ package no.nav.grunn.og.hjelpestonad.oppdrag
 import efterlatte.prosessering.RetryPolicy
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.task.lagTaskType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -21,6 +23,7 @@ import kotlin.time.Duration.Companion.minutes
 @Service
 class IverksettOppdragTask(
     private val oppdragIverksettingService: OppdragIverksettingService,
+    private val behandlingService: BehandlingService,
     private val clock: Clock = Clock.systemDefaultZone(),
 ) : TaskStep<IverksettOppdragTask.IverksettOppdragTaskData> {
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -38,9 +41,10 @@ class IverksettOppdragTask(
             }
 
             is Iverksettingsresultat.AlleredeIverksatt -> {
-                // Testendepunktet sender uten å opprette statustask. Har OS kvittert, er statusen hentet fra før.
-                if (iverksettingsresultat.oppdragResultat.status == OppdragStatus.LAGT_PÅ_KØ) {
-                    opprettHentOppdragStatusTask(kontekst, behandlingId)
+                when (iverksettingsresultat.oppdragResultat.status) {
+                    OppdragStatus.KVITTERT_OK -> behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT)
+                    OppdragStatus.LAGT_PÅ_KØ -> opprettHentOppdragStatusTask(kontekst, behandlingId)
+                    else -> error("Oppdrag for behandling=$behandlingId fikk status=${iverksettingsresultat.oppdragResultat.status}")
                 }
             }
 
@@ -49,6 +53,7 @@ class IverksettOppdragTask(
             is Iverksettingsresultat.IngenEndring,
             -> {
                 logger.info("Behandling={} er ikke iverksatt mot oppdrag fordi den ikke endrer utbetalingen", behandlingId)
+                behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT)
             }
         }
     }

@@ -182,7 +182,10 @@ class VedtakServiceTest {
         beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
 
         verify { behandlingService.oppdaterBehandlingResultat(behandlingId, if (harBeregnedeAndeler) BehandlingResultat.INNVILGET else BehandlingResultat.AVSLÅTT) }
-        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, if (harBeregnedeAndeler) BehandlingStatus.IVERKSETTER_VEDTAK else BehandlingStatus.FERDIGSTILT) }
+        if (harBeregnedeAndeler) {
+            verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
+        }
         verify(exactly = if (harBeregnedeAndeler) 1 else 0) {
             taskService.opprett(IverksettOppdragTask.TYPE, IverksettOppdragTask.IverksettOppdragTaskData(behandlingId, "Z123456"), any(), any())
         }
