@@ -6,7 +6,7 @@ import type { Søkeresultat } from "./useSøk";
 import { STØNADSTYPE } from "./useFagsak";
 
 interface OpprettFagsak {
-  opprettFagsak: (søkeresultat: Søkeresultat) => Promise<void>;
+  opprettFagsak: (søkeresultat: Søkeresultat) => Promise<boolean>;
   oppretter: boolean;
   opprettFeilmelding: string | null;
 }
@@ -26,9 +26,12 @@ export const useOpprettFagsak = (): OpprettFagsak => {
           body: { personident: søkeresultat.personident, stønadstype: STØNADSTYPE },
           throwOnError: true,
         });
-        navigate(`/person/${fagsak.fagsakPersonId}/behandlingsoversikt`);
+        await navigate(`/person/${fagsak.fagsakPersonId}/behandlingsoversikt`);
+        return true;
       } catch (feil) {
         settOpprettFeilmelding(feilmeldingFra(feil, "Kunne ikke opprette fagsak."));
+        return false;
+      } finally {
         settOppretter(false);
       }
     },

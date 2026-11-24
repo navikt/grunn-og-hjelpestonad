@@ -24,8 +24,8 @@ export const Header: React.FC = () => {
 
   const handleOpprettFagsak = async () => {
     if (!søkeresultat) return;
-    await opprettFagsak(søkeresultat);
-    tilbakestillSøk();
+    const fagsakOpprettet = await opprettFagsak(søkeresultat);
+    if (fagsakOpprettet) tilbakestillSøk();
   };
 
   return (
