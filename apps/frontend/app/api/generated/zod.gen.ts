@@ -198,31 +198,7 @@ export const zSimuleringsoppsummering = z.object({
     feilutbetaling: z.number(),
     etterbetaling: z.number(),
     nesteUtbetaling: zNesteUtbetaling.nullish(),
-    ukjenteFagområdekoder: z.array(z.enum([
-        'BARNETRYGD',
-        'BARNETRYGD_MANUELT',
-        'BARNETRYGD_INFOTRYGD',
-        'BARNETRYGD_INFOTRYGD_MANUELT',
-        'ENSLIG_FORSØRGER_OVERGANGSSTØNAD',
-        'ENSLIG_FORSØRGER_OVERGANGSSTØNAD_INFOTRYGD',
-        'ENSLIG_FORSØRGER_OVERGANGSSTØNAD_MANUELL_POSTERING',
-        'ENSLIG_FORSØRGER_OVERGANGSSTØNAD_MANUELL_POSTERING_INFOTRYGD',
-        'ENSLIG_FORSØRGER_SKOLEPENGER',
-        'ENSLIG_FORSØRGER_SKOLEPENGER_INFOTRYGD',
-        'ENSLIG_FORSØRGER_BARNETILSYN',
-        'ENSLIG_FORSØRGER_BARNETILSYN_MANUELL_POSTERING',
-        'ENSLIG_FORSØRGER_BARNETILSYN_INFOTRYGD',
-        'TILBAKEKREVING_EF_MANUELL_POSTERING',
-        'KONTANTSTØTTE',
-        'KONTANTSTØTTE_MANUELT',
-        'KONTANTSTØTTE_INFOTRYGD',
-        'KONTANTSTØTTE_INFOTRYGD_MANUELT',
-        'GRUNNSTØNAD_INFOTRYGD',
-        'GRUNNSTØNAD_INFOTRYGD_MANUELT',
-        'HJELPESTØNAD_INFOTRYGD',
-        'HJELPESTØNAD_INFOTRYGD_MANUELT',
-        'GRUNN_OG_HJELPESTØNAD_TILBAKEKREVING_MANUELT'
-    ])),
+    ukjenteFagområdekoder: z.array(z.string()),
     perioder: z.array(zSimuleringsperiode)
 });
 
