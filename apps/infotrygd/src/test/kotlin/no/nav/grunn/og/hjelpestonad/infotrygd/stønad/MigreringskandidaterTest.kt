@@ -26,20 +26,6 @@ class MigreringskandidaterTest {
         motstridendeFelt = motstridendeFelt,
     )
 
-    /** Deler kandidatene i partier som repositoryet: synkende stønadId, under førStønadId. */
-    private fun partierAv(
-        kandidater: List<Migreringskandidat>,
-        partistørrelse: Int,
-        forespurtePartier: MutableList<Long?> = mutableListOf(),
-    ): (Long?) -> List<Migreringskandidat> =
-        { førStønadId ->
-            forespurtePartier.add(førStønadId)
-            kandidater
-                .filter { førStønadId == null || it.stønadId < førStønadId }
-                .sortedByDescending { it.stønadId }
-                .take(partistørrelse)
-        }
-
     @Test
     fun `tar med personer der evalueringen har hjemmelbokstaven, sammenlignet på trimmet tekst`() {
         val kandidater = listOf(kandidat(4), kandidat(3), kandidat(2), kandidat(1))
@@ -53,9 +39,10 @@ class MigreringskandidaterTest {
 
         val personer =
             finnPersonerMedHjemmelbokstav(
+                kandidater = kandidater,
                 hjemmelbokstav = "F",
                 antall = 10,
-                hentParti = partierAv(kandidater, partistørrelse = 10),
+                bitstørrelse = 10,
                 hentEvalueringer = { vedtakIder -> evalueringer.filterKeys { it in vedtakIder } },
             )
 
@@ -66,9 +53,10 @@ class MigreringskandidaterTest {
     fun `motstridende hjemmelbokstav gir ikke treff`() {
         val personer =
             finnPersonerMedHjemmelbokstav(
+                kandidater = listOf(kandidat(1)),
                 hjemmelbokstav = "F",
                 antall = 10,
-                hentParti = partierAv(listOf(kandidat(1)), partistørrelse = 10),
+                bitstørrelse = 10,
                 hentEvalueringer = { mapOf(10L to evaluering(null, motstridendeFelt = setOf(Ev10Posisjon.HJEMMELBOKSTAV))) },
             )
 
@@ -76,46 +64,69 @@ class MigreringskandidaterTest {
     }
 
     @Test
-    fun `henter nye partier til antall er nådd, og ikke flere`() {
-        val kandidater = (1L..6L).map { kandidat(it) }
-        val forespurtePartier = mutableListOf<Long?>()
+    fun `henter evalueringer bit for bit til antall er nådd, og ikke flere`() {
+        val kandidater = (6L downTo 1L).map { kandidat(it) }
+        val forespurteBiter = mutableListOf<Set<Long>>()
 
         val personer =
             finnPersonerMedHjemmelbokstav(
-                hjemmelbokstav = "F",
-                antall = 3,
-                hentParti = partierAv(kandidater, partistørrelse = 2, forespurtePartier),
-                // Bare kandidatene med partall stønadId har F.
-                hentEvalueringer = { vedtakIder -> vedtakIder.associateWith { evaluering(if (it % 20 == 0L) "F" else "B") } },
-            )
-
-        assertEquals(setOf("person6", "person4", "person2"), personer)
-        assertEquals(listOf(null, 5L, 3L), forespurtePartier)
-    }
-
-    @Test
-    fun `stopper når et parti er tomt, med færre personer enn antall`() {
-        val forespurtePartier = mutableListOf<Long?>()
-
-        val personer =
-            finnPersonerMedHjemmelbokstav(
-                hjemmelbokstav = "F",
-                antall = 10,
-                hentParti = partierAv(listOf(kandidat(2), kandidat(1)), partistørrelse = 1, forespurtePartier),
-                hentEvalueringer = { vedtakIder -> vedtakIder.associateWith { evaluering("F") } },
-            )
-
-        assertEquals(setOf("person2", "person1"), personer)
-        assertEquals(listOf(null, 2L, 1L), forespurtePartier)
-    }
-
-    @Test
-    fun `returnerer ikke flere enn antall selv om partiet har flere treff`() {
-        val personer =
-            finnPersonerMedHjemmelbokstav(
+                kandidater = kandidater,
                 hjemmelbokstav = "F",
                 antall = 2,
-                hentParti = partierAv((1L..5L).map { kandidat(it) }, partistørrelse = 10),
+                bitstørrelse = 2,
+                hentEvalueringer = { vedtakIder ->
+                    forespurteBiter.add(vedtakIder)
+                    // Bare kandidatene med partall stønadId har F.
+                    vedtakIder.associateWith { evaluering(if (it % 20 == 0L) "F" else "B") }
+                },
+            )
+
+        assertEquals(setOf("person6", "person4"), personer)
+        assertEquals(listOf(setOf(60L, 50L), setOf(40L, 30L)), forespurteBiter)
+    }
+
+    @Test
+    fun `går gjennom alle kandidatene når det er færre treff enn antall`() {
+        val forespurteBiter = mutableListOf<Set<Long>>()
+
+        val personer =
+            finnPersonerMedHjemmelbokstav(
+                kandidater = listOf(kandidat(3), kandidat(2), kandidat(1)),
+                hjemmelbokstav = "F",
+                antall = 10,
+                bitstørrelse = 2,
+                hentEvalueringer = { vedtakIder ->
+                    forespurteBiter.add(vedtakIder)
+                    vedtakIder.associateWith { evaluering("F") }
+                },
+            )
+
+        assertEquals(setOf("person3", "person2", "person1"), personer)
+        assertEquals(listOf(setOf(30L, 20L), setOf(10L)), forespurteBiter)
+    }
+
+    @Test
+    fun `henter ingen evalueringer uten kandidater`() {
+        val personer =
+            finnPersonerMedHjemmelbokstav(
+                kandidater = emptyList(),
+                hjemmelbokstav = "F",
+                antall = 10,
+                bitstørrelse = 2,
+                hentEvalueringer = { error("Skal ikke hente evalueringer uten kandidater") },
+            )
+
+        assertEquals(emptySet(), personer)
+    }
+
+    @Test
+    fun `returnerer ikke flere enn antall selv om biten har flere treff`() {
+        val personer =
+            finnPersonerMedHjemmelbokstav(
+                kandidater = (5L downTo 1L).map { kandidat(it) },
+                hjemmelbokstav = "F",
+                antall = 2,
+                bitstørrelse = 10,
                 hentEvalueringer = { vedtakIder -> vedtakIder.associateWith { evaluering("F") } },
             )
 
@@ -126,9 +137,10 @@ class MigreringskandidaterTest {
     fun `samme person med to stønader telles én gang`() {
         val personer =
             finnPersonerMedHjemmelbokstav(
+                kandidater = listOf(kandidat(3, "a"), kandidat(2, "a"), kandidat(1, "b")),
                 hjemmelbokstav = "F",
                 antall = 2,
-                hentParti = partierAv(listOf(kandidat(3, "a"), kandidat(2, "a"), kandidat(1, "b")), partistørrelse = 10),
+                bitstørrelse = 10,
                 hentEvalueringer = { vedtakIder -> vedtakIder.associateWith { evaluering("F") } },
             )
 
@@ -136,12 +148,13 @@ class MigreringskandidaterTest {
     }
 
     @Test
-    fun `feiler i stedet for å gå evig når partiet ikke flytter seg`() {
-        assertThrows<IllegalStateException> {
+    fun `bitstørrelse må være større enn 0`() {
+        assertThrows<IllegalArgumentException> {
             finnPersonerMedHjemmelbokstav(
+                kandidater = listOf(kandidat(1)),
                 hjemmelbokstav = "F",
                 antall = 10,
-                hentParti = { listOf(kandidat(1)) },
+                bitstørrelse = 0,
                 hentEvalueringer = { emptyMap() },
             )
         }

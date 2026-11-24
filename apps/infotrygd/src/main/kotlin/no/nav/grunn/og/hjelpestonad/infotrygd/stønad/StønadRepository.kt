@@ -81,17 +81,15 @@ class StønadRepository(
             .set()
 
     /**
-     * Ett parti med løpende grunnstønader der siste vedtak har endringskode F (Førstegangsvedtak) og alle
-     * t_gh-radene har [satsGrunnstønad]. Siste vedtak velges før filteret på F og sats, slik at et eldre
-     * førstegangsvedtak ikke gir treff. Et siste vedtak med F og AN er med, som i /stonader.
+     * Alle løpende grunnstønader der siste vedtak har endringskode F (Førstegangsvedtak) og alle t_gh-radene har
+     * [satsGrunnstønad]. Siste vedtak velges før filteret på F og sats, slik at et eldre førstegangsvedtak ikke gir
+     * treff. Et siste vedtak med F og AN er med, som i /stonader.
      *
-     * Partiet er sortert på stønadId synkende og starter under [førStønadId]. Vedtak med et annet
-     * person_lopenr enn stønaden er ikke med, siden tilgangen bare sjekkes for personen på vedtaket.
+     * Sortert på stønadId synkende. Vedtak med et annet person_lopenr enn stønaden er ikke med, siden tilgangen bare
+     * sjekkes for personen på vedtaket.
      */
-    fun hentPartiMedFørstegangsvedtak(
+    fun hentKandidaterMedFørstegangsvedtak(
         satsGrunnstønad: Long,
-        førStønadId: Long?,
-        partistørrelse: Int,
         dagensDato: LocalDate = LocalDate.now(),
     ): List<Migreringskandidat> =
         jdbcClient
@@ -103,7 +101,6 @@ class StønadRepository(
                     JOIN t_vedtak v ON v.stonad_id = s.stonad_id
                     WHERE s.kode_rutine = :kodeRutine
                       AND s.oppdrag_id IS NOT NULL
-                      AND (CAST(:forStonadId AS BIGINT) IS NULL OR s.stonad_id < :forStonadId)
                       AND EXISTS (SELECT 1 FROM t_endring e WHERE e.vedtak_id = v.vedtak_id AND e.kode NOT IN ('AN', 'UA'))
                       AND (v.dato_innv_tom IS NULL OR v.dato_innv_fom < v.dato_innv_tom)
                       AND (s.dato_opphor IS NULL OR s.dato_opphor > v.dato_innv_fom)
@@ -120,14 +117,11 @@ class StønadRepository(
                   AND EXISTS (SELECT 1 FROM t_gh g WHERE g.vedtak_id = v.vedtak_id)
                   AND NOT EXISTS (SELECT 1 FROM t_gh g WHERE g.vedtak_id = v.vedtak_id AND g.sats_gs IS DISTINCT FROM :satsGs)
                 ORDER BY s.stonad_id DESC
-                LIMIT :partistorrelse
                 """.trimIndent(),
             ).param("kodeRutine", Stønadstype.GRUNNSTØNAD.kodeRutine)
-            .param("forStonadId", førStønadId)
             .param("nesteMåned", nesteMåned(dagensDato))
             .param("endringskode", ENDRINGSKODE_FØRSTEGANGSVEDTAK)
             .param("satsGs", satsGrunnstønad)
-            .param("partistorrelse", partistørrelse)
             .query { rs, _ ->
                 Migreringskandidat(
                     personident = rs.getString("personnr"),

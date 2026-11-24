@@ -54,7 +54,7 @@ class StønadController(
                 "med oppgitt sats og hjemmelbokstav",
         description =
             "Siste vedtak på stønaden har endringskode F, alle t_gh-radene har sats_gs lik satsGrunnstonad, og " +
-                "siste evaluering har hjemmelbokstaven. Stønadene gås gjennom i partier, nyeste stønadId først. " +
+                "siste evaluering har hjemmelbokstaven. Kandidatene gås gjennom med nyeste stønadId først. " +
                 "Med brukertoken fjernes personer saksbehandleren ikke har tilgang til, så svaret kan inneholde " +
                 "færre enn antall personer.",
     )

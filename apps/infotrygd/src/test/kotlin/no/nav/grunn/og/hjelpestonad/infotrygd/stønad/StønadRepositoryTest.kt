@@ -157,17 +157,13 @@ class StønadRepositoryTest {
         "sats_gs" to satsGrunnstønad,
     )
 
-    private fun personerIParti(
-        satsGrunnstønad: Long = 1,
-        førStønadId: Long? = null,
-        partistørrelse: Int = 1000,
-    ): List<String> =
+    private fun kandidatpersoner(satsGrunnstønad: Long = 1): List<String> =
         stønadRepository
-            .hentPartiMedFørstegangsvedtak(satsGrunnstønad, førStønadId, partistørrelse, dagensDato)
+            .hentKandidaterMedFørstegangsvedtak(satsGrunnstønad, dagensDato)
             .map { it.personident }
 
     @Test
-    fun `parti med førstegangsvedtak krever endringskode F på siste vedtak`() {
+    fun `kandidater med førstegangsvedtak krever endringskode F på siste vedtak`() {
         lagrePerson("1", "01017012345")
         lagrePerson("2", "02027012345")
         lagrePerson("3", "03037012345")
@@ -177,21 +173,21 @@ class StønadRepositoryTest {
         lagreVedtak("3", stønadId = "30", vedtakId = "300", kodeRutine = "GS", tom = null, endringskode = "R")
         listOf("100", "200", "201", "300").forEach { vedtakId -> lagreSatsGrunnstønad(vedtakId, satsGrunnstønad = "1") }
 
-        assertEquals(listOf("01017012345"), personerIParti())
+        assertEquals(listOf("01017012345"), kandidatpersoner())
     }
 
     @Test
-    fun `parti med førstegangsvedtak tar med F og AN på samme vedtak`() {
+    fun `kandidater med førstegangsvedtak tar med F og AN på samme vedtak`() {
         lagrePerson("1", "01017012345")
         lagreVedtak("1", stønadId = "10", vedtakId = "100", kodeRutine = "GS", tom = null, endringskode = "F")
         testdata.lagre(ExodusTabell.T_ENDRING, "vedtak_id" to "100", "kode" to "AN")
         lagreSatsGrunnstønad("100", satsGrunnstønad = "1")
 
-        assertEquals(listOf("01017012345"), personerIParti())
+        assertEquals(listOf("01017012345"), kandidatpersoner())
     }
 
     @Test
-    fun `parti med førstegangsvedtak utelater hjelpestønad, avsluttede vedtak og stønader uten oppdrag`() {
+    fun `kandidater med førstegangsvedtak utelater hjelpestønad, avsluttede vedtak og stønader uten oppdrag`() {
         lagrePerson("1", "01017012345")
         lagrePerson("2", "02027012345")
         lagrePerson("3", "03037012345")
@@ -200,11 +196,11 @@ class StønadRepositoryTest {
         lagreVedtak("3", stønadId = "30", vedtakId = "300", kodeRutine = "GS", tom = null, endringskode = "F", oppdragId = null)
         listOf("100", "200", "300").forEach { vedtakId -> lagreSatsGrunnstønad(vedtakId, satsGrunnstønad = "1") }
 
-        assertEquals(emptyList(), personerIParti())
+        assertEquals(emptyList(), kandidatpersoner())
     }
 
     @Test
-    fun `parti med førstegangsvedtak krever oppgitt sats på alle t_gh-radene`() {
+    fun `kandidater med førstegangsvedtak krever oppgitt sats på alle t_gh-radene`() {
         lagrePerson("1", "01017012345")
         lagrePerson("2", "02027012345")
         lagrePerson("3", "03037012345")
@@ -222,12 +218,12 @@ class StønadRepositoryTest {
         lagreSatsGrunnstønad("400", satsGrunnstønad = null)
         // Vedtak 500 har ingen t_gh-rad.
 
-        assertEquals(listOf("01017012345"), personerIParti(satsGrunnstønad = 1))
-        assertEquals(listOf("02027012345"), personerIParti(satsGrunnstønad = 2))
+        assertEquals(listOf("01017012345"), kandidatpersoner(satsGrunnstønad = 1))
+        assertEquals(listOf("02027012345"), kandidatpersoner(satsGrunnstønad = 2))
     }
 
     @Test
-    fun `parti med førstegangsvedtak er sortert på stønadId synkende og starter under førStønadId`() {
+    fun `kandidater med førstegangsvedtak er sortert på stønadId synkende`() {
         lagrePerson("1", "01017012345")
         lagrePerson("2", "02027012345")
         lagrePerson("3", "03037012345")
@@ -236,12 +232,11 @@ class StønadRepositoryTest {
         lagreVedtak("3", stønadId = "30", vedtakId = "300", kodeRutine = "GS", tom = null, endringskode = "F")
         listOf("100", "200", "300").forEach { vedtakId -> lagreSatsGrunnstønad(vedtakId, satsGrunnstønad = "1") }
 
-        assertEquals(listOf("03037012345", "02027012345"), personerIParti(partistørrelse = 2))
-        assertEquals(listOf("01017012345"), personerIParti(førStønadId = 20, partistørrelse = 2))
+        assertEquals(listOf("03037012345", "02027012345", "01017012345"), kandidatpersoner())
     }
 
     @Test
-    fun `parti med førstegangsvedtak utelater vedtak med et annet løpenummer enn stønaden`() {
+    fun `kandidater med førstegangsvedtak utelater vedtak med et annet løpenummer enn stønaden`() {
         lagrePerson("1", "01017012345")
         lagrePerson("2", "02027012345")
         testdata.lagre(
@@ -262,6 +257,6 @@ class StønadRepositoryTest {
         testdata.lagre(ExodusTabell.T_ENDRING, "vedtak_id" to "100", "kode" to "F")
         lagreSatsGrunnstønad("100", satsGrunnstønad = "1")
 
-        assertEquals(emptyList(), personerIParti())
+        assertEquals(emptyList(), kandidatpersoner())
     }
 }

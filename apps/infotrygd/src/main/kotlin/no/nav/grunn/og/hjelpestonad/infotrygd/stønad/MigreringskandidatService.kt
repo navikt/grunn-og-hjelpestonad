@@ -11,33 +11,42 @@ class MigreringskandidatService(
 ) {
     private val logger = LoggerFactory.getLogger(MigreringskandidatService::class.java)
 
-    /** Se [finnPersonerMedHjemmelbokstav] og [StønadRepository.hentPartiMedFørstegangsvedtak]. */
+    /** Se [StønadRepository.hentKandidaterMedFørstegangsvedtak] og [finnPersonerMedHjemmelbokstav]. */
     fun finnPersonerMedFørstegangsvedtak(
         satsGrunnstønad: Long,
         hjemmelbokstav: String,
         antall: Int,
     ): Set<String> {
-        var antallPartier = 0
+        val startKandidater = System.nanoTime()
+        val kandidater = stønadRepository.hentKandidaterMedFørstegangsvedtak(satsGrunnstønad)
+        logger.info("Hentet {} kandidater med førstegangsvedtak på {} ms", kandidater.size, millisekunderSiden(startKandidater))
+
+        val startEvaluering = System.nanoTime()
+        var antallBiter = 0
         val personerMedTreff =
             finnPersonerMedHjemmelbokstav(
+                kandidater = kandidater,
                 hjemmelbokstav = hjemmelbokstav,
                 antall = antall,
-                hentParti = { førStønadId ->
-                    antallPartier++
-                    stønadRepository.hentPartiMedFørstegangsvedtak(satsGrunnstønad, førStønadId, PARTISTØRRELSE)
+                bitstørrelse = BITSTØRRELSE,
+                hentEvalueringer = { vedtakIder ->
+                    antallBiter++
+                    evalueringService.hentEvalueringerForVedtak(vedtakIder)
                 },
-                hentEvalueringer = evalueringService::hentEvalueringerForVedtak,
             )
         logger.info(
-            "Fant {} av {} personer med førstegangsvedtak etter {} partier",
+            "Fant {} av {} personer etter {} biter med evaluering på {} ms",
             personerMedTreff.size,
             antall,
-            antallPartier,
+            antallBiter,
+            millisekunderSiden(startEvaluering),
         )
         return personerMedTreff
     }
 
+    private fun millisekunderSiden(startNanosekunder: Long): Long = (System.nanoTime() - startNanosekunder) / 1_000_000
+
     companion object {
-        const val PARTISTØRRELSE = 1000
+        const val BITSTØRRELSE = 1000
     }
 }

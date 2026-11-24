@@ -10,38 +10,29 @@ data class Migreringskandidat(
 )
 
 /**
- * Går gjennom kandidatene parti for parti, sortert på stønadId synkende, og samler personer der siste
- * evaluering har [hjemmelbokstav]. Stopper når [antall] personer er funnet, eller når et parti er tomt.
+ * Går gjennom [kandidater] i rekkefølge, i biter på [bitstørrelse], og samler personer der siste evaluering har
+ * [hjemmelbokstav]. Evalueringene hentes én bit om gangen, og gjennomgangen stopper når [antall] personer er funnet.
  *
- * Hjemmelbokstaven sammenlignes på trimmet tekst. En evaluering med manglende eller motstridende
- * hjemmelbokstav har `hjemmelbokstav = null` og gir ikke treff.
- *
- * [hentParti] får stønadId-en partiet skal starte under, eller null for første parti.
+ * Hjemmelbokstaven sammenlignes på trimmet tekst. En evaluering med manglende eller motstridende hjemmelbokstav har
+ * `hjemmelbokstav = null` og gir ikke treff.
  */
 fun finnPersonerMedHjemmelbokstav(
+    kandidater: List<Migreringskandidat>,
     hjemmelbokstav: String,
     antall: Int,
-    hentParti: (førStønadId: Long?) -> List<Migreringskandidat>,
+    bitstørrelse: Int,
     hentEvalueringer: (vedtakIder: Set<Long>) -> Map<Long, InfotrygdEvaluering>,
 ): Set<String> {
+    require(bitstørrelse > 0) { "bitstørrelse må være større enn 0" }
     val ønsketHjemmelbokstav = hjemmelbokstav.trim()
     val personerMedTreff = linkedSetOf<String>()
-    var førStønadId: Long? = null
 
-    while (personerMedTreff.size < antall) {
-        val kandidaterIPartiet = hentParti(førStønadId)
-        if (kandidaterIPartiet.isEmpty()) break
-
-        val evalueringerPerVedtak = hentEvalueringer(kandidaterIPartiet.map { it.vedtakId }.toSet())
-        kandidaterIPartiet
+    for (kandidaterIBiten in kandidater.chunked(bitstørrelse)) {
+        if (personerMedTreff.size >= antall) break
+        val evalueringerPerVedtak = hentEvalueringer(kandidaterIBiten.map { it.vedtakId }.toSet())
+        kandidaterIBiten
             .filter { kandidat -> evalueringerPerVedtak[kandidat.vedtakId]?.hjemmelbokstav?.trim() == ønsketHjemmelbokstav }
             .forEach { kandidat -> if (personerMedTreff.size < antall) personerMedTreff.add(kandidat.personident) }
-
-        val lavesteStønadIdIPartiet = kandidaterIPartiet.minOf { it.stønadId }
-        check(førStønadId == null || lavesteStønadIdIPartiet < førStønadId) {
-            "Partiet må ha stønadId under $førStønadId, ellers går løkka evig"
-        }
-        førStønadId = lavesteStønadIdIPartiet
     }
     return personerMedTreff
 }
