@@ -5,7 +5,7 @@ import efterlatte.prosessering.TaskStep
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakService
 import no.nav.grunn.og.hjelpestonad.infotrygd.InfotrygdFeedClient
-import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
 import org.springframework.stereotype.Service
@@ -17,6 +17,7 @@ class SendVedtakTilInfotrygdFeedTask(
     private val vedtakService: VedtakService,
     private val fagsakService: FagsakService,
     private val infotrygdFeedClient: InfotrygdFeedClient,
+    private val tilkjentYtelseService: TilkjentYtelseService,
 ) : TaskStep<UUID> {
     override val type = TYPE
 
@@ -34,11 +35,10 @@ class SendVedtakTilInfotrygdFeedTask(
         }
 
         val datoStartNyGrunnstønad =
-            vedtak.grunnstønadPerioder
-                .asSequence()
-                .filter { it.periodetype == PeriodetypeBarnetilsyn.ORDINÆR }
-                .minOfOrNull { it.datoFra }
-                ?.atDay(1)
+            tilkjentYtelseService
+                .hentTilkjentYtelse(behandlingId)
+                ?.andelerTilkjentYtelse
+                ?.minOfOrNull { it.fom }
                 ?: error("Fant ingen stønadsperiode for innvilget vedtak med behandlingId=$behandlingId")
         val personIdent = fagsakService.hentAktivIdent(behandling.fagsakId)
 
