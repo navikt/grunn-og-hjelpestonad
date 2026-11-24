@@ -60,11 +60,11 @@ En sats som enkelte diagnoser gir uten individuell prøving av ekstrautgiftene, 
 _Avoid_: Fast sats, direkte plassert sats
 
 **Trygdetid**:
-Søkers trygdetid per periode, som en teller fra 0 til 40 og kilden alderspensjon, uføretrygd eller ingen. Ikke et vilkår: den har ingen ja/nei-vurdering, kan ikke gi avslag og reduserer bare tilkjent ytelse etter § 6-6. Har samme livsløp som vilkårene, med periode, begrunnelse og endringshistorikk.
-_Avoid_: Trygdetidsvilkår, vilkåret trygdetid
+Søkers trygdetid per periode, som et helt antall år fra 0 til 40, og kilden alderspensjon, uføretrygd eller ingen. Tallet hentes fra alderspensjonen eller uføretrygden. Kilden ingen betyr at stønaden ikke reduseres, og tallet er da alltid 40. Ikke et vilkår: den har ingen ja/nei-vurdering, kan ikke gi avslag og reduserer bare tilkjent ytelse etter § 6-6. Har samme livsløp som vilkårene, med periode, begrunnelse og endringshistorikk.
+_Avoid_: Trygdetidsvilkår, vilkåret trygdetid, teller
 
 **Trygdetidsbrøk**:
-Brøken x/40 fra søkers alderspensjon eller uføretrygd. Er 40/40 når søker ikke har noen av dem. Kan ikke skjønnsvurderes.
+Brøken trygdetid i år / 40 fra søkers alderspensjon eller uføretrygd. Er 40/40 når søker ikke har noen av dem. Kan ikke skjønnsvurderes.
 
 ## Behandling
 
@@ -125,3 +125,23 @@ _Avoid_: Andel tilkjent ytelse, utbetalingsperiode
 **Infotrygd-beløp**:
 Månedsbeløpet for grunnstønad som Infotrygd har vedtatt for en måned. Er det samme som Oppdrag utbetaler, til ny løsning endrer det.
 _Avoid_: Utbetalt beløp, beløp fra Infotrygd
+
+**Simulering**:
+Svaret fra Oppdrag på hva et utbetalingsoppdrag vil gi, før det sendes. Lagres per behandling og oppsummeres per måned, se ADR-0018.
+_Avoid_: Beregning (det er tilkjent ytelse)
+
+**Feilutbetaling**:
+Beløp som allerede er utbetalt for en måned, men som bruker ikke har rett til etter denne behandlingen.
+_Avoid_: Tilbakekreving (det er saken som eventuelt kommer etterpå)
+
+**Etterbetaling**:
+Beløp bruker har rett til for måneder som har forfalt, men som ikke er utbetalt.
+_Avoid_: Neste utbetaling
+
+**Neste utbetaling**:
+Den første måneden i simuleringen som ikke er utbetalt ennå og ikke har feilutbetaling.
+_Avoid_: Etterbetaling
+
+**Manuell postering**:
+En postering økonomi har lagt inn for hånd i Oppdrag. Kjennes igjen på fagområdekoden (MIT28, MIT29 og MGHTB).
+_Avoid_: Korrigering

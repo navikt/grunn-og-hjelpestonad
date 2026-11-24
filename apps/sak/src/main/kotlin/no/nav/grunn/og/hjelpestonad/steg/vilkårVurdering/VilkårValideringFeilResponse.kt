@@ -1,8 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering
 
 /**
- * Svaret frontend får når vilkårssteget ikke kan fullføres. Bærer én feil per vilkår som
- * mangler, slik at saksbehandler kan lenkes til riktig vilkår.
+ * Svaret frontend får når valideringen feiler. Bærer høyst én feil per nøkkel.
  */
 data class VilkårValideringFeilResponse(
     val melding: String,

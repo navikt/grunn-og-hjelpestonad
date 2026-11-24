@@ -54,7 +54,7 @@ class TrygdetidControllerTest {
     private val trygdetidId = UUID.randomUUID()
     private val url = "/api/behandling/$behandlingId/trygdetid"
     private val slettUrl = "$url/$trygdetidId"
-    private val requestJson = """{"teller":40,"kilde":"ALDERSPENSJON","begrunnelse":"Test"}"""
+    private val requestJson = """{"antallÅr":40,"kilde":"ALDERSPENSJON","begrunnelse":"Test"}"""
     private val avslag = ManglerTilgangTilPersonFeil(avvisningskode = null)
 
     @Test
@@ -126,7 +126,7 @@ class TrygdetidControllerTest {
     @WithMockUser(roles = ["SAKSBEHANDLER"])
     fun `saksbehandler med tilgang får lagre trygdetid`() {
         every { trygdetidService.lagrePeriode(behandlingId, any()) } returns
-            Trygdetid(behandlingId = behandlingId, teller = 40, kilde = TrygdetidKilde.ALDERSPENSJON)
+            Trygdetid(behandlingId = behandlingId, antallÅr = 40, kilde = TrygdetidKilde.ALDERSPENSJON)
 
         postTrygdetid().andExpect { status { isOk() } }
     }

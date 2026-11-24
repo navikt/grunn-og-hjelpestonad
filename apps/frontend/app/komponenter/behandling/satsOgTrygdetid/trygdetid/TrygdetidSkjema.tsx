@@ -11,13 +11,13 @@ import {
   TextField,
   VStack,
 } from "@navikt/ds-react";
-import { MAKS_TELLER, type TrygdetidSkjemaState } from "./useTrygdetidSkjema";
+import { FULL_TRYGDETID, type TrygdetidSkjemaState } from "./useTrygdetidSkjema";
 
 const ID_PREFIKS = "trygdetid";
 const FRA_OG_MED_ID = `${ID_PREFIKS}-fraOgMed`;
 const TIL_OG_MED_ID = `${ID_PREFIKS}-tilOgMed`;
 const KILDE_ID = `${ID_PREFIKS}-kilde`;
-const TELLER_ID = `${ID_PREFIKS}-teller`;
+const ANTALL_ÅR_ID = `${ID_PREFIKS}-antallAar`;
 const BEGRUNNELSE_ID = `${ID_PREFIKS}-begrunnelse`;
 
 interface TrygdetidSkjemaProps {
@@ -40,7 +40,7 @@ export const TrygdetidSkjema: React.FC<TrygdetidSkjemaProps> = ({ skjema, lagrer
     { id: FRA_OG_MED_ID, tekst: skjema.skjemafeil.fraOgMed },
     { id: TIL_OG_MED_ID, tekst: skjema.skjemafeil.tilOgMed },
     { id: KILDE_ID, tekst: skjema.skjemafeil.kilde },
-    { id: TELLER_ID, tekst: skjema.skjemafeil.teller },
+    { id: ANTALL_ÅR_ID, tekst: skjema.skjemafeil.antallÅr },
   ].filter((feil): feil is { id: string; tekst: string } => Boolean(feil.tekst));
 
   const kildenErIngen = skjema.kilde === "INGEN";
@@ -102,18 +102,18 @@ export const TrygdetidSkjema: React.FC<TrygdetidSkjemaProps> = ({ skjema, lagrer
         </Select>
 
         <TextField
-          id={TELLER_ID}
-          label="Teller"
+          id={ANTALL_ÅR_ID}
+          label="Trygdetid (år)"
           description={
             kildenErIngen
-              ? `Kilden «Ingen» gir alltid ${MAKS_TELLER}, så telleren er låst.`
-              : `Heltall fra 0 til ${MAKS_TELLER}.`
+              ? `Kilden «Ingen» gir ingen reduksjon, så trygdetiden er låst på ${FULL_TRYGDETID} år.`
+              : `Helt antall år fra 0 til ${FULL_TRYGDETID}, slik det står i alderspensjonen eller uføretrygden.`
           }
           inputMode="numeric"
           readOnly={kildenErIngen}
-          value={skjema.teller}
-          onChange={(event) => skjema.endreTeller(event.target.value)}
-          error={skjema.skjemafeil.teller}
+          value={skjema.antallÅr}
+          onChange={(event) => skjema.endreAntallÅr(event.target.value)}
+          error={skjema.skjemafeil.antallÅr}
         />
 
         <Textarea

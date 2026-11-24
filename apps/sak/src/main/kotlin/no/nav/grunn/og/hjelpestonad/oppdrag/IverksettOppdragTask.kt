@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
+import efterlatte.prosessering.RetryPolicy
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
 import no.nav.grunn.og.hjelpestonad.task.lagTaskType
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.Duration
 import java.util.UUID
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Sender oppdraget for en godkjent behandling til OS, og oppretter [HentOppdragStatusTask] når oppdraget er sendt.
@@ -24,6 +26,7 @@ class IverksettOppdragTask(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override val type = TYPE
+    override val retry = RetryPolicy(maxAntallFeil = 3) { 15.minutes }
 
     override fun utfor(kontekst: TaskKontekst<IverksettOppdragTaskData>) {
         val behandlingId = kontekst.payload.behandlingId
@@ -56,8 +59,8 @@ class IverksettOppdragTask(
     ) {
         kontekst.opprettNesteTask(
             type = HentOppdragStatusTask.TYPE,
-            payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId = behandlingId, forsøk = 1),
-            triggerTid = nesteTidspunktIÅpningstid(clock.instant(), VENTETID_FØR_STATUS),
+            payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId = behandlingId),
+            triggerTid = clock.instant().plus(VENTETID_FØR_STATUS),
         )
     }
 

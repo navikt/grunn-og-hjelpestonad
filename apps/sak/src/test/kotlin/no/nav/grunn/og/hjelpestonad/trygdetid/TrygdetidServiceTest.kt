@@ -48,46 +48,46 @@ class TrygdetidServiceTest {
     }
 
     @Test
-    fun `lagrePeriode uten id lagrer ny trygdetid med teller og kilde`() {
-        val resultat = service.lagrePeriode(behandlingId, request(teller = 25, kilde = TrygdetidKilde.UFØRETRYGD))
+    fun `lagrePeriode uten id lagrer ny trygdetid med antall år og kilde`() {
+        val resultat = service.lagrePeriode(behandlingId, request(antallÅr = 25, kilde = TrygdetidKilde.UFØRETRYGD))
 
         assertThat(resultat.behandlingId).isEqualTo(behandlingId)
-        assertThat(resultat.teller).isEqualTo(25)
+        assertThat(resultat.antallÅr).isEqualTo(25)
         assertThat(resultat.kilde).isEqualTo(TrygdetidKilde.UFØRETRYGD)
     }
 
     @Test
-    fun `teller -1 avvises med HTTP 400 og uten skriving`() {
-        avvisesUtenSkriving(request(teller = -1))
+    fun `trygdetid -1 år avvises med HTTP 400 og uten skriving`() {
+        avvisesUtenSkriving(request(antallÅr = -1))
     }
 
     @Test
-    fun `teller 41 avvises med HTTP 400 og uten skriving`() {
-        avvisesUtenSkriving(request(teller = 41))
+    fun `trygdetid 41 år avvises med HTTP 400 og uten skriving`() {
+        avvisesUtenSkriving(request(antallÅr = 41))
     }
 
     @Test
-    fun `kilde INGEN med teller 39 avvises med HTTP 400 og uten skriving`() {
-        avvisesUtenSkriving(request(teller = 39, kilde = TrygdetidKilde.INGEN))
+    fun `kilde INGEN med 39 år avvises med HTTP 400 og uten skriving`() {
+        avvisesUtenSkriving(request(antallÅr = 39, kilde = TrygdetidKilde.INGEN))
     }
 
     @Test
-    fun `teller 0 og 40 er gyldige grenser for alderspensjon og uføretrygd`() {
-        listOf(0, 40).forEach { teller ->
+    fun `0 og 40 år er gyldige grenser for alderspensjon og uføretrygd`() {
+        listOf(0, 40).forEach { antallÅr ->
             listOf(TrygdetidKilde.ALDERSPENSJON, TrygdetidKilde.UFØRETRYGD).forEach { kilde ->
-                val resultat = service.lagrePeriode(behandlingId, request(teller = teller, kilde = kilde))
+                val resultat = service.lagrePeriode(behandlingId, request(antallÅr = antallÅr, kilde = kilde))
 
-                assertThat(resultat.teller).isEqualTo(teller)
+                assertThat(resultat.antallÅr).isEqualTo(antallÅr)
                 assertThat(resultat.kilde).isEqualTo(kilde)
             }
         }
     }
 
     @Test
-    fun `kilde INGEN med teller 40 er gyldig`() {
-        val resultat = service.lagrePeriode(behandlingId, request(teller = 40, kilde = TrygdetidKilde.INGEN))
+    fun `kilde INGEN med 40 år er gyldig`() {
+        val resultat = service.lagrePeriode(behandlingId, request(antallÅr = 40, kilde = TrygdetidKilde.INGEN))
 
-        assertThat(resultat.teller).isEqualTo(40)
+        assertThat(resultat.antallÅr).isEqualTo(40)
         assertThat(resultat.kilde).isEqualTo(TrygdetidKilde.INGEN)
     }
 
@@ -112,7 +112,7 @@ class TrygdetidServiceTest {
         service.lagrePeriode(
             behandlingId,
             request(
-                teller = 25,
+                antallÅr = 25,
                 kilde = TrygdetidKilde.UFØRETRYGD,
                 fraOgMedDato = LocalDate.of(2025, 1, 1),
                 tilOgMedDato = LocalDate.of(2025, 6, 30),
@@ -153,20 +153,20 @@ class TrygdetidServiceTest {
         val perioder =
             listOf(
                 trygdetid(
-                    teller = 30,
+                    antallÅr = 30,
                     kilde = TrygdetidKilde.ALDERSPENSJON,
                     begrunnelse = "Alderspensjon",
                     fraOgMedDato = LocalDate.of(1990, 1, 1),
                     tilOgMedDato = LocalDate.of(2019, 12, 31),
                 ),
                 trygdetid(
-                    teller = 12,
+                    antallÅr = 12,
                     kilde = TrygdetidKilde.UFØRETRYGD,
                     begrunnelse = "Uføretrygd",
                     fraOgMedDato = LocalDate.of(2020, 1, 1),
                     tilOgMedDato = LocalDate.of(2025, 6, 30),
                 ),
-                trygdetid(teller = 40, kilde = TrygdetidKilde.INGEN, begrunnelse = "Ingen kilde"),
+                trygdetid(antallÅr = 40, kilde = TrygdetidKilde.INGEN, begrunnelse = "Ingen kilde"),
             )
         every { repository.findByBehandlingId(behandlingId) } returns perioder
 
@@ -179,7 +179,7 @@ class TrygdetidServiceTest {
         assertThat(kopier.map { it.id }).doesNotContainAnyElementsOf(perioder.map { it.id })
         perioder.forEach { original ->
             val kopi = kopier.single { it.kilde == original.kilde }
-            assertThat(kopi.teller).isEqualTo(original.teller)
+            assertThat(kopi.antallÅr).isEqualTo(original.antallÅr)
             assertThat(kopi.begrunnelse).isEqualTo(original.begrunnelse)
             assertThat(kopi.fraOgMedDato).isEqualTo(original.fraOgMedDato)
             assertThat(kopi.tilOgMedDato).isEqualTo(original.tilOgMedDato)
@@ -214,13 +214,13 @@ class TrygdetidServiceTest {
 
     private fun request(
         id: UUID? = null,
-        teller: Int = 40,
+        antallÅr: Int = 40,
         kilde: TrygdetidKilde = TrygdetidKilde.ALDERSPENSJON,
         fraOgMedDato: LocalDate? = null,
         tilOgMedDato: LocalDate? = null,
     ) = TrygdetidRequest(
         id = id,
-        teller = teller,
+        antallÅr = antallÅr,
         kilde = kilde,
         begrunnelse = "Test",
         fraOgMedDato = fraOgMedDato,
@@ -229,14 +229,14 @@ class TrygdetidServiceTest {
 
     private fun trygdetid(
         behandlingId: UUID = this.behandlingId,
-        teller: Int = 40,
+        antallÅr: Int = 40,
         kilde: TrygdetidKilde = TrygdetidKilde.ALDERSPENSJON,
         begrunnelse: String = "Test",
         fraOgMedDato: LocalDate? = null,
         tilOgMedDato: LocalDate? = null,
     ) = Trygdetid(
         behandlingId = behandlingId,
-        teller = teller,
+        antallÅr = antallÅr,
         kilde = kilde,
         begrunnelse = begrunnelse,
         fraOgMedDato = fraOgMedDato,

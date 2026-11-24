@@ -48,7 +48,7 @@ class TrygdetidService(
         request: TrygdetidRequest,
     ) = Trygdetid(
         behandlingId = behandlingId,
-        teller = request.teller,
+        antallÅr = request.antallÅr,
         kilde = request.kilde,
         begrunnelse = request.begrunnelse,
         fraOgMedDato = request.fraOgMedDato,
@@ -57,7 +57,7 @@ class TrygdetidService(
 
     override fun Trygdetid.oppdaterMed(request: TrygdetidRequest) =
         copy(
-            teller = request.teller,
+            antallÅr = request.antallÅr,
             kilde = request.kilde,
             begrunnelse = request.begrunnelse,
             fraOgMedDato = request.fraOgMedDato,
