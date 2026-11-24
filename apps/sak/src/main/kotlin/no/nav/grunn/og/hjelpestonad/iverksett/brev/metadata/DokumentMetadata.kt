@@ -22,8 +22,7 @@ sealed interface Dokumentmetadata {
 enum class Behandlingstema(
     @JsonValue val value: String,
 ) {
-    Barnetilsyn("ab0028"),
-    Skolepenger("ab0177"),
+    Grunnstønad("ab0132"),
     ;
 
     companion object {
@@ -37,6 +36,5 @@ enum class Behandlingstema(
 
 fun Dokumenttype.tilMetadata(): Dokumentmetadata =
     when (this) {
-        Dokumenttype.VEDTAKSBREV_BARNETILSYN -> BarnetilsynVedtaksbrevMetadata
-        Dokumenttype.VEDTAKSBREV_SKOLEPENGER -> SkolepengerVedtaksbrevMetadata
+        Dokumenttype.VEDTAKSBREV_GRUNNSTØNAD -> GrunnstønadVedtaksbrevMetadata
     }

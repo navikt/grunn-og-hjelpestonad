@@ -2,6 +2,7 @@ package no.nav.grunn.og.hjelpestonad.iverksett.brev.domene
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import jakarta.validation.constraints.NotEmpty
+import no.nav.grunn.og.hjelpestonad.oppgave.Tema
 import no.nav.grunn.og.hjelpestonad.saf.BrukerIdType
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -76,8 +77,8 @@ enum class Fagsystem(
     val navn: String,
     val tema: String,
 ) {
-    // TODO Hva skal her?
-    EY("Gjenlevende", "EYO"),
+    // TODO Hva skal vi legge inn her?
+    GRUNN_OG_HJELP("Grunnstønad", Tema.GRU.name),
 }
 
 class Dokument(

@@ -23,6 +23,7 @@ import no.nav.grunn.og.hjelpestonad.iverksett.brev.metadata.tilMetadata
 import no.nav.grunn.og.hjelpestonad.pdl.Navn
 import no.nav.grunn.og.hjelpestonad.pdl.PdlService
 import no.nav.grunn.og.hjelpestonad.saf.BrukerIdType
+import org.apache.commons.lang3.NotImplementedException
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -59,7 +60,7 @@ class JournalføringService(
         val mottakere = brevmottakerService.hentBrevmottakere(behandlingId)
         val dokarkivBruker = DokarkivBruker(BrukerIdType.FNR, personident)
         val sak =
-            Sak(fagsakId = fagsak.eksternId.toString(), sakstype = "FAGSAK", fagsaksystem = Fagsystem.EY)
+            Sak(fagsakId = fagsak.eksternId.toString(), sakstype = "FAGSAK", fagsaksystem = Fagsystem.GRUNN_OG_HJELP)
         val dokumenter = listOf(mapTilArkivdokument(dokument))
         val journalpostRequester = mutableListOf<JournalpostRequest>()
         require(mottakere.isNotEmpty()) { "Ingen brevmottakere funnet for behandlingId=$behandlingId" }
@@ -84,8 +85,8 @@ class JournalføringService(
 
     fun vedtaksbrevForStønadType(stønadType: StønadType): Dokumenttype =
         when (stønadType) {
-            StønadType.GRUNNSTØNAD -> Dokumenttype.VEDTAKSBREV_BARNETILSYN
-            StønadType.HJELPESTØNAD -> Dokumenttype.VEDTAKSBREV_SKOLEPENGER
+            StønadType.GRUNNSTØNAD -> Dokumenttype.VEDTAKSBREV_GRUNNSTØNAD
+            StønadType.HJELPESTØNAD -> throw IllegalStateException("Vedtaksbrev for hjelpestønad er ikke implementert")
         }
 
     fun hentVariantformat(dokument: Dokument): String =

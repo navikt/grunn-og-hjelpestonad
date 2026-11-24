@@ -30,7 +30,7 @@ class DistribuerVedtaksbrevTask(
             val request =
                 DistribuerJournalpostRequest(
                     journalpostId = journalpostId,
-                    bestillendeFagsystem = Fagsystem.EY,
+                    bestillendeFagsystem = Fagsystem.GRUNN_OG_HJELP,
                     dokumentProdApp = "GRUNN_OG_HJELPESTONAD",
                     distribusjonstype = Distribusjonstype.VEDTAK,
                 )

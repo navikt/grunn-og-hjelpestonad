@@ -104,7 +104,7 @@ class DokumentklienterTest {
         dokdistClient.distribuerDokument(
             DistribuerJournalpostRequest(
                 journalpostId = "journalpost-1",
-                bestillendeFagsystem = Fagsystem.EY,
+                bestillendeFagsystem = Fagsystem.GRUNN_OG_HJELP,
                 dokumentProdApp = "grunn-og-hjelpestonad",
                 distribusjonstype = Distribusjonstype.VEDTAK,
             ),

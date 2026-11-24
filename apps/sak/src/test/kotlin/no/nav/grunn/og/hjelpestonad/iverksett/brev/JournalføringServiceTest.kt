@@ -88,7 +88,7 @@ class JournalføringServiceTest {
         val personident = "12345678901"
         val vergeIdent = "98765432109"
         val behandling = lagBehandling(behandlingId, fagsakId, BehandlingResultat.INNVILGET)
-        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.HJELPESTØNAD)
+        val fagsak = lagFagsak(fagsakId, fagsakPersonId, StønadType.GRUNNSTØNAD)
         val brev = lagBrev(behandlingId)
         val mottakere =
             listOf(
@@ -237,9 +237,14 @@ class JournalføringServiceTest {
     @Test
     fun `vedtaksbrevForStønadType skal returnere korrekt dokumenttype`() {
         assertThat(journalføringService.vedtaksbrevForStønadType(StønadType.GRUNNSTØNAD))
-            .isEqualTo(Dokumenttype.VEDTAKSBREV_BARNETILSYN)
-        assertThat(journalføringService.vedtaksbrevForStønadType(StønadType.HJELPESTØNAD))
-            .isEqualTo(Dokumenttype.VEDTAKSBREV_SKOLEPENGER)
+            .isEqualTo(Dokumenttype.VEDTAKSBREV_GRUNNSTØNAD)
+    }
+
+    @Test
+    fun `vedtaksbrevForStønadType skal feile for hjelpestønad`() {
+        assertThatThrownBy { journalføringService.vedtaksbrevForStønadType(StønadType.HJELPESTØNAD) }
+            .isInstanceOf(IllegalStateException::class.java)
+            .hasMessageContaining("hjelpestønad")
     }
 
     @Test
