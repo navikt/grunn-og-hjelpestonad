@@ -10,6 +10,9 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsfeil
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsnøkkel
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
@@ -95,6 +98,17 @@ class SatsOgTrygdetidServiceTest {
 
         assertFailsWith<IllegalStateException> { service.fullførSteg(behandlingId) }
 
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
+    }
+
+    @Test
+    fun `registrerer ikke fullført steg eller historikk når diagnosesjekken feiler`() {
+        every { beregnTilkjentYtelseService.beregnOgLagreTilkjentYtelse(behandlingId) } throws
+            VilkårValideringFeil(listOf(Valideringsfeil(Valideringsnøkkel.DIAGNOSE, "Diagnose mangler.")))
+
+        assertFailsWith<VilkårValideringFeil> { service.fullførSteg(behandlingId) }
+
+        verify(exactly = 0) { behandlingStegService.registrerFullførtSatsOgTrygdetid(any()) }
         verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
     }
 }

@@ -9,7 +9,11 @@ import { PerioderMedOppfylteInngangsvilkårTidslinje } from "~/komponenter/behan
 import { EkstrautgifterVilkår } from "~/komponenter/behandling/satsOgTrygdetid/ekstrautgifter/EkstrautgifterVilkår";
 import { TrygdetidSeksjon } from "~/komponenter/behandling/satsOgTrygdetid/trygdetid/TrygdetidSeksjon";
 import { fullførSatsOgTrygdetid } from "~/api/generated/sdk.gen";
-import { zSatsOgTrygdetidFeilResponse } from "~/api/generated/zod.gen";
+import {
+  valideringsfeilFra,
+  type Valideringsfeil,
+  type Valideringsnøkkel,
+} from "~/komponenter/behandling/vilkår/felles/valideringsfeilFra";
 import { feilmeldingFra } from "~/komponenter/behandling/vilkår/felles/feilmeldingFra";
 import { useStegNavigering } from "~/hooks/useStegNavigering";
 import { useErLesevisning } from "~/hooks/useErLesevisning";
@@ -28,13 +32,30 @@ export default function SatsOgTrygdetid() {
   const erLesevisning = useErLesevisning();
   const { kall: fullførSteg, laster: fullfører } =
     useApiKall<Parameters<typeof fullførSatsOgTrygdetid>[0]>(fullførSatsOgTrygdetid);
-  const [valideringsfeil, settValideringsfeil] = useState<{ nøkkel: string; melding: string }[]>(
-    []
-  );
+  const [valideringsfeil, settValideringsfeil] = useState<Valideringsfeil[]>([]);
   const [feilmelding, settFeilmelding] = useState<string | undefined>();
   const [trygdetidFeilKlikkAntall, settTrygdetidFeilKlikkAntall] = useState(0);
   const [ekstrautgifterFeilKlikkAntall, settEkstrautgifterFeilKlikkAntall] = useState(0);
   const feiloppsummeringRef = useRef<HTMLDivElement>(null);
+
+  const feilnavigering: Record<Valideringsnøkkel, { href: string; onClick: () => void }> = {
+    MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN: {
+      href: "../vilkar",
+      onClick: () => navigate("../vilkar", { relative: "path" }),
+    },
+    DIAGNOSE: {
+      href: "../vilkar",
+      onClick: () => navigate("../vilkar", { relative: "path" }),
+    },
+    NØDVENDIGE_EKSTRAUTGIFTER: {
+      href: "#vilkar-ekstrautgifter",
+      onClick: () => settEkstrautgifterFeilKlikkAntall((antall) => antall + 1),
+    },
+    TRYGDETID: {
+      href: "#trygdetid",
+      onClick: () => settTrygdetidFeilKlikkAntall((antall) => antall + 1),
+    },
+  };
 
   useEffect(() => {
     if (valideringsfeil.length > 0) feiloppsummeringRef.current?.focus();
@@ -52,9 +73,9 @@ export default function SatsOgTrygdetid() {
           navigerTilNeste();
         },
         onError: (error: unknown) => {
-          const valideringsfeilResponse = zSatsOgTrygdetidFeilResponse.safeParse(error);
-          if (valideringsfeilResponse.success) {
-            settValideringsfeil(valideringsfeilResponse.data.feil);
+          const mottatteValideringsfeil = valideringsfeilFra(error);
+          if (mottatteValideringsfeil.length > 0) {
+            settValideringsfeil(mottatteValideringsfeil);
           } else {
             settFeilmelding(feilmeldingFra(error, "Kunne ikke beregne tilkjent ytelse."));
           }
@@ -89,32 +110,16 @@ export default function SatsOgTrygdetid() {
       {valideringsfeil.length > 0 && (
         <ErrorSummary
           ref={feiloppsummeringRef}
-          heading="Du må rette disse feilene før du kan fortsette"
+          heading="Du må vurdere disse opplysningene før du kan gå videre:"
         >
-          {valideringsfeil.map((valideringsfeil, indeks) => (
+          {valideringsfeil.map((valideringsfeil) => (
             <ErrorSummary.Item
-              key={`${valideringsfeil.nøkkel}-${indeks}`}
-              href={
-                valideringsfeil.nøkkel === "vilkår" || valideringsfeil.nøkkel === "inngangsvilkår"
-                  ? "../vilkar"
-                  : valideringsfeil.nøkkel === "trygdetid"
-                    ? "#trygdetid"
-                    : valideringsfeil.nøkkel === "ekstrautgifter"
-                      ? "#vilkar-ekstrautgifter"
-                      : undefined
-              }
+              key={valideringsfeil.nøkkel}
+              href={feilnavigering[valideringsfeil.nøkkel].href}
               onClick={(event) => {
-                if (
-                  valideringsfeil.nøkkel === "vilkår" ||
-                  valideringsfeil.nøkkel === "inngangsvilkår"
-                ) {
-                  event.preventDefault();
-                  navigate("../vilkar", { relative: "path" });
-                } else if (valideringsfeil.nøkkel === "trygdetid") {
-                  settTrygdetidFeilKlikkAntall((antall) => antall + 1);
-                } else if (valideringsfeil.nøkkel === "ekstrautgifter") {
-                  settEkstrautgifterFeilKlikkAntall((antall) => antall + 1);
-                }
+                const feilmål = feilnavigering[valideringsfeil.nøkkel];
+                if (!feilmål.href.startsWith("#")) event.preventDefault();
+                feilmål.onClick();
               }}
             >
               {valideringsfeil.melding}

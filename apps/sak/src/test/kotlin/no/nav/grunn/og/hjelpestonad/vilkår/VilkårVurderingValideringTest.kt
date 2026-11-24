@@ -1,5 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.vilkår
 
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsnøkkel
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingValidering
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VurderteInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
@@ -27,22 +28,22 @@ class VilkårVurderingValideringTest {
     fun `R1 - manglende medlemskapsvurdering gir feil på medlemskapsvilkåret`() {
         val feil = VilkårVurderingValidering.valider(alleInngangsvilkårVurdert().copy(medlemskap = emptyList()))
 
-        assertThat(feil.map { it.vilkårType }).containsExactly(VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN)
+        assertThat(feil.map { it.nøkkel }).containsExactly(Valideringsnøkkel.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN)
     }
 
     @Test
     fun `R1 - manglende diagnosevurdering gir feil på diagnosevilkåret`() {
         val feil = VilkårVurderingValidering.valider(alleInngangsvilkårVurdert().copy(diagnoser = emptyList()))
 
-        assertThat(feil.map { it.vilkårType }).containsExactly(VilkårType.DIAGNOSE)
+        assertThat(feil.map { it.nøkkel }).containsExactly(Valideringsnøkkel.DIAGNOSE)
     }
 
     @Test
     fun `R1 - ingen vurderte perioder gir én feil per inngangsvilkår`() {
         val feil = VilkårVurderingValidering.valider(VurderteInngangsvilkår(behandlingId, emptyList(), emptyList()))
 
-        assertThat(feil.map { it.vilkårType })
-            .containsExactlyInAnyOrder(VilkårType.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN, VilkårType.DIAGNOSE)
+        assertThat(feil.map { it.nøkkel })
+            .containsExactlyInAnyOrder(Valideringsnøkkel.MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN, Valideringsnøkkel.DIAGNOSE)
         assertThat(feil.map { it.melding }).doesNotContainNull()
     }
 
