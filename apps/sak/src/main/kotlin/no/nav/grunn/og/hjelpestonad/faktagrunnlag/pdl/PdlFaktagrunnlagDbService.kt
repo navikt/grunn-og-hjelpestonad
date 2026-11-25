@@ -19,6 +19,7 @@ class PdlFaktagrunnlagDbService(
     private val utflyttingFraNorgeRepository: PdlUtflyttingFraNorgeRepository,
     private val oppholdsadresseRepository: PdlOppholdsadresseRepository,
     private val doedsfallRepository: PdlDoedsfallRepository,
+    private val pdlFalskIdentitetRepository: PdlFalskIdentitetRepository,
 ) {
     fun hent(behandlingId: UUID): PdlFaktagrunnlag? {
         val henting = hentingRepository.findByBehandlingIdAndKilde(behandlingId, Faktagrunnlagskilde.PDL) ?: return null
@@ -32,6 +33,7 @@ class PdlFaktagrunnlagDbService(
             utflyttingFraNorge = utflyttingFraNorgeRepository.findByBehandlingId(behandlingId),
             oppholdsadresse = oppholdsadresseRepository.findByBehandlingId(behandlingId),
             doedsfall = doedsfallRepository.findByBehandlingId(behandlingId),
+            falskIdentitet = pdlFalskIdentitetRepository.findByBehandlingId(behandlingId),
         )
     }
 
@@ -52,6 +54,7 @@ class PdlFaktagrunnlagDbService(
             utflyttingFraNorge = utflyttingFraNorgeRepository.insertAll(person.utflyttingFraNorge.map { it.tilPdlUtflyttingFraNorge(behandlingId) }),
             oppholdsadresse = oppholdsadresseRepository.insertAll(person.oppholdsadresse.mapNotNull { it.tilPdlOppholdsadresse(behandlingId) }),
             doedsfall = doedsfallRepository.insertAll(person.doedsfall.map { it.tilPdlDoedsfall(behandlingId) }),
+            falskIdentitet = person.falskIdentitet?.let { pdlFalskIdentitetRepository.insert(it.tilPdlFalskIdentitet(behandlingId)) },
         )
     }
 
@@ -65,5 +68,6 @@ class PdlFaktagrunnlagDbService(
         utflyttingFraNorgeRepository.slettForBehandling(behandlingId)
         oppholdsadresseRepository.slettForBehandling(behandlingId)
         doedsfallRepository.slettForBehandling(behandlingId)
+        pdlFalskIdentitetRepository.slettForBehandling(behandlingId)
     }
 }

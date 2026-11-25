@@ -37,7 +37,8 @@ function VilkårSide() {
   const navigate = useNavigate();
   const { behandlingId, hentBehandlingPåNytt } = useBehandlingContext();
   const { status: vilkårStatus } = useVilkårContext();
-  const { fullfør, laster, valideringsfeil, feilmelding } = useFullførInngangsvilkår(behandlingId);
+  const { fullfør, laster, valideringsfeil, feilmelding, blokkertFeil } =
+    useFullførInngangsvilkår(behandlingId);
 
   const { navigerTilNeste } = useStegNavigering(STEG_PATH);
 
@@ -89,6 +90,15 @@ function VilkårSide() {
             </ErrorSummary.Item>
           ))}
         </ErrorSummary>
+      )}
+
+      {blokkertFeil?.feilkode === "FALSK_IDENTITET" && (
+        <LocalAlert status="error">
+          <LocalAlert.Header>
+            <LocalAlert.Title>Behandlingen kan ikke gå videre</LocalAlert.Title>
+          </LocalAlert.Header>
+          <LocalAlert.Content>{blokkertFeil.melding}</LocalAlert.Content>
+        </LocalAlert>
       )}
 
       <StegNavigering stegPath={STEG_PATH} onNeste={håndterNeste} nesteLaster={laster} />

@@ -15,6 +15,12 @@ export type VilkårValideringFeilResponse = {
     feil: Array<Valideringsfeil>;
 };
 
+export type InngangsvilkårBlokkertResponse = {
+    feilkode: 'FALSK_IDENTITET';
+    melding: string;
+    status: number;
+};
+
 export type GrunnstønadPeriode = {
     id: string;
     datoFra: string;
@@ -440,6 +446,7 @@ export type MedlemskapFaktagrunnlagResponse = {
     bosted: Array<OpplysningResponse>;
     statsborgerskap: Array<OpplysningResponse>;
     oppholdstillatelse: Array<OpplysningResponse>;
+    harFalskIdentitet: boolean;
 };
 
 export type OpplysningResponse = {
@@ -1001,6 +1008,7 @@ export type FullførInngangsvilkårData = {
 
 export type FullførInngangsvilkårErrors = {
     400: VilkårValideringFeilResponse;
+    422: InngangsvilkårBlokkertResponse;
 };
 
 export type FullførInngangsvilkårError = FullførInngangsvilkårErrors[keyof FullførInngangsvilkårErrors];
@@ -1320,6 +1328,7 @@ export type HentPerioderMedOppfylteInngangsvilkårData = {
 
 export type HentPerioderMedOppfylteInngangsvilkårErrors = {
     400: VilkårValideringFeilResponse;
+    422: InngangsvilkårBlokkertResponse;
 };
 
 export type HentPerioderMedOppfylteInngangsvilkårError = HentPerioderMedOppfylteInngangsvilkårErrors[keyof HentPerioderMedOppfylteInngangsvilkårErrors];

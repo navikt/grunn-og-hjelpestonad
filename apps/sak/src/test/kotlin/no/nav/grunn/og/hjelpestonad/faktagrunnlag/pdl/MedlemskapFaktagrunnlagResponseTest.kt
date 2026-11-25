@@ -154,6 +154,52 @@ class MedlemskapFaktagrunnlagResponseTest {
         )
     }
 
+    @Test
+    fun `harFalskIdentitet er false når grunnlaget ikke er hentet`() {
+        assertThat(null.tilMedlemskapFaktagrunnlagResponse().harFalskIdentitet).isFalse
+    }
+
+    @Test
+    fun `harFalskIdentitet er false når PDL ikke har opplysning om falsk identitet`() {
+        val response = grunnlag(falskIdentitet = null).tilMedlemskapFaktagrunnlagResponse()
+
+        assertThat(response.harFalskIdentitet).isFalse
+    }
+
+    @Test
+    fun `harFalskIdentitet er false når PDL sier at identiteten ikke er falsk`() {
+        val grunnlag =
+            grunnlag(
+                falskIdentitet = PdlFalskIdentitet(behandlingId = behandlingId, erFalsk = false, metadata = metadata()),
+            )
+
+        assertThat(grunnlag.tilMedlemskapFaktagrunnlagResponse().harFalskIdentitet).isFalse
+    }
+
+    @Test
+    fun `harFalskIdentitet er true når PDL sier at identiteten er falsk, og falsk identitet havner ikke i bosted`() {
+        val grunnlag =
+            grunnlag(
+                bostedsadresse =
+                    listOf(
+                        PdlBostedsadresse(
+                            behandlingId = behandlingId,
+                            adressetype = PdlAdressetype.VEGADRESSE,
+                            kommunenummer = "4601",
+                            gyldigFraOgMed = LocalDateTime.of(2019, 6, 15, 0, 0),
+                            metadata = metadata(),
+                        ),
+                    ),
+                falskIdentitet = PdlFalskIdentitet(behandlingId = behandlingId, erFalsk = true, metadata = metadata()),
+            )
+
+        val response = grunnlag.tilMedlemskapFaktagrunnlagResponse()
+
+        assertThat(response.harFalskIdentitet).isTrue
+        assertThat(response.bosted)
+            .containsExactly(OpplysningResponse(LocalDate.of(2019, 6, 15), null, "Bostedsadresse i Norge"))
+    }
+
     private fun grunnlag(
         folkeregisterpersonstatus: List<PdlFolkeregisterpersonstatus> = emptyList(),
         bostedsadresse: List<PdlBostedsadresse> = emptyList(),
@@ -163,6 +209,7 @@ class MedlemskapFaktagrunnlagResponseTest {
         utflyttingFraNorge: List<PdlUtflyttingFraNorge> = emptyList(),
         oppholdsadresse: List<PdlOppholdsadresse> = emptyList(),
         doedsfall: List<PdlDoedsfall> = emptyList(),
+        falskIdentitet: PdlFalskIdentitet? = null,
     ) = PdlFaktagrunnlag(
         hentetTidspunkt = LocalDateTime.of(2026, 10, 1, 9, 12),
         folkeregisterpersonstatus = folkeregisterpersonstatus,
@@ -173,5 +220,6 @@ class MedlemskapFaktagrunnlagResponseTest {
         utflyttingFraNorge = utflyttingFraNorge,
         oppholdsadresse = oppholdsadresse,
         doedsfall = doedsfall,
+        falskIdentitet = falskIdentitet,
     )
 }

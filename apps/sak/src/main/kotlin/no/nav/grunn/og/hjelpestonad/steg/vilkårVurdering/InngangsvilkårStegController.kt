@@ -95,4 +95,29 @@ class InngangsvilkårStegController(
                 ),
             )
     }
+
+    @ApiResponse(
+        responseCode = "422",
+        description = "Behandlingen kan ikke gå videre fra inngangsvilkår (for eksempel ved falsk identitet).",
+        content = [Content(schema = Schema(implementation = InngangsvilkårBlokkertResponse::class))],
+    )
+    @ExceptionHandler(InngangsvilkårBlokkertFeil::class)
+    fun handleInngangsvilkårBlokkertFeil(
+        inngangsvilkårBlokkertFeil: InngangsvilkårBlokkertFeil,
+    ): ResponseEntity<InngangsvilkårBlokkertResponse> {
+        logger.warn(
+            "Inngangsvilkår blokkert for behandling {} med feilkode {}",
+            inngangsvilkårBlokkertFeil.behandlingId,
+            inngangsvilkårBlokkertFeil.feilkode,
+        )
+        return ResponseEntity
+            .status(HttpStatus.UNPROCESSABLE_CONTENT)
+            .body(
+                InngangsvilkårBlokkertResponse(
+                    feilkode = inngangsvilkårBlokkertFeil.feilkode,
+                    melding = inngangsvilkårBlokkertFeil.melding,
+                    status = HttpStatus.UNPROCESSABLE_CONTENT.value(),
+                ),
+            )
+    }
 }

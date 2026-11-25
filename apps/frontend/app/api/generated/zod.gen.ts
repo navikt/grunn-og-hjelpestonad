@@ -18,6 +18,12 @@ export const zVilkårValideringFeilResponse = z.object({
     feil: z.array(zValideringsfeil)
 });
 
+export const zInngangsvilkårBlokkertResponse = z.object({
+    feilkode: z.enum(['FALSK_IDENTITET']),
+    melding: z.string(),
+    status: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
+});
+
 export const zGrunnstønadPeriode = z.object({
     id: z.uuid(),
     datoFra: z.string(),
@@ -541,7 +547,8 @@ export const zMedlemskapFaktagrunnlagResponse = z.object({
     hentetTidspunkt: z.iso.datetime({ local: true }).nullish(),
     bosted: z.array(zOpplysningResponse),
     statsborgerskap: z.array(zOpplysningResponse),
-    oppholdstillatelse: z.array(zOpplysningResponse)
+    oppholdstillatelse: z.array(zOpplysningResponse),
+    harFalskIdentitet: z.boolean()
 });
 
 export const zOpprettRequest = z.object({

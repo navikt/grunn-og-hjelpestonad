@@ -280,7 +280,12 @@ class PdlClientWiremockTest {
                       "metadata": { "historisk": false, "master": "FREG" },
                       "folkeregistermetadata": null
                     }
-                  ]
+                  ],
+                  "falskIdentitet": {
+                    "erFalsk": true,
+                    "metadata": { "historisk": false, "master": "FREG" },
+                    "folkeregistermetadata": { "gyldighetstidspunkt": "2024-05-01T10:00:00", "opphoerstidspunkt": null }
+                  }
                 }
               }
             }
@@ -307,6 +312,9 @@ class PdlClientWiremockTest {
                 ?.landkode,
         ).isEqualTo("ESP")
         assertThat(person.doedsfall.single().doedsdato).isEqualTo(LocalDate.of(2026, 9, 1))
+        assertThat(person.falskIdentitet?.erFalsk).isTrue()
+        assertThat(person.falskIdentitet?.metadata?.master).isEqualTo("FREG")
+        assertThat(person.falskIdentitet?.folkeregistermetadata?.gyldighetstidspunkt).isEqualTo(LocalDateTime.of(2024, 5, 1, 10, 0))
         assertEquals(listOf("pdlScope"), texasClient.requestedOboAudiences)
     }
 

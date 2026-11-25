@@ -4,11 +4,13 @@ import { lagVilkårStatus, type VilkårStatus } from "./vilkårStatus";
 import { hentDiagnosePerioderFraBackend } from "./diagnose/useDiagnoseVilkår";
 import { hentMedlemskapPerioderFraBackend } from "./medlemskap/useMedlemskapVilkår";
 import { usePerioder, type PerioderResult } from "./felles/usePerioder";
+import { useMedlemskapFaktagrunnlag } from "../faktagrunnlag/useMedlemskapFaktagrunnlag";
 import type { VilkårDiagnoseResponse, VilkårMedlemskapResponse } from "~/api/generated/types.gen";
 
 interface VilkårContextValue {
   medlemskapsPerioder: PerioderResult<VilkårMedlemskapResponse>;
   diagnosePerioder: PerioderResult<VilkårDiagnoseResponse>;
+  medlemskapFaktagrunnlagTilstand: ReturnType<typeof useMedlemskapFaktagrunnlag>;
   status: VilkårStatus;
 }
 
@@ -18,6 +20,7 @@ export function VilkårProvider({ children }: { children: React.ReactNode }) {
   const { behandlingId } = useBehandlingContext();
   const medlemskapsPerioder = usePerioder(behandlingId, hentMedlemskapPerioderFraBackend);
   const diagnosePerioder = usePerioder(behandlingId, hentDiagnosePerioderFraBackend);
+  const medlemskapFaktagrunnlagTilstand = useMedlemskapFaktagrunnlag(behandlingId);
 
   const status = lagVilkårStatus({
     medlemskapsPerioder,
@@ -29,6 +32,7 @@ export function VilkårProvider({ children }: { children: React.ReactNode }) {
       value={{
         diagnosePerioder,
         medlemskapsPerioder,
+        medlemskapFaktagrunnlagTilstand,
         status,
       }}
     >
