@@ -4,25 +4,42 @@ import efterlatte.prosessering.Status
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
 class ProsesseringControllerTest {
     private val prosesseringService = mockk<ProsesseringService>()
-    private val prosesseringTilgang = mockk<ProsesseringTilgang>()
-    private val authentication = UsernamePasswordAuthenticationToken("Z123456", "ikke-brukt")
+    private val authentication =
+        JwtAuthenticationToken(
+            Jwt
+                .withTokenValue("test-token")
+                .header("alg", "RS256")
+                .claim("NAVident", "Z123456")
+                .build(),
+            emptyList(),
+        )
     private val mockMvc =
         MockMvcBuilders
-            .standaloneSetup(ProsesseringController(prosesseringService, prosesseringTilgang))
+            .standaloneSetup(ProsesseringController(prosesseringService))
             .setControllerAdvice(ProsesseringExceptionHandler())
             .build()
 
-    init {
-        every { prosesseringTilgang.harRolleProsessering(authentication) } returns "Z123456"
+    @BeforeEach
+    fun settOppSikkerhetskontekst() {
+        SecurityContextHolder.getContext().authentication = authentication
+    }
+
+    @AfterEach
+    fun ryddSikkerhetskontekst() {
+        SecurityContextHolder.clearContext()
     }
 
     @Test
@@ -66,7 +83,6 @@ class ProsesseringControllerTest {
                 status { isOk() }
                 jsonPath("$.length()") { value(5) }
             }
-        verify { prosesseringTilgang.harRolleProsessering(authentication) }
     }
 
     @Test
