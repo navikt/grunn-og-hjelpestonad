@@ -17,7 +17,7 @@ enum class Rolle(
                 "7ce9d1d2-d149-4324-832b-8d459762a102" to setOf(SAKSBEHANDLER),
                 "84c4a287-abd6-46c1-bf93-dbf90f1a326d" to setOf(BESLUTTER),
                 "a181921e-2a55-4198-896b-0086cc805278" to setOf(LESETILGANG),
-                "928636f4-fd0d-4149-978e-a6fb68bb19de" to setOf(PROSESSERING),
+                "bbda72af-39ba-48bc-992b-341161bf21f1" to setOf(PROSESSERING),
             )
 
         fun fraAzureGrupper(gruppeIder: List<String>): Set<Rolle> =

@@ -94,7 +94,7 @@ open class ProsesseringSecurityTest {
                                 it.claim("idtyp", "app")
                                 it.claim("scp", "access_as_user")
                                 it.claim("NAVident", "Z123456")
-                                it.claim("groups", listOf("928636f4-fd0d-4149-978e-a6fb68bb19de"))
+                                it.claim("groups", listOf("bbda72af-39ba-48bc-992b-341161bf21f1"))
                             },
                         ).contentType(MediaType.APPLICATION_JSON)
                         .content("""{"versjon":7,"melding":"Undersøkt manuelt"}"""),
@@ -115,7 +115,7 @@ open class ProsesseringSecurityTest {
                             it.claim("oid", "bruker-objekt")
                             it.claim("scp", "access_as_user")
                             it.claim("NAVident", "Z123456")
-                            it.claim("groups", listOf("928636f4-fd0d-4149-978e-a6fb68bb19de"))
+                            it.claim("groups", listOf("bbda72af-39ba-48bc-992b-341161bf21f1"))
                         },
                     ),
             ).andExpect(status().isOk)

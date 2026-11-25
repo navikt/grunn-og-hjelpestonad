@@ -78,8 +78,8 @@ Actuator eksponerer liveness og readiness på `/internal/health/liveness` og
 Tasks i dev finnes i [efterlatte-verktoy](https://efterlatte-verktoy.intern.dev.nav.no),
 der du kan se status og historikk, rekjøre, avbryte og registrere avvik. Tilgang krever
 innlogging som Nav-ansatt med `NAVident` og rollen `PROSESSERING` fra `Rolle.kt`;
-maskintoken avvises. Rollen er midlertidig knyttet til gruppen
-`928636f4-fd0d-4149-978e-a6fb68bb19de` (`0000-GA-STDAPPS`).
+maskintoken avvises. Rollen er knyttet til gruppen
+`bbda72af-39ba-48bc-992b-341161bf21f1` (`efterlatte-prosessering`).
 API-et finnes også i `local-mock` på `http://localhost:8082/api/prosessering/task`
 med samme tilgangskrav. Mock-innloggingen gir brukertoken med prosesseringsgruppen.
 Start mock-oauth2-serveren på nytt etter endringer i `docker-compose.yml`.

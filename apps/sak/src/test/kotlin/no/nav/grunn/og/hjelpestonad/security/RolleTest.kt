@@ -45,7 +45,7 @@ class RolleTest {
 
     @Test
     fun `fraAzureGrupper skal mappe PROSESSERING Azure gruppe til PROSESSERING rolle`() {
-        val azureGrupper = listOf("928636f4-fd0d-4149-978e-a6fb68bb19de")
+        val azureGrupper = listOf("bbda72af-39ba-48bc-992b-341161bf21f1")
 
         assertEquals(setOf(Rolle.PROSESSERING), Rolle.fraAzureGrupper(azureGrupper))
     }
@@ -72,7 +72,7 @@ class RolleTest {
                 "7ce9d1d2-d149-4324-832b-8d459762a102", // SAKSBEHANDLER
                 "84c4a287-abd6-46c1-bf93-dbf90f1a326d", // BESLUTTER
                 "a181921e-2a55-4198-896b-0086cc805278", // LESETILGANG
-                "928636f4-fd0d-4149-978e-a6fb68bb19de", // PROSESSERING
+                "bbda72af-39ba-48bc-992b-341161bf21f1", // PROSESSERING
             )
 
         val roller = Rolle.fraAzureGrupper(azureGrupper)

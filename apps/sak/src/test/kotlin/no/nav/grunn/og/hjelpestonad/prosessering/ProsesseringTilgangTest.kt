@@ -24,6 +24,13 @@ class ProsesseringTilgangTest {
     }
 
     @Test
+    fun `tidligere midlertidig prosesseringsgruppe gir ikke tilgang`() {
+        assertThatThrownBy {
+            prosesseringTilgang.harRolleProsessering(brukertoken(grupper = listOf("928636f4-fd0d-4149-978e-a6fb68bb19de")))
+        }.isInstanceOf(AccessDeniedException::class.java)
+    }
+
+    @Test
     fun `maskintoken med gruppen avvises`() {
         val maskintoken =
             JwtAuthenticationToken(
@@ -33,7 +40,7 @@ class ProsesseringTilgangTest {
                     .subject("maskinklient")
                     .claim("oid", "maskinklient")
                     .claim("idtyp", "app")
-                    .claim("groups", listOf("928636f4-fd0d-4149-978e-a6fb68bb19de"))
+                    .claim("groups", listOf("bbda72af-39ba-48bc-992b-341161bf21f1"))
                     .build(),
                 emptyList(),
             )
@@ -133,7 +140,7 @@ class ProsesseringTilgangTest {
                     .withTokenValue("test")
                     .header("alg", "RS256")
                     .claims { it.putAll(brukertoken().token.claims) }
-                    .claim("groups", listOf("928636f4-fd0d-4149-978e-a6fb68bb19de", 42))
+                    .claim("groups", listOf("bbda72af-39ba-48bc-992b-341161bf21f1", 42))
                     .build(),
                 emptyList(),
             )
@@ -142,7 +149,7 @@ class ProsesseringTilgangTest {
     }
 
     private fun brukertoken(
-        grupper: List<String> = listOf("928636f4-fd0d-4149-978e-a6fb68bb19de"),
+        grupper: List<String> = listOf("bbda72af-39ba-48bc-992b-341161bf21f1"),
         navIdent: String? = "Z123456",
     ): JwtAuthenticationToken =
         JwtAuthenticationToken(
