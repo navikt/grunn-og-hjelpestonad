@@ -10,6 +10,7 @@ class RolleTest {
         assertEquals("ROLE_SAKSBEHANDLER", Rolle.SAKSBEHANDLER.authority())
         assertEquals("ROLE_BESLUTTER", Rolle.BESLUTTER.authority())
         assertEquals("ROLE_LESETILGANG", Rolle.LESETILGANG.authority())
+        assertEquals("ROLE_PROSESSERING", Rolle.PROSESSERING.authority())
     }
 
     @Test
@@ -43,6 +44,13 @@ class RolleTest {
     }
 
     @Test
+    fun `fraAzureGrupper skal mappe PROSESSERING Azure gruppe til PROSESSERING rolle`() {
+        val azureGrupper = listOf("bbda72af-39ba-48bc-992b-341161bf21f1")
+
+        assertEquals(setOf(Rolle.PROSESSERING), Rolle.fraAzureGrupper(azureGrupper))
+    }
+
+    @Test
     fun `fraAzureGrupper skal mappe flere Azure grupper til flere roller`() {
         val azureGrupper =
             listOf(
@@ -64,14 +72,16 @@ class RolleTest {
                 "7ce9d1d2-d149-4324-832b-8d459762a102", // SAKSBEHANDLER
                 "84c4a287-abd6-46c1-bf93-dbf90f1a326d", // BESLUTTER
                 "a181921e-2a55-4198-896b-0086cc805278", // LESETILGANG
+                "bbda72af-39ba-48bc-992b-341161bf21f1", // PROSESSERING
             )
 
         val roller = Rolle.fraAzureGrupper(azureGrupper)
 
-        assertEquals(3, roller.size)
+        assertEquals(4, roller.size)
         assertTrue(roller.contains(Rolle.SAKSBEHANDLER))
         assertTrue(roller.contains(Rolle.BESLUTTER))
         assertTrue(roller.contains(Rolle.LESETILGANG))
+        assertTrue(roller.contains(Rolle.PROSESSERING))
     }
 
     @Test
@@ -129,5 +139,6 @@ class RolleTest {
         assertEquals("Kan saksbehandle i saksbehandler-løsningen", Rolle.SAKSBEHANDLER.beskrivelse)
         assertEquals("Kan beslutte vedtak i saksbehandling-løsningen", Rolle.BESLUTTER.beskrivelse)
         assertEquals("Kan lese og se informasjon i saksbehandling-løsningen", Rolle.LESETILGANG.beskrivelse)
+        assertEquals("Kan behandle tasks i efterlatte-verktoy", Rolle.PROSESSERING.beskrivelse)
     }
 }
