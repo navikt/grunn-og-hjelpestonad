@@ -21,14 +21,14 @@ data class MigreringPersonValideringsresultat(
 object MigreringPersonValidering {
     fun valider(personIdentitetOgDoedsfall: PersonIdentitetOgDoedsfall): MigreringPersonValideringsresultat {
         val blokkeringer =
-            buildSet {
-                if (personIdentitetOgDoedsfall.doedsfall.isNotEmpty()) {
-                    add(MigreringPersonBlokkering.DØD)
-                }
-                if (personIdentitetOgDoedsfall.falskIdentitet?.erFalsk == true) {
-                    add(MigreringPersonBlokkering.FALSK_IDENTITET)
-                }
-            }
+            setOfNotNull(
+                MigreringPersonBlokkering.DØD.takeIf {
+                    personIdentitetOgDoedsfall.doedsfall.isNotEmpty()
+                },
+                MigreringPersonBlokkering.FALSK_IDENTITET.takeIf {
+                    personIdentitetOgDoedsfall.falskIdentitet?.erFalsk == true
+                },
+            )
         return MigreringPersonValideringsresultat(blokkeringer = blokkeringer)
     }
 }
