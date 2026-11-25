@@ -322,6 +322,113 @@ class PdlClientWiremockTest {
         }
     }
 
+    @Test
+    fun `hentIdentitetOgDoedsfallOBOToken bruker OBO-token og leser falsk identitet og doedsfall`() {
+        stubForGraphql(
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "falskIdentitet": { "erFalsk": true },
+                  "doedsfall": [ { "doedsdato": "2025-11-20" } ]
+                }
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val personIdentitetOgDoedsfall =
+            pdlClient.hentIdentitetOgDoedsfallOBOToken(
+                PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
+            )
+
+        assertThat(personIdentitetOgDoedsfall).isNotNull
+        assertThat(personIdentitetOgDoedsfall!!.falskIdentitet?.erFalsk).isTrue()
+        assertThat(personIdentitetOgDoedsfall.doedsfall.single().doedsdato).isEqualTo(LocalDate.of(2025, 11, 20))
+        assertEquals(listOf("pdlScope"), texasClient.requestedOboAudiences)
+        assertThat(texasClient.requestedMaskinAudiences).isEmpty()
+    }
+
+    @Test
+    fun `hentIdentitetOgDoedsfallMaskinToken bruker maskintoken og leser falsk identitet og doedsfall`() {
+        stubForGraphql(
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "falskIdentitet": { "erFalsk": true },
+                  "doedsfall": [ { "doedsdato": "2025-11-20" } ]
+                }
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val personIdentitetOgDoedsfall =
+            pdlClient.hentIdentitetOgDoedsfallMaskinToken(
+                PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
+            )
+
+        assertThat(personIdentitetOgDoedsfall).isNotNull
+        assertThat(personIdentitetOgDoedsfall!!.falskIdentitet?.erFalsk).isTrue()
+        assertThat(personIdentitetOgDoedsfall.doedsfall.single().doedsdato).isEqualTo(LocalDate.of(2025, 11, 20))
+        assertEquals(listOf("pdlScope"), texasClient.requestedMaskinAudiences)
+        assertThat(texasClient.requestedOboAudiences).isEmpty()
+    }
+
+    @Test
+    fun `hentIdentitetOgDoedsfallMaskinToken haandterer null falskIdentitet og tom doedsfall-liste`() {
+        stubForGraphql(
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "falskIdentitet": null,
+                  "doedsfall": []
+                }
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val personIdentitetOgDoedsfall =
+            pdlClient.hentIdentitetOgDoedsfallMaskinToken(
+                PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
+            )
+
+        assertThat(personIdentitetOgDoedsfall).isNotNull
+        assertThat(personIdentitetOgDoedsfall!!.falskIdentitet).isNull()
+        assertThat(personIdentitetOgDoedsfall.doedsfall).isEmpty()
+    }
+
+    @Test
+    fun `hentIdentitetOgDoedsfallMaskinToken kaster PdlException ved teknisk feil`() {
+        wireMockServer.stubFor(
+            post(urlEqualTo("/graphql"))
+                .willReturn(serverError()),
+        )
+
+        assertThrows<PdlException> {
+            pdlClient.hentIdentitetOgDoedsfallMaskinToken(PdlRequest(query = "query {}", variables = emptyMap()))
+        }
+    }
+
+    @Test
+    fun `hentIdentitetOgDoedsfallMaskinToken kaster PdlException ved PDL errors`() {
+        stubForGraphql(
+            """
+            {
+              "data": { "hentPerson": null },
+              "errors": [ { "message": "Fant ikke person", "extensions": { "code": "not_found" } } ]
+            }
+            """.trimIndent(),
+        )
+
+        assertThrows<PdlException> {
+            pdlClient.hentIdentitetOgDoedsfallMaskinToken(PdlRequest(query = "query {}", variables = mapOf("ident" to "123")))
+        }
+    }
+
     private val familieRelasjon =
         PdlResponseFamilierelasjoner(
             data =

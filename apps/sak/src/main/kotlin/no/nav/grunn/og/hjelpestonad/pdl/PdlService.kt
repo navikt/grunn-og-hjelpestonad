@@ -83,6 +83,21 @@ class PdlService(
         return pdlClient.hentFaktagrunnlag(request) ?: throw PdlException("Fant ingen person i PDL")
     }
 
+    fun hentIdentitetOgDoedsfallForMigrering(personident: String): PersonIdentitetOgDoedsfall {
+        val pdlRequest =
+            PdlRequest(
+                query = graphqlQuery("/pdl/hent_identitet_og_doedsfall.graphql"),
+                variables = mapOf("ident" to personident),
+            )
+        val personIdentitetOgDoedsfall =
+            if (SikkerhetContext.erMaskinTilMaskinToken()) {
+                pdlClient.hentIdentitetOgDoedsfallMaskinToken(pdlRequest)
+            } else {
+                pdlClient.hentIdentitetOgDoedsfallOBOToken(pdlRequest)
+            }
+        return personIdentitetOgDoedsfall ?: throw PdlException("Fant ingen person i PDL")
+    }
+
     fun graphqlQuery(path: String) =
         PdlService::class.java
             .getResource(path)
