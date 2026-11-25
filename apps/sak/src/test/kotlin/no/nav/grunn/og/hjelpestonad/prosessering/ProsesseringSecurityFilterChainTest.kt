@@ -6,12 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.oauth2.jwt.BadJwtException
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
@@ -23,6 +25,7 @@ import org.springframework.web.context.WebApplicationContext
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
 
 @SpringJUnitWebConfig(ProsesseringSecurityFilterChainTest.TestConfig::class)
+@ActiveProfiles("prosessering-filter-test")
 class ProsesseringSecurityFilterChainTest {
     @TestConfiguration
     @EnableWebMvc
@@ -34,6 +37,7 @@ class ProsesseringSecurityFilterChainTest {
     }
 
     @RestController
+    @Profile("prosessering-filter-test")
     class TestController {
         @GetMapping("/api/prosessering/test")
         fun hentTestverdi(): String = "ok"
