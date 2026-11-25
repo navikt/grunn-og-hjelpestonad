@@ -1,6 +1,6 @@
 import React from "react";
 import { InternalHeader, Spacer } from "@navikt/ds-react";
-import type { Saksbehandler } from "~/server/types";
+import type { Oppsett } from "~/server/types";
 import { Link, useNavigate, useRouteLoaderData } from "react-router";
 import { Søkefelt } from "./Søkefelt";
 import { SaksbehandlerMenu } from "./SaksbehandlerMenu";
@@ -12,10 +12,7 @@ export const Header: React.FC = () => {
   const { søk, søkeresultat, søker, feilmelding, settSøk, tilbakestillSøk } = useSøk();
   const { opprettFagsak, oppretter, opprettFeilmelding } = useOpprettFagsak();
 
-  const { saksbehandler } =
-    useRouteLoaderData<{
-      saksbehandler: Saksbehandler | null;
-    }>("root") || {};
+  const { saksbehandler, env } = useRouteLoaderData<Oppsett>("root") || {};
 
   const handleNavigate = (fagsakPersonId: string) => {
     navigate(`/person/${fagsakPersonId}/behandlingsoversikt`);
@@ -47,7 +44,7 @@ export const Header: React.FC = () => {
         opprettFeilmelding={opprettFeilmelding}
       />
 
-      <SaksbehandlerMenu saksbehandler={saksbehandler ?? null} />
+      <SaksbehandlerMenu saksbehandler={saksbehandler ?? null} erLokalt={env === "lokalt"} />
     </InternalHeader>
   );
 };

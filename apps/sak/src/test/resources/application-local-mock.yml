@@ -87,6 +87,9 @@ integrasjoner:
     tilgangsmaskin:
         url: http://localhost:8090
         scope: mock-scope
+    oppgave:
+        url: http://localhost:8090
+        scope: mock-scope
 
 # Swagger/OpenAPI konfigurasjon
 springdoc:
