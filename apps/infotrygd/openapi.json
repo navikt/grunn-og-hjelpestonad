@@ -177,6 +177,50 @@
           }
         }
       }
+    },
+    "/api/infotrygd/stonad/migreringspersoner/forstegangsvedtak" : {
+      "get" : {
+        "tags" : [ "st-ønad-controller" ],
+        "summary" : "Henter personer med løpende grunnstønad som bare har ett førstegangsvedtak, med gitt sats og hjemmelbokstav",
+        "description" : "Stønaden har ett vedtak med endringskode F når annullerte og uavklarte vedtak er trukket fra. Personer med løpende hjelpestønad er ikke med. Hjemmelbokstav er A til H. Med brukertoken fjernes personer saksbehandleren ikke har tilgang til, så svaret kan inneholde færre enn antall personer.",
+        "operationId" : "hentPersonerMedFørstegangsvedtakForMigrering",
+        "parameters" : [ {
+          "name" : "antall",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "sats",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "hjemmelbokstav",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PersonerForMigreringResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components" : {

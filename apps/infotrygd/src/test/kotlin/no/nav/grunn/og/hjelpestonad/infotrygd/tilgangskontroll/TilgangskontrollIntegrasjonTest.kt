@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -163,6 +164,23 @@ class TilgangskontrollIntegrasjonTest {
             .get("/api/infotrygd/stonad/migreringspersoner?antall=1001") {
                 header(HttpHeaders.AUTHORIZATION, "Bearer $SAKSBEHANDLER")
             }.andExpect { status { isBadRequest() } }
+    }
+
+    @ParameterizedTest(name = "migreringspersoner med førstegangsvedtak og {0} gir 400")
+    @ValueSource(strings = ["antall=0&sats=3&hjemmelbokstav=F", "antall=10&sats=7&hjemmelbokstav=F", "antall=10&sats=3&hjemmelbokstav=I"])
+    fun `migreringspersoner med førstegangsvedtak og ugyldig input gir 400`(parametere: String) {
+        mockMvc
+            .get("/api/infotrygd/stonad/migreringspersoner/forstegangsvedtak?$parametere") {
+                header(HttpHeaders.AUTHORIZATION, "Bearer $SAKSBEHANDLER")
+            }.andExpect { status { isBadRequest() } }
+    }
+
+    @Test
+    fun `migreringspersoner med førstegangsvedtak godtar liten hjemmelbokstav`() {
+        mockMvc
+            .get("/api/infotrygd/stonad/migreringspersoner/forstegangsvedtak?antall=10&sats=3&hjemmelbokstav=f") {
+                header(HttpHeaders.AUTHORIZATION, "Bearer $SAKSBEHANDLER")
+            }.andExpect { status { isOk() } }
     }
 
     @Test

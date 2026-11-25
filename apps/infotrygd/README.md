@@ -119,6 +119,7 @@ Målt i dev 2026-10-30. Hvordan `sak` bruker tallene, står i
 | `POST /api/infotrygd/stonader` | Stønadene for én stønadstype, som et tre fra `t_stonad` til vedtak, endringer, delytelser, `t_gh` og evaluering |
 | `POST /api/infotrygd/stonad/eksisterer` | Om personene har vedtak eller saker, og om vedtakene er løpende |
 | `GET /api/infotrygd/stonad/migreringspersoner` | Personer med løpende stønad fra neste måned |
+| `GET /api/infotrygd/stonad/migreringspersoner/forstegangsvedtak` | Personer med løpende grunnstønad som bare har ett førstegangsvedtak, med gitt sats og hjemmelbokstav. Se [Migrering av førstegangsvedtak](#migrering-av-førstegangsvedtak). |
 | `POST /api/infotrygd/saker/finn` | Saker fra `sa_sak_10` |
 | `GET /api/infotrygd/tabeller/*` | Kolonner og antall rader i replikatabellene |
 
@@ -133,7 +134,10 @@ Teksten etter «for å» sier hva saksbehandleren spør om, og kommer fra enumen
 `Nav-Call-Id` følger med som eget felt. Utfallet er `tilgang`, `avslag` eller
 `feil`. `avslag` betyr at tilgangsmaskinen avviste eller ikke svarte for
 personen, og `feil` at kallet til tilgangsmaskinen feilet.
-`stonad/migreringspersoner` logges ikke.
+`stonad/migreringspersoner` og `stonad/migreringspersoner/forstegangsvedtak`
+logges ikke. Det siste filtrerer på hjemmelbokstav, som er en helseopplysning.
+Tilgang og auditlogg for det er ikke avklart, se
+[ticket 28](../../.scratch/migrering/issues/28-tilgang-og-auditlogg-for-migreringspersoner-med-hjemmelbokstav.md).
 
 Søk etter `logger_name:auditLogger` i team logs. Team logs er ikke en gyldig
 auditlogg for prod, se [ADR-0009](../../docs/adr/ADR-0009-tilgangskontroll-mot-person.md).
@@ -142,7 +146,8 @@ auditlogg for prod, se [ADR-0009](../../docs/adr/ADR-0009-tilgangskontroll-mot-p
 
 Saksbehandlere med gruppen for strengt fortrolig adresse, fortrolig adresse eller
 skjerming får `403` på `stonader`, `stonad/eksisterer` og `saker/finn`, og ingen
-personer fra `stonad/migreringspersoner`. Tilgangsmaskinen spørres ikke. Det
+personer fra `stonad/migreringspersoner` og
+`stonad/migreringspersoner/forstegangsvedtak`. Tilgangsmaskinen spørres ikke. Det
 avviker fra EF-appen. Grunnen er at alle kan gi seg selv gruppene i dev, og
 Infotrygd i dev har skarpe data. Se
 [ADR-0015](../../docs/adr/ADR-0015-sperre-adressebeskyttelse-i-dev.md).
@@ -155,6 +160,33 @@ genererer klientmodellene sine fra filen (pakken
 `openapi-generator-maven-plugin`. `OpenApiKontraktTest` skriver filen fra
 `/v3/api-docs` og feiler når den var utdatert. Endrer du API-et, kjør testene og
 commit den oppdaterte filen.
+
+### Migrering av førstegangsvedtak
+
+`GET /api/infotrygd/stonad/migreringspersoner/forstegangsvedtak?antall=&sats=&hjemmelbokstav=`
+gir personer som kan migreres i første versjon. En person er med når alt dette
+gjelder:
+
+- Personen har en løpende grunnstønad, etter samme regel som
+  `stonad/migreringspersoner`.
+- Stønaden har nøyaktig ett vedtak når annullerte (`AN`) og uavklarte (`UA`)
+  vedtak er trukket fra, og det vedtaket har endringskode `F`. Et senere vedtak,
+  også en maskinell satsomregning, gjør at stønaden ikke er med. Sakstypen
+  sjekkes ikke.
+- `t_gh.sats_gs` på vedtaket er `sats`.
+- Personen har ikke løpende hjelpestønad.
+- Posisjon `160` i siste `EVGH`-evaluering for saken er `hjemmelbokstav`, og
+  ingen andre rader på posisjon `160` samme måned har en annen tekst.
+- Personen har bare én GH-sak med `EVGH` i evalueringsmåneden.
+
+Personene sorteres på `stonad_id`. `sats` er 1 til 6, og `hjemmelbokstav` er A
+til H. Små bokstaver blir gjort om til store. Annen input gir `400`.
+
+Grunnen til kravet om én GH-sak er at `ev_data_10` ikke kan knyttes til én sak,
+og at hjelpestønad bruker posisjon `160` til noe annet. Målt i dev 2026-11-25 for
+personmåneder med én GH-sak i `EVGH`: GS har bare A til H (mest F og G) og 44
+tomme rader. HS har `2` (88 212 rader), `1` (799) og 71 tomme. Uten kravet får GS
+10 801 rader med `2` fra personer som har begge stønadene.
 
 ### Stønader
 
