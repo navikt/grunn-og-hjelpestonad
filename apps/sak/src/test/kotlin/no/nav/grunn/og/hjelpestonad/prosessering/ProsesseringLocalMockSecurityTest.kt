@@ -42,7 +42,13 @@ class ProsesseringLocalMockSecurityTest : ProsesseringSecurityTest() {
             objectMapper.readTree(
                 composeJson["services"]["mock-oauth2-server"]["environment"]["JSON_CONFIG"].asText(),
             )
-        val claims = oauthKonfigurasjon["tokenCallbacks"][0]["requestMappings"][0]["claims"]
+        val tokenKonfigurasjonForStandardUtsteder =
+            oauthKonfigurasjon["tokenCallbacks"].single { it["issuerId"].asText() == "default" }
+        val brukertokenKonfigurasjon =
+            tokenKonfigurasjonForStandardUtsteder["requestMappings"].single {
+                it["requestParam"].asText() == "code" && it["match"].asText() == "*"
+            }
+        val claims = brukertokenKonfigurasjon["claims"]
         val mockBrukertoken =
             Jwt
                 .withTokenValue("lokalt-brukertoken")
