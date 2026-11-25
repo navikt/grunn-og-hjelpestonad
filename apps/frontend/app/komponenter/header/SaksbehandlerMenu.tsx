@@ -3,13 +3,18 @@ import { LeaveIcon } from "@navikt/aksel-icons";
 import { BodyShort, Detail, Dropdown, InternalHeader, Spacer, Switch } from "@navikt/ds-react";
 import type { Saksbehandler } from "~/server/types";
 import { useTemaContext } from "~/fellesContext/TemaContext";
+import { LokalByttBrukerMenypunkt } from "./LokalByttBrukerMenypunkt";
 import styles from "./SaksbehandlerMenu.module.css";
 
 interface SaksbehandlerMenuProps {
   saksbehandler: Saksbehandler | null;
+  erLokalt?: boolean;
 }
 
-export const SaksbehandlerMenu: React.FC<SaksbehandlerMenuProps> = ({ saksbehandler }) => {
+export const SaksbehandlerMenu: React.FC<SaksbehandlerMenuProps> = ({
+  saksbehandler,
+  erLokalt,
+}) => {
   const saksbehandlerNavn = saksbehandler?.navn || "";
   const { mørktTema, byttTema } = useTemaContext();
 
@@ -21,7 +26,10 @@ export const SaksbehandlerMenu: React.FC<SaksbehandlerMenuProps> = ({ saksbehand
         description="Enhet: ukjent"
       />
 
-      <Dropdown.Menu className={`${styles.meny} ${mørktTema ? "dark" : "light"}`} data-color="accent">
+      <Dropdown.Menu
+        className={`${styles.meny} ${mørktTema ? "dark" : "light"}`}
+        data-color="accent"
+      >
         <dl>
           <BodyShort as="dt" size="small">
             {saksbehandlerNavn}
@@ -38,6 +46,9 @@ export const SaksbehandlerMenu: React.FC<SaksbehandlerMenuProps> = ({ saksbehand
               </Switch>
             </div>
           </li>
+          {erLokalt && (
+            <LokalByttBrukerMenypunkt navIdent={saksbehandler?.navIdent} className={styles.rad} />
+          )}
           <li>
             <a href="/oauth2/logout" className={styles.rad}>
               Logg ut <Spacer /> <LeaveIcon aria-hidden />

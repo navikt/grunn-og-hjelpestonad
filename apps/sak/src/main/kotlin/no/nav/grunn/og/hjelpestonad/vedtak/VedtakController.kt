@@ -54,7 +54,7 @@ class VedtakController(
     }
 
     @GetMapping("{behandlingId}/historikk/{fra}")
-    fun hentHistoriskVedtakForBehanling(
+    fun hentHistoriskVedtakForBehandling(
         @PathVariable behandlingId: UUID,
         @PathVariable fra: YearMonth,
     ): ResponseEntity<HistoriskVedtakResponse> {

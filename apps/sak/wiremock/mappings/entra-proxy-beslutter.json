@@ -1,0 +1,26 @@
+{
+  "name": "Entra proxy - ansattinfo beslutter",
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/v1/ansatt/B123456"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "navIdent": "B123456",
+      "visningNavn": "Mock Beslutter",
+      "fornavn": "Mock",
+      "etternavn": "Beslutter",
+      "tIdent": "B123456",
+      "epost": "mock.beslutter@nav.no",
+      "enhet": {
+        "enhetnummer": "4415",
+        "navn": "NAV Mock"
+      }
+    }
+  },
+  "priority": 1
+}

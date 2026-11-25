@@ -41,6 +41,7 @@ open class SpringContextTest {
 
     private fun resetDatabase() {
         jdbcAggregateOperations.deleteAll(OppdragResultat::class.java)
+        jdbcTemplate.update("DELETE FROM simulering")
         jdbcAggregateOperations.deleteAll(TilkjentYtelse::class.java)
         jdbcAggregateOperations.deleteAll(Vedtak::class.java)
         jdbcAggregateOperations.deleteAll(ÅrsakBehandling::class.java)

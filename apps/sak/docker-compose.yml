@@ -37,6 +37,22 @@ services:
                       "issuerId": "default",
                       "requestMappings": [
                         {
+                          "requestParam": "client_id",
+                          "match": "beslutter",
+                          "claims": {
+                            "NAVident": "B123456",
+                            "groups": [
+                              "7ce9d1d2-d149-4324-832b-8d459762a102"
+                            ],
+                            "name": "Mock Beslutter",
+                            "preferred_username": "mock.beslutter@nav.no",
+                            "email": "mock.beslutter@nav.no",
+                            "aud": [
+                              "default"
+                            ]
+                          }
+                        },
+                        {
                           "requestParam": "code",
                           "match": "*",
                           "claims": {

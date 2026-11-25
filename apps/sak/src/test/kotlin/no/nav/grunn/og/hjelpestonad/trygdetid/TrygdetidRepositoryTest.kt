@@ -32,7 +32,7 @@ class TrygdetidRepositoryTest(
         val trygdetid =
             trygdetid(
                 behandlingId,
-                teller = 25,
+                antallÅr = 25,
                 kilde = TrygdetidKilde.UFØRETRYGD,
                 begrunnelse = "Uføretrygd fra 2010",
                 fraOgMedDato = LocalDate.of(2010, 1, 1),
@@ -47,7 +47,7 @@ class TrygdetidRepositoryTest(
     @Test
     fun `MIGRERING lagres og hentes på behandling`() {
         val behandlingId = opprettBehandling()
-        val trygdetid = trygdetid(behandlingId, teller = 25, kilde = TrygdetidKilde.MIGRERING)
+        val trygdetid = trygdetid(behandlingId, antallÅr = 25, kilde = TrygdetidKilde.MIGRERING)
 
         trygdetidRepository.insert(trygdetid)
 
@@ -55,40 +55,40 @@ class TrygdetidRepositoryTest(
     }
 
     @Test
-    fun `MIGRERING godtar teller 0 og 40`() {
+    fun `MIGRERING godtar 0 og 40 år`() {
         val behandlingId = opprettBehandling()
 
         assertThatCode {
-            trygdetidRepository.insert(trygdetid(behandlingId, teller = 0, kilde = TrygdetidKilde.MIGRERING))
-            trygdetidRepository.insert(trygdetid(behandlingId, teller = 40, kilde = TrygdetidKilde.MIGRERING))
+            trygdetidRepository.insert(trygdetid(behandlingId, antallÅr = 0, kilde = TrygdetidKilde.MIGRERING))
+            trygdetidRepository.insert(trygdetid(behandlingId, antallÅr = 40, kilde = TrygdetidKilde.MIGRERING))
         }.doesNotThrowAnyException()
 
         assertThat(trygdetidRepository.findByBehandlingId(behandlingId)).hasSize(2)
     }
 
     @Test
-    fun `teller 0 og 40 godtas`() {
+    fun `0 og 40 år godtas`() {
         val behandlingId = opprettBehandling()
 
         assertThatCode {
-            trygdetidRepository.insert(trygdetid(behandlingId, teller = 0, kilde = TrygdetidKilde.ALDERSPENSJON))
-            trygdetidRepository.insert(trygdetid(behandlingId, teller = 40, kilde = TrygdetidKilde.UFØRETRYGD))
+            trygdetidRepository.insert(trygdetid(behandlingId, antallÅr = 0, kilde = TrygdetidKilde.ALDERSPENSJON))
+            trygdetidRepository.insert(trygdetid(behandlingId, antallÅr = 40, kilde = TrygdetidKilde.UFØRETRYGD))
         }.doesNotThrowAnyException()
 
         assertThat(trygdetidRepository.findByBehandlingId(behandlingId)).hasSize(2)
     }
 
     @Test
-    fun `teller under 0 og over 40 avvises`() {
+    fun `under 0 og over 40 år avvises`() {
         val behandlingId = opprettBehandling()
 
         assertThatThrownBy {
-            trygdetidRepository.insert(trygdetid(behandlingId, teller = -1, kilde = TrygdetidKilde.ALDERSPENSJON))
-        }.hasStackTraceContaining("trygdetid_teller_omraade")
+            trygdetidRepository.insert(trygdetid(behandlingId, antallÅr = -1, kilde = TrygdetidKilde.ALDERSPENSJON))
+        }.hasStackTraceContaining("trygdetid_antall_aar_omraade")
 
         assertThatThrownBy {
-            trygdetidRepository.insert(trygdetid(behandlingId, teller = 41, kilde = TrygdetidKilde.ALDERSPENSJON))
-        }.hasStackTraceContaining("trygdetid_teller_omraade")
+            trygdetidRepository.insert(trygdetid(behandlingId, antallÅr = 41, kilde = TrygdetidKilde.ALDERSPENSJON))
+        }.hasStackTraceContaining("trygdetid_antall_aar_omraade")
     }
 
     @Test
@@ -97,7 +97,7 @@ class TrygdetidRepositoryTest(
 
         assertThatThrownBy {
             jdbcTemplate.update(
-                "INSERT INTO trygdetid (id, behandling_id, teller, kilde, opprettet_av, opprettet_tid, endret_av, endret_tid) " +
+                "INSERT INTO trygdetid (id, behandling_id, antall_aar, kilde, opprettet_av, opprettet_tid, endret_av, endret_tid) " +
                     "VALUES (?, ?, 10, 'ANNET', 'test', now(), 'test', now())",
                 UUID.randomUUID(),
                 behandlingId,
@@ -106,15 +106,15 @@ class TrygdetidRepositoryTest(
     }
 
     @Test
-    fun `kilde INGEN krever teller 40`() {
+    fun `kilde INGEN krever 40 år`() {
         val behandlingId = opprettBehandling()
 
         assertThatThrownBy {
-            trygdetidRepository.insert(trygdetid(behandlingId, teller = 39, kilde = TrygdetidKilde.INGEN))
+            trygdetidRepository.insert(trygdetid(behandlingId, antallÅr = 39, kilde = TrygdetidKilde.INGEN))
         }.hasStackTraceContaining("trygdetid_ingen_gir_40")
 
         assertThatCode {
-            trygdetidRepository.insert(trygdetid(behandlingId, teller = 40, kilde = TrygdetidKilde.INGEN))
+            trygdetidRepository.insert(trygdetid(behandlingId, antallÅr = 40, kilde = TrygdetidKilde.INGEN))
         }.doesNotThrowAnyException()
     }
 
@@ -147,8 +147,8 @@ class TrygdetidRepositoryTest(
     fun `sletting av behandlingen sletter trygdetidene til den behandlingen`() {
         val behandlingId = opprettBehandling()
         val annenBehandlingId = opprettBehandling()
-        trygdetidRepository.insert(trygdetid(behandlingId, teller = 30))
-        trygdetidRepository.insert(trygdetid(annenBehandlingId, teller = 12))
+        trygdetidRepository.insert(trygdetid(behandlingId, antallÅr = 30))
+        trygdetidRepository.insert(trygdetid(annenBehandlingId, antallÅr = 12))
 
         behandlingRepository.deleteById(behandlingId)
 
@@ -158,14 +158,14 @@ class TrygdetidRepositoryTest(
 
     private fun trygdetid(
         behandlingId: UUID,
-        teller: Int = 40,
+        antallÅr: Int = 40,
         kilde: TrygdetidKilde = TrygdetidKilde.ALDERSPENSJON,
         begrunnelse: String = "Test",
         fraOgMedDato: LocalDate? = null,
         tilOgMedDato: LocalDate? = null,
     ) = Trygdetid(
         behandlingId = behandlingId,
-        teller = teller,
+        antallÅr = antallÅr,
         kilde = kilde,
         begrunnelse = begrunnelse,
         fraOgMedDato = fraOgMedDato,

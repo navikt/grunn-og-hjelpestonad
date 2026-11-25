@@ -11,11 +11,12 @@ import no.nav.familie.tidslinje.utvidelser.tilPerioderIkkeNull
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import no.nav.grunn.og.hjelpestonad.felles.periode.tilTidslinje
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PerioderMedOppfylteInngangsvilkårUtleder
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsfeil
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsnøkkel
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårValideringFeil
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.VilkårVurderingValidering
 import no.nav.grunn.og.hjelpestonad.trygdetid.Trygdetid
 import no.nav.grunn.og.hjelpestonad.trygdetid.TrygdetidRegler
-import no.nav.grunn.og.hjelpestonad.vilkår.VilkårType
 import no.nav.grunn.og.hjelpestonad.vilkår.diagnose.VilkårDiagnose
 import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.EkstrautgifterRegler
 import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifter
@@ -30,30 +31,9 @@ data class UtledetAndel(
     val beløp: BigDecimal,
 )
 
-/** Hva en valideringsfeil gjelder. Trygdetid er ikke et vilkår og har derfor en egen nøkkel. */
-sealed interface Valideringsnøkkel {
-    data class Vilkår(
-        val vilkårType: VilkårType,
-    ) : Valideringsnøkkel
-
-    data object Trygdetid : Valideringsnøkkel
-}
-
-data class Utledningsfeil(
-    val nøkkel: Valideringsnøkkel,
-    val melding: String,
-)
-
-/** Grunnlaget for tilkjent ytelse når den ikke er komplett. Har høyst én feil per [Valideringsnøkkel]. */
-class UtledningAvTilkjentYtelseFeil(
-    val feil: List<Utledningsfeil>,
-) : RuntimeException("Grunnlaget for tilkjent ytelse er ikke komplett")
-
 object TilkjentYtelseUtleder {
     const val EKSTRAUTGIFTER_IKKE_VURDERT = "Du må vurdere nødvendige ekstrautgifter."
     const val TRYGDETID_MANGLER = "Du må registrere trygdetid for hele perioden søker har rett til grunnstønad."
-
-    private val NEVNER = BigDecimal(TrygdetidRegler.MAKS_TELLER)
 
     fun utled(
         medlemskap: List<VilkårMedlemskap>,
@@ -66,7 +46,14 @@ object TilkjentYtelseUtleder {
 
         ekstrautgifter.forEach { vilkårEkstrautgifter ->
             if (!EkstrautgifterRegler.erDiagnoseneOppfyltIHelePerioden(vilkårEkstrautgifter, diagnoser)) {
-                throw UgyldigInput(EkstrautgifterRegler.DIAGNOSE_IKKE_OPPFYLT_I_HELE_PERIODEN)
+                throw VilkårValideringFeil(
+                    listOf(
+                        Valideringsfeil(
+                            nøkkel = Valideringsnøkkel.NØDVENDIGE_EKSTRAUTGIFTER,
+                            melding = EkstrautgifterRegler.DIAGNOSE_IKKE_OPPFYLT_I_HELE_PERIODEN,
+                        ),
+                    ),
+                )
             }
         }
 
@@ -83,26 +70,26 @@ object TilkjentYtelseUtleder {
 
         val erVilkåreneOppfyltTidslinje = satsTidslinje.mapVerdi<Int, Boolean> { sats -> sats?.let { true } }
 
-        val satsOgTellerPerMåned =
+        val satsOgTrygdetidPerMåned =
             erVilkåreneOppfyltTidslinje
                 .forskyvTilHeleMåneder()
                 .kombinerMed(
                     satsTidslinje.forskyvTilHeleMåneder(),
-                    trygdetidTidslinje.mapVerdi { it?.teller }.forskyvTilHeleMåneder(),
-                ) { oppfylt, sats, teller ->
+                    trygdetidTidslinje.mapVerdi { it?.antallÅr }.forskyvTilHeleMåneder(),
+                ) { oppfylt, sats, antallÅr ->
                     if (oppfylt == true) {
-                        SatsOgTeller(
+                        SatsOgTrygdetid(
                             sats = checkNotNull(sats) { "Mangler sats i en måned der vilkårene er oppfylt." },
-                            teller = checkNotNull(teller) { "Mangler trygdetid i en måned der vilkårene er oppfylt." },
+                            trygdetid = checkNotNull(antallÅr) { "Mangler trygdetid i en måned der vilkårene er oppfylt." },
                         )
                     } else {
                         null
                     }
                 }
 
-        return satsOgTellerPerMåned
-            .kombinerMed(SATSBELØP_PER_MÅNED) { satsOgTeller, satsbeløpeneIPerioden ->
-                satsOgTeller?.let {
+        return satsOgTrygdetidPerMåned
+            .kombinerMed(SATSBELØP_PER_MÅNED) { satsOgTrygdetid, satsbeløpeneIPerioden ->
+                satsOgTrygdetid?.let {
                     utledBeløp(it, satsbeløpeneIPerioden)
                 }
             }.slåSammenLikePerioder()
@@ -145,25 +132,25 @@ object TilkjentYtelseUtleder {
 
         val feil =
             listOfNotNull(
-                Utledningsfeil(Valideringsnøkkel.Vilkår(VilkårType.NØDVENDIGE_EKSTRAUTGIFTER), EKSTRAUTGIFTER_IKKE_VURDERT)
+                Valideringsfeil(Valideringsnøkkel.NØDVENDIGE_EKSTRAUTGIFTER, EKSTRAUTGIFTER_IKKE_VURDERT)
                     .takeUnless { ekstrautgifterVurdert },
-                Utledningsfeil(Valideringsnøkkel.Trygdetid, TRYGDETID_MANGLER).takeIf { hullITrygdetid },
+                Valideringsfeil(Valideringsnøkkel.TRYGDETID, TRYGDETID_MANGLER).takeIf { hullITrygdetid },
             )
-        if (feil.isNotEmpty()) throw UtledningAvTilkjentYtelseFeil(feil)
+        if (feil.isNotEmpty()) throw VilkårValideringFeil(feil)
     }
 
     /**
-     * Satsbeløp × teller / 40, eksakt. Bruker `divide` uten avrunding, fordi `/` i Kotlin beholder skalaen til
+     * Satsbeløp × trygdetid / full trygdetid, eksakt. Bruker `divide` uten avrunding, fordi `/` i Kotlin beholder skalaen til
      * satsbeløpet og runder.
      */
     private fun utledBeløp(
-        satsOgTeller: SatsOgTeller,
+        satsOgTrygdetid: SatsOgTrygdetid,
         satsbeløpeneIPerioden: List<Satsbeløp>?,
     ): BigDecimal? {
         val satsbeløp =
-            satsbeløpeneIPerioden?.singleOrNull { it.sats == satsOgTeller.sats }
-                ?: throw UgyldigInput("Finner ikke satsbeløp for sats ${satsOgTeller.sats}.")
-        return (satsbeløp.månedsbeløp.toBigDecimal() * satsOgTeller.teller.toBigDecimal()).divide(NEVNER).takeIf { it.signum() != 0 }
+            satsbeløpeneIPerioden?.singleOrNull { it.sats == satsOgTrygdetid.sats }
+                ?: throw UgyldigInput("Finner ikke satsbeløp for sats ${satsOgTrygdetid.sats}.")
+        return (satsbeløp.månedsbeløp.toBigDecimal() * satsOgTrygdetid.trygdetid.toBigDecimal()).divide(TrygdetidRegler.FULL_TRYGDETID.toBigDecimal()).takeIf { it.signum() != 0 }
     }
 
     private val SATSBELØP_PER_MÅNED: Tidslinje<List<Satsbeløp>> =
@@ -182,9 +169,9 @@ object TilkjentYtelseUtleder {
             }.kombiner { it.toList() }
 }
 
-private data class SatsOgTeller(
+private data class SatsOgTrygdetid(
     val sats: Int,
-    val teller: Int,
+    val trygdetid: Int,
 )
 
 private fun <T> Tidslinje<T>.harVerdi(): Boolean = tilPerioderIkkeNull().isNotEmpty()
