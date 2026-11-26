@@ -12,8 +12,8 @@ enum class GrunnOgHjelpYtelsestype(
 }
 
 /**
- * IT28 og GHGSORMG er midlertidige koder for dev (ADR-0011, `tmp/todo-it28-oppdrag.md`).
- * De byttes når økonomi gir prod-koder.
+ * IT28 og GHGSORMG er midlertidige koder for dev (ADR-0011 og ADR-0019).
+ * De byttes når teamet som har ansvar for Oppdrag leverer nye koder, estimert rundt januar 2027.
  */
 enum class GrunnOgHjelpFagsystem(
     override val kode: String,
