@@ -13,7 +13,6 @@ import no.nav.grunn.og.hjelpestonad.fagsak.FagsakController
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakService
 import no.nav.grunn.og.hjelpestonad.pdl.PdlController
 import no.nav.grunn.og.hjelpestonad.pdl.PdlService
-import no.nav.grunn.og.hjelpestonad.vedtak.GjeldendeVedtakService
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakController
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
 import org.junit.jupiter.api.Test
@@ -53,9 +52,6 @@ class TilgangssjekkWebMvcTest {
 
     @MockkBean
     private lateinit var vedtakService: VedtakService
-
-    @MockkBean
-    private lateinit var gjeldendeVedtakService: GjeldendeVedtakService
 
     @MockkBean
     private lateinit var pdlService: PdlService

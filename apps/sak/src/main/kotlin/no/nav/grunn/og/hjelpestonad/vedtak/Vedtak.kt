@@ -6,9 +6,6 @@ import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.felles.sporbar.SporbarUtils
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
-import org.springframework.data.relational.core.mapping.MappedCollection
-import org.springframework.data.relational.core.mapping.Table
-import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.YearMonth
 import java.util.UUID
@@ -19,49 +16,12 @@ data class Vedtak(
     val behandlingId: UUID,
     val resultatType: ResultatType,
     val begrunnelse: String? = null,
-    @MappedCollection(idColumn = "vedtak_id", keyColumn = "id")
-    val grunnstønadPerioder: List<GrunnstønadPeriode>,
     val saksbehandlerIdent: String,
     @Column("opphor_fom_maned")
     val opphørFom: YearMonth? = null,
     val beslutterIdent: String? = null,
     val opprettetTid: LocalDateTime = SporbarUtils.now(),
     val opprettetAv: String = SikkerhetContext.hentSaksbehandlerEllerSystembruker(),
-)
-
-@Table("grunnstonad_periode")
-data class GrunnstønadPeriode(
-    @Id
-    val id: UUID = UUID.randomUUID(),
-    @Column("fra_maned")
-    val datoFra: YearMonth,
-    @Column("til_maned")
-    val datoTil: YearMonth,
-    val utgifter: BigDecimal,
-    val barn: List<UUID>,
-    val periodetype: PeriodetypeBarnetilsyn,
-    val aktivitetstype: AktivitetstypeBarnetilsyn,
-)
-
-data class BarnetilsynBeregningRequest(
-    val barnetilsynBeregning: List<BarnetilsynBeregning>,
-)
-
-data class BarnetilsynBeregning(
-    val datoFra: YearMonth,
-    val datoTil: YearMonth,
-    val utgifter: BigDecimal,
-    val barn: List<UUID>,
-    val periodetype: PeriodetypeBarnetilsyn,
-)
-
-data class BeløpsperioderResponse(
-    val datoFra: YearMonth,
-    val datoTil: YearMonth,
-    val utgifter: BigDecimal,
-    val antallBarn: Int,
-    val beløp: Int,
-    val periodetype: PeriodetypeBarnetilsyn,
 )
 
 enum class ResultatType {
@@ -112,57 +72,19 @@ fun ResultatType.tilBehandlingResultat(): BehandlingResultat =
         ResultatType.OPPHØR -> BehandlingResultat.OPPHØRT
     }
 
-enum class PeriodetypeBarnetilsyn {
-    ORDINÆR,
-    INGEN_STØNAD,
-}
-
-enum class AktivitetstypeBarnetilsyn {
-    I_ARBEID,
-    FORBIGÅENDE_SYKDOM,
-    IKKE_RELEVANT,
-}
-
-data class VedtakRequest(
-    val resultatType: ResultatType,
-    val begrunnelse: String? = null,
-    val grunnstønadPerioder: List<GrunnstønadPeriode>,
-    val saksbehandlerIdent: String? = null,
-    val opphørFom: YearMonth? = null,
-    val beslutterIdent: String? = null,
-)
-
 data class VedtakResponse(
     val resultatType: ResultatType,
     val begrunnelse: String? = null,
-    val grunnstønadPerioder: List<GrunnstønadPeriode>,
     val saksbehandlerIdent: String? = null,
     val opphørFom: YearMonth? = null,
     val beslutterIdent: String? = null,
 )
-
-fun VedtakRequest.tilVedtak(behandlingId: UUID): Vedtak =
-    Vedtak(
-        behandlingId = behandlingId,
-        resultatType = this.resultatType,
-        begrunnelse = this.begrunnelse,
-        grunnstønadPerioder = this.grunnstønadPerioder.sortedBy { it.datoFra },
-        saksbehandlerIdent = SikkerhetContext.hentSaksbehandlerEllerSystembruker(),
-        opphørFom = this.opphørFom,
-        beslutterIdent = this.beslutterIdent,
-    )
 
 fun Vedtak.tilResponse(): VedtakResponse =
     VedtakResponse(
         resultatType = this.resultatType,
         begrunnelse = this.begrunnelse,
-        grunnstønadPerioder = this.grunnstønadPerioder.sortedBy { it.datoFra },
         saksbehandlerIdent = this.saksbehandlerIdent,
         opphørFom = this.opphørFom,
         beslutterIdent = this.beslutterIdent,
     )
-
-data class HistoriskVedtakResponse(
-    val grunnstønadPerioder: List<GrunnstønadPeriode>,
-    val fraErFørTidligsteVedtak: Boolean = false,
-)

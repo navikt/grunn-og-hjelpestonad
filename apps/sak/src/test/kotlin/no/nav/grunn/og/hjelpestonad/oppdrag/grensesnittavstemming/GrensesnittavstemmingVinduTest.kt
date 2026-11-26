@@ -35,15 +35,15 @@ class GrensesnittavstemmingVinduTest {
 
     @ParameterizedTest
     @CsvSource(
-        "2026-03-27, 2026-03-27T07:00:00Z",
-        "2026-03-28, 2026-03-30T06:00:00Z",
-        "2026-03-29, 2026-03-30T06:00:00Z",
-        "2026-03-30, 2026-03-30T06:00:00Z",
-        "2026-10-23, 2026-10-23T06:00:00Z",
-        "2026-10-24, 2026-10-26T07:00:00Z",
-        "2026-10-25, 2026-10-26T07:00:00Z",
+        "2026-03-27, 2026-03-27T06:30:00Z",
+        "2026-03-28, 2026-03-30T05:30:00Z",
+        "2026-03-29, 2026-03-30T05:30:00Z",
+        "2026-03-30, 2026-03-30T05:30:00Z",
+        "2026-10-23, 2026-10-23T05:30:00Z",
+        "2026-10-24, 2026-10-26T06:30:00Z",
+        "2026-10-25, 2026-10-26T06:30:00Z",
     )
-    fun `kjøring er klokken åtte norsk tid også over helg og sommertid`(
+    fun `kjøring er klokken 07-30 norsk tid også over helg og sommertid`(
         tilDato: LocalDate,
         forventetTidspunkt: Instant,
     ) {

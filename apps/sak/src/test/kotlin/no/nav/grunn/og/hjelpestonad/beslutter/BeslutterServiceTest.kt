@@ -32,9 +32,6 @@ import no.nav.grunn.og.hjelpestonad.task.FerdigstillOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTask
 import no.nav.grunn.og.hjelpestonad.task.OpprettOppgaveTaskData
 import no.nav.grunn.og.hjelpestonad.task.SendVedtakTilInfotrygdFeedTask
-import no.nav.grunn.og.hjelpestonad.vedtak.AktivitetstypeBarnetilsyn
-import no.nav.grunn.og.hjelpestonad.vedtak.GrunnstønadPeriode
-import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
@@ -42,7 +39,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.springframework.http.HttpStatus
 import java.time.LocalDate
-import java.time.YearMonth
 import java.util.UUID
 import kotlin.test.Test
 
@@ -146,7 +142,7 @@ class BeslutterServiceTest {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
         every { vedtakService.hentVedtakEllerKast(behandlingId) } returns
-            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.AVSLÅTT, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.AVSLÅTT, saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
 
         beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
 
@@ -290,17 +286,6 @@ class BeslutterServiceTest {
             Vedtak(
                 behandlingId = behandlingId,
                 resultatType = ResultatType.INNVILGET,
-                grunnstønadPerioder =
-                    listOf(
-                        GrunnstønadPeriode(
-                            datoFra = YearMonth.of(2026, 1),
-                            datoTil = YearMonth.of(2026, 12),
-                            utgifter = java.math.BigDecimal("1000"),
-                            barn = emptyList(),
-                            periodetype = PeriodetypeBarnetilsyn.ORDINÆR,
-                            aktivitetstype = AktivitetstypeBarnetilsyn.I_ARBEID,
-                        ),
-                    ),
                 saksbehandlerIdent = "Z123456",
                 opprettetAv = "Z123456",
             )
@@ -330,7 +315,7 @@ class BeslutterServiceTest {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
         every { vedtakService.hentVedtakEllerKast(behandlingId) } returns
-            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.OPPHØR, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.OPPHØR, saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
         every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
         val typer = mutableListOf<TaskType<Any>>()
         val payloads = mutableListOf<Any>()
@@ -353,7 +338,7 @@ class BeslutterServiceTest {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
         every { vedtakService.hentVedtakEllerKast(behandlingId) } returns
-            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.AVSLÅTT, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.AVSLÅTT, saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
         val typer = mutableListOf<TaskType<Any>>()
         every { taskService.opprett(capture(typer), any(), any(), any()) } returns TaskId(1)
 
@@ -384,7 +369,7 @@ class BeslutterServiceTest {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
         every { vedtakService.hentVedtakEllerKast(behandlingId) } returns
-            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
         every { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } throws Feil("Beregningen mangler")
 
         assertThatThrownBy { beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true)) }
