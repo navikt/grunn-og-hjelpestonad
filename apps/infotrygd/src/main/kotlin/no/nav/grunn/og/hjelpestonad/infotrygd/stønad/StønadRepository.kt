@@ -69,7 +69,8 @@ class StønadRepository(
      * Finner personer med løpende grunnstønad der stønaden bare har ett gyldig vedtak, og det er et
      * førstegangsvedtak (endringskode F). Vedtaket må ha [sats] i t_gh, og [hjemmelbokstav] i posisjon 160 i siste
      * EVGH-evaluering for saken. Personer med løpende hjelpestønad tas ikke med. Det gjør heller ikke personer med
-     * mer enn én GH-sak i evalueringsmåneden, fordi ev_data_10 da ikke kan knyttes til én sak. Personene sorteres
+     * mer enn én GH-sak i evalueringsmåneden, fordi ev_data_10 da ikke kan knyttes til én sak. Virkningstidspunktet
+     * (dato_innv_fom på førstegangsvedtaket) må være senest i inneværende måned. Personene sorteres
      * med nyeste virkningstidspunkt (dato_innv_fom på førstegangsvedtaket) først, og på stonad_id ved lik dato.
      *
      * Spørringen starter med GS-stønadene som har ett gyldig vedtak, og sjekker resten per stønad med
@@ -102,6 +103,9 @@ class StønadRepository(
                     JOIN t_vedtak v ON v.vedtak_id = g.vedtak_id
                     JOIN t_lopenr_fnr l ON l.person_lopenr = s.person_lopenr
                     WHERE ${stønadErLøpende("s")}
+                      -- Virkningstidspunktet må være senest i inneværende måned. Migreringen overtar utbetalingen
+                      -- fra inneværende måned, så en stønad som starter senere, har ingenting å ta over ennå.
+                      AND v.dato_innv_fom < :nesteMåned
                       AND EXISTS (SELECT 1 FROM t_endring e WHERE e.vedtak_id = g.vedtak_id AND e.kode = 'F')
                       -- Satsen må finnes, og ingen registrering på vedtaket kan ha en annen sats.
                       AND EXISTS (SELECT 1 FROM t_gh gh WHERE gh.vedtak_id = g.vedtak_id)

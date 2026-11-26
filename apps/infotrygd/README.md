@@ -175,6 +175,8 @@ gjelder:
   sjekkes ikke.
 - `t_gh.sats_gs` på vedtaket er `sats`.
 - Personen har ikke løpende hjelpestønad.
+- Virkningstidspunktet, altså `dato_innv_fom` på førstegangsvedtaket, er senest
+  i inneværende måned. Migreringen overtar utbetalingen fra inneværende måned.
 - Posisjon `160` i siste `EVGH`-evaluering for saken er `hjemmelbokstav`, og
   ingen andre rader på posisjon `160` samme måned har en annen tekst.
 - Personen har bare én GH-sak med `EVGH` i evalueringsmåneden.

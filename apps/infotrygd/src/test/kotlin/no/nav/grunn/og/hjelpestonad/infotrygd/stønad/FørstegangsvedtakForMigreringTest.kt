@@ -174,6 +174,15 @@ class FørstegangsvedtakForMigreringTest {
     }
 
     @Test
+    fun `virkningstidspunkt etter inneværende måned er ikke med`() {
+        // dagensDato er 2026-01-01, så januar 2026 er inneværende måned.
+        lagreFørstegangsvedtakMedEvaluering(personLøpenr = "1", fnr = fnrPerson1, stønadId = "10", vedtakId = "100", innvilgetFom = "2026-02-01")
+        lagreFørstegangsvedtakMedEvaluering(personLøpenr = "2", fnr = fnrPerson2, stønadId = "20", vedtakId = "200", innvilgetFom = "2026-01-01")
+
+        assertEquals(setOf(fnrPerson2), finn(sats = 3, hjemmelbokstav = "F"))
+    }
+
+    @Test
     fun `ved samme virkningstidspunkt kommer høyeste stonad_id først`() {
         lagreFørstegangsvedtakMedEvaluering(personLøpenr = "1", fnr = fnrPerson1, stønadId = "10", vedtakId = "100")
         lagreFørstegangsvedtakMedEvaluering(personLøpenr = "2", fnr = fnrPerson2, stønadId = "20", vedtakId = "200")
