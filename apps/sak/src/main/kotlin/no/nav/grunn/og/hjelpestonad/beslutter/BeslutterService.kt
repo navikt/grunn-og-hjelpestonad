@@ -94,9 +94,7 @@ class BeslutterService(
     }
 
     private fun godkjennVedtak(behandlingId: UUID) {
-        val vedtak =
-            vedtakService.hentVedtak(behandlingId)
-                ?: throw Feil("Behandlingen mangler vedtak. Underkjenn og send den tilbake til saksbehandler.", HttpStatus.BAD_REQUEST)
+        val vedtak = vedtakService.hentVedtakEllerKast(behandlingId)
         vedtakService.validerVedtaksresultatMotBeregning(behandlingId)
 
         val behandlingResultat = vedtak.resultatType.tilBehandlingResultat()

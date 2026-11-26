@@ -72,3 +72,17 @@ docker compose --profile mock down -v   # Slett data
 Actuator eksponerer liveness og readiness på `/internal/health/liveness` og
 `/internal/health/readiness`. Prometheus-metrikker er tilgjengelige på
 `/internal/prometheus` og inkluderer Spring Boot-, JVM-, database- og Kafka-metrikker.
+
+## Prosessering i efterlatte-verktoy (kun dev)
+
+Tasks i dev finnes i [efterlatte-verktoy](https://efterlatte-verktoy.intern.dev.nav.no),
+der du kan se status og historikk, rekjøre, avbryte og registrere avvik. Tilgang krever
+innlogging som Nav-ansatt med `NAVident` og rollen `PROSESSERING` fra `Rolle.kt`;
+maskintoken avvises. Rollen er knyttet til gruppen
+`bbda72af-39ba-48bc-992b-341161bf21f1` (`efterlatte-prosessering`).
+API-et finnes også i `local-mock` på `http://localhost:8082/api/prosessering/task`
+med samme tilgangskrav. Mock-innloggingen gir brukertoken med prosesseringsgruppen.
+Start mock-oauth2-serveren på nytt etter endringer i `docker-compose.yml`.
+API-et er alltid aktivert og er ikke profilavgrenset. Rolle- og tokenkravene gjelder
+for alle kall. Verktøytilkobling er kun satt opp for dev og lokal mock.
+Gruppen må fortsatt være med i `claims.groups` i Nais-oppsettet.
