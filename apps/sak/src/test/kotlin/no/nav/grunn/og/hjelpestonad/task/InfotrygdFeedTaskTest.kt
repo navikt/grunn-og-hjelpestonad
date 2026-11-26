@@ -16,9 +16,6 @@ import no.nav.grunn.og.hjelpestonad.infotrygd.InfotrygdFeedClient
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
-import no.nav.grunn.og.hjelpestonad.vedtak.AktivitetstypeBarnetilsyn
-import no.nav.grunn.og.hjelpestonad.vedtak.GrunnstønadPeriode
-import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
@@ -65,7 +62,6 @@ class InfotrygdFeedTaskTest {
             Vedtak(
                 behandlingId = behandlingId,
                 resultatType = ResultatType.INNVILGET,
-                grunnstønadPerioder = emptyList(),
                 saksbehandlerIdent = "Z123456",
                 opprettetAv = "Z123456",
             )
@@ -99,7 +95,7 @@ class InfotrygdFeedTaskTest {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandling(behandlingId) } returns mockk()
         every { vedtakService.hentVedtak(behandlingId) } returns
-            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
         every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns null
 
         val task = SendVedtakTilInfotrygdFeedTask(behandlingService, vedtakService, fagsakService, infotrygdFeedClient, tilkjentYtelseService)

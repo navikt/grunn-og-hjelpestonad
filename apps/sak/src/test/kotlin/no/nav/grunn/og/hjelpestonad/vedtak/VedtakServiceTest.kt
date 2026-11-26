@@ -77,7 +77,7 @@ class VedtakServiceTest {
     }
 
     @Test
-    fun `lagrer innvilget vedtak fra beregningen uten barnetilsynsperioder`() {
+    fun `lagrer innvilget vedtak fra beregningen`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
             Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT)
@@ -98,7 +98,7 @@ class VedtakServiceTest {
             vedtakRepository.insert(
                 match {
                     it.behandlingId == behandlingId && it.resultatType == ResultatType.INNVILGET &&
-                        it.saksbehandlerIdent == "Z123456" && it.grunnstønadPerioder.isEmpty()
+                        it.saksbehandlerIdent == "Z123456"
                 },
             )
         }
@@ -121,7 +121,7 @@ class VedtakServiceTest {
     fun `avslag uten beregning består vedtaksresultatkontrollen`() {
         val behandlingId = UUID.randomUUID()
         every { vedtakRepository.findByBehandlingId(behandlingId) } returns
-            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.AVSLÅTT, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456")
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.AVSLÅTT, saksbehandlerIdent = "Z123456")
         every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns null
 
         vedtakService.validerVedtaksresultatMotBeregning(behandlingId)
@@ -132,7 +132,7 @@ class VedtakServiceTest {
     fun `opphør og henleggelse støttes ikke av automatisk vedtakslagring`(resultatType: ResultatType) {
         val behandlingId = UUID.randomUUID()
         every { vedtakRepository.findByBehandlingId(behandlingId) } returns
-            Vedtak(behandlingId = behandlingId, resultatType = resultatType, opphørFom = if (resultatType == ResultatType.OPPHØR) YearMonth.of(2026, 4) else null, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456")
+            Vedtak(behandlingId = behandlingId, resultatType = resultatType, opphørFom = if (resultatType == ResultatType.OPPHØR) YearMonth.of(2026, 4) else null, saksbehandlerIdent = "Z123456")
 
         assertFailsWith<NotImplementedError> { vedtakService.lagreVedtakFraBehandlingsgrunnlag(behandlingId) }
 
@@ -322,7 +322,7 @@ class VedtakServiceTest {
             .isExactlyInstanceOf(RuntimeException::class.java)
             .hasMessage("Behandling=$behandlingId mangler vedtak")
 
-        every { vedtakRepository.findByBehandlingId(behandlingId) } returns Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+        every { vedtakRepository.findByBehandlingId(behandlingId) } returns Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
         every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns null
         assertFailsWith<Feil> { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }
     }
@@ -332,7 +332,7 @@ class VedtakServiceTest {
         val behandlingId = UUID.randomUUID()
         val andelTilkjentYtelse = AndelTilkjentYtelse(beløp = 752.toBigDecimal(), fom = LocalDate.of(2026, 4, 1), tom = LocalDate.of(2029, 11, 30), kildeBehandlingId = behandlingId)
         for (resultatType in listOf(ResultatType.INNVILGET, ResultatType.AVSLÅTT)) {
-            every { vedtakRepository.findByBehandlingId(behandlingId) } returns Vedtak(behandlingId = behandlingId, resultatType = resultatType, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+            every { vedtakRepository.findByBehandlingId(behandlingId) } returns Vedtak(behandlingId = behandlingId, resultatType = resultatType, saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
             for (harBeregnedeAndeler in listOf(true, false)) {
                 every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns TilkjentYtelse(behandlingId = behandlingId, startmåned = YearMonth.of(2026, 4), andelerTilkjentYtelse = if (harBeregnedeAndeler) setOf(andelTilkjentYtelse) else emptySet())
                 if ((resultatType == ResultatType.INNVILGET) == harBeregnedeAndeler) {

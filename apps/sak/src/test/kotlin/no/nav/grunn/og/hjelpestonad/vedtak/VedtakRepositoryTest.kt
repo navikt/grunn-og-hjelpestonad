@@ -9,19 +9,14 @@ import no.nav.grunn.og.hjelpestonad.fagsak.domain.Fagsak
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.FagsakPerson
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.Personident
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
-import no.nav.grunn.og.hjelpestonad.vedtak.AktivitetstypeBarnetilsyn
-import no.nav.grunn.og.hjelpestonad.vedtak.GrunnstønadPeriode
-import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.YearMonth
-import java.util.UUID
 
 internal class VedtakRepositoryTest : SpringContextTest() {
     @Autowired
@@ -49,17 +44,6 @@ internal class VedtakRepositoryTest : SpringContextTest() {
             Vedtak(
                 behandlingId = behandling.id,
                 resultatType = ResultatType.INNVILGET,
-                grunnstønadPerioder =
-                    listOf(
-                        GrunnstønadPeriode(
-                            datoFra = YearMonth.of(2025, 1),
-                            datoTil = YearMonth.of(2025, 6),
-                            utgifter = BigDecimal(1000),
-                            barn = listOf(UUID.randomUUID()),
-                            periodetype = PeriodetypeBarnetilsyn.ORDINÆR,
-                            aktivitetstype = AktivitetstypeBarnetilsyn.I_ARBEID,
-                        ),
-                    ),
                 saksbehandlerIdent = "VL",
                 opphørFom = YearMonth.of(2025, 3),
                 opprettetAv = "VL",
@@ -70,7 +54,7 @@ internal class VedtakRepositoryTest : SpringContextTest() {
 
         assertThat(vedtakRepository.findByBehandlingId(behandling.id))
             .usingRecursiveComparison()
-            .ignoringFields("id", "opprettetTid", "grunnstønadPerioder.id")
+            .ignoringFields("id", "opprettetTid")
             .isEqualTo(vedtak)
     }
 }

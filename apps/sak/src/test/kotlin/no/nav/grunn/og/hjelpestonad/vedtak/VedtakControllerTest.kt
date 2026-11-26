@@ -13,7 +13,6 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
-import java.time.YearMonth
 import java.util.UUID
 
 @WebMvcTest(VedtakController::class)
@@ -27,9 +26,6 @@ class VedtakControllerTest {
     @MockkBean
     private lateinit var vedtakService: VedtakService
 
-    @MockkBean
-    private lateinit var gjeldendeVedtakService: GjeldendeVedtakService
-
     @MockkBean(relaxed = true)
     private lateinit var tilgangService: TilgangService
 
@@ -37,12 +33,12 @@ class VedtakControllerTest {
     fun `henter lagret vedtak`() {
         val behandlingId = UUID.randomUUID()
         every { vedtakService.hentVedtak(behandlingId) } returns
-            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
 
         mockMvc.get("/api/vedtak/$behandlingId/hent-vedtak").andExpect {
             status { isOk() }
             jsonPath("$.resultatType") { value("INNVILGET") }
-            jsonPath("$.grunnstønadPerioder") { isEmpty() }
+            jsonPath("$.grunnstønadPerioder") { doesNotExist() }
         }
 
         verify { tilgangService.validerTilgangTilBehandling(behandlingId) }
@@ -56,20 +52,5 @@ class VedtakControllerTest {
         mockMvc.get("/api/vedtak/$behandlingId/hent-vedtak").andExpect {
             status { isNoContent() }
         }
-    }
-
-    @Test
-    fun `henter historikk for forespurt måned`() {
-        val behandlingId = UUID.randomUUID()
-        val fraMåned = YearMonth.of(2026, 1)
-        every { gjeldendeVedtakService.hentGjeldendeVedtakFraDato(behandlingId, fraMåned) } returns
-            HistoriskVedtakResponse(grunnstønadPerioder = emptyList(), fraErFørTidligsteVedtak = true)
-
-        mockMvc.get("/api/vedtak/$behandlingId/historikk/$fraMåned").andExpect {
-            status { isOk() }
-            jsonPath("$.fraErFørTidligsteVedtak") { value(true) }
-        }
-
-        verify { tilgangService.validerTilgangTilBehandling(behandlingId) }
     }
 }
