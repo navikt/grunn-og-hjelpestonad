@@ -541,7 +541,8 @@ export const zMedlemskapFaktagrunnlagResponse = z.object({
     hentetTidspunkt: z.iso.datetime({ local: true }).nullish(),
     bosted: z.array(zOpplysningResponse),
     statsborgerskap: z.array(zOpplysningResponse),
-    oppholdstillatelse: z.array(zOpplysningResponse)
+    oppholdstillatelse: z.array(zOpplysningResponse),
+    dødsfall: z.array(zOpplysningResponse)
 });
 
 export const zOpprettRequest = z.object({
