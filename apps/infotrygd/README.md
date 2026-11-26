@@ -179,8 +179,15 @@ gjelder:
   ingen andre rader på posisjon `160` samme måned har en annen tekst.
 - Personen har bare én GH-sak med `EVGH` i evalueringsmåneden.
 
-Personene sorteres på `stonad_id`. `sats` er 1 til 6, og `hjemmelbokstav` er A
-til H. Små bokstaver blir gjort om til store. Annen input gir `400`.
+Personene sorteres med nyeste virkningstidspunkt først, altså `dato_innv_fom`
+på førstegangsvedtaket, og med høyeste `stonad_id` først ved lik dato. `sats`
+er 1 til 6, og `hjemmelbokstav` er A til H. Små bokstaver blir gjort om til
+store. Annen input gir `400`.
+
+Utvalget av kandidater, uten evalueringsdelen, tok rundt 20 sekunder i dev
+(målt 2026-11-26). Et forslag til indeks
+som kan gjøre det raskere, står i
+[`docs/forslag-indeks-t-gh-sats-gs.sql`](docs/forslag-indeks-t-gh-sats-gs.sql).
 
 Grunnen til kravet om én GH-sak er at `ev_data_10` ikke kan knyttes til én sak,
 og at hjelpestønad bruker posisjon `160` til noe annet. Målt i dev 2026-11-25 for

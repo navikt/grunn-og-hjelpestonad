@@ -166,9 +166,17 @@ class FørstegangsvedtakForMigreringTest {
     }
 
     @Test
-    fun `personene sorteres på stonad_id og begrenses til antall`() {
-        lagreFørstegangsvedtakMedEvaluering(personLøpenr = "1", fnr = fnrPerson1, stønadId = "20", vedtakId = "200")
-        lagreFørstegangsvedtakMedEvaluering(personLøpenr = "2", fnr = fnrPerson2, stønadId = "10", vedtakId = "100")
+    fun `nyeste virkningstidspunkt kommer først, og antall begrenser svaret`() {
+        lagreFørstegangsvedtakMedEvaluering(personLøpenr = "1", fnr = fnrPerson1, stønadId = "20", vedtakId = "200", innvilgetFom = "2025-03-01")
+        lagreFørstegangsvedtakMedEvaluering(personLøpenr = "2", fnr = fnrPerson2, stønadId = "10", vedtakId = "100", innvilgetFom = "2025-06-01")
+
+        assertEquals(setOf(fnrPerson2), finn(sats = 3, hjemmelbokstav = "F", antall = 1))
+    }
+
+    @Test
+    fun `ved samme virkningstidspunkt kommer høyeste stonad_id først`() {
+        lagreFørstegangsvedtakMedEvaluering(personLøpenr = "1", fnr = fnrPerson1, stønadId = "10", vedtakId = "100")
+        lagreFørstegangsvedtakMedEvaluering(personLøpenr = "2", fnr = fnrPerson2, stønadId = "20", vedtakId = "200")
 
         assertEquals(setOf(fnrPerson2), finn(sats = 3, hjemmelbokstav = "F", antall = 1))
     }
@@ -200,9 +208,10 @@ class FørstegangsvedtakForMigreringTest {
         endringskode: String = "F",
         opphør: String? = null,
         evalueringsmåned: YearMonth = oktober,
+        innvilgetFom: String = "2020-01-01",
     ) {
         testdata.lagreTLopenrFnr(personLøpenr, fnr)
-        lagreVedtak(personLøpenr, stønadId, vedtakId, endringskode = endringskode, opphør = opphør)
+        lagreVedtak(personLøpenr, stønadId, vedtakId, endringskode = endringskode, opphør = opphør, innvilgetFom = innvilgetFom)
         if (sats != null) {
             testdata.lagre(ExodusTabell.T_GH, "vedtak_id" to vedtakId, "sats_gs" to sats, "trygdetid" to "40")
         }
@@ -222,6 +231,7 @@ class FørstegangsvedtakForMigreringTest {
         kodeRutine: String = "GS",
         endringskode: String = "F",
         opphør: String? = null,
+        innvilgetFom: String = "2020-01-01",
     ) {
         testdata.lagre(
             ExodusTabell.T_STONAD,
@@ -239,6 +249,7 @@ class FørstegangsvedtakForMigreringTest {
             "kode_rutine" to kodeRutine,
             "saksblokk" to "A",
             "saksnr" to stønadId,
+            "dato_innv_fom" to innvilgetFom,
             "dato_innv_tom" to null,
         )
         testdata.lagreTEndring(vedtakId, endringskode)

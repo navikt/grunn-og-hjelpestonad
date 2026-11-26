@@ -70,7 +70,7 @@ class StønadRepository(
      * førstegangsvedtak (endringskode F). Vedtaket må ha [sats] i t_gh, og [hjemmelbokstav] i posisjon 160 i siste
      * EVGH-evaluering for saken. Personer med løpende hjelpestønad tas ikke med. Det gjør heller ikke personer med
      * mer enn én GH-sak i evalueringsmåneden, fordi ev_data_10 da ikke kan knyttes til én sak. Personene sorteres
-     * på stonad_id.
+     * med nyeste virkningstidspunkt (dato_innv_fom på førstegangsvedtaket) først, og på stonad_id ved lik dato.
      *
      * Spørringen starter med GS-stønadene som har ett gyldig vedtak, og sjekker resten per stønad med
      * indeksoppslag. En CTE med alle løpende stønader ga så dårlige anslag i Postgres at spørringen aldri ble
@@ -96,9 +96,10 @@ class StønadRepository(
                     HAVING count(*) = 1
                 ),
                 kandidat AS MATERIALIZED (
-                    SELECT l.personnr, s.stonad_id, g.vedtak_id
+                    SELECT l.personnr, s.stonad_id, g.vedtak_id, v.dato_innv_fom
                     FROM grunnstonad_med_ett_vedtak g
                     JOIN t_stonad s ON s.stonad_id = g.stonad_id
+                    JOIN t_vedtak v ON v.vedtak_id = g.vedtak_id
                     JOIN t_lopenr_fnr l ON l.person_lopenr = s.person_lopenr
                     WHERE ${stønadErLøpende("s")}
                       AND EXISTS (SELECT 1 FROM t_endring e WHERE e.vedtak_id = g.vedtak_id AND e.kode = 'F')
@@ -116,7 +117,7 @@ class StønadRepository(
                 ),
                 -- Siste EVGH-evaluering for saken. ev05_aar_mnd_seq er 999999 - ÅÅÅÅMM, så laveste verdi er siste måned.
                 siste_evaluering AS (
-                    SELECT DISTINCT ON (k.vedtak_id) k.personnr, k.stonad_id, ev05.ev01_personkey, ev05.ev05_aar_mnd_seq
+                    SELECT DISTINCT ON (k.vedtak_id) k.personnr, k.stonad_id, k.dato_innv_fom, ev05.ev01_personkey, ev05.ev05_aar_mnd_seq
                     FROM kandidat k
                     JOIN t_vedtak v ON v.vedtak_id = k.vedtak_id
                     -- sa_sak_10.f_nr er ÅÅMMDDxxxxx, personnr i t_lopenr_fnr er DDMMÅÅxxxxx
@@ -160,7 +161,8 @@ class StønadRepository(
                         AND trim(d.ev10_text) IS DISTINCT FROM :hjemmelbokstav
                   )
                 GROUP BY se.personnr
-                ORDER BY min(se.stonad_id)
+                -- En person med flere treff sorteres etter den nyeste stønaden.
+                ORDER BY max(se.dato_innv_fom) DESC, max(se.stonad_id) DESC
                 LIMIT :antall
                 """.trimIndent(),
             ).param("nesteMåned", førsteDagINesteMåned(dagensDato))
