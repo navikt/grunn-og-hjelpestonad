@@ -54,7 +54,6 @@ class OppgaveClient(
         oppgaveRequest: LagOppgaveRequest,
         feil: RestClientResponseException,
     ): OppgaveDto {
-        // Ulesbart svar kaster RestClientException fra getResponseBodyAs.
         val duplikatsvar =
             checkNotNull(feil.getResponseBodyAs(OppgaveDuplikatsvar::class.java)) { "Oppgave returnerte et tomt konfliktsvar" }
         check(duplikatsvar.oppgaveId > 0) { "Konfliktsvaret fra Oppgave mangler en gyldig oppgave-ID" }
