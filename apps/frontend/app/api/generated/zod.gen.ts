@@ -32,41 +32,6 @@ export const zGrunnstønadPeriode = z.object({
     ])
 });
 
-export const zVedtakRequest = z.object({
-    resultatType: z.enum([
-        'INNVILGET',
-        'AVSLÅTT',
-        'HENLAGT',
-        'OPPHØR'
-    ]),
-    begrunnelse: z.string().nullish(),
-    grunnstønadPerioder: z.array(zGrunnstønadPeriode),
-    saksbehandlerIdent: z.string().nullish(),
-    opphørFom: z.string().nullish(),
-    beslutterIdent: z.string().nullish()
-});
-
-export const zBarnetilsynBeregning = z.object({
-    datoFra: z.string(),
-    datoTil: z.string(),
-    utgifter: z.number(),
-    barn: z.array(z.uuid()),
-    periodetype: z.enum(['ORDINÆR', 'INGEN_STØNAD'])
-});
-
-export const zBarnetilsynBeregningRequest = z.object({
-    barnetilsynBeregning: z.array(zBarnetilsynBeregning)
-});
-
-export const zBeløpsperioderResponse = z.object({
-    datoFra: z.string(),
-    datoTil: z.string(),
-    utgifter: z.number(),
-    antallBarn: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    beløp: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    periodetype: z.enum(['ORDINÆR', 'INGEN_STØNAD'])
-});
-
 export const zSøkRequest = z.object({
     personident: z.string()
 });
@@ -708,28 +673,6 @@ export const zTotrinnskontrollStatusResponse = z.object({
     ]),
     totrinnskontroll: zTotrinnskontrollDto.nullish()
 });
-
-export const zLagreVedtakBody = zVedtakRequest;
-
-export const zLagreVedtakPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zLagreVedtakResponse = z.record(z.string(), z.string());
-
-export const zBeregnBody = zBarnetilsynBeregningRequest;
-
-export const zBeregnPath = z.object({
-    behandlingId: z.uuid()
-});
-
-/**
- * OK
- */
-export const zBeregnResponse = z.array(zBeløpsperioderResponse);
 
 export const zSøkPersonBody = zSøkRequest;
 

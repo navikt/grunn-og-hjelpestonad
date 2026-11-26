@@ -345,46 +345,24 @@ class VedtakServiceTest {
     }
 
     @Test
-    fun `vedtak kan ikke opprette utbetaling uten fullført beregning`() {
+    fun `vedtak fra behandlingsgrunnlag kan ikke lagres når behandling ikke er redigerbar`() {
         val behandlingId = UUID.randomUUID()
-        every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns null
-        assertThatThrownBy {
-            vedtakService.lagreVedtak(VedtakRequest(resultatType = ResultatType.INNVILGET, begrunnelse = "Test", grunnstønadPerioder = emptyList()), behandlingId)
-        }.isInstanceOf(Feil::class.java).hasMessageContaining("Fullfør sats og trygdetid")
-        verify(exactly = 0) { vedtakRepository.insert(any()) }
-    }
-
-    @Test
-    fun `lagreVedtak kaster feil når behandling ikke er redigerbar`() {
-        val behandlingId = UUID.randomUUID()
-        val vedtakRequest =
-            VedtakRequest(
-                resultatType = ResultatType.INNVILGET,
-                begrunnelse = "Test",
-                grunnstønadPerioder = emptyList(),
-            )
 
         every { behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV) } throws Feil("Behandlingen er ikke redigerbar. Status: FATTER_VEDTAK")
 
-        assertThatThrownBy { vedtakService.lagreVedtak(vedtakRequest, behandlingId) }
+        assertThatThrownBy { vedtakService.lagreVedtakFraBehandlingsgrunnlag(behandlingId) }
             .isInstanceOf(Feil::class.java)
             .hasMessageContaining("Behandlingen er ikke redigerbar")
     }
 
     @Test
-    fun `lagreVedtak kaster ManglerTilgang når bruker ikke er ansvarlig saksbehandler`() {
+    fun `vedtak fra behandlingsgrunnlag krever ansvarlig saksbehandler`() {
         val behandlingId = UUID.randomUUID()
-        val vedtakRequest =
-            VedtakRequest(
-                resultatType = ResultatType.INNVILGET,
-                begrunnelse = "Test",
-                grunnstønadPerioder = emptyList(),
-            )
 
         every { ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId) } throws
             IkkeAnsvarligSaksbehandlerFeil("Innlogget saksbehandler er ikke ansvarlig saksbehandler for behandling $behandlingId")
 
-        assertThatThrownBy { vedtakService.lagreVedtak(vedtakRequest, behandlingId) }
+        assertThatThrownBy { vedtakService.lagreVedtakFraBehandlingsgrunnlag(behandlingId) }
             .isInstanceOf(IkkeAnsvarligSaksbehandlerFeil::class.java)
             .hasMessageContaining("ikke ansvarlig saksbehandler")
     }
