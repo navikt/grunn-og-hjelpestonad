@@ -23,6 +23,7 @@ class MedlemskapFaktagrunnlagResponseTest {
         assertThat(response.bosted).isEmpty()
         assertThat(response.statsborgerskap).isEmpty()
         assertThat(response.oppholdstillatelse).isEmpty()
+        assertThat(response.dødsfall).isEmpty()
     }
 
     @Test
@@ -128,7 +129,7 @@ class MedlemskapFaktagrunnlagResponseTest {
     }
 
     @Test
-    fun `viser utenlandsk oppholdsadresse og dødsfall under bosted`() {
+    fun `viser utenlandsk oppholdsadresse under bosted og dødsfall under dødsfall`() {
         val grunnlag =
             grunnlag(
                 oppholdsadresse =
@@ -147,12 +148,46 @@ class MedlemskapFaktagrunnlagResponseTest {
                     ),
             )
 
-        val bosted = grunnlag.tilMedlemskapFaktagrunnlagResponse().bosted
+        val response = grunnlag.tilMedlemskapFaktagrunnlagResponse()
 
-        assertThat(bosted).containsExactly(
-            OpplysningResponse(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 1), "Død"),
+        assertThat(response.bosted).containsExactly(
             OpplysningResponse(LocalDate.of(2022, 3, 1), LocalDate.of(2023, 6, 30), "Oppholdsadresse i Spania"),
         )
+        assertThat(response.dødsfall).containsExactly(
+            OpplysningResponse(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 1), "Død"),
+        )
+    }
+
+    @Test
+    fun `bruker ikke gyldighetstidspunkt som dødsdato når doedsdato mangler`() {
+        val grunnlag =
+            grunnlag(
+                doedsfall =
+                    listOf(
+                        PdlDoedsfall(behandlingId = behandlingId, doedsdato = null, metadata = metadata(LocalDateTime.of(2026, 9, 2, 0, 0))),
+                    ),
+            )
+
+        val dødsfall = grunnlag.tilMedlemskapFaktagrunnlagResponse().dødsfall
+
+        assertThat(dødsfall).containsExactly(OpplysningResponse(null, null, "Død"))
+    }
+
+    @Test
+    fun `sorterer dødsfall med nyeste først`() {
+        val grunnlag =
+            grunnlag(
+                doedsfall =
+                    listOf(
+                        PdlDoedsfall(behandlingId = behandlingId, doedsdato = LocalDate.of(2020, 1, 1), metadata = metadata()),
+                        PdlDoedsfall(behandlingId = behandlingId, doedsdato = LocalDate.of(2026, 9, 1), metadata = metadata()),
+                    ),
+            )
+
+        val dødsfall = grunnlag.tilMedlemskapFaktagrunnlagResponse().dødsfall
+
+        assertThat(dødsfall.map { it.fraOgMedDato })
+            .containsExactly(LocalDate.of(2026, 9, 1), LocalDate.of(2020, 1, 1))
     }
 
     @Test

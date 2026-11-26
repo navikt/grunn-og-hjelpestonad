@@ -46,6 +46,16 @@ class ApiExceptionHandlerTest {
     }
 
     @Test
+    fun `manglende vedtak ved godkjenning logges som systemfeil og gir 500`() {
+        val manglendeVedtakFeil = RuntimeException("Behandling mangler vedtak")
+        verifiserLogging(manglendeVedtakFeil) {
+            val feilResponse = handler.handleGeneralException(manglendeVedtakFeil)
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, feilResponse.statusCode)
+            assertEquals("En uventet feil oppstod", feilResponse.body!!.melding)
+        }
+    }
+
+    @Test
     fun `Spring beholder ansvaret for HTTP-feil og sikkerhetsfeil`() {
         val feil = HttpRequestMethodNotSupportedException("TRACE")
         verifiserLogging(feil) {

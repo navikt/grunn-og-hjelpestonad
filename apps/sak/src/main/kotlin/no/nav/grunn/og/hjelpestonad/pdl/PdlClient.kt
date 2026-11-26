@@ -144,6 +144,42 @@ class PdlClient(
         }
     }
 
+    fun hentFalskIdentitetOgDødsfallOBOToken(request: PdlRequest): PersonopplysningerForMigrering? = hentFalskIdentitetOgDødsfall(request = request, pdlHeaders = lagPdlOnBehalfOfHeaders())
+
+    fun hentFalskIdentitetOgDødsfallMaskinToken(request: PdlRequest): PersonopplysningerForMigrering? = hentFalskIdentitetOgDødsfall(request = request, pdlHeaders = lagPdlMaskinTilMaskinToken())
+
+    private fun hentFalskIdentitetOgDødsfall(
+        request: PdlRequest,
+        pdlHeaders: HttpHeaders,
+    ): PersonopplysningerForMigrering? {
+        logger.info("Utfører PDL-operasjon: hentFalskIdentitetOgDødsfall")
+        try {
+            val pdlResponse =
+                pdlRestClient
+                    .post()
+                    .uri("/graphql")
+                    .headers { it.addAll(pdlHeaders) }
+                    .body(request)
+                    .retrieve()
+                    .body(PdlResponsePersonopplysningerForMigrering::class.java)
+
+            håndterPdlErrors(pdlResponse?.errors, "hentFalskIdentitetOgDødsfall")
+            return pdlResponse?.data?.hentPerson
+        } catch (e: Exception) {
+            when (e) {
+                is PdlException, is ManglerTilgangIPdlException -> {
+                    throw e
+                }
+
+                else -> {
+                    logger.error("Feil ved kall til PDL")
+                    secureLogger.error("Feil ved kall til PDL", e)
+                    throw PdlException("Teknisk feil ved henting av falsk identitet og dødsfall fra PDL", e)
+                }
+            }
+        }
+    }
+
     private fun lagPdlOnBehalfOfHeaders(): HttpHeaders =
         pdlHeaders().apply {
             setBearerAuth(texasClient.hentOboToken(pdlScope))

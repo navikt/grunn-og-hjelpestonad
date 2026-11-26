@@ -13,14 +13,15 @@ import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakService
 import no.nav.grunn.og.hjelpestonad.infotrygd.InfotrygdFeedClient
-import no.nav.grunn.og.hjelpestonad.vedtak.AktivitetstypeBarnetilsyn
-import no.nav.grunn.og.hjelpestonad.vedtak.GrunnstønadPeriode
-import no.nav.grunn.og.hjelpestonad.vedtak.PeriodetypeBarnetilsyn
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
+import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vedtak.ResultatType
 import no.nav.grunn.og.hjelpestonad.vedtak.Vedtak
 import no.nav.grunn.og.hjelpestonad.vedtak.VedtakService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -32,6 +33,7 @@ class InfotrygdFeedTaskTest {
     private val vedtakService = mockk<VedtakService>()
     private val fagsakService = mockk<FagsakService>()
     private val infotrygdFeedClient = mockk<InfotrygdFeedClient>(relaxed = true)
+    private val tilkjentYtelseService = mockk<TilkjentYtelseService>()
 
     @Test
     fun `startbehandling bruker gjeldende personident`() {
@@ -49,7 +51,7 @@ class InfotrygdFeedTaskTest {
     }
 
     @Test
-    fun `vedtak sender første ordinære stønadsperiode`() {
+    fun `vedtak uten barnetilsynsperioder sender første beregnede stønadsperiode`() {
         val behandlingId = UUID.randomUUID()
         val fagsakId = UUID.randomUUID()
         val behandling = mockk<Behandling>()
@@ -60,13 +62,18 @@ class InfotrygdFeedTaskTest {
             Vedtak(
                 behandlingId = behandlingId,
                 resultatType = ResultatType.INNVILGET,
-                grunnstønadPerioder =
-                    listOf(
-                        periode(YearMonth.of(2026, 1), PeriodetypeBarnetilsyn.INGEN_STØNAD),
-                        periode(YearMonth.of(2026, 2), PeriodetypeBarnetilsyn.ORDINÆR),
-                    ),
                 saksbehandlerIdent = "Z123456",
                 opprettetAv = "Z123456",
+            )
+        every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns
+            TilkjentYtelse(
+                behandlingId = behandlingId,
+                startmåned = YearMonth.of(2026, 1),
+                andelerTilkjentYtelse =
+                    setOf(
+                        AndelTilkjentYtelse(beløp = BigDecimal(752), fom = LocalDate.of(2026, 4, 1), tom = LocalDate.of(2026, 12, 31), kildeBehandlingId = behandlingId),
+                        AndelTilkjentYtelse(beløp = BigDecimal(752), fom = LocalDate.of(2026, 2, 1), tom = LocalDate.of(2026, 3, 31), kildeBehandlingId = behandlingId),
+                    ),
             )
 
         val task =
@@ -75,11 +82,26 @@ class InfotrygdFeedTaskTest {
                 vedtakService,
                 fagsakService,
                 infotrygdFeedClient,
+                tilkjentYtelseService,
             )
 
         task.utfor(kontekst(behandlingId, SendVedtakTilInfotrygdFeedTask.TYPE))
 
         verify { infotrygdFeedClient.sendVedtak("12345678901", LocalDate.of(2026, 2, 1)) }
+    }
+
+    @Test
+    fun `innvilget vedtak uten beregning sendes ikke til Infotrygd-feed`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandling(behandlingId) } returns mockk()
+        every { vedtakService.hentVedtak(behandlingId) } returns
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+        every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns null
+
+        val task = SendVedtakTilInfotrygdFeedTask(behandlingService, vedtakService, fagsakService, infotrygdFeedClient, tilkjentYtelseService)
+
+        assertThrows<IllegalStateException> { task.utfor(kontekst(behandlingId, SendVedtakTilInfotrygdFeedTask.TYPE)) }
+        verify(exactly = 0) { infotrygdFeedClient.sendVedtak(any(), any()) }
     }
 
     @Test
@@ -91,18 +113,6 @@ class InfotrygdFeedTaskTest {
         assertEquals(behandlingId.toString(), payload)
         assertEquals(behandlingId, SendVedtakTilInfotrygdFeedTask.TYPE.deserialiser(payload))
     }
-
-    private fun periode(
-        datoFra: YearMonth,
-        periodetype: PeriodetypeBarnetilsyn,
-    ) = GrunnstønadPeriode(
-        datoFra = datoFra,
-        datoTil = datoFra,
-        utgifter = BigDecimal.ZERO,
-        barn = emptyList(),
-        periodetype = periodetype,
-        aktivitetstype = AktivitetstypeBarnetilsyn.IKKE_RELEVANT,
-    )
 
     private fun kontekst(
         payload: UUID,

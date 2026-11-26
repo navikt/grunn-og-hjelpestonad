@@ -2,7 +2,6 @@ package no.nav.grunn.og.hjelpestonad.vedtak
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import io.mockk.justRun
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.ApplicationLocalSetup
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
@@ -10,16 +9,13 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
-import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.get
 import java.util.UUID
 
-@WebMvcTest(
-    VedtakController::class,
-)
+@WebMvcTest(VedtakController::class)
 @ContextConfiguration(classes = [ApplicationLocalSetup::class])
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("integrasjonstest")
@@ -30,50 +26,31 @@ class VedtakControllerTest {
     @MockkBean
     private lateinit var vedtakService: VedtakService
 
-    @MockkBean
-    private lateinit var gjeldendeVedtakService: GjeldendeVedtakService
-
     @MockkBean(relaxed = true)
     private lateinit var tilgangService: TilgangService
 
     @Test
-    fun `Skal lagre vedtak fra json`() {
-        val json = """{
-  "resultatType": "INNVILGET",
-  "begrunnelse": "Mock begrunnelse",
-  "grunnstønadPerioder": [
-    {
-      "behandlingId": "86460749-53d4-481b-8909-7286efc7eaad",
-      "datoFra": "2024-01",
-      "datoTil": "2024-01",
-      "utgifter": 1000,
-      "barn": [
-        "b1e1d2c3-1111-2222-3333-444455556666"
-      ],
-      "periodetype": "ORDINÆR",
-      "aktivitetstype": "I_ARBEID"
+    fun `henter lagret vedtak`() {
+        val behandlingId = UUID.randomUUID()
+        every { vedtakService.hentVedtak(behandlingId) } returns
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+
+        mockMvc.get("/api/vedtak/$behandlingId/hent-vedtak").andExpect {
+            status { isOk() }
+            jsonPath("$.resultatType") { value("INNVILGET") }
+            jsonPath("$.grunnstønadPerioder") { doesNotExist() }
+        }
+
+        verify { tilgangService.validerTilgangTilBehandling(behandlingId) }
     }
-  ],
-  "saksbehandlerIdent": "mockIdent",
-  "opprettetTid": "2026-01-21T09:52:13.329Z",
-  "opprettetAv": "mockSaksbehandler"
-}"""
-        justRun { vedtakService.validerKanLagreVedtak(any()) }
 
-        every { vedtakService.lagreVedtak(any(), any()) } returns UUID.fromString("86460749-53d4-481b-8909-7286efc7eaad")
+    @Test
+    fun `manglende vedtak gir tomt svar`() {
+        val behandlingId = UUID.randomUUID()
+        every { vedtakService.hentVedtak(behandlingId) } returns null
 
-        val responseJson =
-            mockMvc
-                .post("/api/vedtak/86460749-53d4-481b-8909-7286efc7eaad/lagre-vedtak") {
-                    contentType = MediaType.APPLICATION_JSON
-                    content = json
-                }.andExpect {
-                    status { isOk() }
-                }.andReturn()
-                .response.contentAsString
-
-        verify(exactly = 1) {
-            vedtakService.lagreVedtak(any(), any())
+        mockMvc.get("/api/vedtak/$behandlingId/hent-vedtak").andExpect {
+            status { isNoContent() }
         }
     }
 }

@@ -3,6 +3,8 @@ package no.nav.grunn.og.hjelpestonad.pdl
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakPersonService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import org.assertj.core.api.Assertions.assertThat
@@ -26,7 +28,7 @@ class PdlServiceTest {
 
     @AfterEach
     fun clearMocks() {
-        mockkObject(SikkerhetContext)
+        unmockkObject(SikkerhetContext)
     }
 
     @Test
@@ -76,5 +78,45 @@ class PdlServiceTest {
         assertThrows<PdlException> { pdlService.hentPersonMedPersonIdent(null) }
 
         assertThrows<PdlException> { pdlService.hentPersonMedPersonIdent("ugyldig_ident") }
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallForMigrering bruker OBO-token når kallet har brukerkontekst`() {
+        every { SikkerhetContext.erMaskinTilMaskinToken() } returns false
+        val forventetPersonopplysningerForMigrering =
+            PersonopplysningerForMigrering(
+                falskIdentitet = FalskIdentitetEnkel(erFalsk = true),
+                dødsfall = listOf(DødsfallEnkel(dødsdato = LocalDate.of(2025, 4, 1))),
+            )
+        every { pdlClient.hentFalskIdentitetOgDødsfallOBOToken(any()) } returns forventetPersonopplysningerForMigrering
+
+        val personopplysningerForMigrering = pdlService.hentFalskIdentitetOgDødsfallForMigrering("01010199999")
+
+        assertThat(personopplysningerForMigrering).isEqualTo(forventetPersonopplysningerForMigrering)
+        verify(exactly = 0) { pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(any()) }
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallForMigrering bruker maskintoken når kallet er maskin til maskin`() {
+        every { SikkerhetContext.erMaskinTilMaskinToken() } returns true
+        val forventetPersonopplysningerForMigrering =
+            PersonopplysningerForMigrering(
+                falskIdentitet = null,
+                dødsfall = emptyList(),
+            )
+        every { pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(any()) } returns forventetPersonopplysningerForMigrering
+
+        val personopplysningerForMigrering = pdlService.hentFalskIdentitetOgDødsfallForMigrering("01010199999")
+
+        assertThat(personopplysningerForMigrering).isEqualTo(forventetPersonopplysningerForMigrering)
+        verify(exactly = 0) { pdlClient.hentFalskIdentitetOgDødsfallOBOToken(any()) }
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallForMigrering kaster PdlException når personen ikke finnes`() {
+        every { SikkerhetContext.erMaskinTilMaskinToken() } returns false
+        every { pdlClient.hentFalskIdentitetOgDødsfallOBOToken(any()) } returns null
+
+        assertThrows<PdlException> { pdlService.hentFalskIdentitetOgDødsfallForMigrering("01010199999") }
     }
 }
