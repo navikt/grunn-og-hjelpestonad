@@ -199,6 +199,6 @@ data class LagOppgaveRequest(
     val tilordnetRessurs: String? = null,
     val behandlesAvApplikasjon: String,
     val tildeltEnhetsnr: String,
-    // Idempotensnøkkel for duplikatkontroll i Oppgave v1, ikke oppgave-ID eller sporings-ID. Eldre tasker har ingen nøkkel.
+    // Idempotensnøkkel for duplikatkontroll i Oppgave v1, ikke oppgave-ID eller sporings-ID
     val uuid: UUID,
 )
