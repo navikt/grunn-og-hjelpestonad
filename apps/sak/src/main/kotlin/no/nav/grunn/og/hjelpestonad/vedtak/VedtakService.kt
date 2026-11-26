@@ -27,7 +27,7 @@ class VedtakService(
 
     /**
      * Utleder innvilgelse og avslag fra gjeldende grunnlag, også ved ny sending etter underkjenning.
-     * Se ADR-0019 for avgrensningen til førstegangsbehandling og utsatt tilpasning av historikk.
+     * Se ADR-0020 for avgrensningen til førstegangsbehandling og utsatt tilpasning av historikk.
      */
     @Transactional
     fun lagreVedtakFraBehandlingsgrunnlag(behandlingId: UUID) {

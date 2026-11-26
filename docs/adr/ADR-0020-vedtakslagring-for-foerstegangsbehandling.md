@@ -1,4 +1,4 @@
-# ADR-0019: Vedtakslagring avgrenses til førstegangsbehandling
+# ADR-0020: Vedtakslagring avgrenses til førstegangsbehandling
 
 **Dato:** 2026-11-24
 **Status:** Godkjent
