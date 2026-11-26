@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.oppdrag
+package no.nav.grunn.og.hjelpestonad.oppdrag.grensesnittavstemming
 
 import java.time.LocalDateTime
 import java.util.UUID

@@ -1,12 +1,13 @@
-package no.nav.grunn.og.hjelpestonad.oppdrag
+package no.nav.grunn.og.hjelpestonad.oppdrag.grensesnittavstemming
 
 import efterlatte.prosessering.RetryPolicy
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
+import no.nav.grunn.og.hjelpestonad.oppdrag.GrunnOgHjelpFagsystem
+import no.nav.grunn.og.hjelpestonad.oppdrag.OppdragClient
 import no.nav.grunn.og.hjelpestonad.task.lagTaskType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.UUID
 import kotlin.time.Duration
 
 /**
@@ -23,30 +24,25 @@ class GrensesnittavstemmingTask(
     // Reaper kan fortsatt gjenopprette tasken etter krasj. Se ADR-0019 om valget og aksepterte begrensninger.
     override val retry = RetryPolicy(maxAntallFeil = 1, backoff = { Duration.ZERO })
 
-    override fun utfor(kontekst: TaskKontekst<GrensesnittavstemmingTaskData>) {
-        val avstemmingsvindu = kontekst.payload
+    override fun utfor(taskKontekst: TaskKontekst<GrensesnittavstemmingTaskData>) {
+        val grensesnittavstemmingTaskData = taskKontekst.payload
         logger.info(
             "Starter grensesnittavstemming id={} fra={} til={}",
-            avstemmingsvindu.avstemmingId,
-            avstemmingsvindu.fraDato,
-            avstemmingsvindu.tilDato,
+            grensesnittavstemmingTaskData.avstemmingId,
+            grensesnittavstemmingTaskData.fraDato,
+            grensesnittavstemmingTaskData.tilDato,
         )
         oppdragClient.grensesnittavstem(
-            GrensesnittavstemmingRequest(
-                fagsystem = GrunnOgHjelpFagsystem.IT28.kode,
-                fra = avstemmingsvindu.fraDato.atStartOfDay(),
-                til = avstemmingsvindu.tilDato.atStartOfDay(),
-                avstemmingId = avstemmingsvindu.avstemmingId,
-            ),
+            grensesnittavstemmingTaskData.tilGrensesnittavstemmingRequest(GrunnOgHjelpFagsystem.IT28),
         )
 
-        val nesteAvstemmingsvindu = nesteGrensesnittavstemmingVindu(avstemmingsvindu, UUID.randomUUID())
-        kontekst.opprettNesteTask(
+        val nesteGrensesnittavstemmingTaskData = nesteGrensesnittavstemmingVindu(grensesnittavstemmingTaskData)
+        taskKontekst.opprettNesteTask(
             type = TYPE,
-            payload = nesteAvstemmingsvindu,
-            triggerTid = tidspunktForGrensesnittavstemming(nesteAvstemmingsvindu.tilDato),
+            payload = nesteGrensesnittavstemmingTaskData,
+            triggerTid = tidspunktForGrensesnittavstemming(nesteGrensesnittavstemmingTaskData.tilDato),
         )
-        logger.info("Grensesnittavstemming id={} sendt, neste vindu opprettet i task-transaksjonen", avstemmingsvindu.avstemmingId)
+        logger.info("Grensesnittavstemming id={} sendt, neste vindu opprettet i task-transaksjonen", grensesnittavstemmingTaskData.avstemmingId)
     }
 
     companion object {

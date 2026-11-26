@@ -5,6 +5,7 @@ import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.http.Ressurs
 import no.nav.grunn.og.hjelpestonad.infrastruktur.http.VellykketSvar
 import no.nav.grunn.og.hjelpestonad.infrastruktur.http.kallEksternTjenesteMedRessurs
+import no.nav.grunn.og.hjelpestonad.oppdrag.grensesnittavstemming.GrensesnittavstemmingRequest
 import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus

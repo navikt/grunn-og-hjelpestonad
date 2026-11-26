@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.oppdrag
+package no.nav.grunn.og.hjelpestonad.oppdrag.grensesnittavstemming
 
 import efterlatte.prosessering.TaskKontekst
 import io.mockk.every
@@ -8,6 +8,7 @@ import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifyOrder
+import no.nav.grunn.og.hjelpestonad.oppdrag.OppdragClient
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test

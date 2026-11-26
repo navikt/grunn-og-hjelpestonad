@@ -1,6 +1,7 @@
-package no.nav.grunn.og.hjelpestonad.oppdrag
+package no.nav.grunn.og.hjelpestonad.oppdrag.grensesnittavstemming
 
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
+import no.nav.grunn.og.hjelpestonad.oppdrag.GrunnOgHjelpFagsystem
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
@@ -20,14 +21,22 @@ data class GrensesnittavstemmingTaskData(
     }
 }
 
+fun GrensesnittavstemmingTaskData.tilGrensesnittavstemmingRequest(fagsystem: GrunnOgHjelpFagsystem): GrensesnittavstemmingRequest =
+    GrensesnittavstemmingRequest(
+        fagsystem = fagsystem.kode,
+        fra = fraDato.atStartOfDay(),
+        til = tilDato.atStartOfDay(),
+        avstemmingId = avstemmingId,
+    )
+
 /** Beregnes fra lagret sluttgrense, aldri fra kjøretiden, slik at forsinkelser ikke hopper over vinduer. */
 fun nesteGrensesnittavstemmingVindu(
-    forrigeVindu: GrensesnittavstemmingTaskData,
-    nesteAvstemmingId: UUID,
+    forrigeGrensesnittavstemmingTaskData: GrensesnittavstemmingTaskData,
+    nesteAvstemmingId: UUID = UUID.randomUUID(),
 ): GrensesnittavstemmingTaskData =
     GrensesnittavstemmingTaskData(
-        fraDato = forrigeVindu.tilDato,
-        tilDato = ukedagPåEllerEtter(forrigeVindu.tilDato.plusDays(1)),
+        fraDato = forrigeGrensesnittavstemmingTaskData.tilDato,
+        tilDato = ukedagPåEllerEtter(forrigeGrensesnittavstemmingTaskData.tilDato.plusDays(1)),
         avstemmingId = nesteAvstemmingId,
     )
 

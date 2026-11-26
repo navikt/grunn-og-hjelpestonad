@@ -15,6 +15,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.config.testRestClientBuilder
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
+import no.nav.grunn.og.hjelpestonad.oppdrag.grensesnittavstemming.GrensesnittavstemmingRequest
 import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import org.junit.jupiter.api.AfterAll

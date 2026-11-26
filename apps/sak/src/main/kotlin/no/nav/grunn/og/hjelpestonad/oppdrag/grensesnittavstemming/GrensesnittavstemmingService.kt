@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.oppdrag
+package no.nav.grunn.og.hjelpestonad.oppdrag.grensesnittavstemming
 
 import efterlatte.prosessering.TaskId
 import efterlatte.prosessering.spring.TaskService
@@ -12,10 +12,10 @@ class GrensesnittavstemmingService(
      * Eksplisitt oppstart, uten kobling til deploy eller HTTP. Operatørinngang avtales før aktivering.
      * Kontroller at ingen kjede allerede er aktiv. En stoppet task må håndteres separat etter undersøkt feil.
      */
-    fun opprettFørsteTask(avstemmingsvindu: GrensesnittavstemmingTaskData): TaskId =
+    fun opprettFørsteTask(grensesnittavstemmingTaskData: GrensesnittavstemmingTaskData): TaskId =
         taskService.opprettIEgenTransaksjon(
             type = GrensesnittavstemmingTask.TYPE,
-            payload = avstemmingsvindu,
-            triggerTid = tidspunktForGrensesnittavstemming(avstemmingsvindu.tilDato),
+            payload = grensesnittavstemmingTaskData,
+            triggerTid = tidspunktForGrensesnittavstemming(grensesnittavstemmingTaskData.tilDato),
         )
 }

@@ -1,4 +1,4 @@
-package no.nav.grunn.og.hjelpestonad.oppdrag
+package no.nav.grunn.og.hjelpestonad.oppdrag.grensesnittavstemming
 
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
 import org.assertj.core.api.Assertions.assertThat
