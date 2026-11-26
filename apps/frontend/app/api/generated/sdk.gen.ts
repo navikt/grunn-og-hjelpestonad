@@ -4,8 +4,8 @@ import * as z from 'zod';
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BeregnData, BeregnResponses, BesluttVedtakData, BesluttVedtakResponses, DistribuerVedtaksbrevData, DistribuerVedtaksbrevResponses, FordelOppgaveData, FordelOppgaveResponses, FullførInngangsvilkårData, FullførInngangsvilkårErrors, FullførInngangsvilkårResponses, FullførSatsOgTrygdetidData, FullførSatsOgTrygdetidErrors, FullførSatsOgTrygdetidResponses, HenleggBehandlingData, HenleggBehandlingResponses, HentAnsvarligSaksbehandlerData, HentAnsvarligSaksbehandlerResponses, HentÅrsakBehandlingData, HentÅrsakBehandlingResponses, HentBehandlingData, HentBehandlingerData, HentBehandlingerResponses, HentBehandlingResponses, HentBrevmottakereData, HentBrevmottakereResponses, HentDiagnosePerioderData, HentDiagnosePerioderResponses, HentDokumentSomPdf1Data, HentDokumentSomPdf1Responses, HentDokumentSomPdfData, HentDokumentSomPdfResponses, HentEkstrautgifterPerioderData, HentEkstrautgifterPerioderResponses, HentEndringshistorikkData, HentEndringshistorikkResponses, HentFagsakData, HentFagsakResponses, HentFeatureTogglesData, HentFeatureTogglesResponses, HentGjeldendePerioderForPersonData, HentGjeldendePerioderForPersonResponses, HentHistoriskVedtakForBehandlingData, HentHistoriskVedtakForBehandlingResponses, HentJournalPostForBrukerIdData, HentJournalPostForBrukerIdResponses, HentMedlemskapFaktagrunnlagData, HentMedlemskapFaktagrunnlagResponses, HentMedlemskapPerioderData, HentMedlemskapPerioderResponses, HentMellomlagretBrevData, HentMellomlagretBrevResponses, HentOppdragStatusData, HentOppdragStatusResponses, HentPerioderMedOppfylteInngangsvilkårData, HentPerioderMedOppfylteInngangsvilkårErrors, HentPerioderMedOppfylteInngangsvilkårResponses, HentPersonData, HentPersonResponses, HentSimuleringData, HentSimuleringResponses, HentStønaderForPersonData, HentStønaderForPersonResponses, HentTestDataData, HentTestDataResponses, HentTotrinnskontrollStatusData, HentTotrinnskontrollStatusResponses, HentTrygdetidPerioderData, HentTrygdetidPerioderResponses, HentVedtakData, HentVedtakResponses, InnhentFaktagrunnlagFraPdlData, InnhentFaktagrunnlagFraPdlResponses, IverksettMotOppdragData, IverksettMotOppdragResponses, LagBrevTaskData, LagBrevTaskResponses, LagIverksettVedtaksbrevTaskData, LagIverksettVedtaksbrevTaskResponses, LagreÅrsakBehandlingData, LagreÅrsakBehandlingResponses, LagreDiagnosePeriodeData, LagreDiagnosePeriodeResponses, LagreEkstrautgifterPeriodeData, LagreEkstrautgifterPeriodeResponses, LagreMedlemskapPeriodeData, LagreMedlemskapPeriodeResponses, LagreTrygdetidPeriodeData, LagreTrygdetidPeriodeResponses, LagreVedtakData, LagreVedtakResponses, MellomlagreBrevData, MellomlagreBrevResponses, OppdaterBrevmottakereData, OppdaterBrevmottakereResponses, OpprettBehandlingData, OpprettBehandlingResponses, OpprettFagsakData, OpprettFagsakResponses, SendTilBeslutterData, SendTilBeslutterResponses, SimulerMotOppdragData, SimulerMotOppdragResponses, SlettDiagnosePeriodeData, SlettDiagnosePeriodeResponses, SlettEkstrautgifterPeriodeData, SlettEkstrautgifterPeriodeResponses, SlettMedlemskapPeriodeData, SlettMedlemskapPeriodeResponses, SlettTrygdetidPeriodeData, SlettTrygdetidPeriodeResponses, SøkDiagnosekoderData, SøkDiagnosekoderResponses, SøkPersonData, SøkPersonMedFagsakPersonIdData, SøkPersonMedFagsakPersonIdResponses, SøkPersonResponses } from './types.gen';
-import { zBeregnBody, zBeregnPath, zBeregnResponse, zBesluttVedtakBody, zBesluttVedtakPath, zBesluttVedtakResponse, zDistribuerVedtaksbrevPath, zDistribuerVedtaksbrevResponse, zFordelOppgaveBody, zFordelOppgaveResponse, zFullførInngangsvilkårPath, zFullførInngangsvilkårResponse, zFullførSatsOgTrygdetidPath, zFullførSatsOgTrygdetidResponse, zHenleggBehandlingBody, zHentAnsvarligSaksbehandlerBody, zHentAnsvarligSaksbehandlerResponse, zHentÅrsakBehandlingPath, zHentÅrsakBehandlingResponse, zHentBehandlingBody, zHentBehandlingerBody, zHentBehandlingerResponse, zHentBehandlingResponse, zHentBrevmottakerePath, zHentBrevmottakereResponse, zHentDiagnosePerioderPath, zHentDiagnosePerioderResponse, zHentDokumentSomPdf1Path, zHentDokumentSomPdf1Query, zHentDokumentSomPdf1Response, zHentDokumentSomPdfPath, zHentDokumentSomPdfQuery, zHentDokumentSomPdfResponse, zHentEkstrautgifterPerioderPath, zHentEkstrautgifterPerioderResponse, zHentEndringshistorikkPath, zHentEndringshistorikkResponse, zHentFagsakPath, zHentFagsakResponse, zHentFeatureTogglesResponse, zHentGjeldendePerioderForPersonBody, zHentGjeldendePerioderForPersonResponse, zHentHistoriskVedtakForBehandlingPath, zHentHistoriskVedtakForBehandlingResponse, zHentJournalPostForBrukerIdBody, zHentJournalPostForBrukerIdResponse, zHentMedlemskapFaktagrunnlagPath, zHentMedlemskapFaktagrunnlagResponse, zHentMedlemskapPerioderPath, zHentMedlemskapPerioderResponse, zHentMellomlagretBrevPath, zHentMellomlagretBrevResponse, zHentOppdragStatusPath, zHentOppdragStatusResponse, zHentPerioderMedOppfylteInngangsvilkårPath, zHentPerioderMedOppfylteInngangsvilkårResponse, zHentPersonBody, zHentPersonResponse, zHentSimuleringPath, zHentSimuleringResponse, zHentStønaderForPersonBody, zHentStønaderForPersonResponse, zHentTestDataQuery, zHentTestDataResponse, zHentTotrinnskontrollStatusPath, zHentTotrinnskontrollStatusResponse, zHentTrygdetidPerioderPath, zHentTrygdetidPerioderResponse, zHentVedtakPath, zHentVedtakResponse, zInnhentFaktagrunnlagFraPdlPath, zInnhentFaktagrunnlagFraPdlResponse, zIverksettMotOppdragPath, zIverksettMotOppdragResponse, zLagBrevTaskPath, zLagBrevTaskResponse, zLagIverksettVedtaksbrevTaskPath, zLagIverksettVedtaksbrevTaskResponse, zLagreÅrsakBehandlingBody, zLagreÅrsakBehandlingPath, zLagreÅrsakBehandlingResponse, zLagreDiagnosePeriodeBody, zLagreDiagnosePeriodePath, zLagreDiagnosePeriodeResponse, zLagreEkstrautgifterPeriodeBody, zLagreEkstrautgifterPeriodePath, zLagreEkstrautgifterPeriodeResponse, zLagreMedlemskapPeriodeBody, zLagreMedlemskapPeriodePath, zLagreMedlemskapPeriodeResponse, zLagreTrygdetidPeriodeBody, zLagreTrygdetidPeriodePath, zLagreTrygdetidPeriodeResponse, zLagreVedtakBody, zLagreVedtakPath, zLagreVedtakResponse, zMellomlagreBrevBody, zMellomlagreBrevPath, zOppdaterBrevmottakereBody, zOppdaterBrevmottakerePath, zOppdaterBrevmottakereResponse, zOpprettBehandlingBody, zOpprettBehandlingResponse2, zOpprettFagsakBody, zOpprettFagsakResponse, zSendTilBeslutterPath, zSendTilBeslutterResponse, zSimulerMotOppdragPath, zSimulerMotOppdragResponse, zSlettDiagnosePeriodePath, zSlettEkstrautgifterPeriodePath, zSlettMedlemskapPeriodePath, zSlettTrygdetidPeriodePath, zSøkDiagnosekoderBody, zSøkDiagnosekoderResponse, zSøkPersonBody, zSøkPersonMedFagsakPersonIdPath, zSøkPersonMedFagsakPersonIdResponse, zSøkPersonResponse } from './zod.gen';
+import type { AvbrytData, AvbrytResponses, BesluttVedtakData, BesluttVedtakResponses, DistribuerVedtaksbrevData, DistribuerVedtaksbrevResponses, FordelOppgaveData, FordelOppgaveResponses, FullførInngangsvilkårData, FullførInngangsvilkårErrors, FullførInngangsvilkårResponses, FullførSatsOgTrygdetidData, FullførSatsOgTrygdetidErrors, FullførSatsOgTrygdetidResponses, HenleggBehandlingData, HenleggBehandlingResponses, HentAnsvarligSaksbehandlerData, HentAnsvarligSaksbehandlerResponses, HentÅrsakBehandlingData, HentÅrsakBehandlingResponses, HentBehandlingData, HentBehandlingerData, HentBehandlingerResponses, HentBehandlingResponses, HentBrevmottakereData, HentBrevmottakereResponses, HentDiagnosePerioderData, HentDiagnosePerioderResponses, HentDokumentSomPdf1Data, HentDokumentSomPdf1Responses, HentDokumentSomPdfData, HentDokumentSomPdfResponses, HentEkstrautgifterPerioderData, HentEkstrautgifterPerioderResponses, HentEndringshistorikkData, HentEndringshistorikkResponses, HentFagsakData, HentFagsakResponses, HentFalskIdentitetData, HentFalskIdentitetResponses, HentFeatureTogglesData, HentFeatureTogglesResponses, HentGjeldendePerioderForPersonData, HentGjeldendePerioderForPersonResponses, HentJournalPostForBrukerIdData, HentJournalPostForBrukerIdResponses, HentLoggData, HentLoggResponses, HentMedlemskapFaktagrunnlagData, HentMedlemskapFaktagrunnlagResponses, HentMedlemskapPerioderData, HentMedlemskapPerioderResponses, HentMellomlagretBrevData, HentMellomlagretBrevResponses, HentOppdragStatusData, HentOppdragStatusResponses, HentPerioderMedOppfylteInngangsvilkårData, HentPerioderMedOppfylteInngangsvilkårErrors, HentPerioderMedOppfylteInngangsvilkårResponses, HentPersonData, HentPersonResponses, HentSimuleringData, HentSimuleringResponses, HentStatusoversiktData, HentStatusoversiktResponses, HentStønaderForPersonData, HentStønaderForPersonResponses, HentTaskData, HentTaskResponses, HentTasksData, HentTasksResponses, HentTestDataData, HentTestDataResponses, HentTotrinnskontrollStatusData, HentTotrinnskontrollStatusResponses, HentTrygdetidPerioderData, HentTrygdetidPerioderResponses, HentTyperData, HentTyperResponses, HentVedtakData, HentVedtakResponses, InnhentFaktagrunnlagFraPdlData, InnhentFaktagrunnlagFraPdlResponses, IverksettMotOppdragData, IverksettMotOppdragResponses, LagBrevTaskData, LagBrevTaskResponses, LagIverksettVedtaksbrevTaskData, LagIverksettVedtaksbrevTaskResponses, LagreÅrsakBehandlingData, LagreÅrsakBehandlingResponses, LagreDiagnosePeriodeData, LagreDiagnosePeriodeResponses, LagreEkstrautgifterPeriodeData, LagreEkstrautgifterPeriodeResponses, LagreMedlemskapPeriodeData, LagreMedlemskapPeriodeResponses, LagreTrygdetidPeriodeData, LagreTrygdetidPeriodeResponses, MellomlagreBrevData, MellomlagreBrevResponses, OppdaterBrevmottakereData, OppdaterBrevmottakereResponses, OpprettBehandlingData, OpprettBehandlingResponses, OpprettFagsakData, OpprettFagsakResponses, RegistrerAvvikData, RegistrerAvvikResponses, RekjorData, RekjorResponses, SendTilBeslutterData, SendTilBeslutterResponses, SimulerMotOppdragData, SimulerMotOppdragResponses, SlettDiagnosePeriodeData, SlettDiagnosePeriodeResponses, SlettEkstrautgifterPeriodeData, SlettEkstrautgifterPeriodeResponses, SlettMedlemskapPeriodeData, SlettMedlemskapPeriodeResponses, SlettTrygdetidPeriodeData, SlettTrygdetidPeriodeResponses, SøkDiagnosekoderData, SøkDiagnosekoderResponses, SøkPersonData, SøkPersonMedFagsakPersonIdData, SøkPersonMedFagsakPersonIdResponses, SøkPersonResponses } from './types.gen';
+import { zAvbrytBody, zAvbrytPath, zAvbrytResponse, zBesluttVedtakBody, zBesluttVedtakPath, zBesluttVedtakResponse, zDistribuerVedtaksbrevPath, zDistribuerVedtaksbrevResponse, zFordelOppgaveBody, zFordelOppgaveResponse, zFullførInngangsvilkårPath, zFullførInngangsvilkårResponse, zFullførSatsOgTrygdetidPath, zFullførSatsOgTrygdetidResponse, zHenleggBehandlingBody, zHentAnsvarligSaksbehandlerBody, zHentAnsvarligSaksbehandlerResponse, zHentÅrsakBehandlingPath, zHentÅrsakBehandlingResponse, zHentBehandlingBody, zHentBehandlingerBody, zHentBehandlingerResponse, zHentBehandlingResponse, zHentBrevmottakerePath, zHentBrevmottakereResponse, zHentDiagnosePerioderPath, zHentDiagnosePerioderResponse, zHentDokumentSomPdf1Path, zHentDokumentSomPdf1Query, zHentDokumentSomPdf1Response, zHentDokumentSomPdfPath, zHentDokumentSomPdfQuery, zHentDokumentSomPdfResponse, zHentEkstrautgifterPerioderPath, zHentEkstrautgifterPerioderResponse, zHentEndringshistorikkPath, zHentEndringshistorikkResponse, zHentFagsakPath, zHentFagsakResponse, zHentFalskIdentitetPath, zHentFalskIdentitetResponse, zHentFeatureTogglesResponse, zHentGjeldendePerioderForPersonBody, zHentGjeldendePerioderForPersonResponse, zHentJournalPostForBrukerIdBody, zHentJournalPostForBrukerIdResponse, zHentLoggPath, zHentLoggResponse, zHentMedlemskapFaktagrunnlagPath, zHentMedlemskapFaktagrunnlagResponse, zHentMedlemskapPerioderPath, zHentMedlemskapPerioderResponse, zHentMellomlagretBrevPath, zHentMellomlagretBrevResponse, zHentOppdragStatusPath, zHentOppdragStatusResponse, zHentPerioderMedOppfylteInngangsvilkårPath, zHentPerioderMedOppfylteInngangsvilkårResponse, zHentPersonBody, zHentPersonResponse, zHentSimuleringPath, zHentSimuleringResponse, zHentStatusoversiktResponse, zHentStønaderForPersonBody, zHentStønaderForPersonResponse, zHentTaskPath, zHentTaskResponse, zHentTasksQuery, zHentTasksResponse, zHentTestDataQuery, zHentTestDataResponse, zHentTotrinnskontrollStatusPath, zHentTotrinnskontrollStatusResponse, zHentTrygdetidPerioderPath, zHentTrygdetidPerioderResponse, zHentTyperResponse, zHentVedtakPath, zHentVedtakResponse, zInnhentFaktagrunnlagFraPdlPath, zInnhentFaktagrunnlagFraPdlResponse, zIverksettMotOppdragPath, zIverksettMotOppdragResponse, zLagBrevTaskPath, zLagBrevTaskResponse, zLagIverksettVedtaksbrevTaskPath, zLagIverksettVedtaksbrevTaskResponse, zLagreÅrsakBehandlingBody, zLagreÅrsakBehandlingPath, zLagreÅrsakBehandlingResponse, zLagreDiagnosePeriodeBody, zLagreDiagnosePeriodePath, zLagreDiagnosePeriodeResponse, zLagreEkstrautgifterPeriodeBody, zLagreEkstrautgifterPeriodePath, zLagreEkstrautgifterPeriodeResponse, zLagreMedlemskapPeriodeBody, zLagreMedlemskapPeriodePath, zLagreMedlemskapPeriodeResponse, zLagreTrygdetidPeriodeBody, zLagreTrygdetidPeriodePath, zLagreTrygdetidPeriodeResponse, zMellomlagreBrevBody, zMellomlagreBrevPath, zOppdaterBrevmottakereBody, zOppdaterBrevmottakerePath, zOppdaterBrevmottakereResponse, zOpprettBehandlingBody, zOpprettBehandlingResponse2, zOpprettFagsakBody, zOpprettFagsakResponse, zRegistrerAvvikBody, zRegistrerAvvikPath, zRegistrerAvvikResponse, zRekjorBody, zRekjorPath, zRekjorResponse, zSendTilBeslutterPath, zSendTilBeslutterResponse, zSimulerMotOppdragPath, zSimulerMotOppdragResponse, zSlettDiagnosePeriodePath, zSlettEkstrautgifterPeriodePath, zSlettMedlemskapPeriodePath, zSlettTrygdetidPeriodePath, zSøkDiagnosekoderBody, zSøkDiagnosekoderResponse, zSøkPersonBody, zSøkPersonMedFagsakPersonIdPath, zSøkPersonMedFagsakPersonIdResponse, zSøkPersonResponse } from './zod.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -20,38 +20,6 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
-
-export const lagreVedtak = <ThrowOnError extends boolean = false>(options: Options<LagreVedtakData, ThrowOnError>): RequestResult<LagreVedtakResponses, unknown, ThrowOnError> => (options.client ?? client).post<LagreVedtakResponses, unknown, ThrowOnError>({
-    requestValidator: async (data) => await z.object({
-        body: zLagreVedtakBody,
-        path: zLagreVedtakPath,
-        query: z.never().optional()
-    }).parseAsync(data),
-    responseValidator: async (data) => await zLagreVedtakResponse.parseAsync(data),
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/vedtak/{behandlingId}/lagre-vedtak',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-export const beregn = <ThrowOnError extends boolean = false>(options: Options<BeregnData, ThrowOnError>): RequestResult<BeregnResponses, unknown, ThrowOnError> => (options.client ?? client).post<BeregnResponses, unknown, ThrowOnError>({
-    requestValidator: async (data) => await z.object({
-        body: zBeregnBody,
-        path: zBeregnPath,
-        query: z.never().optional()
-    }).parseAsync(data),
-    responseValidator: async (data) => await zBeregnResponse.parseAsync(data),
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/vedtak/{behandlingId}/beregn',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
 
 export const søkPerson = <ThrowOnError extends boolean = false>(options: Options<SøkPersonData, ThrowOnError>): RequestResult<SøkPersonResponses, unknown, ThrowOnError> => (options.client ?? client).post<SøkPersonResponses, unknown, ThrowOnError>({
     requestValidator: async (data) => await z.object({
@@ -78,6 +46,54 @@ export const hentJournalPostForBrukerId = <ThrowOnError extends boolean = false>
     responseValidator: async (data) => await zHentJournalPostForBrukerIdResponse.parseAsync(data),
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/saf/dokumenter',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const rekjor = <ThrowOnError extends boolean = false>(options: Options<RekjorData, ThrowOnError>): RequestResult<RekjorResponses, unknown, ThrowOnError> => (options.client ?? client).post<RekjorResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: zRekjorBody,
+        path: zRekjorPath,
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zRekjorResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/prosessering/task/{id}/rekjor',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const registrerAvvik = <ThrowOnError extends boolean = false>(options: Options<RegistrerAvvikData, ThrowOnError>): RequestResult<RegistrerAvvikResponses, unknown, ThrowOnError> => (options.client ?? client).post<RegistrerAvvikResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: zRegistrerAvvikBody,
+        path: zRegistrerAvvikPath,
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zRegistrerAvvikResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/prosessering/task/{id}/avvik',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const avbryt = <ThrowOnError extends boolean = false>(options: Options<AvbrytData, ThrowOnError>): RequestResult<AvbrytResponses, unknown, ThrowOnError> => (options.client ?? client).post<AvbrytResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: zAvbrytBody,
+        path: zAvbrytPath,
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zAvbrytResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/prosessering/task/{id}/avbryt',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -602,18 +618,6 @@ export const lagreÅrsakBehandling = <ThrowOnError extends boolean = false>(opti
     }
 });
 
-export const hentHistoriskVedtakForBehandling = <ThrowOnError extends boolean = false>(options: Options<HentHistoriskVedtakForBehandlingData, ThrowOnError>): RequestResult<HentHistoriskVedtakForBehandlingResponses, unknown, ThrowOnError> => (options.client ?? client).get<HentHistoriskVedtakForBehandlingResponses, unknown, ThrowOnError>({
-    requestValidator: async (data) => await z.object({
-        body: z.never().optional(),
-        path: zHentHistoriskVedtakForBehandlingPath,
-        query: z.never().optional()
-    }).parseAsync(data),
-    responseValidator: async (data) => await zHentHistoriskVedtakForBehandlingResponse.parseAsync(data),
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/vedtak/{behandlingId}/historikk/{fra}',
-    ...options
-});
-
 export const hentVedtak = <ThrowOnError extends boolean = false>(options: Options<HentVedtakData, ThrowOnError>): RequestResult<HentVedtakResponses, unknown, ThrowOnError> => (options.client ?? client).get<HentVedtakResponses, unknown, ThrowOnError>({
     requestValidator: async (data) => await z.object({
         body: z.never().optional(),
@@ -693,6 +697,66 @@ export const hentDokumentSomPdf1 = <ThrowOnError extends boolean = false>(option
     responseValidator: async (data) => await zHentDokumentSomPdf1Response.parseAsync(data),
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/saf/{journalpostId}/dokument-pdf/{dokumentInfoId}',
+    ...options
+});
+
+export const hentTasks = <ThrowOnError extends boolean = false>(options?: Options<HentTasksData, ThrowOnError>): RequestResult<HentTasksResponses, unknown, ThrowOnError> => (options?.client ?? client).get<HentTasksResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: z.never().optional(),
+        path: z.never().optional(),
+        query: zHentTasksQuery.optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zHentTasksResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/prosessering/task',
+    ...options
+});
+
+export const hentTask = <ThrowOnError extends boolean = false>(options: Options<HentTaskData, ThrowOnError>): RequestResult<HentTaskResponses, unknown, ThrowOnError> => (options.client ?? client).get<HentTaskResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: z.never().optional(),
+        path: zHentTaskPath,
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zHentTaskResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/prosessering/task/{id}',
+    ...options
+});
+
+export const hentLogg = <ThrowOnError extends boolean = false>(options: Options<HentLoggData, ThrowOnError>): RequestResult<HentLoggResponses, unknown, ThrowOnError> => (options.client ?? client).get<HentLoggResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: z.never().optional(),
+        path: zHentLoggPath,
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zHentLoggResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/prosessering/task/{id}/logg',
+    ...options
+});
+
+export const hentTyper = <ThrowOnError extends boolean = false>(options?: Options<HentTyperData, ThrowOnError>): RequestResult<HentTyperResponses, unknown, ThrowOnError> => (options?.client ?? client).get<HentTyperResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: z.never().optional(),
+        path: z.never().optional(),
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zHentTyperResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/prosessering/task/typer',
+    ...options
+});
+
+export const hentStatusoversikt = <ThrowOnError extends boolean = false>(options?: Options<HentStatusoversiktData, ThrowOnError>): RequestResult<HentStatusoversiktResponses, unknown, ThrowOnError> => (options?.client ?? client).get<HentStatusoversiktResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: z.never().optional(),
+        path: z.never().optional(),
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zHentStatusoversiktResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/prosessering/task/status-oversikt',
     ...options
 });
 
@@ -799,6 +863,18 @@ export const hentMedlemskapFaktagrunnlag = <ThrowOnError extends boolean = false
     responseValidator: async (data) => await zHentMedlemskapFaktagrunnlagResponse.parseAsync(data),
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/behandling/{behandlingId}/faktagrunnlag/pdl/medlemskap',
+    ...options
+});
+
+export const hentFalskIdentitet = <ThrowOnError extends boolean = false>(options: Options<HentFalskIdentitetData, ThrowOnError>): RequestResult<HentFalskIdentitetResponses, unknown, ThrowOnError> => (options.client ?? client).get<HentFalskIdentitetResponses, unknown, ThrowOnError>({
+    requestValidator: async (data) => await z.object({
+        body: z.never().optional(),
+        path: zHentFalskIdentitetPath,
+        query: z.never().optional()
+    }).parseAsync(data),
+    responseValidator: async (data) => await zHentFalskIdentitetResponse.parseAsync(data),
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/behandling/{behandlingId}/faktagrunnlag/pdl/falsk-identitet',
     ...options
 });
 
