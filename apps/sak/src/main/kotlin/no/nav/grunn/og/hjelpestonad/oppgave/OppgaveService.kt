@@ -34,6 +34,7 @@ class OppgaveService(
         behandling: Behandling,
         saksbehandler: String,
         tildeltEnhetsnr: String,
+        idempotensUuid: UUID,
     ) {
         logger.info("Skal opprette behandle sak oppgave for behandling=${behandling.id} saksbehandler=$saksbehandler")
 
@@ -41,19 +42,8 @@ class OppgaveService(
         val fagsakPerson = fagsakPersonRepository.findByIdOrNull(fagsak.fagsakPersonId) ?: throw IllegalStateException("Finner ikke fagsakPerson med id=${fagsak.fagsakPersonId}")
         val personident: Personident = fagsakPerson.aktivIdent()
 
-        val oppgaveRequest = lagOpprettBehandleSakOppgaveRequest(personident, fagsak, behandling, saksbehandler, tildeltEnhetsnr)
-
-        val oppgave = oppgaveClient.opprettOppgaveM2M(oppgaveRequest = oppgaveRequest)
-
-        oppgaveRepository.insert(
-            Oppgave(
-                behandlingId = behandling.id,
-                gsakOppgaveId = oppgave.id ?: throw IllegalStateException("Oppgave-respons mangler id"),
-                type = OppgavetypeGRU.BEH_SAK.name,
-            ),
-        )
-
-        logger.info("Oppgave med gsakOppgaveId=${oppgave.id} lagret for behandling=${behandling.id}")
+        val oppgaveRequest = lagOpprettBehandleSakOppgaveRequest(personident = personident, fagsak = fagsak, behandling = behandling, saksbehandler = saksbehandler, tildeltEnhetsnr = tildeltEnhetsnr, idempotensUuid = idempotensUuid)
+        opprettOgLagreOppgave(behandling.id, oppgaveRequest)
     }
 
     fun fordelOppgave(
@@ -85,7 +75,10 @@ class OppgaveService(
         )
     }
 
-    fun opprettBehandleVedtakOppgave(behandlingId: UUID) {
+    fun opprettBehandleVedtakOppgave(
+        behandlingId: UUID,
+        idempotensUuid: UUID,
+    ) {
         logger.info("Oppretter behandle vedtak oppgave for behandling=$behandlingId")
 
         val fagsak = hentFagsakForBehandling(behandlingId)
@@ -107,22 +100,16 @@ class OppgaveService(
                 tilordnetRessurs = null,
                 behandlesAvApplikasjon = "grunn-og-hjelpestonad",
                 tildeltEnhetsnr = gosysOppgave.tildeltEnhetsnr ?: throw IllegalStateException("Oppgave mangler tildeltEnhetsnr"),
+                uuid = idempotensUuid,
             )
 
-        val oppgave = oppgaveClient.opprettOppgaveM2M(oppgaveRequest)
-
-        oppgaveRepository.insert(
-            Oppgave(
-                behandlingId = behandlingId,
-                gsakOppgaveId = oppgave.id ?: throw IllegalStateException("Oppgave-respons mangler id"),
-                type = OppgavetypeGRU.BEH_VED.name,
-            ),
-        )
+        opprettOgLagreOppgave(behandlingId, oppgaveRequest)
     }
 
     fun opprettBehandleUnderkjentVedtakOppgave(
         behandlingId: UUID,
         tilordnetSaksbehandler: String,
+        idempotensUuid: UUID,
     ) {
         logger.info("Oppretter behandle underkjent vedtak oppgave for behandling=$behandlingId")
 
@@ -145,15 +132,22 @@ class OppgaveService(
                 tilordnetRessurs = tilordnetSaksbehandler,
                 behandlesAvApplikasjon = "grunn-og-hjelpestonad",
                 tildeltEnhetsnr = gosysOppgave.tildeltEnhetsnr ?: throw IllegalStateException("Oppgave mangler tildeltEnhetsnr"),
+                uuid = idempotensUuid,
             )
 
-        val oppgave = oppgaveClient.opprettOppgaveM2M(oppgaveRequest)
+        opprettOgLagreOppgave(behandlingId, oppgaveRequest)
+    }
 
+    private fun opprettOgLagreOppgave(
+        behandlingId: UUID,
+        oppgaveRequest: LagOppgaveRequest,
+    ) {
+        val oppgave = oppgaveClient.opprettOppgaveM2M(oppgaveRequest)
         oppgaveRepository.insert(
             Oppgave(
                 behandlingId = behandlingId,
                 gsakOppgaveId = oppgave.id ?: throw IllegalStateException("Oppgave-respons mangler id"),
-                type = OppgavetypeGRU.BEH_SAK.name,
+                type = oppgaveRequest.oppgavetype.name,
             ),
         )
     }
@@ -215,6 +209,7 @@ private fun lagOpprettBehandleSakOppgaveRequest(
     behandling: Behandling,
     saksbehandler: String,
     tildeltEnhetsnr: String,
+    idempotensUuid: UUID,
 ): LagOppgaveRequest =
     LagOppgaveRequest(
         personident = personident.ident,
@@ -229,6 +224,7 @@ private fun lagOpprettBehandleSakOppgaveRequest(
         tilordnetRessurs = saksbehandler,
         behandlesAvApplikasjon = "grunn-og-hjelpestonad", // Kan kun feilregistreres av saksbehandler i gosys? Må ferdigstilles av applikasjon?
         tildeltEnhetsnr = tildeltEnhetsnr,
+        uuid = idempotensUuid,
     )
 
 fun StønadType.tilBehandlingstema(): String =

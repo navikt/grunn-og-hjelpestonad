@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class MockOppgaveClientTest {
     private lateinit var mockOppgaveClient: MockOppgaveClient
@@ -105,5 +106,6 @@ class MockOppgaveClientTest {
             tilordnetRessurs = tilordnetRessurs,
             behandlesAvApplikasjon = "grunn-og-hjelpestonad",
             tildeltEnhetsnr = "4420",
+            uuid = UUID.randomUUID(),
         )
 }
