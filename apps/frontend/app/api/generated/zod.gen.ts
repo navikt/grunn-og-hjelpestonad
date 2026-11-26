@@ -18,6 +18,55 @@ export const zVilkårValideringFeilResponse = z.object({
     feil: z.array(zValideringsfeil)
 });
 
+export const zGrunnstønadPeriode = z.object({
+    id: z.uuid(),
+    datoFra: z.string(),
+    datoTil: z.string(),
+    utgifter: z.number(),
+    barn: z.array(z.uuid()),
+    periodetype: z.enum(['ORDINÆR', 'INGEN_STØNAD']),
+    aktivitetstype: z.enum([
+        'I_ARBEID',
+        'FORBIGÅENDE_SYKDOM',
+        'IKKE_RELEVANT'
+    ])
+});
+
+export const zVedtakRequest = z.object({
+    resultatType: z.enum([
+        'INNVILGET',
+        'AVSLÅTT',
+        'HENLAGT',
+        'OPPHØR'
+    ]),
+    begrunnelse: z.string().nullish(),
+    grunnstønadPerioder: z.array(zGrunnstønadPeriode),
+    saksbehandlerIdent: z.string().nullish(),
+    opphørFom: z.string().nullish(),
+    beslutterIdent: z.string().nullish()
+});
+
+export const zBarnetilsynBeregning = z.object({
+    datoFra: z.string(),
+    datoTil: z.string(),
+    utgifter: z.number(),
+    barn: z.array(z.uuid()),
+    periodetype: z.enum(['ORDINÆR', 'INGEN_STØNAD'])
+});
+
+export const zBarnetilsynBeregningRequest = z.object({
+    barnetilsynBeregning: z.array(zBarnetilsynBeregning)
+});
+
+export const zBeløpsperioderResponse = z.object({
+    datoFra: z.string(),
+    datoTil: z.string(),
+    utgifter: z.number(),
+    antallBarn: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    beløp: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
+    periodetype: z.enum(['ORDINÆR', 'INGEN_STØNAD'])
+});
+
 export const zSøkRequest = z.object({
     personident: z.string()
 });
@@ -82,37 +131,6 @@ export const zDokumentinfoResponse = z.object({
     harSaksbehandlerTilgang: z.boolean(),
     logiskeVedlegg: z.array(zLogiskVedleggDto),
     avsenderMottaker: zAvsenderMottaker.nullish()
-});
-
-export const zProsesseringEndring = z.object({
-    versjon: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' })
-});
-
-export const zTask = z.object({
-    id: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    type: z.string(),
-    status: z.enum([
-        'KLAR',
-        'KJØRER',
-        'FULLFØRT',
-        'STOPPET',
-        'AVBRUTT'
-    ]),
-    payload: z.string().nullish(),
-    triggerTid: z.iso.datetime({ local: true }),
-    opprettetTid: z.iso.datetime({ local: true }),
-    plukketTid: z.iso.datetime({ local: true }).nullish(),
-    antallFeil: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    stoppaarsak: z.enum(['FEIL', 'MANUELL']).nullish(),
-    versjon: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    sistEndretTid: z.iso.datetime({ local: true }),
-    sisteFeilmelding: z.string().nullish(),
-    metadata: z.record(z.string(), z.string())
-});
-
-export const zProsesseringAvvik = z.object({
-    versjon: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    melding: z.string()
 });
 
 export const zHentPersonRequest = z.object({
@@ -193,6 +211,12 @@ export const zSimuleringResponse = z.object({
     ]),
     simulertTidspunkt: z.iso.datetime({ local: true }).nullish(),
     oppsummering: zSimuleringsoppsummering.nullish()
+});
+
+export const zOppdragIverksettingResponse = z.object({
+    saksnummer: z.string(),
+    behandlingsId: z.string(),
+    antallPerioder: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' })
 });
 
 export const zInfotrygdStonaderRequest = z.object({
@@ -517,8 +541,7 @@ export const zMedlemskapFaktagrunnlagResponse = z.object({
     hentetTidspunkt: z.iso.datetime({ local: true }).nullish(),
     bosted: z.array(zOpplysningResponse),
     statsborgerskap: z.array(zOpplysningResponse),
-    oppholdstillatelse: z.array(zOpplysningResponse),
-    dødsfall: z.array(zOpplysningResponse)
+    oppholdstillatelse: z.array(zOpplysningResponse)
 });
 
 export const zOpprettRequest = z.object({
@@ -592,6 +615,11 @@ export const zÅrsakBehandlingResponse = z.object({
     beskrivelse: z.string()
 });
 
+export const zHistoriskVedtakResponse = z.object({
+    grunnstønadPerioder: z.array(zGrunnstønadPeriode),
+    fraErFørTidligsteVedtak: z.boolean()
+});
+
 export const zVedtakResponse = z.object({
     resultatType: z.enum([
         'INNVILGET',
@@ -600,48 +628,15 @@ export const zVedtakResponse = z.object({
         'OPPHØR'
     ]),
     begrunnelse: z.string().nullish(),
+    grunnstønadPerioder: z.array(zGrunnstønadPeriode),
     saksbehandlerIdent: z.string().nullish(),
     opphørFom: z.string().nullish(),
     beslutterIdent: z.string().nullish()
 });
 
-export const zProsesseringTaskSide = z.object({
-    tasks: z.array(zTask),
-    side: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    antallPerSide: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }),
-    antallTotalt: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    antallSider: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    avkortet: z.boolean()
-});
-
-export const zTaskLogg = z.object({
-    id: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    taskId: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' }),
-    type: z.enum([
-        'STATUS_ENDRET',
-        'KOMMENTAR',
-        'AVVIK'
-    ]),
-    melding: z.string(),
-    endretAv: z.string(),
-    node: z.string(),
-    tidspunkt: z.iso.datetime({ local: true })
-});
-
-export const zProsesseringTypeTelling = z.object({
-    type: z.string(),
-    antall: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' })
-});
-
-export const zProsesseringStatusTelling = z.object({
-    status: z.enum([
-        'KLAR',
-        'KJØRER',
-        'FULLFØRT',
-        'STOPPET',
-        'AVBRUTT'
-    ]),
-    antall: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' })
+export const zOppdragStatusSvar = z.object({
+    status: z.string(),
+    melding: z.string().nullish()
 });
 
 export const zBehandlingEndringResponse = z.object({
@@ -713,6 +708,28 @@ export const zTotrinnskontrollStatusResponse = z.object({
     totrinnskontroll: zTotrinnskontrollDto.nullish()
 });
 
+export const zLagreVedtakBody = zVedtakRequest;
+
+export const zLagreVedtakPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zLagreVedtakResponse = z.record(z.string(), z.string());
+
+export const zBeregnBody = zBarnetilsynBeregningRequest;
+
+export const zBeregnPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zBeregnResponse = z.array(zBeløpsperioderResponse);
+
 export const zSøkPersonBody = zSøkRequest;
 
 /**
@@ -726,39 +743,6 @@ export const zHentJournalPostForBrukerIdBody = zHentDokumenterRequest;
  * OK
  */
 export const zHentJournalPostForBrukerIdResponse = z.array(zDokumentinfoResponse);
-
-export const zRekjorBody = zProsesseringEndring;
-
-export const zRekjorPath = z.object({
-    id: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' })
-});
-
-/**
- * OK
- */
-export const zRekjorResponse = zTask;
-
-export const zRegistrerAvvikBody = zProsesseringAvvik;
-
-export const zRegistrerAvvikPath = z.object({
-    id: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' })
-});
-
-/**
- * OK
- */
-export const zRegistrerAvvikResponse = zTask;
-
-export const zAvbrytBody = zProsesseringEndring;
-
-export const zAvbrytPath = z.object({
-    id: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' })
-});
-
-/**
- * OK
- */
-export const zAvbrytResponse = zTask;
 
 export const zHentPersonBody = zHentPersonRequest;
 
@@ -798,6 +782,15 @@ export const zSimulerMotOppdragPath = z.object({
  * OK
  */
 export const zSimulerMotOppdragResponse = zSimuleringResponse;
+
+export const zIverksettMotOppdragPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zIverksettMotOppdragResponse = zOppdragIverksettingResponse;
 
 export const zLagIverksettVedtaksbrevTaskPath = z.object({
     behandlingId: z.uuid()
@@ -1041,6 +1034,16 @@ export const zLagreÅrsakBehandlingPath = z.object({
  */
 export const zLagreÅrsakBehandlingResponse = zÅrsakBehandlingResponse;
 
+export const zHentHistoriskVedtakForBehandlingPath = z.object({
+    behandlingId: z.uuid(),
+    fra: z.string()
+});
+
+/**
+ * OK
+ */
+export const zHentHistoriskVedtakForBehandlingResponse = zHistoriskVedtakResponse;
+
 export const zHentVedtakPath = z.object({
     behandlingId: z.uuid()
 });
@@ -1101,51 +1104,14 @@ export const zHentDokumentSomPdf1Query = z.object({
  */
 export const zHentDokumentSomPdf1Response = z.string();
 
-export const zHentTasksQuery = z.object({
-    status: z.enum([
-        'KLAR',
-        'KJØRER',
-        'FULLFØRT',
-        'STOPPET',
-        'AVBRUTT'
-    ]).optional(),
-    type: z.string().optional(),
-    side: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional().default(1),
-    antallPerSide: z.int().min(-2147483648, { error: 'Invalid value: Expected int32 to be >= -2147483648' }).max(2147483647, { error: 'Invalid value: Expected int32 to be <= 2147483647' }).optional().default(25)
+export const zHentOppdragStatusPath = z.object({
+    behandlingId: z.uuid()
 });
 
 /**
  * OK
  */
-export const zHentTasksResponse = zProsesseringTaskSide;
-
-export const zHentTaskPath = z.object({
-    id: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' })
-});
-
-/**
- * OK
- */
-export const zHentTaskResponse = zTask;
-
-export const zHentLoggPath = z.object({
-    id: z.coerce.bigint().min(BigInt('-9223372036854775808'), { error: 'Invalid value: Expected int64 to be >= -9223372036854775808' }).max(BigInt('9223372036854775807'), { error: 'Invalid value: Expected int64 to be <= 9223372036854775807' })
-});
-
-/**
- * OK
- */
-export const zHentLoggResponse = z.array(zTaskLogg);
-
-/**
- * OK
- */
-export const zHentTyperResponse = z.array(zProsesseringTypeTelling);
-
-/**
- * OK
- */
-export const zHentStatusoversiktResponse = z.array(zProsesseringStatusTelling);
+export const zHentOppdragStatusResponse = zOppdragStatusSvar;
 
 export const zHentFagsakPath = z.object({
     fagsakPersonId: z.uuid(),
