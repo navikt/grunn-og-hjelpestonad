@@ -129,16 +129,17 @@ class VedtakServiceTest {
 
     @ParameterizedTest
     @EnumSource(value = ResultatType::class, names = ["OPPHØR", "HENLAGT"])
-    fun `eksplisitt opphør eller henleggelse bevares ved sending til beslutter`(resultatType: ResultatType) {
+    fun `opphør og henleggelse støttes ikke av automatisk vedtakslagring`(resultatType: ResultatType) {
         val behandlingId = UUID.randomUUID()
         every { vedtakRepository.findByBehandlingId(behandlingId) } returns
             Vedtak(behandlingId = behandlingId, resultatType = resultatType, opphørFom = if (resultatType == ResultatType.OPPHØR) YearMonth.of(2026, 4) else null, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456")
 
-        vedtakService.lagreVedtakFraBehandlingsgrunnlag(behandlingId)
+        assertFailsWith<NotImplementedError> { vedtakService.lagreVedtakFraBehandlingsgrunnlag(behandlingId) }
 
         verify(exactly = 0) { vedtakRepository.insert(any()) }
         verify(exactly = 0) { vedtakRepository.update(any()) }
         verify(exactly = 0) { vedtakRepository.deleteByBehandlingId(any()) }
+        verify { endringshistorikkService wasNot Called }
     }
 
     @Test
