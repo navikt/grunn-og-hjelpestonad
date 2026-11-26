@@ -5,7 +5,7 @@ import { VilkårProvider, useVilkårContext } from "~/komponenter/behandling/vil
 import { VilkårInnhold } from "~/komponenter/behandling/vilkår/VilkårInnhold";
 import { useFullførInngangsvilkår } from "~/komponenter/behandling/vilkår/felles/useFullførInngangsvilkår";
 import { FullførInngangsvilkårFeilvisning } from "~/komponenter/behandling/vilkår/FullførInngangsvilkårFeilvisning";
-import type { Route } from "./+types/vilkår";
+import type { Route } from "./+types/inngangsvilkår";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 import { StegNavigering } from "~/komponenter/behandling/StegNavigering";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
@@ -17,15 +17,15 @@ export function meta(_: Route.MetaArgs) {
 
 const STEG_PATH: StegPath = "vilkar";
 
-export default function Vilkår() {
+export default function Inngangsvilkår() {
   return (
     <VilkårProvider>
-      <VilkårSide />
+      <InngangsvilkårSide />
     </VilkårProvider>
   );
 }
 
-function VilkårSide() {
+function InngangsvilkårSide() {
   const navigate = useNavigate();
   const { behandlingId, hentBehandlingPåNytt } = useBehandlingContext();
   const { status: vilkårStatus } = useVilkårContext();
