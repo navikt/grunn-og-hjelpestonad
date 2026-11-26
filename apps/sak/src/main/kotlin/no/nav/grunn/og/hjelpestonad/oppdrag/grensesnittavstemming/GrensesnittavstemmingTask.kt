@@ -24,8 +24,8 @@ class GrensesnittavstemmingTask(
     // Reaper kan fortsatt gjenopprette tasken etter krasj. Se ADR-0019 om valget og aksepterte begrensninger.
     override val retry = RetryPolicy(maxAntallFeil = 1, backoff = { Duration.ZERO })
 
-    override fun utfor(taskKontekst: TaskKontekst<GrensesnittavstemmingTaskData>) {
-        val grensesnittavstemmingTaskData = taskKontekst.payload
+    override fun utfor(kontekst: TaskKontekst<GrensesnittavstemmingTaskData>) {
+        val grensesnittavstemmingTaskData = kontekst.payload
         logger.info(
             "Starter grensesnittavstemming id={} fra={} til={}",
             grensesnittavstemmingTaskData.avstemmingId,
@@ -37,7 +37,7 @@ class GrensesnittavstemmingTask(
         )
 
         val nesteGrensesnittavstemmingTaskData = nesteGrensesnittavstemmingVindu(grensesnittavstemmingTaskData)
-        taskKontekst.opprettNesteTask(
+        kontekst.opprettNesteTask(
             type = TYPE,
             payload = nesteGrensesnittavstemmingTaskData,
             triggerTid = tidspunktForGrensesnittavstemming(nesteGrensesnittavstemmingTaskData.tilDato),
