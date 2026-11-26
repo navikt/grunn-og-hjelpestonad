@@ -29,7 +29,6 @@ import no.nav.grunn.og.hjelpestonad.oppgave.Oppgave
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgavetypeGRU
 import no.nav.grunn.og.hjelpestonad.steg.satsOgTrygdetid.SatsOgTrygdetidService
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.InngangsvilkårStegService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
@@ -47,6 +46,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.time.LocalDate
 import java.time.YearMonth
@@ -61,8 +61,7 @@ class VedtakServiceTest {
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val tilkjentYtelseService = mockk<TilkjentYtelseService>(relaxed = true)
     private val behandlingService = mockk<BehandlingService>()
-    private val inngangsvilkårStegService = mockk<InngangsvilkårStegService>()
-    private val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingStegService, ansvarligSaksbehandlerService, tilkjentYtelseService, behandlingService, inngangsvilkårStegService)
+    private val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingStegService, ansvarligSaksbehandlerService, tilkjentYtelseService)
 
     @BeforeEach
     fun settOppSaksbehandler() {
@@ -83,7 +82,6 @@ class VedtakServiceTest {
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
             Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT)
         every { vedtakRepository.findByBehandlingId(behandlingId) } returns null
-        every { inngangsvilkårStegService.hentPerioder(behandlingId) } returns listOf(mockk())
         every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns
             TilkjentYtelse(
                 behandlingId = behandlingId,
@@ -112,7 +110,6 @@ class VedtakServiceTest {
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
             Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT)
         every { vedtakRepository.findByBehandlingId(behandlingId) } returns null
-        every { inngangsvilkårStegService.hentPerioder(behandlingId) } returns emptyList()
         every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns null
 
         vedtakService.lagreVedtakFraBehandlingsgrunnlag(behandlingId)
@@ -130,15 +127,17 @@ class VedtakServiceTest {
         vedtakService.validerVedtaksresultatMotBeregning(behandlingId)
     }
 
-    @Test
-    fun `eksisterende vedtak bevares ved sending til beslutter`() {
+    @ParameterizedTest
+    @EnumSource(value = ResultatType::class, names = ["OPPHØR", "HENLAGT"])
+    fun `eksplisitt opphør eller henleggelse bevares ved sending til beslutter`(resultatType: ResultatType) {
         val behandlingId = UUID.randomUUID()
         every { vedtakRepository.findByBehandlingId(behandlingId) } returns
-            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.OPPHØR, opphørFom = YearMonth.of(2026, 4), grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456")
+            Vedtak(behandlingId = behandlingId, resultatType = resultatType, opphørFom = if (resultatType == ResultatType.OPPHØR) YearMonth.of(2026, 4) else null, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456")
 
         vedtakService.lagreVedtakFraBehandlingsgrunnlag(behandlingId)
 
         verify(exactly = 0) { vedtakRepository.insert(any()) }
+        verify(exactly = 0) { vedtakRepository.update(any()) }
         verify(exactly = 0) { vedtakRepository.deleteByBehandlingId(any()) }
     }
 
@@ -146,7 +145,7 @@ class VedtakServiceTest {
     fun `ufullført sats og trygdetid stopper vedtakslagring`() {
         val behandlingId = UUID.randomUUID()
         val behandlingStegService = BehandlingStegService(behandlingService)
-        val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingStegService, ansvarligSaksbehandlerService, tilkjentYtelseService, behandlingService, inngangsvilkårStegService)
+        val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingStegService, ansvarligSaksbehandlerService, tilkjentYtelseService)
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
             Behandling(id = behandlingId, fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT, gjeldendeSteg = BehandlingSteg.SATS_OG_TRYGDETID)
 
@@ -192,7 +191,6 @@ class VedtakServiceTest {
         every { vedtakRepository.update(any<Vedtak>()) } answers { firstArg<Vedtak>().also { lagretVedtak = it } }
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns Oppgave(behandlingId = behandlingId, gsakOppgaveId = 1L, type = OppgavetypeGRU.BEH_SAK.name)
         every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
-        every { inngangsvilkårStegService.hentPerioder(behandlingId) } answers { if (harBeregnedeAndeler) listOf(mockk()) else emptyList() }
         every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } answers { if (harBeregnedeAndeler) tilkjentYtelse else null }
 
         beslutterService.sendTilBeslutter(behandlingId)
@@ -233,7 +231,6 @@ class VedtakServiceTest {
         every { vedtakRepository.insert(any<Vedtak>()) } answers { firstArg<Vedtak>().also { lagretVedtak = it } }
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns Oppgave(behandlingId = behandlingId, gsakOppgaveId = 1L, type = OppgavetypeGRU.BEH_SAK.name)
         every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
-        every { inngangsvilkårStegService.hentPerioder(behandlingId) } returns if (harBeregnedeAndeler) listOf(mockk()) else emptyList()
         every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns
             if (harBeregnedeAndeler) {
                 TilkjentYtelse(
@@ -270,7 +267,7 @@ class VedtakServiceTest {
         val taskService = mockk<TaskService>(relaxed = true)
         val totrinnskontrollService = mockk<TotrinnskontrollService>(relaxed = true)
         val behandlingStegService = BehandlingStegService(behandlingService)
-        val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingStegService, ansvarligSaksbehandlerService, tilkjentYtelseService, behandlingService, inngangsvilkårStegService)
+        val vedtakService = VedtakService(vedtakRepository, endringshistorikkService, behandlingStegService, ansvarligSaksbehandlerService, tilkjentYtelseService)
         val beslutterService = BeslutterService(behandlingService, behandlingStegService, mockk<BrevService>(relaxed = true), endringshistorikkService, oppgaveService, totrinnskontrollService, taskService, ansvarligSaksbehandlerService, vedtakService)
         every { behandlingService.hentBehandling(behandlingId) } answers { behandling }
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } answers { behandling }
@@ -279,7 +276,6 @@ class VedtakServiceTest {
         every { vedtakRepository.findByBehandlingId(behandlingId) } answers { lagretVedtak }
         every { vedtakRepository.insert(any<Vedtak>()) } answers { firstArg<Vedtak>().also { lagretVedtak = it } }
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns Oppgave(behandlingId = behandlingId, gsakOppgaveId = 1L, type = OppgavetypeGRU.BEH_SAK.name)
-        every { inngangsvilkårStegService.hentPerioder(behandlingId) } returns listOf(mockk())
         every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns null
         every { behandlingService.oppdater(any()) } answers { firstArg<Behandling>().also { behandling = it } }
         val vilkårMedlemskapService = mockk<VilkårMedlemskapService>()
@@ -321,7 +317,9 @@ class VedtakServiceTest {
     fun `manglende vedtak eller slettet beregning stopper førstegangskontrollen`() {
         val behandlingId = UUID.randomUUID()
         every { vedtakRepository.findByBehandlingId(behandlingId) } returns null
-        assertFailsWith<Feil> { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }
+        assertThatThrownBy { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }
+            .isExactlyInstanceOf(RuntimeException::class.java)
+            .hasMessage("Behandling=$behandlingId mangler vedtak")
 
         every { vedtakRepository.findByBehandlingId(behandlingId) } returns Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
         every { tilkjentYtelseService.hentTilkjentYtelse(behandlingId) } returns null

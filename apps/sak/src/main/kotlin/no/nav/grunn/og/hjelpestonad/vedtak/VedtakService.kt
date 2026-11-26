@@ -1,6 +1,6 @@
 package no.nav.grunn.og.hjelpestonad.vedtak
 
-import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import jdk.jshell.spi.ExecutionControl
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
@@ -8,7 +8,6 @@ import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
-import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.InngangsvilkårStegService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import no.nav.grunn.og.hjelpestonad.vedtak.BeregningUtils.beregnBarnetilsynperiode
 import org.springframework.http.HttpStatus
@@ -26,10 +25,10 @@ class VedtakService(
     private val behandlingStegService: BehandlingStegService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val tilkjentYtelseService: TilkjentYtelseService,
-    private val behandlingService: BehandlingService,
-    private val inngangsvilkårStegService: InngangsvilkårStegService,
 ) {
     fun hentVedtak(behandlingId: UUID): Vedtak? = vedtakRepository.findByBehandlingId(behandlingId)
+
+    fun hentVedtakEllerKast(behandlingId: UUID): Vedtak = hentVedtak(behandlingId) ?: throw RuntimeException("Behandling=$behandlingId mangler vedtak")
 
     /**
      * Utleder innvilgelse og avslag fra gjeldende grunnlag, også ved ny sending etter underkjenning.
@@ -41,20 +40,14 @@ class VedtakService(
         behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.VEDTAK_OG_BREV)
         val eksisterendeVedtak = hentVedtak(behandlingId)
         when (eksisterendeVedtak?.resultatType) {
-            ResultatType.OPPHØR, ResultatType.HENLAGT -> return
+            ResultatType.OPPHØR, ResultatType.HENLAGT -> throw NotImplementedError()
             ResultatType.INNVILGET, ResultatType.AVSLÅTT, null -> Unit
         }
 
-        val behandling = behandlingService.hentBehandlingEllerKast(behandlingId)
         val tilkjentYtelse = tilkjentYtelseService.hentTilkjentYtelse(behandlingId)
-        val harFullførtStegeneFørVedtak = behandling.gjeldendeSteg == BehandlingSteg.VEDTAK_OG_BREV
-        val harFullførtBeregning = tilkjentYtelse != null || harFullførtStegeneFørVedtak
         val resultatType =
             utledVedtaksresultat(
-                harOppfylteInngangsvilkår = inngangsvilkårStegService.hentPerioder(behandlingId).isNotEmpty(),
-                harFullførtBeregning = harFullførtBeregning,
                 harBeregnedeAndeler = tilkjentYtelse?.andelerTilkjentYtelse?.isNotEmpty() == true,
-                erRevurdering = behandling.forrigeBehandlingId != null,
             )
         val saksbehandlerIdent = SikkerhetContext.hentSaksbehandler()
         if (eksisterendeVedtak != null) {
@@ -64,6 +57,7 @@ class VedtakService(
                 Vedtak(
                     behandlingId = behandlingId,
                     resultatType = resultatType,
+                    // Feltet tilhører den gamle barnetilsynsmodellen. Stønadsperiodene ligger i tilkjent ytelse.
                     grunnstønadPerioder = emptyList(),
                     saksbehandlerIdent = saksbehandlerIdent,
                 ),
@@ -73,7 +67,7 @@ class VedtakService(
     }
 
     fun validerVedtaksresultatMotBeregning(behandlingId: UUID) {
-        val vedtak = hentVedtak(behandlingId) ?: throw Feil("Lagre vedtaket før du sender behandlingen til beslutter", HttpStatus.BAD_REQUEST)
+        val vedtak = hentVedtakEllerKast(behandlingId)
         when (vedtak.resultatType) {
             ResultatType.INNVILGET, ResultatType.AVSLÅTT -> {}
 

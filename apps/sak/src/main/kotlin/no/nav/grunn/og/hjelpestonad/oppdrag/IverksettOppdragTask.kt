@@ -36,16 +36,10 @@ class IverksettOppdragTask(
         val iverksettingsresultat = oppdragIverksettingService.iverksett(behandlingId, kontekst.payload.saksbehandlerId)
 
         when (iverksettingsresultat) {
-            is Iverksettingsresultat.Sendt -> {
+            is Iverksettingsresultat.Sendt,
+            is Iverksettingsresultat.AlleredeIverksatt,
+            -> {
                 opprettHentOppdragStatusTask(kontekst, behandlingId)
-            }
-
-            is Iverksettingsresultat.AlleredeIverksatt -> {
-                when (iverksettingsresultat.oppdragResultat.status) {
-                    OppdragStatus.KVITTERT_OK -> behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT)
-                    OppdragStatus.LAGT_PÅ_KØ -> opprettHentOppdragStatusTask(kontekst, behandlingId)
-                    else -> error("Oppdrag for behandling=$behandlingId fikk status=${iverksettingsresultat.oppdragResultat.status}")
-                }
             }
 
             // Ingenting er sendt til OS, så det finnes ingen kvittering å hente. Tasken er ferdig.

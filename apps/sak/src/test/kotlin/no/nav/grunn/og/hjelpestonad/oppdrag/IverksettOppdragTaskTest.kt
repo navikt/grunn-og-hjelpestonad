@@ -82,7 +82,7 @@ class IverksettOppdragTaskTest {
     }
 
     @Test
-    fun `allerede kvittert OK ferdigstiller behandlingen uten ny task`() {
+    fun `allerede kvittert OK overlater ferdigstilling til statustasken`() {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
@@ -91,8 +91,14 @@ class IverksettOppdragTaskTest {
 
         task.utfor(kontekst)
 
-        verifiserIngenNesteTask(kontekst)
-        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
+        verify { behandlingService wasNot Called }
+        verify(exactly = 1) {
+            kontekst.opprettNesteTask(
+                type = HentOppdragStatusTask.TYPE,
+                payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId),
+                triggerTid = klokke.instant().plusSeconds(30),
+            )
+        }
     }
 
     @Test
@@ -123,16 +129,22 @@ class IverksettOppdragTaskTest {
     }
 
     @Test
-    fun `allerede iverksatt oppdrag med feilkvittering ferdigstiller ikke behandlingen`() {
+    fun `allerede iverksatt oppdrag overlater feilkvittering til statustasken`() {
         val behandlingId = UUID.randomUUID()
         val kontekst = kontekst(behandlingId, "Z123456")
         every { oppdragIverksettingService.iverksett(behandlingId, "Z123456") } returns
             Iverksettingsresultat.AlleredeIverksatt(oppdragResultat("KVITTERT_FUNKSJONELL_FEIL"))
 
-        assertThatThrownBy { task.utfor(kontekst) }.hasMessageContaining("KVITTERT_FUNKSJONELL_FEIL")
+        task.utfor(kontekst)
 
         verify { behandlingService wasNot Called }
-        verifiserIngenNesteTask(kontekst)
+        verify(exactly = 1) {
+            kontekst.opprettNesteTask(
+                type = HentOppdragStatusTask.TYPE,
+                payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId),
+                triggerTid = klokke.instant().plusSeconds(30),
+            )
+        }
     }
 
     @Test
