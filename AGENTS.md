@@ -5,6 +5,15 @@ Tilbakemeldingen fra PR-er er at variabelnavn ofte er for korte og forklarer for
 - Det samme gjelder parametre, felt og boolske egenskaper: `harEndringFraForrigeBehandling`, ikke `harEndring`.
 - Ikke forkort ord. Unntaket er vanlige forkortelser i domenet, som `fnr` og `id`.
 
+# Scope og ansvar
+- Les oppgavens avgrensning og relevante ADR-er før implementering. Legg bare til logikk, parametre og tester som oppgaven trenger. Ikke implementer deler av fremtidige flyter «for sikkerhets skyld».
+- Marker ustøttede flyter tydelig når eksisterende kode må håndtere dem. I Kotlin kan `NotImplementedError("<flyt> er ikke implementert")` brukes. Ikke bygg nye forgreninger kun for dette, og test at avvisningen skjer før sideeffekter. Bruk vanlig feilhåndtering for ugyldig input og systemfeil.
+- Undersøk hva tidligere steg allerede garanterer før du legger til validering. Unngå å kontrollere de samme dataene flere ganger uten et nytt ansvar eller en ny tillitsgrense. Behold nødvendig tilgangskontroll og validering av ekstern input.
+- Les implementasjonen og kontrakten til kode du bygger på. Ikke anta hva en metode returnerer ut fra navnet alene. Gjenbruk beregnede resultater fremfor å utlede dem på nytt fra rådata.
+- La hvert ansvar ha ett sted i flyten. Gjenbruk eksisterende håndtering av nye forsøk, status og ferdigstilling fremfor å duplisere den i kallende kode.
+- Skill mellom faglig resultat og teknisk effekt. Følg etablerte domenebegreper og mønstre, og avklar betydningen før du endrer hvordan de brukes.
+- Skill brukerfeil fra brudd på systemets garantier. Systemfeil skal logges for utviklerne og håndteres som systemfeil, ikke presenteres som noe brukeren må rette i grunnlaget.
+
 # Frontend
 (`apps/frontend`): React 19 + React Router 8 (framework mode med `ssr: false`, Express-server for API-proxy og statiske filer) i TypeScript, med Aksel (`@navikt/ds-react` 8) som designsystem, React Compiler slått på i `vite.config.ts` og API-klient generert fra backendens OpenAPI med `@hey-api/openapi-ts` (`pnpm run generate:api`). Bruk pnpm-versjonen i `packageManager` og `pnpm install --frozen-lockfile`.
 - Bruk aksel-builder skill når du skal jobbe med aksel-komponenter i frontend. For eksmpel når du lager skjemaer.
