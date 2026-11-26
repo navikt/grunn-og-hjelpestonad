@@ -15,16 +15,6 @@ export type VilkårValideringFeilResponse = {
     feil: Array<Valideringsfeil>;
 };
 
-export type GrunnstønadPeriode = {
-    id: string;
-    datoFra: string;
-    datoTil: string;
-    utgifter: number;
-    barn: Array<string>;
-    periodetype: 'ORDINÆR' | 'INGEN_STØNAD';
-    aktivitetstype: 'I_ARBEID' | 'FORBIGÅENDE_SYKDOM' | 'IKKE_RELEVANT';
-};
-
 export type SøkRequest = {
     personident: string;
 };
@@ -65,6 +55,33 @@ export type DokumentinfoResponse = {
 
 export type LogiskVedleggDto = {
     tittel: string;
+};
+
+export type ProsesseringEndring = {
+    versjon: number;
+};
+
+export type Task = {
+    id: number;
+    type: string;
+    status: 'KLAR' | 'KJØRER' | 'FULLFØRT' | 'STOPPET' | 'AVBRUTT';
+    payload?: string | null;
+    triggerTid: string;
+    opprettetTid: string;
+    plukketTid?: string | null;
+    antallFeil: number;
+    stoppaarsak?: 'FEIL' | 'MANUELL' | null;
+    versjon: number;
+    sistEndretTid: string;
+    sisteFeilmelding?: string | null;
+    metadata: {
+        [key: string]: string;
+    };
+};
+
+export type ProsesseringAvvik = {
+    versjon: number;
+    melding: string;
 };
 
 export type HentPersonRequest = {
@@ -136,12 +153,6 @@ export type Simuleringsperiode = {
     erNesteUtbetaling: boolean;
     beløpPerMåned: Simuleringsbeløp;
     sumForPerioden: Simuleringsbeløp;
-};
-
-export type OppdragIverksettingResponse = {
-    saksnummer: string;
-    behandlingsId: string;
-    antallPerioder: number;
 };
 
 export type InfotrygdStonaderRequest = {
@@ -465,23 +476,41 @@ export type ÅrsakBehandlingResponse = {
     beskrivelse: string;
 };
 
-export type HistoriskVedtakResponse = {
-    grunnstønadPerioder: Array<GrunnstønadPeriode>;
-    fraErFørTidligsteVedtak: boolean;
-};
-
 export type VedtakResponse = {
     resultatType: 'INNVILGET' | 'AVSLÅTT' | 'HENLAGT' | 'OPPHØR';
     begrunnelse?: string | null;
-    grunnstønadPerioder: Array<GrunnstønadPeriode>;
     saksbehandlerIdent?: string | null;
     opphørFom?: string | null;
     beslutterIdent?: string | null;
 };
 
-export type OppdragStatusSvar = {
-    status: string;
-    melding?: string | null;
+export type ProsesseringTaskSide = {
+    tasks: Array<Task>;
+    side: number;
+    antallPerSide: number;
+    antallTotalt: number;
+    antallSider: number;
+    avkortet: boolean;
+};
+
+export type TaskLogg = {
+    id: number;
+    taskId: number;
+    type: 'STATUS_ENDRET' | 'KOMMENTAR' | 'AVVIK';
+    melding: string;
+    endretAv: string;
+    node: string;
+    tidspunkt: string;
+};
+
+export type ProsesseringTypeTelling = {
+    type: string;
+    antall: number;
+};
+
+export type ProsesseringStatusTelling = {
+    status: 'KLAR' | 'KJØRER' | 'FULLFØRT' | 'STOPPET' | 'AVBRUTT';
+    antall: number;
 };
 
 export type BehandlingEndringResponse = {
@@ -544,6 +573,51 @@ export type HentJournalPostForBrukerIdResponses = {
 };
 
 export type HentJournalPostForBrukerIdResponse = HentJournalPostForBrukerIdResponses[keyof HentJournalPostForBrukerIdResponses];
+
+export type RekjorData = {
+    body: ProsesseringEndring;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/api/prosessering/task/{id}/rekjor';
+};
+
+export type RekjorResponses = {
+    200: Task;
+};
+
+export type RekjorResponse = RekjorResponses[keyof RekjorResponses];
+
+export type RegistrerAvvikData = {
+    body: ProsesseringAvvik;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/api/prosessering/task/{id}/avvik';
+};
+
+export type RegistrerAvvikResponses = {
+    200: Task;
+};
+
+export type RegistrerAvvikResponse = RegistrerAvvikResponses[keyof RegistrerAvvikResponses];
+
+export type AvbrytData = {
+    body: ProsesseringEndring;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/api/prosessering/task/{id}/avbryt';
+};
+
+export type AvbrytResponses = {
+    200: Task;
+};
+
+export type AvbrytResponse = AvbrytResponses[keyof AvbrytResponses];
 
 export type HentPersonData = {
     body: HentPersonRequest;
@@ -613,21 +687,6 @@ export type SimulerMotOppdragResponses = {
 };
 
 export type SimulerMotOppdragResponse = SimulerMotOppdragResponses[keyof SimulerMotOppdragResponses];
-
-export type IverksettMotOppdragData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-    };
-    query?: never;
-    url: '/api/oppdrag/iverksetting/{behandlingId}';
-};
-
-export type IverksettMotOppdragResponses = {
-    200: OppdragIverksettingResponse;
-};
-
-export type IverksettMotOppdragResponse = IverksettMotOppdragResponses[keyof IverksettMotOppdragResponses];
 
 export type LagIverksettVedtaksbrevTaskData = {
     body?: never;
@@ -1045,22 +1104,6 @@ export type LagreÅrsakBehandlingResponses = {
 
 export type LagreÅrsakBehandlingResponse = LagreÅrsakBehandlingResponses[keyof LagreÅrsakBehandlingResponses];
 
-export type HentHistoriskVedtakForBehandlingData = {
-    body?: never;
-    path: {
-        behandlingId: string;
-        fra: string;
-    };
-    query?: never;
-    url: '/api/vedtak/{behandlingId}/historikk/{fra}';
-};
-
-export type HentHistoriskVedtakForBehandlingResponses = {
-    200: HistoriskVedtakResponse;
-};
-
-export type HentHistoriskVedtakForBehandlingResponse = HentHistoriskVedtakForBehandlingResponses[keyof HentHistoriskVedtakForBehandlingResponses];
-
 export type HentVedtakData = {
     body?: never;
     path: {
@@ -1157,20 +1200,79 @@ export type HentDokumentSomPdf1Responses = {
 
 export type HentDokumentSomPdf1Response = HentDokumentSomPdf1Responses[keyof HentDokumentSomPdf1Responses];
 
-export type HentOppdragStatusData = {
+export type HentTasksData = {
+    body?: never;
+    path?: never;
+    query?: {
+        status?: 'KLAR' | 'KJØRER' | 'FULLFØRT' | 'STOPPET' | 'AVBRUTT';
+        type?: string;
+        side?: number;
+        antallPerSide?: number;
+    };
+    url: '/api/prosessering/task';
+};
+
+export type HentTasksResponses = {
+    200: ProsesseringTaskSide;
+};
+
+export type HentTasksResponse = HentTasksResponses[keyof HentTasksResponses];
+
+export type HentTaskData = {
     body?: never;
     path: {
-        behandlingId: string;
+        id: number;
     };
     query?: never;
-    url: '/api/oppdrag/iverksetting/{behandlingId}/status';
+    url: '/api/prosessering/task/{id}';
 };
 
-export type HentOppdragStatusResponses = {
-    200: OppdragStatusSvar;
+export type HentTaskResponses = {
+    200: Task;
 };
 
-export type HentOppdragStatusResponse = HentOppdragStatusResponses[keyof HentOppdragStatusResponses];
+export type HentTaskResponse = HentTaskResponses[keyof HentTaskResponses];
+
+export type HentLoggData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/api/prosessering/task/{id}/logg';
+};
+
+export type HentLoggResponses = {
+    200: Array<TaskLogg>;
+};
+
+export type HentLoggResponse = HentLoggResponses[keyof HentLoggResponses];
+
+export type HentTyperData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/prosessering/task/typer';
+};
+
+export type HentTyperResponses = {
+    200: Array<ProsesseringTypeTelling>;
+};
+
+export type HentTyperResponse = HentTyperResponses[keyof HentTyperResponses];
+
+export type HentStatusoversiktData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/prosessering/task/status-oversikt';
+};
+
+export type HentStatusoversiktResponses = {
+    200: Array<ProsesseringStatusTelling>;
+};
+
+export type HentStatusoversiktResponse = HentStatusoversiktResponses[keyof HentStatusoversiktResponses];
 
 export type HentFagsakData = {
     body?: never;

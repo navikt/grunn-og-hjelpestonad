@@ -27,7 +27,7 @@ class VedtakService(
 
     /**
      * Utleder innvilgelse og avslag fra gjeldende grunnlag, også ved ny sending etter underkjenning.
-     * Se ADR-0020 for avgrensningen til førstegangsbehandling og utsatt tilpasning av historikk.
+     * Se ADR-0020 for avgrensningen til førstegangsbehandling.
      */
     @Transactional
     fun lagreVedtakFraBehandlingsgrunnlag(behandlingId: UUID) {
@@ -52,8 +52,6 @@ class VedtakService(
                 Vedtak(
                     behandlingId = behandlingId,
                     resultatType = resultatType,
-                    // Feltet tilhører den gamle barnetilsynsmodellen. Stønadsperiodene ligger i tilkjent ytelse.
-                    grunnstønadPerioder = emptyList(),
                     saksbehandlerIdent = saksbehandlerIdent,
                 ),
             )

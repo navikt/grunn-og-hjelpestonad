@@ -28,3 +28,10 @@ ikke dette API-et. Tilpasningen til tilkjent ytelse følges opp separat.
 Vi godtar denne begrensningen fremfor å endre historikkmodellen og innføre
 opphør og revurdering i samme PR. Avgrensningen betyr ikke at disse flytene er
 ferdig implementert eller verifisert.
+
+## Oppfølging 2026-11-26
+
+Oppryddingen etter PR #179 fjerner `grunnstønadPerioder` fra vedtak og
+det ubrukte historikk-API-et med tilhørende barnetilsynsmodell.
+Stønadsperiodene ligger i tilkjent ytelse. Et nytt historikk-API må bygge på
+denne modellen når historikk blir nødvendig.
