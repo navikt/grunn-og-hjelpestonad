@@ -34,3 +34,4 @@ utover å oppdatere status og lenke til den nye ADR-en.
 | [ADR-0016](ADR-0016-ekstrautgifter-som-sats-med-kobling.md) | Ekstrautgifter som sats med kobling (B), med vei til D | Foreslått |
 | [ADR-0017](ADR-0017-backend-eier-naavaerende-steg.md) | Backend eier gjeldende steg i behandlingen | Foreslått |
 | [ADR-0019](ADR-0019-grensesnittavstemming-som-i-ba.md) | Grensesnittavstemming følger BA-mønsteret | Godkjent |
+| [ADR-0020](ADR-0020-vedtakslagring-for-foerstegangsbehandling.md) | Vedtakslagring avgrenses til førstegangsbehandling | Godkjent |

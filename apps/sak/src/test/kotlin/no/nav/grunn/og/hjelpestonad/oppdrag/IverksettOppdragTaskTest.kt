@@ -1,9 +1,12 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
 import efterlatte.prosessering.TaskKontekst
+import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -17,8 +20,9 @@ import kotlin.time.Duration.Companion.minutes
 
 class IverksettOppdragTaskTest {
     private val oppdragIverksettingService = mockk<OppdragIverksettingService>()
+    private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val klokke = Clock.fixed(Instant.parse("2026-11-13T20:00:00Z"), ZoneOffset.UTC)
-    private val task = IverksettOppdragTask(oppdragIverksettingService, klokke)
+    private val task = IverksettOppdragTask(oppdragIverksettingService, behandlingService, klokke)
 
     @Test
     fun `feil ved sending prøves igjen etter 15 minutter uten å opprette statustask`() {
@@ -34,6 +38,7 @@ class IverksettOppdragTaskTest {
         assertThat(task.retry.backoff(1)).isEqualTo(15.minutes)
         assertThat(task.retry.backoff(2)).isEqualTo(15.minutes)
         verifiserIngenNesteTask(kontekst)
+        verify { behandlingService wasNot Called }
     }
 
     @Test
@@ -46,6 +51,7 @@ class IverksettOppdragTaskTest {
 
         task.utfor(kontekst)
 
+        verify { behandlingService wasNot Called }
         verify(exactly = 1) {
             kontekst.opprettNesteTask(
                 type = HentOppdragStatusTask.TYPE,
@@ -65,6 +71,7 @@ class IverksettOppdragTaskTest {
 
         task.utfor(kontekst)
 
+        verify { behandlingService wasNot Called }
         verify(exactly = 1) {
             kontekst.opprettNesteTask(
                 type = HentOppdragStatusTask.TYPE,
@@ -75,7 +82,7 @@ class IverksettOppdragTaskTest {
     }
 
     @Test
-    fun `allerede kvittert oppdrag oppretter ingen task`() {
+    fun `allerede kvittert OK overlater ferdigstilling til statustasken`() {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
@@ -84,24 +91,32 @@ class IverksettOppdragTaskTest {
 
         task.utfor(kontekst)
 
-        verifiserIngenNesteTask(kontekst)
+        verify { behandlingService wasNot Called }
+        verify(exactly = 1) {
+            kontekst.opprettNesteTask(
+                type = HentOppdragStatusTask.TYPE,
+                payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId),
+                triggerTid = klokke.instant().plusSeconds(30),
+            )
+        }
     }
 
     @Test
-    fun `oppdrag uten endring oppretter ingen task`() {
+    fun `oppdrag uten endring ferdigstiller behandlingen uten statushenting`() {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
         every { oppdragIverksettingService.iverksett(behandlingId, saksbehandlerId) } returns
-            Iverksettingsresultat.IngenEndring(oppdragResultat = oppdragResultat())
+            Iverksettingsresultat.IngenEndring(oppdragResultat = oppdragResultat(OppdragStatus.INGEN_ENDRING))
 
         task.utfor(kontekst)
 
         verifiserIngenNesteTask(kontekst)
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
     }
 
     @Test
-    fun `ingenting å sende oppretter ingen task`() {
+    fun `ingenting å sende ferdigstiller behandlingen uten statushenting`() {
         val behandlingId = UUID.randomUUID()
         val saksbehandlerId = "Z123456"
         val kontekst = kontekst(behandlingId, saksbehandlerId)
@@ -110,6 +125,26 @@ class IverksettOppdragTaskTest {
         task.utfor(kontekst)
 
         verifiserIngenNesteTask(kontekst)
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
+    }
+
+    @Test
+    fun `allerede iverksatt oppdrag overlater feilkvittering til statustasken`() {
+        val behandlingId = UUID.randomUUID()
+        val kontekst = kontekst(behandlingId, "Z123456")
+        every { oppdragIverksettingService.iverksett(behandlingId, "Z123456") } returns
+            Iverksettingsresultat.AlleredeIverksatt(oppdragResultat("KVITTERT_FUNKSJONELL_FEIL"))
+
+        task.utfor(kontekst)
+
+        verify { behandlingService wasNot Called }
+        verify(exactly = 1) {
+            kontekst.opprettNesteTask(
+                type = HentOppdragStatusTask.TYPE,
+                payload = HentOppdragStatusTask.HentOppdragStatusTaskData(behandlingId),
+                triggerTid = klokke.instant().plusSeconds(30),
+            )
+        }
     }
 
     @Test

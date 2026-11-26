@@ -71,6 +71,8 @@ enum class ResultatType {
     OPPHØR,
 }
 
+fun utledVedtaksresultat(harBeregnedeAndeler: Boolean): ResultatType = if (harBeregnedeAndeler) ResultatType.INNVILGET else ResultatType.AVSLÅTT
+
 /** Gjelder førstegangsbehandling. Revurdering og opphør krever sammenligning med forrige behandling. */
 fun validerVedtaksresultatMotBeregning(
     resultatType: ResultatType,

@@ -84,7 +84,8 @@ class BeslutterServiceTest {
 
         verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
         verify { endringshistorikkService.registrerEndring(behandlingId, EndringType.SENDT_TIL_BESLUTTER) }
-        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } // TODO fjern exactly = 0 når vi lagrer vedtak
+        verify { vedtakService.lagreVedtakFraBehandlingsgrunnlag(behandlingId) }
+        verify { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }
         verify {
             taskService.opprett(
                 FerdigstillOppgaveTask.TYPE,
@@ -144,7 +145,8 @@ class BeslutterServiceTest {
     fun `godkjent vedtak ferdigstiller behandle vedtak oppgave`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
-        every { vedtakService.hentVedtak(behandlingId) } returns null
+        every { vedtakService.hentVedtakEllerKast(behandlingId) } returns
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.AVSLÅTT, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
 
         beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
 
@@ -161,22 +163,23 @@ class BeslutterServiceTest {
     }
 
     @Test
-    fun `sending til beslutter krever foreløpig ikke beregning`() {
+    fun `sending til beslutter avvises når vedtak ikke samsvarer med beregning`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES)
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
         every { oppgaveService.hentAktivOppgavetype(behandlingId) } returns OppgavetypeGRU.BEH_SAK
         every { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } throws Feil("Fullfør beregningen", HttpStatus.BAD_REQUEST)
 
-        beslutterService.sendTilBeslutter(behandlingId)
+        assertThatThrownBy { beslutterService.sendTilBeslutter(behandlingId) }
+            .isInstanceOf(Feil::class.java)
+            .hasMessage("Fullfør beregningen")
 
-        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } // TODO fjern exactly = 0 når vi lagrer vedtak
-        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
-        verify { brevService.oppdaterSaksbehandlerForBrev(behandlingId) }
+        verifyIngenEndringer()
+        verify { brevService wasNot Called }
     }
 
     @Test
-    fun `revurdering kan sendes til beslutter uten vedtaksresultatkontroll`() {
+    fun `revurdering validerer også vedtaksresultatet før sending til beslutter`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandling(behandlingId) } returns behandling(behandlingId, BehandlingStatus.UTREDES).copy(forrigeBehandlingId = UUID.randomUUID())
         every { oppgaveService.hentOppgaveForBehandling(behandlingId) } returns behandleSakOppgave(behandlingId)
@@ -184,7 +187,7 @@ class BeslutterServiceTest {
 
         beslutterService.sendTilBeslutter(behandlingId)
 
-        verify(exactly = 0) { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } // TODO fjern exactly = 0 når vi lagrer vedtak
+        verify { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) }
         verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FATTER_VEDTAK) }
     }
 
@@ -283,7 +286,7 @@ class BeslutterServiceTest {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns
             behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
-        every { vedtakService.hentVedtak(behandlingId) } returns
+        every { vedtakService.hentVedtakEllerKast(behandlingId) } returns
             Vedtak(
                 behandlingId = behandlingId,
                 resultatType = ResultatType.INNVILGET,
@@ -314,13 +317,19 @@ class BeslutterServiceTest {
                 .filter { (type, _) -> type.navn == SendVedtakTilInfotrygdFeedTask.TYPE.navn }
                 .map { (_, payload) -> payload },
         ).containsExactly(behandlingId)
+        verify { behandlingService.oppdaterBehandlingResultat(behandlingId, BehandlingResultat.INNVILGET) }
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.IVERKSETTER_VEDTAK) }
+        verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
+        verify {
+            taskService.opprett(IverksettOppdragTask.TYPE, any<IverksettOppdragTask.IverksettOppdragTaskData>(), any(), any())
+        }
     }
 
     @Test
     fun `godkjenning oppretter IverksettOppdragTask med saksbehandleren som sendte til beslutter`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
-        every { vedtakService.hentVedtak(behandlingId) } returns
+        every { vedtakService.hentVedtakEllerKast(behandlingId) } returns
             Vedtak(behandlingId = behandlingId, resultatType = ResultatType.OPPHØR, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
         every { totrinnskontrollService.hentSaksbehandlerSomSendteTilBeslutter(behandlingId) } returns "Z123456"
         val typer = mutableListOf<TaskType<Any>>()
@@ -335,13 +344,15 @@ class BeslutterServiceTest {
                 .filter { (type, _) -> type.navn == IverksettOppdragTask.TYPE.navn }
                 .map { (_, payload) -> payload },
         ).containsExactly(IverksettOppdragTask.IverksettOppdragTaskData(behandlingId = behandlingId, saksbehandlerId = "Z123456"))
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.IVERKSETTER_VEDTAK) }
+        verify(exactly = 0) { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
     }
 
     @Test
     fun `godkjent avslag oppretter ikke IverksettOppdragTask`() {
         val behandlingId = UUID.randomUUID()
         every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
-        every { vedtakService.hentVedtak(behandlingId) } returns
+        every { vedtakService.hentVedtakEllerKast(behandlingId) } returns
             Vedtak(behandlingId = behandlingId, resultatType = ResultatType.AVSLÅTT, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
         val typer = mutableListOf<TaskType<Any>>()
         every { taskService.opprett(capture(typer), any(), any(), any()) } returns TaskId(1)
@@ -349,6 +360,40 @@ class BeslutterServiceTest {
         beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true))
 
         assertThat(typer.map { it.navn }).doesNotContain(IverksettOppdragTask.TYPE.navn)
+        verify { behandlingService.oppdaterBehandlingResultat(behandlingId, BehandlingResultat.AVSLÅTT) }
+        verify { behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT) }
+    }
+
+    @Test
+    fun `godkjenning uten vedtak avvises uten å ferdigstille eller opprette tasker`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
+        every { vedtakService.hentVedtakEllerKast(behandlingId) } throws RuntimeException("Behandling=$behandlingId mangler vedtak")
+
+        assertThatThrownBy { beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true)) }
+            .isExactlyInstanceOf(RuntimeException::class.java)
+            .hasMessage("Behandling=$behandlingId mangler vedtak")
+
+        verifyIngenEndringer()
+        verify { taskService wasNot Called }
+        verify(exactly = 0) { behandlingService.oppdaterBehandlingResultat(any(), any()) }
+    }
+
+    @Test
+    fun `godkjenning av vedtak med ugyldig beregning avvises uten endringer`() {
+        val behandlingId = UUID.randomUUID()
+        every { behandlingService.hentBehandlingEllerKast(behandlingId) } returns behandling(behandlingId, BehandlingStatus.FATTER_VEDTAK)
+        every { vedtakService.hentVedtakEllerKast(behandlingId) } returns
+            Vedtak(behandlingId = behandlingId, resultatType = ResultatType.INNVILGET, grunnstønadPerioder = emptyList(), saksbehandlerIdent = "Z123456", opprettetAv = "Z123456")
+        every { vedtakService.validerVedtaksresultatMotBeregning(behandlingId) } throws Feil("Beregningen mangler")
+
+        assertThatThrownBy { beslutterService.besluttVedtak(behandlingId, BeslutteVedtakRequest(godkjent = true)) }
+            .isInstanceOf(Feil::class.java)
+            .hasMessage("Beregningen mangler")
+
+        verifyIngenEndringer()
+        verify { taskService wasNot Called }
+        verify(exactly = 0) { behandlingService.oppdaterBehandlingResultat(any(), any()) }
     }
 
     @Test

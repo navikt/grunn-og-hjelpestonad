@@ -3,6 +3,8 @@ package no.nav.grunn.og.hjelpestonad.oppdrag
 import efterlatte.prosessering.RetryPolicy
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.task.lagTaskType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -19,6 +21,7 @@ import kotlin.time.Duration.Companion.seconds
 @Service
 class HentOppdragStatusTask(
     private val oppdragIverksettingService: OppdragIverksettingService,
+    private val behandlingService: BehandlingService,
 ) : TaskStep<HentOppdragStatusTask.HentOppdragStatusTaskData> {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -31,6 +34,7 @@ class HentOppdragStatusTask(
 
         when (oppdragStatusSvar.status) {
             OppdragStatus.KVITTERT_OK -> {
+                behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT)
                 logger.info("Oppdrag for behandling={} er kvittert OK", behandlingId)
             }
 
