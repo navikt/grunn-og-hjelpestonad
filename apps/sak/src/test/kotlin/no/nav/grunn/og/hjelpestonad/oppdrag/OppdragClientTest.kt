@@ -3,6 +3,7 @@ package no.nav.grunn.og.hjelpestonad.oppdrag
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.matching
 import com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath
 import com.github.tomakehurst.wiremock.client.WireMock.post
@@ -14,6 +15,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.grunn.og.hjelpestonad.config.testRestClientBuilder
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
+import no.nav.grunn.og.hjelpestonad.oppdrag.grensesnittavstemming.GrensesnittavstemmingRequest
 import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import org.junit.jupiter.api.AfterAll
@@ -38,6 +40,7 @@ class OppdragClientTest {
         private const val PATH = "/api/simulering/v1"
         private const val IVERKSETT_PATH = "/api/oppdrag"
         private const val STATUS_PATH = "/api/status"
+        private const val GRENSESNITTAVSTEMMING_PATH = "/api/grensesnittavstemming"
 
         @BeforeAll
         @JvmStatic
@@ -265,6 +268,67 @@ class OppdragClientTest {
 
         assertEquals(OppdragStatusSvar(status = "LAGT_PÅ_KØ", melding = null), svar)
     }
+
+    @Test
+    fun `grensesnittavstemming sender bare fagsystem vindu og ID med maskintoken`() {
+        stubSvar("""{"data": "Grensesnittavstemming sendt ok", "status": "SUKSESS"}""", path = GRENSESNITTAVSTEMMING_PATH)
+        val avstemmingId = UUID.randomUUID()
+
+        client.grensesnittavstem(avstemmingsforespørsel(avstemmingId))
+
+        verify(exactly = 1) { texasClient.hentMaskinToken(SCOPE) }
+        verify(exactly = 0) { texasClient.hentOboToken(any()) }
+        wireMockServer.verify(
+            postRequestedFor(urlEqualTo(GRENSESNITTAVSTEMMING_PATH))
+                .withHeader("Authorization", equalTo("Bearer app-token"))
+                .withRequestBody(
+                    equalToJson(
+                        """{"fagsystem":"IT28","fra":"2026-11-13T00:00:00","til":"2026-11-16T00:00:00","avstemmingId":"$avstemmingId"}""",
+                    ),
+                ),
+        )
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["", """{"data":null,"status":"SUKSESS"}""", """{"data":null,"status":"FEILET"}"""])
+    fun `grensesnittavstemming avviser tomme eller feilede svar`(body: String) {
+        stubSvar(body, path = GRENSESNITTAVSTEMMING_PATH)
+
+        val feil = assertThrows(Feil::class.java) { client.grensesnittavstem(avstemmingsforespørsel()) }
+
+        assertEquals(HttpStatus.BAD_GATEWAY, feil.httpStatus)
+    }
+
+    @Test
+    fun `grensesnittavstemming feiler ved serverfeil`() {
+        stubSvar("""{"data":null,"status":"FEILET"}""", status = 500, path = GRENSESNITTAVSTEMMING_PATH)
+
+        val feil = assertThrows(Feil::class.java) { client.grensesnittavstem(avstemmingsforespørsel()) }
+
+        assertEquals(HttpStatus.BAD_GATEWAY, feil.httpStatus)
+        wireMockServer.verify(1, postRequestedFor(urlEqualTo(GRENSESNITTAVSTEMMING_PATH)))
+    }
+
+    @Test
+    fun `grensesnittavstemming feiler ved timeout uten å sende på nytt`() {
+        stubSvar("""{"data":"sendt","status":"SUKSESS"}""", forsinkelseMs = 500, path = GRENSESNITTAVSTEMMING_PATH)
+
+        val feil =
+            assertThrows(Feil::class.java) {
+                lagKlient(readTimeout = Duration.ofMillis(100)).grensesnittavstem(avstemmingsforespørsel())
+            }
+
+        assertEquals(HttpStatus.BAD_GATEWAY, feil.httpStatus)
+        wireMockServer.verify(1, postRequestedFor(urlEqualTo(GRENSESNITTAVSTEMMING_PATH)))
+    }
+
+    private fun avstemmingsforespørsel(avstemmingId: UUID = UUID.randomUUID()) =
+        GrensesnittavstemmingRequest(
+            fagsystem = "IT28",
+            fra = LocalDate.of(2026, 11, 13).atStartOfDay(),
+            til = LocalDate.of(2026, 11, 16).atStartOfDay(),
+            avstemmingId = avstemmingId,
+        )
 
     @Test
     fun `hentStatus gir not found når oppdraget ikke finnes`() {
