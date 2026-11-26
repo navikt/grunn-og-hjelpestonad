@@ -40,10 +40,10 @@ fun nesteGrensesnittavstemmingVindu(
         avstemmingId = nesteAvstemmingId,
     )
 
-/** Ukedager kl. 08 norsk tid. Helligdager hoppes foreløpig ikke over. */
+/** Ukedager kl. 07:30 norsk tid. Helligdager hoppes foreløpig ikke over. */
 fun tidspunktForGrensesnittavstemming(tilDato: LocalDate): Instant =
     ukedagPåEllerEtter(tilDato)
-        .atTime(8, 0)
+        .atTime(7, 30)
         .atZone(ZoneId.of("Europe/Oslo"))
         .toInstant()
 

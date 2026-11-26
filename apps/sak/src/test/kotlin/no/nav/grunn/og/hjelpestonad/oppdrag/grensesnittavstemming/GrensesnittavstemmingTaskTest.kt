@@ -38,7 +38,7 @@ class GrensesnittavstemmingTaskTest {
             oppdragClient.grensesnittavstem(
                 GrensesnittavstemmingRequest("IT28", avstemmingsvindu.fraDato.atStartOfDay(), avstemmingsvindu.tilDato.atStartOfDay(), avstemmingsvindu.avstemmingId),
             )
-            kontekst.opprettNesteTask(GrensesnittavstemmingTask.TYPE, capture(nesteAvstemmingsvindu), Instant.parse("2026-11-16T07:00:00Z"))
+            kontekst.opprettNesteTask(GrensesnittavstemmingTask.TYPE, capture(nesteAvstemmingsvindu), Instant.parse("2026-11-16T06:30:00Z"))
         }
         assertThat(nesteAvstemmingsvindu.captured.fraDato).isEqualTo(avstemmingsvindu.tilDato)
         assertThat(nesteAvstemmingsvindu.captured.tilDato).isEqualTo(LocalDate.of(2026, 11, 16))
