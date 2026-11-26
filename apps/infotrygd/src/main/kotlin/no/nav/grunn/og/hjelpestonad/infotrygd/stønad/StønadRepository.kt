@@ -42,8 +42,7 @@ class StønadRepository(
             }.list()
 
     /**
-     * Finner personer der siste vedtak på en stønad løper forbi starten av neste måned. Regelen står i
-     * [LØPENDE_STØNADER].
+     * Finner personer med minst én løpende stønad. Regelen står i [stønadErLøpende].
      */
     fun finnPersonerForMigrering(
         antall: Int,
@@ -52,10 +51,12 @@ class StønadRepository(
         jdbcClient
             .sql(
                 """
-                WITH $LØPENDE_STØNADER
-                SELECT DISTINCT personnr
-                FROM lopende_stonad
-                ORDER BY personnr
+                SELECT DISTINCT l.personnr
+                FROM t_lopenr_fnr l
+                JOIN t_stonad s ON s.person_lopenr = l.person_lopenr
+                WHERE s.kode_rutine IN (:kodeRutiner)
+                  AND ${stønadErLøpende("s")}
+                ORDER BY l.personnr
                 LIMIT :antall
                 """.trimIndent(),
             ).param("kodeRutiner", Stønadstype.entries.map { it.kodeRutine })
@@ -65,11 +66,15 @@ class StønadRepository(
             .set()
 
     /**
-     * Finner personer med løpende grunnstønad der stønaden bare har ett vedtak, og det er et førstegangsvedtak
-     * (endringskode F). Vedtaket må ha [sats] i t_gh, og [hjemmelbokstav] i posisjon 160 i siste EVGH-evaluering
-     * for saken. Personer med løpende hjelpestønad tas ikke med. Det gjør heller ikke personer med mer enn én
-     * GH-sak i evalueringsmåneden, fordi ev_data_10 da ikke kan knyttes til én sak. Personene sorteres på
-     * stonad_id.
+     * Finner personer med løpende grunnstønad der stønaden bare har ett gyldig vedtak, og det er et
+     * førstegangsvedtak (endringskode F). Vedtaket må ha [sats] i t_gh, og [hjemmelbokstav] i posisjon 160 i siste
+     * EVGH-evaluering for saken. Personer med løpende hjelpestønad tas ikke med. Det gjør heller ikke personer med
+     * mer enn én GH-sak i evalueringsmåneden, fordi ev_data_10 da ikke kan knyttes til én sak. Personene sorteres
+     * på stonad_id.
+     *
+     * Spørringen starter med GS-stønadene som har ett gyldig vedtak, og sjekker resten per stønad med
+     * indeksoppslag. En CTE med alle løpende stønader ga så dårlige anslag i Postgres at spørringen aldri ble
+     * ferdig i dev.
      */
     fun finnPersonerMedFørstegangsvedtakForMigrering(
         antall: Int,
@@ -80,24 +85,33 @@ class StønadRepository(
         jdbcClient
             .sql(
                 """
-                WITH $LØPENDE_STØNADER,
-                antall_gyldige_vedtak_per_stonad AS (
-                    SELECT stonad_id, count(*) AS antall_vedtak FROM vedtak GROUP BY stonad_id
+                WITH grunnstonad_med_ett_vedtak AS MATERIALIZED (
+                    SELECT s.stonad_id, min(v.vedtak_id) AS vedtak_id
+                    FROM t_stonad s
+                    JOIN t_vedtak v ON v.stonad_id = s.stonad_id
+                    WHERE s.kode_rutine = :grunnstønad
+                      AND s.oppdrag_id IS NOT NULL
+                      AND ${gyldigVedtak("v", "s")}
+                    GROUP BY s.stonad_id
+                    HAVING count(*) = 1
                 ),
                 kandidat AS MATERIALIZED (
-                    SELECT ls.personnr, ls.stonad_id, ls.vedtak_id
-                    FROM lopende_stonad ls
-                    JOIN antall_gyldige_vedtak_per_stonad a ON a.stonad_id = ls.stonad_id AND a.antall_vedtak = 1
-                    WHERE ls.kode_rutine = :grunnstønad
-                      AND EXISTS (SELECT 1 FROM t_endring e WHERE e.vedtak_id = ls.vedtak_id AND e.kode = 'F')
+                    SELECT l.personnr, s.stonad_id, g.vedtak_id
+                    FROM grunnstonad_med_ett_vedtak g
+                    JOIN t_stonad s ON s.stonad_id = g.stonad_id
+                    JOIN t_lopenr_fnr l ON l.person_lopenr = s.person_lopenr
+                    WHERE ${stønadErLøpende("s")}
+                      AND EXISTS (SELECT 1 FROM t_endring e WHERE e.vedtak_id = g.vedtak_id AND e.kode = 'F')
                       -- Satsen må finnes, og ingen registrering på vedtaket kan ha en annen sats.
-                      AND EXISTS (SELECT 1 FROM t_gh g WHERE g.vedtak_id = ls.vedtak_id)
+                      AND EXISTS (SELECT 1 FROM t_gh gh WHERE gh.vedtak_id = g.vedtak_id)
                       AND NOT EXISTS (
-                          SELECT 1 FROM t_gh g WHERE g.vedtak_id = ls.vedtak_id AND g.sats_gs IS DISTINCT FROM :sats
+                          SELECT 1 FROM t_gh gh WHERE gh.vedtak_id = g.vedtak_id AND gh.sats_gs IS DISTINCT FROM :sats
                       )
                       AND NOT EXISTS (
-                          SELECT 1 FROM lopende_stonad hs
-                          WHERE hs.personnr = ls.personnr AND hs.kode_rutine = :hjelpestønad
+                          SELECT 1 FROM t_stonad hs
+                          WHERE hs.person_lopenr = s.person_lopenr
+                            AND hs.kode_rutine = :hjelpestønad
+                            AND ${stønadErLøpende("hs")}
                       )
                 ),
                 -- Siste EVGH-evaluering for saken. ev05_aar_mnd_seq er 999999 - ÅÅÅÅMM, så laveste verdi er siste måned.
@@ -149,8 +163,7 @@ class StønadRepository(
                 ORDER BY min(se.stonad_id)
                 LIMIT :antall
                 """.trimIndent(),
-            ).param("kodeRutiner", Stønadstype.entries.map { it.kodeRutine })
-            .param("nesteMåned", førsteDagINesteMåned(dagensDato))
+            ).param("nesteMåned", førsteDagINesteMåned(dagensDato))
             .param("grunnstønad", Stønadstype.GRUNNSTØNAD.kodeRutine)
             .param("hjelpestønad", Stønadstype.HJELPESTØNAD.kodeRutine)
             .param("sats", sats)
@@ -164,36 +177,43 @@ class StønadRepository(
 
     private companion object {
         /**
-         * CTE-er for løpende stønader, delt mellom spørringene for migrering. Krever parameterne `kodeRutiner` og
-         * `nesteMåned`.
-         *
-         * - `vedtak`: gyldige vedtak. Annullerte (AN) og uavklarte (UA) vedtak, vedtak uten lengde og stønader uten
-         *   oppdrag tas ikke med.
-         * - `lopende_stonad`: siste gyldige vedtak per stønad, når det løper forbi starten av neste måned.
-         *   Sluttdatoen er den tidligste av opphørsdatoen og dato_innv_tom. Er begge tomme, er vedtaket løpende.
+         * Vedtaket [vedtak] på stønaden [stønad] er gyldig når det har minst én endringskode som ikke er annullert
+         * (AN) eller uavklart (UA), har lengde, og stønaden ikke er opphørt før vedtaket starter.
          */
-        const val LØPENDE_STØNADER = """
-                vedtak AS (
-                    SELECT DISTINCT l.personnr, s.stonad_id, s.kode_rutine, v.vedtak_id,
-                           least(s.dato_opphor, v.dato_innv_tom) AS tom
-                    FROM t_lopenr_fnr l
-                    JOIN t_stonad s ON s.person_lopenr = l.person_lopenr
-                    JOIN t_vedtak v ON v.stonad_id = s.stonad_id
-                    JOIN t_endring e ON e.vedtak_id = v.vedtak_id
-                    WHERE s.oppdrag_id IS NOT NULL
-                      AND s.kode_rutine IN (:kodeRutiner)
-                      AND e.kode NOT IN ('AN', 'UA')
-                      AND (v.dato_innv_tom IS NULL OR v.dato_innv_fom < v.dato_innv_tom)
-                      AND (s.dato_opphor IS NULL OR s.dato_opphor > v.dato_innv_fom)
-                ),
-                siste_vedtak AS (
-                    SELECT stonad_id, max(vedtak_id) AS vedtak_id FROM vedtak GROUP BY stonad_id
-                ),
-                lopende_stonad AS (
-                    SELECT v.personnr, v.stonad_id, v.kode_rutine, v.vedtak_id
-                    FROM siste_vedtak sv
-                    JOIN vedtak v ON v.vedtak_id = sv.vedtak_id
-                    WHERE v.tom IS NULL OR v.tom > :nesteMåned
-                )"""
+        fun gyldigVedtak(
+            vedtak: String,
+            stønad: String,
+        ): String =
+            """(
+                EXISTS (
+                    SELECT 1 FROM t_endring endring_$vedtak
+                    WHERE endring_$vedtak.vedtak_id = $vedtak.vedtak_id AND endring_$vedtak.kode NOT IN ('AN', 'UA')
+                )
+                AND ($vedtak.dato_innv_tom IS NULL OR $vedtak.dato_innv_fom < $vedtak.dato_innv_tom)
+                AND ($stønad.dato_opphor IS NULL OR $stønad.dato_opphor > $vedtak.dato_innv_fom)
+            )"""
+
+        /**
+         * Stønaden [stønad] er løpende når den har oppdrag, og siste gyldige vedtak løper forbi starten av neste
+         * måned. Sluttdatoen er den tidligste av opphørsdatoen og dato_innv_tom. Er begge tomme, er stønaden
+         * løpende. Krever parameteren `nesteMåned`.
+         */
+        fun stønadErLøpende(stønad: String): String =
+            """(
+                $stønad.oppdrag_id IS NOT NULL
+                AND EXISTS (
+                    SELECT 1
+                    FROM (
+                        SELECT vedtak_$stønad.dato_innv_tom
+                        FROM t_vedtak vedtak_$stønad
+                        WHERE vedtak_$stønad.stonad_id = $stønad.stonad_id
+                          AND ${gyldigVedtak("vedtak_$stønad", stønad)}
+                        ORDER BY vedtak_$stønad.vedtak_id DESC
+                        LIMIT 1
+                    ) siste_vedtak_$stønad
+                    WHERE least($stønad.dato_opphor, siste_vedtak_$stønad.dato_innv_tom) IS NULL
+                       OR least($stønad.dato_opphor, siste_vedtak_$stønad.dato_innv_tom) > :nesteMåned
+                )
+            )"""
     }
 }
