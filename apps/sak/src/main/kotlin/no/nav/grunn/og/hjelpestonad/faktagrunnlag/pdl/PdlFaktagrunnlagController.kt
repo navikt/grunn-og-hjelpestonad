@@ -1,6 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl
 
 import no.nav.grunn.og.hjelpestonad.tilgangskontroll.TilgangService
+import org.springframework.http.CacheControl
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -25,6 +26,15 @@ class PdlFaktagrunnlagController(
         return ResponseEntity.ok(pdlFaktagrunnlagService.hent(behandlingId).tilMedlemskapFaktagrunnlagResponse())
     }
 
+    @GetMapping("/falsk-identitet")
+    fun hentFalskIdentitet(
+        @PathVariable behandlingId: UUID,
+    ): ResponseEntity<FalskIdentitetResponse> {
+        tilgangService.validerTilgangTilBehandling(behandlingId)
+        val harFalskIdentitet = pdlFaktagrunnlagService.hent(behandlingId)?.harFalskIdentitet == true
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(FalskIdentitetResponse(harFalskIdentitet))
+    }
+
     @PostMapping
     fun innhentFaktagrunnlagFraPdl(
         @PathVariable behandlingId: UUID,
@@ -33,3 +43,7 @@ class PdlFaktagrunnlagController(
         return ResponseEntity.ok(pdlFaktagrunnlagService.innhentFaktagrunnlagFraPdl(behandlingId).tilMedlemskapFaktagrunnlagResponse())
     }
 }
+
+data class FalskIdentitetResponse(
+    val harFalskIdentitet: Boolean,
+)

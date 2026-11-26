@@ -2,6 +2,7 @@ package no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl
 
 import no.nav.grunn.og.hjelpestonad.pdl.Bostedsadresse
 import no.nav.grunn.og.hjelpestonad.pdl.Doedsfall
+import no.nav.grunn.og.hjelpestonad.pdl.FalskIdentitet
 import no.nav.grunn.og.hjelpestonad.pdl.Folkeregistermetadata
 import no.nav.grunn.og.hjelpestonad.pdl.Folkeregisterpersonstatus
 import no.nav.grunn.og.hjelpestonad.pdl.InnflyttingTilNorge
@@ -27,7 +28,11 @@ data class PdlFaktagrunnlag(
     val utflyttingFraNorge: List<PdlUtflyttingFraNorge>,
     val oppholdsadresse: List<PdlOppholdsadresse>,
     val doedsfall: List<PdlDoedsfall>,
-)
+    private val falskIdentitet: PdlFalskIdentitet? = null,
+) {
+    val harFalskIdentitet: Boolean
+        get() = falskIdentitet?.erFalsk == true
+}
 
 data class PdlMetadata(
     val historisk: Boolean,
@@ -141,6 +146,16 @@ data class PdlDoedsfall(
     val metadata: PdlMetadata,
 )
 
+@Table("faktagrunnlag_pdl_falsk_identitet")
+data class PdlFalskIdentitet(
+    @Id
+    val id: UUID = UUID.randomUUID(),
+    val behandlingId: UUID,
+    val erFalsk: Boolean,
+    @Embedded(onEmpty = Embedded.OnEmpty.USE_EMPTY)
+    val metadata: PdlMetadata,
+)
+
 fun Folkeregisterpersonstatus.tilPdlFolkeregisterpersonstatus(behandlingId: UUID) =
     PdlFolkeregisterpersonstatus(
         behandlingId = behandlingId,
@@ -220,6 +235,13 @@ fun Doedsfall.tilPdlDoedsfall(behandlingId: UUID) =
     PdlDoedsfall(
         behandlingId = behandlingId,
         doedsdato = doedsdato,
+        metadata = tilPdlMetadata(metadata, folkeregistermetadata),
+    )
+
+internal fun FalskIdentitet.tilPdlFalskIdentitet(behandlingId: UUID) =
+    PdlFalskIdentitet(
+        behandlingId = behandlingId,
+        erFalsk = erFalsk,
         metadata = tilPdlMetadata(metadata, folkeregistermetadata),
     )
 

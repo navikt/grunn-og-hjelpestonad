@@ -1,51 +1,37 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { useNavigate } from "react-router";
-import { ErrorSummary, LocalAlert, VStack } from "@navikt/ds-react";
+import { LocalAlert, VStack } from "@navikt/ds-react";
 import { VilkårProvider, useVilkårContext } from "~/komponenter/behandling/vilkår/VilkårContext";
 import { VilkårInnhold } from "~/komponenter/behandling/vilkår/VilkårInnhold";
 import { useFullførInngangsvilkår } from "~/komponenter/behandling/vilkår/felles/useFullførInngangsvilkår";
-import type { Route } from "./+types/vilkår";
+import { FullførInngangsvilkårFeilvisning } from "~/komponenter/behandling/vilkår/FullførInngangsvilkårFeilvisning";
+import type { Route } from "./+types/inngangsvilkår";
 import type { StegPath } from "~/komponenter/navbar/BehandlingFaner";
 import { StegNavigering } from "~/komponenter/behandling/StegNavigering";
 import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useStegNavigering } from "~/hooks/useStegNavigering";
-import type { Valideringsnøkkel } from "~/komponenter/behandling/vilkår/felles/valideringsfeilFra";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "Vilkår" }];
 }
 
 const STEG_PATH: StegPath = "vilkar";
-const hrefPåVilkårssiden: Record<Valideringsnøkkel, string> = {
-  MEDLEM_I_TRYGDEN_ELLER_OMFATTET_AV_EØS_FORORDNINGEN: "#vilkar-medlemskap",
-  DIAGNOSE: "#vilkar-diagnose",
-  NØDVENDIGE_EKSTRAUTGIFTER: "#vilkar-ekstrautgifter",
-  TRYGDETID: "#trygdetid",
-};
 
-export default function Vilkår() {
+export default function Inngangsvilkår() {
   return (
     <VilkårProvider>
-      <VilkårSide />
+      <InngangsvilkårSide />
     </VilkårProvider>
   );
 }
 
-function VilkårSide() {
-  const feiloppsummeringRef = useRef<HTMLDivElement>(null);
-
+function InngangsvilkårSide() {
   const navigate = useNavigate();
   const { behandlingId, hentBehandlingPåNytt } = useBehandlingContext();
   const { status: vilkårStatus } = useVilkårContext();
-  const { fullfør, laster, valideringsfeil, feilmelding } = useFullførInngangsvilkår(behandlingId);
+  const { fullfør, laster, feil: fullføringsfeil } = useFullførInngangsvilkår(behandlingId);
 
   const { navigerTilNeste } = useStegNavigering(STEG_PATH);
-
-  useEffect(() => {
-    if (valideringsfeil.length > 0) {
-      feiloppsummeringRef.current?.focus();
-    }
-  }, [valideringsfeil]);
 
   const håndterNeste = () =>
     fullfør(async (resultat) => {
@@ -72,24 +58,7 @@ function VilkårSide() {
 
       <VilkårInnhold />
 
-      {feilmelding && (
-        <LocalAlert status="error">
-          <LocalAlert.Content>{feilmelding}</LocalAlert.Content>
-        </LocalAlert>
-      )}
-
-      {valideringsfeil.length > 0 && (
-        <ErrorSummary
-          ref={feiloppsummeringRef}
-          heading="Du må vurdere disse vilkårene før du kan gå videre:"
-        >
-          {valideringsfeil.map((feil) => (
-            <ErrorSummary.Item key={feil.nøkkel} href={hrefPåVilkårssiden[feil.nøkkel]}>
-              {feil.melding}
-            </ErrorSummary.Item>
-          ))}
-        </ErrorSummary>
-      )}
+      {fullføringsfeil && <FullførInngangsvilkårFeilvisning feil={fullføringsfeil} />}
 
       <StegNavigering stegPath={STEG_PATH} onNeste={håndterNeste} nesteLaster={laster} />
     </VStack>

@@ -19,6 +19,7 @@ import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.pdl.Bostedsadresse
 import no.nav.grunn.og.hjelpestonad.pdl.Doedsfall
+import no.nav.grunn.og.hjelpestonad.pdl.FalskIdentitet
 import no.nav.grunn.og.hjelpestonad.pdl.Folkeregistermetadata
 import no.nav.grunn.og.hjelpestonad.pdl.Folkeregisterpersonstatus
 import no.nav.grunn.og.hjelpestonad.pdl.InnflyttingTilNorge
@@ -48,6 +49,7 @@ class PdlFaktagrunnlagServiceTest(
     private val fagsakService: FagsakService,
     private val dbService: PdlFaktagrunnlagDbService,
     private val transactionTemplate: TransactionTemplate,
+    private val pdlFalskIdentitetRepository: PdlFalskIdentitetRepository,
 ) : SpringContextTest() {
     private val pdlService = mockk<PdlService>()
     private val ident = (10_000_000_000L..99_999_999_999L).random().toString()
@@ -180,6 +182,47 @@ class PdlFaktagrunnlagServiceTest(
         assertThatThrownBy { service.innhentFaktagrunnlagFraPdl(behandlingId) }.isInstanceOf(Feil::class.java)
     }
 
+    @Test
+    fun `lagrer falsk identitet i databasen og henter den på nytt`() {
+        val behandling = opprettBehandling()
+        every { pdlService.hentFaktagrunnlag(ident) } returns person
+
+        service.innhentFaktagrunnlagFraPdl(behandling)
+
+        val lagretFalskIdentitet = pdlFalskIdentitetRepository.findByBehandlingId(behandling.id)!!
+        assertThat(lagretFalskIdentitet.erFalsk).isTrue
+        assertThat(lagretFalskIdentitet.metadata)
+            .isEqualTo(PdlMetadata(historisk = false, master = "FREG", gyldighetstidspunkt = LocalDateTime.of(2020, 1, 1, 0, 0)))
+        val lagretPdlFaktagrunnlag = service.hent(behandling.id)!!
+        assertThat(lagretPdlFaktagrunnlag.harFalskIdentitet).isTrue
+    }
+
+    @Test
+    fun `ny innhenting uten falsk identitet fjerner den som var lagret`() {
+        val behandling = opprettBehandling()
+        every { pdlService.hentFaktagrunnlag(ident) } returns person
+        service.innhentFaktagrunnlagFraPdl(behandling)
+
+        every { pdlService.hentFaktagrunnlag(ident) } returns person.copy(falskIdentitet = null)
+        service.innhentFaktagrunnlagFraPdl(behandling.id)
+
+        assertThat(pdlFalskIdentitetRepository.findByBehandlingId(behandling.id)).isNull()
+        assertThat(service.hent(behandling.id)!!.harFalskIdentitet).isFalse
+    }
+
+    @Test
+    fun `ny innhenting der PDL sier erFalsk = false overskriver erFalsk = true`() {
+        val behandling = opprettBehandling()
+        every { pdlService.hentFaktagrunnlag(ident) } returns person
+        service.innhentFaktagrunnlagFraPdl(behandling)
+
+        every { pdlService.hentFaktagrunnlag(ident) } returns person.copy(falskIdentitet = falskIdentitet(erFalsk = false))
+        service.innhentFaktagrunnlagFraPdl(behandling.id)
+
+        assertThat(pdlFalskIdentitetRepository.findByBehandlingId(behandling.id)!!.erFalsk).isFalse
+        assertThat(service.hent(behandling.id)!!.harFalskIdentitet).isFalse
+    }
+
     private val person =
         PersonFaktagrunnlag(
             folkeregisterpersonstatus =
@@ -231,9 +274,17 @@ class PdlFaktagrunnlagServiceTest(
                 listOf(
                     Doedsfall(doedsdato = LocalDate.of(2026, 9, 1), metadata = Metadata(historisk = false, master = "FREG")),
                 ),
+            falskIdentitet = falskIdentitet(erFalsk = true),
         )
 
     private fun statsborgerskap(land: String) = Statsborgerskap(land = land, gyldigFraOgMed = LocalDate.of(1990, 1, 15), metadata = Metadata(historisk = false, master = "FREG"))
+
+    private fun falskIdentitet(erFalsk: Boolean) =
+        FalskIdentitet(
+            erFalsk = erFalsk,
+            metadata = Metadata(historisk = false, master = "FREG"),
+            folkeregistermetadata = Folkeregistermetadata(gyldighetstidspunkt = LocalDateTime.of(2020, 1, 1, 0, 0)),
+        )
 
     private fun opprettBehandling(status: BehandlingStatus = BehandlingStatus.UTREDES): Behandling = behandlingRepository.insert(Behandling(fagsakId = opprettFagsak().id, status = status, resultat = BehandlingResultat.IKKE_SATT))
 

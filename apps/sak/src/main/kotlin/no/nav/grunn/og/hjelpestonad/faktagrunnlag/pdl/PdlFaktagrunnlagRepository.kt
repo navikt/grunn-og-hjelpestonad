@@ -94,3 +94,14 @@ interface PdlDoedsfallRepository :
     @Query("DELETE FROM faktagrunnlag_pdl_doedsfall WHERE behandling_id = :behandlingId")
     fun slettForBehandling(behandlingId: UUID)
 }
+
+@Repository
+interface PdlFalskIdentitetRepository :
+    RepositoryInterface<PdlFalskIdentitet, UUID>,
+    InsertUpdateRepository<PdlFalskIdentitet> {
+    fun findByBehandlingId(behandlingId: UUID): PdlFalskIdentitet?
+
+    @Modifying
+    @Query("DELETE FROM faktagrunnlag_pdl_falsk_identitet WHERE behandling_id = :behandlingId")
+    fun slettForBehandling(behandlingId: UUID)
+}
