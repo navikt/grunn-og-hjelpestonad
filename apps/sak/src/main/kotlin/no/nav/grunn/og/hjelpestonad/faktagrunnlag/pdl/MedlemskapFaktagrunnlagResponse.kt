@@ -9,6 +9,7 @@ data class MedlemskapFaktagrunnlagResponse(
     val bosted: List<OpplysningResponse>,
     val statsborgerskap: List<OpplysningResponse>,
     val oppholdstillatelse: List<OpplysningResponse>,
+    val dødsfall: List<OpplysningResponse>,
 )
 
 data class OpplysningResponse(
@@ -24,6 +25,7 @@ fun PdlFaktagrunnlag?.tilMedlemskapFaktagrunnlagResponse(): MedlemskapFaktagrunn
             bosted = emptyList(),
             statsborgerskap = emptyList(),
             oppholdstillatelse = emptyList(),
+            dødsfall = emptyList(),
         )
     }
 
@@ -81,7 +83,7 @@ fun PdlFaktagrunnlag?.tilMedlemskapFaktagrunnlagResponse(): MedlemskapFaktagrunn
 
     return MedlemskapFaktagrunnlagResponse(
         hentetTidspunkt = hentetTidspunkt,
-        bosted = (adresser + oppholdsadresser + personstatuser + innflyttinger + utflyttinger + dødsfall).nyesteFørst(),
+        bosted = (adresser + oppholdsadresser + personstatuser + innflyttinger + utflyttinger).nyesteFørst(),
         statsborgerskap =
             statsborgerskap
                 .map {
@@ -100,6 +102,7 @@ fun PdlFaktagrunnlag?.tilMedlemskapFaktagrunnlagResponse(): MedlemskapFaktagrunn
                         beskrivelse = oppholdTekst(it.type),
                     )
                 }.nyesteFørst(),
+        dødsfall = dødsfall.nyesteFørst(),
     )
 }
 

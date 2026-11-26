@@ -440,6 +440,7 @@ export type MedlemskapFaktagrunnlagResponse = {
     bosted: Array<OpplysningResponse>;
     statsborgerskap: Array<OpplysningResponse>;
     oppholdstillatelse: Array<OpplysningResponse>;
+    dødsfall: Array<OpplysningResponse>;
 };
 
 export type OpplysningResponse = {

@@ -9,6 +9,7 @@ import { feilmeldingFra } from "../vilkår/felles/feilmeldingFra";
 import { visDato } from "../vilkår/felles/useVilkårSkjema";
 import { useMedlemskapFaktagrunnlag } from "./useMedlemskapFaktagrunnlag";
 import { MedlemskapOpplysningstabell } from "./MedlemskapOpplysningstabell";
+import { lagDødsfallVarselTekst } from "./dødsfallVarselTekst";
 
 export const MedlemskapFaktagrunnlag: React.FC = () => {
   const { behandlingId } = useBehandlingContext();
@@ -16,6 +17,9 @@ export const MedlemskapFaktagrunnlag: React.FC = () => {
   const { medlemskapFaktagrunnlag, error, laster, hentPåNytt, innhentFraPdl } =
     useMedlemskapFaktagrunnlag(behandlingId);
   const [innhentingsfeil, settInnhentingsfeil] = React.useState<string>();
+  const dødsfallVarsel = medlemskapFaktagrunnlag
+    ? lagDødsfallVarselTekst(medlemskapFaktagrunnlag.dødsfall)
+    : undefined;
 
   const innhentFraFolkeregisteret = () => {
     settInnhentingsfeil(undefined);
@@ -85,6 +89,14 @@ export const MedlemskapFaktagrunnlag: React.FC = () => {
               </Button>
             )}
           </HStack>
+          {dødsfallVarsel && (
+            <LocalAlert status="warning">
+              <LocalAlert.Header>
+                <LocalAlert.Title as="h4">{dødsfallVarsel.tittel}</LocalAlert.Title>
+              </LocalAlert.Header>
+              <LocalAlert.Content>{dødsfallVarsel.beskrivelse}</LocalAlert.Content>
+            </LocalAlert>
+          )}
           <MedlemskapOpplysningstabell
             medlemskapFaktagrunnlag={medlemskapFaktagrunnlag}
             visOpplysningsperiode={visOpplysningsperiode}
