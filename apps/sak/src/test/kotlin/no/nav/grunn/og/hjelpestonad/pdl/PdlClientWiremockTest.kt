@@ -323,7 +323,7 @@ class PdlClientWiremockTest {
     }
 
     @Test
-    fun `hentIdentitetOgDoedsfallOBOToken bruker OBO-token og leser falsk identitet og doedsfall`() {
+    fun `hentFalskIdentitetOgDødsfallOBOToken bruker OBO-token og leser falsk identitet og dødsfall`() {
         stubForGraphql(
             """
             {
@@ -337,20 +337,20 @@ class PdlClientWiremockTest {
             """.trimIndent(),
         )
 
-        val personIdentitetOgDoedsfall =
-            pdlClient.hentIdentitetOgDoedsfallOBOToken(
+        val personopplysningerForMigrering =
+            pdlClient.hentFalskIdentitetOgDødsfallOBOToken(
                 PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
             )
 
-        assertThat(personIdentitetOgDoedsfall).isNotNull
-        assertThat(personIdentitetOgDoedsfall!!.falskIdentitet?.erFalsk).isTrue()
-        assertThat(personIdentitetOgDoedsfall.doedsfall.single().doedsdato).isEqualTo(LocalDate.of(2025, 11, 20))
+        assertThat(personopplysningerForMigrering).isNotNull
+        assertThat(personopplysningerForMigrering!!.falskIdentitet?.erFalsk).isTrue()
+        assertThat(personopplysningerForMigrering.dødsfall.single().dødsdato).isEqualTo(LocalDate.of(2025, 11, 20))
         assertEquals(listOf("pdlScope"), texasClient.requestedOboAudiences)
         assertThat(texasClient.requestedMaskinAudiences).isEmpty()
     }
 
     @Test
-    fun `hentIdentitetOgDoedsfallMaskinToken bruker maskintoken og leser falsk identitet og doedsfall`() {
+    fun `hentFalskIdentitetOgDødsfallMaskinToken bruker maskintoken og leser falsk identitet og dødsfall`() {
         stubForGraphql(
             """
             {
@@ -364,20 +364,20 @@ class PdlClientWiremockTest {
             """.trimIndent(),
         )
 
-        val personIdentitetOgDoedsfall =
-            pdlClient.hentIdentitetOgDoedsfallMaskinToken(
+        val personopplysningerForMigrering =
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(
                 PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
             )
 
-        assertThat(personIdentitetOgDoedsfall).isNotNull
-        assertThat(personIdentitetOgDoedsfall!!.falskIdentitet?.erFalsk).isTrue()
-        assertThat(personIdentitetOgDoedsfall.doedsfall.single().doedsdato).isEqualTo(LocalDate.of(2025, 11, 20))
+        assertThat(personopplysningerForMigrering).isNotNull
+        assertThat(personopplysningerForMigrering!!.falskIdentitet?.erFalsk).isTrue()
+        assertThat(personopplysningerForMigrering.dødsfall.single().dødsdato).isEqualTo(LocalDate.of(2025, 11, 20))
         assertEquals(listOf("pdlScope"), texasClient.requestedMaskinAudiences)
         assertThat(texasClient.requestedOboAudiences).isEmpty()
     }
 
     @Test
-    fun `hentIdentitetOgDoedsfallMaskinToken haandterer null falskIdentitet og tom doedsfall-liste`() {
+    fun `hentFalskIdentitetOgDødsfallMaskinToken håndterer null falskIdentitet og tom dødsfall-liste`() {
         stubForGraphql(
             """
             {
@@ -391,30 +391,30 @@ class PdlClientWiremockTest {
             """.trimIndent(),
         )
 
-        val personIdentitetOgDoedsfall =
-            pdlClient.hentIdentitetOgDoedsfallMaskinToken(
+        val personopplysningerForMigrering =
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(
                 PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
             )
 
-        assertThat(personIdentitetOgDoedsfall).isNotNull
-        assertThat(personIdentitetOgDoedsfall!!.falskIdentitet).isNull()
-        assertThat(personIdentitetOgDoedsfall.doedsfall).isEmpty()
+        assertThat(personopplysningerForMigrering).isNotNull
+        assertThat(personopplysningerForMigrering!!.falskIdentitet).isNull()
+        assertThat(personopplysningerForMigrering.dødsfall).isEmpty()
     }
 
     @Test
-    fun `hentIdentitetOgDoedsfallMaskinToken kaster PdlException ved teknisk feil`() {
+    fun `hentFalskIdentitetOgDødsfallMaskinToken kaster PdlException ved teknisk feil`() {
         wireMockServer.stubFor(
             post(urlEqualTo("/graphql"))
                 .willReturn(serverError()),
         )
 
         assertThrows<PdlException> {
-            pdlClient.hentIdentitetOgDoedsfallMaskinToken(PdlRequest(query = "query {}", variables = emptyMap()))
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(PdlRequest(query = "query {}", variables = emptyMap()))
         }
     }
 
     @Test
-    fun `hentIdentitetOgDoedsfallMaskinToken kaster PdlException ved PDL errors`() {
+    fun `hentFalskIdentitetOgDødsfallMaskinToken kaster PdlException ved PDL errors`() {
         stubForGraphql(
             """
             {
@@ -425,7 +425,7 @@ class PdlClientWiremockTest {
         )
 
         assertThrows<PdlException> {
-            pdlClient.hentIdentitetOgDoedsfallMaskinToken(PdlRequest(query = "query {}", variables = mapOf("ident" to "123")))
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(PdlRequest(query = "query {}", variables = mapOf("ident" to "123")))
         }
     }
 

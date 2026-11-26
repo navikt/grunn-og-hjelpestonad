@@ -1,14 +1,14 @@
 package no.nav.grunn.og.hjelpestonad.migrering
 
-import no.nav.grunn.og.hjelpestonad.pdl.PersonIdentitetOgDoedsfall
+import no.nav.grunn.og.hjelpestonad.pdl.PersonopplysningerForMigrering
 
-enum class MigreringPersonBlokkering {
+enum class PersonblokkeringForMigrering {
     DØD,
     FALSK_IDENTITET,
 }
 
-data class MigreringPersonValideringsresultat(
-    val blokkeringer: Set<MigreringPersonBlokkering>,
+data class PersonopplysningerForMigreringValideringResultat(
+    val blokkeringer: Set<PersonblokkeringForMigrering>,
 ) {
     val kanMigreres: Boolean
         get() = blokkeringer.isEmpty()
@@ -19,16 +19,16 @@ data class MigreringPersonValideringsresultat(
  * Ren funksjon uten Spring-avhengigheter (jf. ADR-0008).
  */
 object MigreringPersonValidering {
-    fun valider(personIdentitetOgDoedsfall: PersonIdentitetOgDoedsfall): MigreringPersonValideringsresultat {
+    fun valider(personopplysningerForMigrering: PersonopplysningerForMigrering): PersonopplysningerForMigreringValideringResultat {
         val blokkeringer =
             setOfNotNull(
-                MigreringPersonBlokkering.DØD.takeIf {
-                    personIdentitetOgDoedsfall.doedsfall.isNotEmpty()
+                PersonblokkeringForMigrering.DØD.takeIf {
+                    personopplysningerForMigrering.dødsfall.isNotEmpty()
                 },
-                MigreringPersonBlokkering.FALSK_IDENTITET.takeIf {
-                    personIdentitetOgDoedsfall.falskIdentitet?.erFalsk == true
+                PersonblokkeringForMigrering.FALSK_IDENTITET.takeIf {
+                    personopplysningerForMigrering.falskIdentitet?.erFalsk == true
                 },
             )
-        return MigreringPersonValideringsresultat(blokkeringer = blokkeringer)
+        return PersonopplysningerForMigreringValideringResultat(blokkeringer = blokkeringer)
     }
 }

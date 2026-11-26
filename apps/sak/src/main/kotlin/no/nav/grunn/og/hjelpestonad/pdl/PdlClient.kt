@@ -144,15 +144,15 @@ class PdlClient(
         }
     }
 
-    fun hentIdentitetOgDoedsfallOBOToken(request: PdlRequest): PersonIdentitetOgDoedsfall? = hentIdentitetOgDoedsfall(request = request, pdlHeaders = lagPdlOnBehalfOfHeaders())
+    fun hentFalskIdentitetOgDødsfallOBOToken(request: PdlRequest): PersonopplysningerForMigrering? = hentFalskIdentitetOgDødsfall(request = request, pdlHeaders = lagPdlOnBehalfOfHeaders())
 
-    fun hentIdentitetOgDoedsfallMaskinToken(request: PdlRequest): PersonIdentitetOgDoedsfall? = hentIdentitetOgDoedsfall(request = request, pdlHeaders = lagPdlMaskinTilMaskinToken())
+    fun hentFalskIdentitetOgDødsfallMaskinToken(request: PdlRequest): PersonopplysningerForMigrering? = hentFalskIdentitetOgDødsfall(request = request, pdlHeaders = lagPdlMaskinTilMaskinToken())
 
-    private fun hentIdentitetOgDoedsfall(
+    private fun hentFalskIdentitetOgDødsfall(
         request: PdlRequest,
         pdlHeaders: HttpHeaders,
-    ): PersonIdentitetOgDoedsfall? {
-        logger.info("Utfører PDL-operasjon: hentIdentitetOgDoedsfall")
+    ): PersonopplysningerForMigrering? {
+        logger.info("Utfører PDL-operasjon: hentFalskIdentitetOgDødsfall")
         try {
             val pdlResponse =
                 pdlRestClient
@@ -161,9 +161,9 @@ class PdlClient(
                     .headers { it.addAll(pdlHeaders) }
                     .body(request)
                     .retrieve()
-                    .body(PdlResponseIdentitetOgDoedsfall::class.java)
+                    .body(PdlResponsePersonopplysningerForMigrering::class.java)
 
-            håndterPdlErrors(pdlResponse?.errors, "hentIdentitetOgDoedsfall")
+            håndterPdlErrors(pdlResponse?.errors, "hentFalskIdentitetOgDødsfall")
             return pdlResponse?.data?.hentPerson
         } catch (e: Exception) {
             when (e) {
@@ -174,7 +174,7 @@ class PdlClient(
                 else -> {
                     logger.error("Feil ved kall til PDL")
                     secureLogger.error("Feil ved kall til PDL", e)
-                    throw PdlException("Teknisk feil ved henting av identitet og dødsfall fra PDL", e)
+                    throw PdlException("Teknisk feil ved henting av falsk identitet og dødsfall fra PDL", e)
                 }
             }
         }

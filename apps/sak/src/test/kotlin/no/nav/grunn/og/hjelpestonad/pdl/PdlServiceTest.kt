@@ -81,42 +81,42 @@ class PdlServiceTest {
     }
 
     @Test
-    fun `hentIdentitetOgDoedsfallForMigrering bruker OBO-token når kallet har brukerkontekst`() {
+    fun `hentFalskIdentitetOgDødsfallForMigrering bruker OBO-token når kallet har brukerkontekst`() {
         every { SikkerhetContext.erMaskinTilMaskinToken() } returns false
-        val forventetPerson =
-            PersonIdentitetOgDoedsfall(
+        val forventetPersonopplysningerForMigrering =
+            PersonopplysningerForMigrering(
                 falskIdentitet = FalskIdentitetEnkel(erFalsk = true),
-                doedsfall = listOf(DoedsfallEnkel(doedsdato = LocalDate.of(2025, 4, 1))),
+                dødsfall = listOf(DødsfallEnkel(dødsdato = LocalDate.of(2025, 4, 1))),
             )
-        every { pdlClient.hentIdentitetOgDoedsfallOBOToken(any()) } returns forventetPerson
+        every { pdlClient.hentFalskIdentitetOgDødsfallOBOToken(any()) } returns forventetPersonopplysningerForMigrering
 
-        val personIdentitetOgDoedsfall = pdlService.hentIdentitetOgDoedsfallForMigrering("01010199999")
+        val personopplysningerForMigrering = pdlService.hentFalskIdentitetOgDødsfallForMigrering("01010199999")
 
-        assertThat(personIdentitetOgDoedsfall).isEqualTo(forventetPerson)
-        verify(exactly = 0) { pdlClient.hentIdentitetOgDoedsfallMaskinToken(any()) }
+        assertThat(personopplysningerForMigrering).isEqualTo(forventetPersonopplysningerForMigrering)
+        verify(exactly = 0) { pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(any()) }
     }
 
     @Test
-    fun `hentIdentitetOgDoedsfallForMigrering bruker maskintoken når kallet er maskin til maskin`() {
+    fun `hentFalskIdentitetOgDødsfallForMigrering bruker maskintoken når kallet er maskin til maskin`() {
         every { SikkerhetContext.erMaskinTilMaskinToken() } returns true
-        val forventetPerson =
-            PersonIdentitetOgDoedsfall(
+        val forventetPersonopplysningerForMigrering =
+            PersonopplysningerForMigrering(
                 falskIdentitet = null,
-                doedsfall = emptyList(),
+                dødsfall = emptyList(),
             )
-        every { pdlClient.hentIdentitetOgDoedsfallMaskinToken(any()) } returns forventetPerson
+        every { pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(any()) } returns forventetPersonopplysningerForMigrering
 
-        val personIdentitetOgDoedsfall = pdlService.hentIdentitetOgDoedsfallForMigrering("01010199999")
+        val personopplysningerForMigrering = pdlService.hentFalskIdentitetOgDødsfallForMigrering("01010199999")
 
-        assertThat(personIdentitetOgDoedsfall).isEqualTo(forventetPerson)
-        verify(exactly = 0) { pdlClient.hentIdentitetOgDoedsfallOBOToken(any()) }
+        assertThat(personopplysningerForMigrering).isEqualTo(forventetPersonopplysningerForMigrering)
+        verify(exactly = 0) { pdlClient.hentFalskIdentitetOgDødsfallOBOToken(any()) }
     }
 
     @Test
-    fun `hentIdentitetOgDoedsfallForMigrering kaster PdlException når personen ikke finnes`() {
+    fun `hentFalskIdentitetOgDødsfallForMigrering kaster PdlException når personen ikke finnes`() {
         every { SikkerhetContext.erMaskinTilMaskinToken() } returns false
-        every { pdlClient.hentIdentitetOgDoedsfallOBOToken(any()) } returns null
+        every { pdlClient.hentFalskIdentitetOgDødsfallOBOToken(any()) } returns null
 
-        assertThrows<PdlException> { pdlService.hentIdentitetOgDoedsfallForMigrering("01010199999") }
+        assertThrows<PdlException> { pdlService.hentFalskIdentitetOgDødsfallForMigrering("01010199999") }
     }
 }

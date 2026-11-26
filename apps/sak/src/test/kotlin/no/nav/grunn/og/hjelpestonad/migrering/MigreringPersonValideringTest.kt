@@ -1,8 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.migrering
 
-import no.nav.grunn.og.hjelpestonad.pdl.DoedsfallEnkel
+import no.nav.grunn.og.hjelpestonad.pdl.DødsfallEnkel
 import no.nav.grunn.og.hjelpestonad.pdl.FalskIdentitetEnkel
-import no.nav.grunn.og.hjelpestonad.pdl.PersonIdentitetOgDoedsfall
+import no.nav.grunn.og.hjelpestonad.pdl.PersonopplysningerForMigrering
 import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDate
 import kotlin.test.Test
@@ -10,88 +10,88 @@ import kotlin.test.Test
 class MigreringPersonValideringTest {
     @Test
     fun `godkjenner person uten dødsfall og uten falsk identitet`() {
-        val valideringsresultat =
+        val personopplysningerForMigreringValideringResultat =
             MigreringPersonValidering.valider(
-                PersonIdentitetOgDoedsfall(
+                PersonopplysningerForMigrering(
                     falskIdentitet = null,
-                    doedsfall = emptyList(),
+                    dødsfall = emptyList(),
                 ),
             )
 
-        assertThat(valideringsresultat.kanMigreres).isTrue()
-        assertThat(valideringsresultat.blokkeringer).isEmpty()
+        assertThat(personopplysningerForMigreringValideringResultat.kanMigreres).isTrue()
+        assertThat(personopplysningerForMigreringValideringResultat.blokkeringer).isEmpty()
     }
 
     @Test
     fun `godkjenner person når falskIdentitet har erFalsk false`() {
-        val valideringsresultat =
+        val personopplysningerForMigreringValideringResultat =
             MigreringPersonValidering.valider(
-                PersonIdentitetOgDoedsfall(
+                PersonopplysningerForMigrering(
                     falskIdentitet = FalskIdentitetEnkel(erFalsk = false),
-                    doedsfall = emptyList(),
+                    dødsfall = emptyList(),
                 ),
             )
 
-        assertThat(valideringsresultat.kanMigreres).isTrue()
-        assertThat(valideringsresultat.blokkeringer).isEmpty()
+        assertThat(personopplysningerForMigreringValideringResultat.kanMigreres).isTrue()
+        assertThat(personopplysningerForMigreringValideringResultat.blokkeringer).isEmpty()
     }
 
     @Test
     fun `avviser person med falsk identitet`() {
-        val valideringsresultat =
+        val personopplysningerForMigreringValideringResultat =
             MigreringPersonValidering.valider(
-                PersonIdentitetOgDoedsfall(
+                PersonopplysningerForMigrering(
                     falskIdentitet = FalskIdentitetEnkel(erFalsk = true),
-                    doedsfall = emptyList(),
+                    dødsfall = emptyList(),
                 ),
             )
 
-        assertThat(valideringsresultat.kanMigreres).isFalse()
-        assertThat(valideringsresultat.blokkeringer).containsExactly(MigreringPersonBlokkering.FALSK_IDENTITET)
+        assertThat(personopplysningerForMigreringValideringResultat.kanMigreres).isFalse()
+        assertThat(personopplysningerForMigreringValideringResultat.blokkeringer).containsExactly(PersonblokkeringForMigrering.FALSK_IDENTITET)
     }
 
     @Test
     fun `avviser død person med dødsdato`() {
-        val valideringsresultat =
+        val personopplysningerForMigreringValideringResultat =
             MigreringPersonValidering.valider(
-                PersonIdentitetOgDoedsfall(
+                PersonopplysningerForMigrering(
                     falskIdentitet = null,
-                    doedsfall = listOf(DoedsfallEnkel(doedsdato = LocalDate.of(2025, 5, 1))),
+                    dødsfall = listOf(DødsfallEnkel(dødsdato = LocalDate.of(2025, 5, 1))),
                 ),
             )
 
-        assertThat(valideringsresultat.kanMigreres).isFalse()
-        assertThat(valideringsresultat.blokkeringer).containsExactly(MigreringPersonBlokkering.DØD)
+        assertThat(personopplysningerForMigreringValideringResultat.kanMigreres).isFalse()
+        assertThat(personopplysningerForMigreringValideringResultat.blokkeringer).containsExactly(PersonblokkeringForMigrering.DØD)
     }
 
     @Test
-    fun `avviser død person også når doedsdato er null`() {
-        val valideringsresultat =
+    fun `avviser død person også når dødsdato er null`() {
+        val personopplysningerForMigreringValideringResultat =
             MigreringPersonValidering.valider(
-                PersonIdentitetOgDoedsfall(
+                PersonopplysningerForMigrering(
                     falskIdentitet = null,
-                    doedsfall = listOf(DoedsfallEnkel(doedsdato = null)),
+                    dødsfall = listOf(DødsfallEnkel(dødsdato = null)),
                 ),
             )
 
-        assertThat(valideringsresultat.kanMigreres).isFalse()
-        assertThat(valideringsresultat.blokkeringer).containsExactly(MigreringPersonBlokkering.DØD)
+        assertThat(personopplysningerForMigreringValideringResultat.kanMigreres).isFalse()
+        assertThat(personopplysningerForMigreringValideringResultat.blokkeringer).containsExactly(PersonblokkeringForMigrering.DØD)
     }
 
     @Test
     fun `returnerer begge blokkeringer når personen både er død og har falsk identitet`() {
-        val valideringsresultat =
+        val personopplysningerForMigreringValideringResultat =
             MigreringPersonValidering.valider(
-                PersonIdentitetOgDoedsfall(
+                PersonopplysningerForMigrering(
                     falskIdentitet = FalskIdentitetEnkel(erFalsk = true),
-                    doedsfall = listOf(DoedsfallEnkel(doedsdato = LocalDate.of(2024, 1, 10))),
+                    dødsfall = listOf(DødsfallEnkel(dødsdato = LocalDate.of(2024, 1, 10))),
                 ),
             )
 
-        assertThat(valideringsresultat.kanMigreres).isFalse()
-        assertThat(valideringsresultat.blokkeringer).containsExactlyInAnyOrder(
-            MigreringPersonBlokkering.DØD,
-            MigreringPersonBlokkering.FALSK_IDENTITET,
+        assertThat(personopplysningerForMigreringValideringResultat.kanMigreres).isFalse()
+        assertThat(personopplysningerForMigreringValideringResultat.blokkeringer).containsExactlyInAnyOrder(
+            PersonblokkeringForMigrering.DØD,
+            PersonblokkeringForMigrering.FALSK_IDENTITET,
         )
     }
 }

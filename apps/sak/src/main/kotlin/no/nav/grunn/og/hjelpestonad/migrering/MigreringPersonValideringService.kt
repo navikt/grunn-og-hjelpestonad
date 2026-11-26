@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service
 class MigreringPersonValideringService(
     private val pdlService: PdlService,
 ) {
-    fun validerPersonForMigrering(personident: String): MigreringPersonValideringsresultat {
-        val personIdentitetOgDoedsfall = pdlService.hentIdentitetOgDoedsfallForMigrering(personident)
-        return MigreringPersonValidering.valider(personIdentitetOgDoedsfall)
+    fun validerPersonForMigrering(personident: String): PersonopplysningerForMigreringValideringResultat {
+        val personopplysningerForMigrering = pdlService.hentFalskIdentitetOgDødsfallForMigrering(personident)
+        return MigreringPersonValidering.valider(personopplysningerForMigrering)
     }
 }
