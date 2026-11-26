@@ -73,7 +73,7 @@ fun PdlFaktagrunnlag?.tilMedlemskapFaktagrunnlagResponse(): MedlemskapFaktagrunn
         }
     val dødsfall =
         doedsfall.map {
-            val dato = it.doedsdato ?: it.metadata.gyldighetstidspunkt?.toLocalDate()
+            val dato = it.doedsdato
             OpplysningResponse(
                 fraOgMedDato = dato,
                 tilOgMedDato = dato,

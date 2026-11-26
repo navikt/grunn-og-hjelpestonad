@@ -295,6 +295,10 @@ Oppholdsadresse vises under bosted i svaret til frontend, mens dødsfall returne
 For alle opplysningene henter vi også `metadata.historisk` og
 `metadata.master`, og `gyldighetstidspunkt` og `opphoerstidspunkt` fra
 `folkeregistermetadata`. For noen opplysninger står perioden bare der.
+For `doedsfall` bruker vi ikke `gyldighetstidspunkt` når `doedsdato` mangler,
+fordi Folkeregisterets `gyldighetstidspunkt` ikke nødvendigvis stemmer med
+dødsdatoen. Da returnerer vi dødsfallet uten dato slik at saksbehandler får
+varsel om å finne dødsdatoen selv.
 
 Vi henter med historikk (`historikk: true`). Medlemskapsperiodene dekker hele
 tidslinjen, så vi trenger å vite hvor søker bodde og hvilket statsborgerskap

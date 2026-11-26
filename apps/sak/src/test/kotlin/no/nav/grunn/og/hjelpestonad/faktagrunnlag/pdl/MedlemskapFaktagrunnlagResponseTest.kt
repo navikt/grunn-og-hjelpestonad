@@ -158,25 +158,13 @@ class MedlemskapFaktagrunnlagResponseTest {
     }
 
     @Test
-    fun `bruker gyldighetstidspunkt som dato for dødsfall når doedsdato mangler`() {
+    fun `bruker ikke gyldighetstidspunkt som dødsdato når doedsdato mangler`() {
         val grunnlag =
             grunnlag(
                 doedsfall =
                     listOf(
                         PdlDoedsfall(behandlingId = behandlingId, doedsdato = null, metadata = metadata(LocalDateTime.of(2026, 9, 2, 0, 0))),
                     ),
-            )
-
-        val dødsfall = grunnlag.tilMedlemskapFaktagrunnlagResponse().dødsfall
-
-        assertThat(dødsfall).containsExactly(OpplysningResponse(LocalDate.of(2026, 9, 2), LocalDate.of(2026, 9, 2), "Død"))
-    }
-
-    @Test
-    fun `gir dødsfall med null-datoer når både doedsdato og gyldighetstidspunkt mangler`() {
-        val grunnlag =
-            grunnlag(
-                doedsfall = listOf(PdlDoedsfall(behandlingId = behandlingId, doedsdato = null, metadata = metadata())),
             )
 
         val dødsfall = grunnlag.tilMedlemskapFaktagrunnlagResponse().dødsfall
