@@ -322,6 +322,113 @@ class PdlClientWiremockTest {
         }
     }
 
+    @Test
+    fun `hentFalskIdentitetOgDødsfallOBOToken bruker OBO-token og leser falsk identitet og dødsfall`() {
+        stubForGraphql(
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "falskIdentitet": { "erFalsk": true },
+                  "doedsfall": [ { "doedsdato": "2025-11-20" } ]
+                }
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val personopplysningerForMigrering =
+            pdlClient.hentFalskIdentitetOgDødsfallOBOToken(
+                PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
+            )
+
+        assertThat(personopplysningerForMigrering).isNotNull
+        assertThat(personopplysningerForMigrering!!.falskIdentitet?.erFalsk).isTrue()
+        assertThat(personopplysningerForMigrering.dødsfall.single().dødsdato).isEqualTo(LocalDate.of(2025, 11, 20))
+        assertEquals(listOf("pdlScope"), texasClient.requestedOboAudiences)
+        assertThat(texasClient.requestedMaskinAudiences).isEmpty()
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallMaskinToken bruker maskintoken og leser falsk identitet og dødsfall`() {
+        stubForGraphql(
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "falskIdentitet": { "erFalsk": true },
+                  "doedsfall": [ { "doedsdato": "2025-11-20" } ]
+                }
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val personopplysningerForMigrering =
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(
+                PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
+            )
+
+        assertThat(personopplysningerForMigrering).isNotNull
+        assertThat(personopplysningerForMigrering!!.falskIdentitet?.erFalsk).isTrue()
+        assertThat(personopplysningerForMigrering.dødsfall.single().dødsdato).isEqualTo(LocalDate.of(2025, 11, 20))
+        assertEquals(listOf("pdlScope"), texasClient.requestedMaskinAudiences)
+        assertThat(texasClient.requestedOboAudiences).isEmpty()
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallMaskinToken håndterer null falskIdentitet og tom dødsfall-liste`() {
+        stubForGraphql(
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "falskIdentitet": null,
+                  "doedsfall": []
+                }
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val personopplysningerForMigrering =
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(
+                PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
+            )
+
+        assertThat(personopplysningerForMigrering).isNotNull
+        assertThat(personopplysningerForMigrering!!.falskIdentitet).isNull()
+        assertThat(personopplysningerForMigrering.dødsfall).isEmpty()
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallMaskinToken kaster PdlException ved teknisk feil`() {
+        wireMockServer.stubFor(
+            post(urlEqualTo("/graphql"))
+                .willReturn(serverError()),
+        )
+
+        assertThrows<PdlException> {
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(PdlRequest(query = "query {}", variables = emptyMap()))
+        }
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallMaskinToken kaster PdlException ved PDL errors`() {
+        stubForGraphql(
+            """
+            {
+              "data": { "hentPerson": null },
+              "errors": [ { "message": "Fant ikke person", "extensions": { "code": "not_found" } } ]
+            }
+            """.trimIndent(),
+        )
+
+        assertThrows<PdlException> {
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(PdlRequest(query = "query {}", variables = mapOf("ident" to "123")))
+        }
+    }
+
     private val familieRelasjon =
         PdlResponseFamilierelasjoner(
             data =
