@@ -9,7 +9,6 @@ data class MedlemskapFaktagrunnlagResponse(
     val bosted: List<OpplysningResponse>,
     val statsborgerskap: List<OpplysningResponse>,
     val oppholdstillatelse: List<OpplysningResponse>,
-    val harFalskIdentitet: Boolean,
 )
 
 data class OpplysningResponse(
@@ -25,7 +24,6 @@ fun PdlFaktagrunnlag?.tilMedlemskapFaktagrunnlagResponse(): MedlemskapFaktagrunn
             bosted = emptyList(),
             statsborgerskap = emptyList(),
             oppholdstillatelse = emptyList(),
-            harFalskIdentitet = false,
         )
     }
 
@@ -102,7 +100,6 @@ fun PdlFaktagrunnlag?.tilMedlemskapFaktagrunnlagResponse(): MedlemskapFaktagrunn
                         beskrivelse = oppholdTekst(it.type),
                     )
                 }.nyesteFørst(),
-        harFalskIdentitet = harFalskIdentitet,
     )
 }
 

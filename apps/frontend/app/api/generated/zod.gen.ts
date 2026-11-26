@@ -547,8 +547,7 @@ export const zMedlemskapFaktagrunnlagResponse = z.object({
     hentetTidspunkt: z.iso.datetime({ local: true }).nullish(),
     bosted: z.array(zOpplysningResponse),
     statsborgerskap: z.array(zOpplysningResponse),
-    oppholdstillatelse: z.array(zOpplysningResponse),
-    harFalskIdentitet: z.boolean()
+    oppholdstillatelse: z.array(zOpplysningResponse)
 });
 
 export const zOpprettRequest = z.object({
@@ -713,6 +712,10 @@ export const zTotrinnskontrollStatusResponse = z.object({
         'UAKTUELT'
     ]),
     totrinnskontroll: zTotrinnskontrollDto.nullish()
+});
+
+export const zFalskIdentitetResponse = z.object({
+    harFalskIdentitet: z.boolean()
 });
 
 export const zLagreVedtakBody = zVedtakRequest;
@@ -1183,6 +1186,15 @@ export const zHentMedlemskapFaktagrunnlagPath = z.object({
  * OK
  */
 export const zHentMedlemskapFaktagrunnlagResponse = zMedlemskapFaktagrunnlagResponse;
+
+export const zHentFalskIdentitetPath = z.object({
+    behandlingId: z.uuid()
+});
+
+/**
+ * OK
+ */
+export const zHentFalskIdentitetResponse = zFalskIdentitetResponse;
 
 export const zSlettMedlemskapPeriodePath = z.object({
     behandlingId: z.uuid(),

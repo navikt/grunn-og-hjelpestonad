@@ -5,12 +5,16 @@ import { DiagnoseVilkår } from "./diagnose/DiagnoseVilkår";
 import { useVilkårContext } from "./VilkårContext";
 
 export const VilkårInnhold: React.FC = () => {
-  const { medlemskapFaktagrunnlagTilstand } = useVilkårContext();
-  const harFalskIdentitet =
-    medlemskapFaktagrunnlagTilstand.medlemskapFaktagrunnlag?.harFalskIdentitet;
+  const { falskIdentitetTilstand } = useVilkårContext();
+  const { harFalskIdentitet, error: falskIdentitetFeil } = falskIdentitetTilstand;
 
   return (
     <VStack gap="space-24">
+      {falskIdentitetFeil !== undefined && (
+        <LocalAlert status="error">
+          <LocalAlert.Content>Kunne ikke hente status for falsk identitet.</LocalAlert.Content>
+        </LocalAlert>
+      )}
       {harFalskIdentitet === true && (
         <LocalAlert status="warning">
           <LocalAlert.Header>

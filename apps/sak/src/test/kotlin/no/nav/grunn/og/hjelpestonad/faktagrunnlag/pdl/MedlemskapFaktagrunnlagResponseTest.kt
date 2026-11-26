@@ -2,6 +2,7 @@ package no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -155,29 +156,7 @@ class MedlemskapFaktagrunnlagResponseTest {
     }
 
     @Test
-    fun `harFalskIdentitet er false når grunnlaget ikke er hentet`() {
-        assertThat(null.tilMedlemskapFaktagrunnlagResponse().harFalskIdentitet).isFalse
-    }
-
-    @Test
-    fun `harFalskIdentitet er false når PDL ikke har opplysning om falsk identitet`() {
-        val response = grunnlag(falskIdentitet = null).tilMedlemskapFaktagrunnlagResponse()
-
-        assertThat(response.harFalskIdentitet).isFalse
-    }
-
-    @Test
-    fun `harFalskIdentitet er false når PDL sier at identiteten ikke er falsk`() {
-        val grunnlag =
-            grunnlag(
-                falskIdentitet = PdlFalskIdentitet(behandlingId = behandlingId, erFalsk = false, metadata = metadata()),
-            )
-
-        assertThat(grunnlag.tilMedlemskapFaktagrunnlagResponse().harFalskIdentitet).isFalse
-    }
-
-    @Test
-    fun `harFalskIdentitet er true når PDL sier at identiteten er falsk, og falsk identitet havner ikke i bosted`() {
+    fun `falsk identitet havner ikke i bosted og eksponeres ikke i JSON`() {
         val grunnlag =
             grunnlag(
                 bostedsadresse =
@@ -194,10 +173,11 @@ class MedlemskapFaktagrunnlagResponseTest {
             )
 
         val response = grunnlag.tilMedlemskapFaktagrunnlagResponse()
+        val json = jacksonObjectMapper().writeValueAsString(response)
 
-        assertThat(response.harFalskIdentitet).isTrue
         assertThat(response.bosted)
             .containsExactly(OpplysningResponse(LocalDate.of(2019, 6, 15), null, "Bostedsadresse i Norge"))
+        assertThat(json).contains("\"bosted\"").doesNotContain("harFalskIdentitet")
     }
 
     private fun grunnlag(

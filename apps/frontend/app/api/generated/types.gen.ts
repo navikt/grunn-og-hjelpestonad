@@ -446,7 +446,6 @@ export type MedlemskapFaktagrunnlagResponse = {
     bosted: Array<OpplysningResponse>;
     statsborgerskap: Array<OpplysningResponse>;
     oppholdstillatelse: Array<OpplysningResponse>;
-    harFalskIdentitet: boolean;
 };
 
 export type OpplysningResponse = {
@@ -553,6 +552,10 @@ export type TotrinnskontrollDto = {
 export type TotrinnskontrollStatusResponse = {
     status: 'TOTRINNSKONTROLL_UNDERKJENT' | 'KAN_FATTE_VEDTAK' | 'IKKE_AUTORISERT' | 'UAKTUELT';
     totrinnskontroll?: TotrinnskontrollDto | null;
+};
+
+export type FalskIdentitetResponse = {
+    harFalskIdentitet: boolean;
 };
 
 export type LagreVedtakData = {
@@ -1353,6 +1356,21 @@ export type HentMedlemskapFaktagrunnlagResponses = {
 };
 
 export type HentMedlemskapFaktagrunnlagResponse = HentMedlemskapFaktagrunnlagResponses[keyof HentMedlemskapFaktagrunnlagResponses];
+
+export type HentFalskIdentitetData = {
+    body?: never;
+    path: {
+        behandlingId: string;
+    };
+    query?: never;
+    url: '/api/behandling/{behandlingId}/faktagrunnlag/pdl/falsk-identitet';
+};
+
+export type HentFalskIdentitetResponses = {
+    200: FalskIdentitetResponse;
+};
+
+export type HentFalskIdentitetResponse = HentFalskIdentitetResponses[keyof HentFalskIdentitetResponses];
 
 export type SlettMedlemskapPeriodeData = {
     body?: never;
