@@ -90,7 +90,7 @@ class StønadRepository(
                     SELECT s.stonad_id, min(v.vedtak_id) AS vedtak_id
                     FROM t_stonad s
                     JOIN t_vedtak v ON v.stonad_id = s.stonad_id
-                    WHERE s.kode_rutine = :grunnstønad
+                    WHERE s.kode_rutine = :stønadstype
                       AND s.oppdrag_id IS NOT NULL
                       AND ${gyldigVedtak("v", "s")}
                     GROUP BY s.stonad_id
@@ -170,7 +170,7 @@ class StønadRepository(
                 LIMIT :antall
                 """.trimIndent(),
             ).param("nesteMåned", førsteDagINesteMåned(dagensDato))
-            .param("grunnstønad", Stønadstype.GRUNNSTØNAD.kodeRutine)
+            .param("stønadstype", Stønadstype.GRUNNSTØNAD.kodeRutine)
             .param("hjelpestønad", Stønadstype.HJELPESTØNAD.kodeRutine)
             .param("sats", sats)
             .param("posisjonHjemmelbokstav", Ev10Posisjon.HJEMMELBOKSTAV.kode)
