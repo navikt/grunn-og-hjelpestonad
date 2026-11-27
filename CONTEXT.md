@@ -80,6 +80,10 @@ _Avoid_: Aktivt steg, fremdrift
 At en løpende sak flyttes fra Infotrygd til ny løsning, slik at Infotrygd slutter å utbetale og ny løsning overtar utbetalingen fra inneværende måned. Systemet gjør det med ett klikk fra saksbehandler, uten vedtaksbrev og uten beslutter, som i EF. Endrer ikke hva stønadsmottaker får utbetalt.
 _Avoid_: Konvertering, overføring
 
+**Førstegangsvedtak**:
+Vedtaket i Infotrygd som innvilget en stønad første gang, merket med endringskode `F`. Hører til Infotrygds modell. Kan gi grunnlag for en **Migrering**, men er ikke en behandling i ny løsning.
+_Avoid_: Førstegangsbehandling (det er den første behandlingen i en sak i ny løsning)
+
 **Migreringsbehandling**:
 Den første behandlingen i en migrert sak, med årsak `MIGRERING`. Vilkårene er satt til oppfylt av systemet og er ikke vurdert av noen.
 

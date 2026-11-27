@@ -57,6 +57,7 @@ class EndepunktRegisterTest {
                 "SakController#finnSaker",
                 "StønadController#eksisterer",
                 "StønadController#hentPersonerForMigrering",
+                "StønadController#hentPersonerMedFørstegangsvedtakForMigrering",
                 "StønaderController#hentStønader",
             )
 
