@@ -3,11 +3,14 @@ package no.nav.grunn.og.hjelpestonad.config
 import efterlatte.prosessering.Status
 import efterlatte.prosessering.TaskRepository
 import no.nav.grunn.og.hjelpestonad.SpringContextTest
+import no.nav.grunn.og.hjelpestonad.prosessering.ProsesseringRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -19,38 +22,86 @@ class SpringTransaksjonTaskRepositoryTest : SpringContextTest() {
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
 
+    @Autowired
+    private lateinit var prosesseringRepository: ProsesseringRepository
+
     @Test
     fun `bruker adapteren og ikke bibliotekets standardrepository`() {
         assertThat(taskRepository).isInstanceOf(SpringTransaksjonTaskRepository::class.java)
     }
 
     @Test
-    fun `skriving via Spring i steget og markerFullført committes sammen`() {
+    fun `skriving via Spring og fullføring med historikk committes sammen`() {
         val taskId = opprettTaskSomIkkePlukkes()
 
         taskRepository.iEgenTransaksjon { transaksjon ->
             skrivViaSpring(taskId)
-            taskRepository.markerFullført(transaksjon, taskId)
+            taskRepository.markerFullført(transaksjon, taskId, node = "testnode")
         }
 
         assertThat(taskRepository.finn(taskId)?.status).isEqualTo(Status.FULLFØRT)
-        assertThat(antallRaderSkrevetViaSpring(taskId)).isEqualTo(1)
+        val hendelseslogg = prosesseringRepository.hentLogg(taskId)
+        assertThat(hendelseslogg.map { it.melding }).containsExactly("test", "KJØRER -> FULLFØRT")
+        assertThat(hendelseslogg.last().endretAv).isEqualTo("system")
+        assertThat(hendelseslogg.last().node).isEqualTo("testnode")
     }
 
     @Test
-    fun `feil i steget ruller tilbake både skriving via Spring og markerFullført`() {
+    fun `feil i steget ruller tilbake skriving via Spring og fullføring med historikk`() {
         val taskId = opprettTaskSomIkkePlukkes()
 
         assertThatThrownBy {
             taskRepository.iEgenTransaksjon { transaksjon ->
                 skrivViaSpring(taskId)
-                taskRepository.markerFullført(transaksjon, taskId)
+                taskRepository.markerFullført(transaksjon, taskId, node = "testnode")
                 error("hemmelig-detalj")
             }
         }.isInstanceOf(TaskStegFeiletException::class.java)
 
         assertThat(taskRepository.finn(taskId)?.status).isEqualTo(Status.KLAR)
-        assertThat(antallRaderSkrevetViaSpring(taskId)).isZero()
+        assertThat(prosesseringRepository.hentLogg(taskId)).isEmpty()
+    }
+
+    @Test
+    fun `strukturert feilhistorikk er skjermet og bevares etter vellykket nytt forsøk`() {
+        val taskId = opprettTaskSomIkkePlukkes()
+        val opprinneligException =
+            IllegalStateException("hemmelig-melding", IllegalArgumentException("hemmelig-årsak")).apply {
+                addSuppressed(IllegalStateException("hemmelig-suppressed"))
+            }
+        val taskStegFeiletException =
+            assertThrows<TaskStegFeiletException> {
+                taskRepository.iEgenTransaksjon<Unit> { throw opprinneligException }
+            }
+
+        taskRepository.markFeilet(
+            id = taskId,
+            nyStatus = Status.KLAR,
+            stoppaarsak = null,
+            nesteTriggerTid = Instant.now().plus(1, ChronoUnit.DAYS),
+            feilmelding = taskStegFeiletException.message,
+            stacktrace = taskStegFeiletException.stackTraceToString(),
+            node = "testnode",
+            exceptionClass = taskStegFeiletException.javaClass.name,
+        )
+        taskRepository.iEgenTransaksjon { transaksjon ->
+            taskRepository.markerFullført(transaksjon, taskId, node = "testnode")
+        }
+
+        val hendelseslogg = prosesseringRepository.hentLogg(taskId)
+        assertThat(hendelseslogg).hasSize(2)
+        assertThat(hendelseslogg.map { it.node }).containsOnly("testnode")
+        assertThat(hendelseslogg.map { it.endretAv }).containsOnly("system")
+        val feilhistorikk = jacksonObjectMapper().readTree(hendelseslogg.first().melding)
+        assertThat(feilhistorikk["tilStatus"].asText()).isEqualTo("KLAR")
+        assertThat(feilhistorikk["antallFeil"].asInt()).isEqualTo(1)
+        assertThat(feilhistorikk["feilmelding"].asText()).isEqualTo(taskStegFeiletException.message)
+        assertThat(feilhistorikk["exceptionClass"].asText()).isEqualTo(TaskStegFeiletException::class.java.name)
+        assertThat(feilhistorikk["stackTrace"].asText())
+            .contains(TaskStegFeiletException::class.java.name, "IllegalStateException")
+            .doesNotContain("hemmelig-melding", "hemmelig-årsak", "hemmelig-suppressed")
+        assertThat(hendelseslogg.last().melding).isEqualTo("KJØRER -> FULLFØRT")
+        assertThat(taskRepository.finn(taskId)?.status).isEqualTo(Status.FULLFØRT)
     }
 
     @Test
@@ -79,11 +130,4 @@ class SpringTransaksjonTaskRepositoryTest : SpringContextTest() {
             taskId,
         )
     }
-
-    private fun antallRaderSkrevetViaSpring(taskId: Long): Int? =
-        jdbcTemplate.queryForObject(
-            "SELECT count(*) FROM prosessering_task_hendelse WHERE task_id = ?",
-            Int::class.java,
-            taskId,
-        )
 }
