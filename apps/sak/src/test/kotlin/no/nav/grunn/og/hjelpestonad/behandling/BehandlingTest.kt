@@ -12,7 +12,7 @@ class BehandlingTest {
     fun `validerHarNådd kaster for steg som kommer etter gjeldende steg`() {
         assertThatThrownBy { lagBehandling(gjeldendeSteg = BehandlingSteg.INNGANGSVILKÅR).validerHarNådd(BehandlingSteg.SATS_OG_TRYGDETID) }
             .isInstanceOf(Feil::class.java)
-            .hasMessage("Fullfør «Vilkår» før du går videre.")
+            .hasMessage("Fullfør «Inngangsvilkår» før du går videre.")
             .extracting("httpStatus")
             .isEqualTo(HttpStatus.BAD_REQUEST)
     }
@@ -63,7 +63,7 @@ class BehandlingTest {
     fun `validerKanEndre kaster når steget ikke er nådd`() {
         assertThatThrownBy { lagBehandling(gjeldendeSteg = BehandlingSteg.INNGANGSVILKÅR).validerKanEndre(BehandlingSteg.SATS_OG_TRYGDETID) }
             .isInstanceOf(Feil::class.java)
-            .hasMessage("Fullfør «Vilkår» før du går videre.")
+            .hasMessage("Fullfør «Inngangsvilkår» før du går videre.")
             .extracting("httpStatus")
             .isEqualTo(HttpStatus.BAD_REQUEST)
     }

@@ -45,7 +45,7 @@ class SatsOgTrygdetidServiceTest {
     @Test
     fun `fullføring som avvises av validerKanEndreSteg stopper før noe beregnes`() {
         every { behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.SATS_OG_TRYGDETID) } throws
-            Feil(melding = "Fullfør «Vilkår» før du går videre.", httpStatus = HttpStatus.BAD_REQUEST)
+            Feil(melding = "Fullfør «Inngangsvilkår» før du går videre.", httpStatus = HttpStatus.BAD_REQUEST)
 
         assertFailsWith<Feil> { service.fullførSteg(behandlingId) }
 

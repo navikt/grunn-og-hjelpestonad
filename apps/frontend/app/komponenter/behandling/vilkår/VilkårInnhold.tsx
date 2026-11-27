@@ -22,7 +22,7 @@ export const VilkårInnhold: React.FC = () => {
           </LocalAlert.Header>
           <LocalAlert.Content>
             Personen er registrert med falsk identitet i Folkeregisteret. Behandlingen kan ikke gå
-            videre fra Vilkår så lenge registreringen gjelder.
+            videre fra fanen Inngangsvilkår så lenge registreringen gjelder.
           </LocalAlert.Content>
         </LocalAlert>
       )}

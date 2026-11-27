@@ -9,7 +9,7 @@ enum class BehandlingSteg(
     val visningsnavn: String,
 ) {
     ÅRSAK(rekkefølge = 1, visningsnavn = "Årsak behandling"),
-    INNGANGSVILKÅR(rekkefølge = 2, visningsnavn = "Vilkår"),
+    INNGANGSVILKÅR(rekkefølge = 2, visningsnavn = "Inngangsvilkår"),
     SATS_OG_TRYGDETID(rekkefølge = 3, visningsnavn = "Sats og trygdetid"),
     VEDTAK_OG_BREV(rekkefølge = 4, visningsnavn = "Simulering og brev"),
 }

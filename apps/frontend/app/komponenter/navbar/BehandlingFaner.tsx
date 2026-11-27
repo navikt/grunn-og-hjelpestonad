@@ -5,7 +5,8 @@ import { PadlockLockedIcon } from "@navikt/aksel-icons";
 import styles from "./Navbar.module.css";
 import { erFaneLåst, type BehandlingForFaner, type GjeldendeSteg } from "./behandlingFaneRegel";
 
-export type Steg = "Årsak behandling" | "Vilkår" | "Sats og trygdetid" | "Simulering" | "Brev";
+export type Steg =
+  "Årsak behandling" | "Inngangsvilkår" | "Sats og trygdetid" | "Simulering" | "Brev";
 export type StegPath = "arsak-behandling" | "vilkar" | "sats-og-trygdetid" | "simulering" | "brev";
 
 export type BehandlingSteg = {
