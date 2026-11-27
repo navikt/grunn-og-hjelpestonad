@@ -63,7 +63,7 @@ internal class TilkjentYtelseRepositoryTest : SpringContextTest() {
     }
 
     @Test
-    internal fun `skal lagre og lese beløp med tre desimaler uten tap`() {
+    internal fun `skal lagre og lese åpen periode med tre desimaler uten tap`() {
         val behandling = opprettBehandling()
 
         tilkjentYtelseRepository.insert(
@@ -75,7 +75,7 @@ internal class TilkjentYtelseRepositoryTest : SpringContextTest() {
                         AndelTilkjentYtelse(
                             beløp = BigDecimal("1234.125"),
                             fom = LocalDate.of(2025, 2, 1),
-                            tom = LocalDate.of(2025, 4, 30),
+                            tom = null,
                             kildeBehandlingId = behandling.id,
                         ),
                     ),
@@ -86,6 +86,7 @@ internal class TilkjentYtelseRepositoryTest : SpringContextTest() {
 
         val andel = lest.andelerTilkjentYtelse.single()
         assertThat(andel.beløp).isEqualByComparingTo(BigDecimal("1234.125"))
+        assertThat(andel.tom).isNull()
     }
 
     private fun opprettBehandling(): Behandling {

@@ -1,8 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
-import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag.KodeEndring
-import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsperiode
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Utbetalingsoppdrag.KodeEndring
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Utbetalingsperiode
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -13,6 +13,73 @@ import kotlin.test.Test
 class LagUtbetalingsoppdragTest {
     private val forrigeBehandlingId = UUID.fromString("00000000-0000-0000-0000-00000000000f")
     private val behandlingId = UUID.fromString("00000000-0000-0000-0000-000000000001")
+
+    @Test
+    fun `førstegangsbehandling beholder åpen periode i oppdrag og utbetalingsandel`() {
+        val beregnetOppdrag = lagUtbetalingsoppdrag(grunnlag(andeler = listOf(andel(1000, tom = null))))
+
+        assertThat(
+            beregnetOppdrag.utbetalingsoppdrag.utbetalingsperiode
+                .single()
+                .vedtakdatoTom,
+        ).isNull()
+        assertThat(beregnetOppdrag.utbetalingsandeler.single().tom).isNull()
+    }
+
+    @Test
+    fun `uendret åpen periode beholder kjeden uten sending`() {
+        val forrigeAndeler = listOf(utbetalingsandel(1000, "2025-01-01", null, periodeId = 0, forrigePeriodeId = null))
+        val beregnetOppdrag =
+            lagUtbetalingsoppdrag(
+                grunnlag(listOf(andel(1000, tom = null)), forrigeAndeler, forrigeAndeler),
+            )
+
+        assertThat(beregnetOppdrag.harEndringFraForrigeBehandling).isFalse()
+        assertThat(beregnetOppdrag.utbetalingsandeler.single().tom).isNull()
+        assertThat(beregnetOppdrag.utbetalingsandeler.single().periodeId).isEqualTo(0L)
+        assertThat(beregnetOppdrag.utbetalingsandeler.single().kildeBehandlingId).isEqualTo(forrigeBehandlingId)
+    }
+
+    @Test
+    fun `avkorting av åpen periode sender opphør med opprinnelig null sluttdato`() {
+        val forrigeAndeler = listOf(utbetalingsandel(1000, "2025-01-01", null, periodeId = 0, forrigePeriodeId = null))
+        val beregnetOppdrag =
+            lagUtbetalingsoppdrag(
+                grunnlag(listOf(andel(1000, tom = "2025-06-30")), forrigeAndeler, forrigeAndeler),
+            )
+
+        val opphørsperiode = beregnetOppdrag.utbetalingsoppdrag.utbetalingsperiode.single()
+        assertThat(opphørsperiode.vedtakdatoTom).isNull()
+        assertThat(opphørsperiode.opphør?.opphørDatoFom).isEqualTo(LocalDate.of(2025, 7, 1))
+        assertThat(beregnetOppdrag.utbetalingsandeler.single().tom).isEqualTo(LocalDate.of(2025, 6, 30))
+        assertThat(beregnetOppdrag.utbetalingsandeler.single().periodeId).isEqualTo(0L)
+    }
+
+    @Test
+    fun `forlengelse til åpen periode lager ny kjedet linje`() {
+        val forrigeAndeler = listOf(utbetalingsandel(1000, "2025-01-01", "2025-06-30", periodeId = 0, forrigePeriodeId = null))
+        val beregnetOppdrag =
+            lagUtbetalingsoppdrag(
+                grunnlag(listOf(andel(1000, tom = null)), forrigeAndeler, forrigeAndeler),
+            )
+
+        val utbetalingsperiode = beregnetOppdrag.utbetalingsoppdrag.utbetalingsperiode.single()
+        assertThat(utbetalingsperiode.vedtakdatoTom).isNull()
+        assertThat(utbetalingsperiode.periodeId).isEqualTo(1L)
+        assertThat(utbetalingsperiode.forrigePeriodeId).isEqualTo(0L)
+        assertThat(utbetalingsperiode.opphør).isNull()
+    }
+
+    @Test
+    fun `fullt opphør av åpen periode beholder null i opphørslinjen`() {
+        val forrigeAndeler = listOf(utbetalingsandel(1000, "2025-01-01", null, periodeId = 0, forrigePeriodeId = null))
+        val beregnetOppdrag = lagUtbetalingsoppdrag(grunnlag(emptyList(), forrigeAndeler, forrigeAndeler))
+
+        val opphørsperiode = beregnetOppdrag.utbetalingsoppdrag.utbetalingsperiode.single()
+        assertThat(opphørsperiode.vedtakdatoTom).isNull()
+        assertThat(opphørsperiode.opphør?.opphørDatoFom).isEqualTo(LocalDate.of(2025, 1, 1))
+        assertThat(beregnetOppdrag.utbetalingsandeler).isEmpty()
+    }
 
     @Test
     fun `førstegangsbehandling lager ny kjede fra periodeId 0`() {
@@ -233,17 +300,17 @@ class LagUtbetalingsoppdragTest {
     private fun andel(
         beløp: Int,
         fom: String = "2025-01-01",
-        tom: String = "2025-12-31",
+        tom: String? = "2025-12-31",
     ) = andel(beløp.toString(), fom, tom)
 
     private fun andel(
         beløp: String,
         fom: String = "2025-01-01",
-        tom: String = "2025-12-31",
+        tom: String? = "2025-12-31",
     ) = AndelTilkjentYtelse(
         beløp = beløp.toBigDecimal(),
         fom = LocalDate.parse(fom),
-        tom = LocalDate.parse(tom),
+        tom = tom?.let(LocalDate::parse),
         kildeBehandlingId = behandlingId,
     )
 
@@ -251,12 +318,12 @@ class LagUtbetalingsoppdragTest {
     private fun utbetalingsandel(
         beløp: Int,
         fom: String,
-        tom: String,
+        tom: String?,
         periodeId: Long,
         forrigePeriodeId: Long?,
     ) = Utbetalingsandel(
         fom = LocalDate.parse(fom),
-        tom = LocalDate.parse(tom),
+        tom = tom?.let(LocalDate::parse),
         beløp = beløp,
         ytelsestype = GrunnOgHjelpYtelsestype.GRUNNSTØNAD,
         periodeId = periodeId,

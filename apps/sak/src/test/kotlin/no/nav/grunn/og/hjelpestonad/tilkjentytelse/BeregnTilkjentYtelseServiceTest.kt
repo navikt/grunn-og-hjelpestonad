@@ -30,11 +30,8 @@ import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskap
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.time.Clock
-import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
@@ -46,7 +43,7 @@ class BeregnTilkjentYtelseServiceTest {
     private val diagnoseService = mockk<VilkårDiagnoseService>()
     private val ekstrautgifterService = mockk<VilkårEkstrautgifterService>()
     private val trygdetidService = mockk<TrygdetidService>()
-    private val service = BeregnTilkjentYtelseService(behandlingService, tilkjentYtelseService, medlemskapService, diagnoseService, ekstrautgifterService, trygdetidService, Clock.fixed(Instant.parse("2026-11-17T12:00:00Z"), ZoneOffset.UTC))
+    private val service = BeregnTilkjentYtelseService(behandlingService, tilkjentYtelseService, medlemskapService, diagnoseService, ekstrautgifterService, trygdetidService)
     private val fraOgMedDato = LocalDate.of(2026, 3, 1)
     private val behandling = Behandling(fagsakId = UUID.randomUUID(), status = BehandlingStatus.UTREDES, resultat = BehandlingResultat.IKKE_SATT)
 
@@ -63,14 +60,14 @@ class BeregnTilkjentYtelseServiceTest {
     }
 
     @Test
-    fun `beregning lagrer faktisk beregning med desimaler og treårsgrense`() {
+    fun `beregning beholder desimaler og åpen sluttdato frem til oppdrag`() {
         val tilkjentYtelse = slot<TilkjentYtelse>()
         every { tilkjentYtelseService.lagre(capture(tilkjentYtelse)) } returns Unit
         service.beregnOgLagreTilkjentYtelse(behandlingId)
         assertThat(tilkjentYtelse.captured.startmåned).isEqualTo(YearMonth.of(2026, 4))
         val andelTilkjentYtelse = tilkjentYtelse.captured.andelerTilkjentYtelse.single()
         assertThat(andelTilkjentYtelse.beløp).isEqualByComparingTo("830.85")
-        assertThat(andelTilkjentYtelse.tom).isEqualTo(LocalDate.of(2029, 11, 30))
+        assertThat(andelTilkjentYtelse.tom).isNull()
         verifyOrder {
             medlemskapService.hentPerioder(behandlingId)
             tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(behandlingId)
@@ -97,7 +94,7 @@ class BeregnTilkjentYtelseServiceTest {
             beregnetOppdrag.utbetalingsoppdrag.utbetalingsperiode
                 .single()
                 .vedtakdatoTom,
-        ).isEqualTo(LocalDate.of(2029, 11, 30))
+        ).isNull()
     }
 
     @Test

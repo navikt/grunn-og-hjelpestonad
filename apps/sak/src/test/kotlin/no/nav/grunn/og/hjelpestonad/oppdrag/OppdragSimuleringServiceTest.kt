@@ -10,7 +10,6 @@ import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
 import io.mockk.verifyOrder
-import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.felles.sikkerhet.SikkerhetContext
@@ -21,6 +20,7 @@ import no.nav.grunn.og.hjelpestonad.oppdrag.simulering.SimuleringRepository
 import no.nav.grunn.og.hjelpestonad.oppdrag.simulering.SimuleringResponse
 import no.nav.grunn.og.hjelpestonad.oppdrag.simulering.Simuleringsstatus
 import no.nav.grunn.og.hjelpestonad.oppdrag.simulering.SimuleringsstatusResponse
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService

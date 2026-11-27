@@ -1,8 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.config
 
-import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.beslutter.ÅrsakUnderkjent
 import no.nav.grunn.og.hjelpestonad.brev.domain.BrevRequest
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import org.postgresql.util.PGobject
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.flyway.autoconfigure.FlywayConfigurationCustomizer

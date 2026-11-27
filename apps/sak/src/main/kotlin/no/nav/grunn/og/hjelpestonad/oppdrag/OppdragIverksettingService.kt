@@ -1,7 +1,7 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service

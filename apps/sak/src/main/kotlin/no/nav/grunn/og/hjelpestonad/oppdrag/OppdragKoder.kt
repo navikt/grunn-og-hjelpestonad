@@ -1,8 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
-import no.nav.familie.felles.utbetalingsgenerator.domain.Fagsystem
-import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsperiode
-import no.nav.familie.felles.utbetalingsgenerator.domain.Ytelsestype
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Fagsystem
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Utbetalingsperiode
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Ytelsestype
 
 enum class GrunnOgHjelpYtelsestype(
     override val klassifisering: String,

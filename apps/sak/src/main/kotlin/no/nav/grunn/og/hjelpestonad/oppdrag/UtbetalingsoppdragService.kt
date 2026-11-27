@@ -1,11 +1,11 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
-import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakRepository
 import no.nav.grunn.og.hjelpestonad.fagsak.FagsakService
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseService
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull

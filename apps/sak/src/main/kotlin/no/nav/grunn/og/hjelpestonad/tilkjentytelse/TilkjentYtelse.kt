@@ -31,6 +31,6 @@ data class AndelTilkjentYtelse(
     @Column("belop")
     val beløp: BigDecimal,
     val fom: LocalDate,
-    val tom: LocalDate,
+    val tom: LocalDate?,
     val kildeBehandlingId: UUID,
 )

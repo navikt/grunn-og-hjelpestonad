@@ -1,0 +1,2 @@
+ALTER TABLE andel_tilkjent_ytelse ALTER COLUMN tom DROP NOT NULL;
+ALTER TABLE utbetalingsandel ALTER COLUMN tom DROP NOT NULL;

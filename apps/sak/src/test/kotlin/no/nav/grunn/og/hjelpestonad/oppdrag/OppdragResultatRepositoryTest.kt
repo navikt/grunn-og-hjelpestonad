@@ -1,6 +1,5 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
-import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.SpringContextTest
 import no.nav.grunn.og.hjelpestonad.behandling.Behandling
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingRepository
@@ -13,6 +12,7 @@ import no.nav.grunn.og.hjelpestonad.fagsak.domain.FagsakPerson
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.Personident
 import no.nav.grunn.og.hjelpestonad.fagsak.domain.StønadType
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelse
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.TilkjentYtelseRepository
@@ -57,6 +57,24 @@ internal class OppdragResultatRepositoryTest : SpringContextTest() {
         assertThat(lest.status).isEqualTo(OppdragStatus.OPPRETTET)
         assertThat(lest.andeler).containsExactlyElementsOf(resultat.andeler)
         assertThat(oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, unntattBehandlingId = UUID.randomUUID())).containsExactly(lest.andeler.single())
+    }
+
+    @Test
+    fun `lagrer og leser åpne perioder i JSONB og kjedegrunnlag`() {
+        val fagsak = opprettFagsak()
+        val behandling = opprettBehandling(fagsak)
+        val utbetalingsoppdrag =
+            oppdrag(behandling).let { oppdrag ->
+                oppdrag.copy(utbetalingsperiode = oppdrag.utbetalingsperiode.map { it.copy(vedtakdatoTom = null) })
+            }
+        val utbetalingsandel = andel(behandling).copy(tom = null)
+        oppdragResultatRepository.insert(oppdragResultat(behandling, utbetalingsoppdrag, setOf(utbetalingsandel)))
+
+        val lagretOppdrag = oppdragResultatRepository.findByIdOrNull(behandling.id)!!
+        assertThat(lagretOppdrag.utbetalingsoppdrag).isEqualTo(utbetalingsoppdrag)
+        assertThat(lagretOppdrag.andeler.single()).isEqualTo(utbetalingsandel)
+        assertThat(oppdragResultatRepository.finnAndelerFraForrigeBehandling(fagsak.id, UUID.randomUUID()).single().tom).isNull()
+        assertThat(oppdragResultatRepository.finnSisteAndelPerKjede(fagsak.id, UUID.randomUUID()).single().tom).isNull()
     }
 
     @Test

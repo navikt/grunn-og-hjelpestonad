@@ -50,7 +50,6 @@
         <mockk.version>1.14.12</mockk.version>
         <efterlatte-prosessering.version>1.20261112132903_79278de</efterlatte-prosessering.version>
         <familie-felles.version>4.20261026180911_c3ff6d9</familie-felles.version>
-        <familie-utbetalingsgenerator.version>1.0_20260923084625_49defa2</familie-utbetalingsgenerator.version>
         <openapi-generator.version>7.27.0</openapi-generator.version>
         <diagnosekoder.version>1.2026.0</diagnosekoder.version>
 
@@ -132,11 +131,6 @@
             <groupId>no.nav.familie.felles</groupId>
             <artifactId>tidslinje</artifactId>
             <version>${familie-felles.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>no.nav.familie.felles</groupId>
-            <artifactId>familie-utbetalingsgenerator</artifactId>
-            <version>${familie-utbetalingsgenerator.version}</version>
         </dependency>
         <dependency>
             <groupId>no.nav.helse</groupId>

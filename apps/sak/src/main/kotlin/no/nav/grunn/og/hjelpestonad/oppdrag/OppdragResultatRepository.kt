@@ -1,8 +1,8 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
-import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.felles.InsertUpdateRepository
 import no.nav.grunn.og.hjelpestonad.felles.RepositoryInterface
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import org.springframework.data.annotation.Id
 import org.springframework.data.jdbc.repository.query.Modifying
 import org.springframework.data.jdbc.repository.query.Query
@@ -45,7 +45,7 @@ data class Utbetalingsandel(
     @Id
     val id: UUID = UUID.randomUUID(),
     val fom: LocalDate,
-    val tom: LocalDate,
+    val tom: LocalDate?,
     @Column("belop")
     val beløp: Int,
     val ytelsestype: GrunnOgHjelpYtelsestype,

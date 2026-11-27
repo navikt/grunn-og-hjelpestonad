@@ -1,15 +1,15 @@
 package no.nav.grunn.og.hjelpestonad.oppdrag
 
-import no.nav.familie.felles.utbetalingsgenerator.Utbetalingsgenerator
-import no.nav.familie.felles.utbetalingsgenerator.domain.Behandlingsinformasjon
-import no.nav.familie.felles.utbetalingsgenerator.domain.IdentOgType
-import no.nav.familie.felles.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.felles.UgyldigInput
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.Utbetalingsgenerator
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Behandlingsinformasjon
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.IdentOgType
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.Utbetalingsoppdrag
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.AndelTilkjentYtelse
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
-import no.nav.familie.felles.utbetalingsgenerator.domain.AndelData as AndelForUtbetalingsgenerator
+import no.nav.grunn.og.hjelpestonad.oppdrag.utbetalingsgenerator.domain.AndelData as AndelForUtbetalingsgenerator
 
 data class Oppdragsgrunnlag(
     val behandlingId: UUID,
@@ -98,7 +98,7 @@ private fun AndelTilkjentYtelse.tilAndelForUtbetalingsgenerator(personIdent: Str
     AndelForUtbetalingsgenerator(
         id = id.toString(),
         fom = YearMonth.from(fom),
-        tom = YearMonth.from(tom),
+        tom = tom?.let(YearMonth::from),
         beløp = tilUtbetalingsbeløp(beløp),
         personIdent = personIdent,
         type = GrunnOgHjelpYtelsestype.GRUNNSTØNAD,
@@ -111,7 +111,7 @@ private fun Utbetalingsandel.tilAndelForUtbetalingsgenerator(personIdent: String
     AndelForUtbetalingsgenerator(
         id = id.toString(),
         fom = YearMonth.from(fom),
-        tom = YearMonth.from(tom),
+        tom = tom?.let(YearMonth::from),
         beløp = beløp,
         personIdent = personIdent,
         type = ytelsestype,

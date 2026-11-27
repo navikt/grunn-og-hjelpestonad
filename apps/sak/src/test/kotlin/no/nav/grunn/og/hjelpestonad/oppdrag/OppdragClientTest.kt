@@ -118,6 +118,26 @@ class OppdragClientTest {
     }
 
     @Test
+    fun `sender ekte null som sluttdato ved simulering og iverksetting`() {
+        val åpentOppdrag =
+            utbetalingsoppdrag.copy(
+                utbetalingsperiode = utbetalingsoppdrag.utbetalingsperiode.map { it.copy(vedtakdatoTom = null) },
+            )
+        stubSvar("""{"status":"SUKSESS","data":{}}""")
+        stubSvar("""{"status":"SUKSESS","data":"OK"}""", path = IVERKSETT_PATH)
+
+        client.simuler(åpentOppdrag)
+        client.iverksett(åpentOppdrag)
+
+        listOf(PATH, IVERKSETT_PATH).forEach { path ->
+            val forespørsel = wireMockServer.findAll(postRequestedFor(urlEqualTo(path))).single()
+            val periode = jacksonObjectMapper().readTree(forespørsel.bodyAsString)["utbetalingsperiode"][0]
+            assertEquals(true, periode.has("vedtakdatoTom"))
+            assertEquals(true, periode["vedtakdatoTom"].isNull)
+        }
+    }
+
+    @Test
     fun `sender oppdraget med OBO-token og returnerer data fra simuleringen uendret`() {
         val simuleringsdataJson =
             """

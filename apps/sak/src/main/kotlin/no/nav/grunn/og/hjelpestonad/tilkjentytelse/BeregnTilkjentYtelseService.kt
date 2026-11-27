@@ -7,8 +7,6 @@ import no.nav.grunn.og.hjelpestonad.vilkår.ekstrautgifter.VilkårEkstrautgifter
 import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Clock
-import java.time.YearMonth
 import java.util.UUID
 
 @Service
@@ -19,7 +17,6 @@ class BeregnTilkjentYtelseService(
     private val vilkårDiagnoseService: VilkårDiagnoseService,
     private val vilkårEkstrautgifterService: VilkårEkstrautgifterService,
     private val trygdetidService: TrygdetidService,
-    private val clock: Clock = Clock.systemDefaultZone(),
 ) {
     @Transactional
     fun beregnOgLagreTilkjentYtelse(behandlingId: UUID) {
@@ -33,7 +30,7 @@ class BeregnTilkjentYtelseService(
                 vilkårEkstrautgifterPerioder,
                 trygdetidService.hentPerioder(behandlingId),
             )
-        val andelerTilkjentYtelse = fyllInnManglendeSluttdato(utlededeAndeler, YearMonth.now(clock), behandlingId)
+        val andelerTilkjentYtelse = lagAndelerTilkjentYtelse(utlededeAndeler, behandlingId)
         lagreTilkjentYtelse(behandlingId, andelerTilkjentYtelse)
     }
 
