@@ -99,13 +99,13 @@ class OppgaveDtoServiceTest {
         }
         every { oppgaveClient.ferdigstillOppgave(any(), any()) } returns Unit
 
-        service.opprettBehandleSakOppgave(behandling, "A123456", "4415")
+        service.opprettBehandleSakOppgave(behandling, "A123456", "4415", UUID.randomUUID())
         repeat(2) {
             service.ferdigstillOppgaveForType(behandling.id, OppgavetypeGRU.BEH_SAK)
-            service.opprettBehandleVedtakOppgave(behandling.id)
+            service.opprettBehandleVedtakOppgave(behandling.id, UUID.randomUUID())
             assertThat(service.hentAktivOppgavetype(behandling.id)).isEqualTo(OppgavetypeGRU.BEH_VED)
             service.ferdigstillOppgaveForType(behandling.id, OppgavetypeGRU.BEH_VED)
-            service.opprettBehandleUnderkjentVedtakOppgave(behandling.id, "A123456")
+            service.opprettBehandleUnderkjentVedtakOppgave(behandling.id, "A123456", UUID.randomUUID())
             assertThat(service.hentAktivOppgavetype(behandling.id)).isEqualTo(OppgavetypeGRU.BEH_SAK)
         }
         service.ferdigstillOppgaveForType(behandling.id, OppgavetypeGRU.BEH_SAK)
@@ -173,6 +173,7 @@ class OppgaveDtoServiceTest {
             behandling = behandling,
             saksbehandler = "A123456",
             tildeltEnhetsnr = "4415",
+            idempotensUuid = UUID.randomUUID(),
         )
 
         assertThat(entitySlot.captured.behandlingId).isEqualTo(behandlingId)
@@ -220,10 +221,55 @@ class OppgaveDtoServiceTest {
                 behandling = behandling,
                 saksbehandler = "A123456",
                 tildeltEnhetsnr = "4415",
+                idempotensUuid = UUID.randomUUID(),
             )
         }.isInstanceOf(IllegalStateException::class.java)
             .hasMessageContaining("Oppgave-respons mangler id")
 
         verify(exactly = 0) { oppgaveRepository.insert(any()) }
+    }
+
+    @Test
+    fun `sender idempotensUuid til Gosys og lagrer oppgaven`() {
+        val behandling = lagBehandlingMedFagsak()
+        val idempotensUuid = UUID.randomUUID()
+        val requests = mutableListOf<LagOppgaveRequest>()
+        every { oppgaveClient.opprettOppgaveM2M(capture(requests)) } returns lagGsakOppgaveDto()
+        val entitySlot = slot<Oppgave>()
+        every { oppgaveRepository.insert(capture(entitySlot)) } answers { firstArg() }
+
+        service.opprettBehandleSakOppgave(
+            behandling = behandling,
+            saksbehandler = "A123456",
+            tildeltEnhetsnr = "4415",
+            idempotensUuid = idempotensUuid,
+        )
+
+        assertThat(requests.single().uuid).isEqualTo(idempotensUuid)
+        assertThat(entitySlot.captured.behandlingId).isEqualTo(behandling.id)
+        assertThat(entitySlot.captured.gsakOppgaveId).isEqualTo(GSAK_OPPGAVE_ID)
+    }
+
+    private fun lagBehandlingMedFagsak(): Behandling {
+        val fagsakPersonId = UUID.randomUUID()
+        val fagsakId = UUID.randomUUID()
+        val fagsakPerson = FagsakPerson(id = fagsakPersonId, identer = setOf(Personident(ident = "12345678910")))
+        val fagsak = Fagsak(id = fagsakId, fagsakPersonId = fagsakPersonId, eksternId = 1001, stønadstype = StønadType.GRUNNSTØNAD)
+
+        every { fagsakRepository.findByIdOrNull(fagsakId) } returns fagsak
+        every { fagsakPersonRepository.findByIdOrNull(fagsakPersonId) } returns fagsakPerson
+
+        return Behandling(fagsakId = fagsakId, status = BehandlingStatus.OPPRETTET, resultat = BehandlingResultat.IKKE_SATT)
+    }
+
+    private fun lagGsakOppgaveDto(): OppgaveDto =
+        OppgaveDto(
+            id = GSAK_OPPGAVE_ID,
+            tema = Tema.GRU,
+            oppgavetype = OppgavetypeGRU.BEH_SAK.name,
+        )
+
+    companion object {
+        private const val GSAK_OPPGAVE_ID = 98765L
     }
 }

@@ -5,6 +5,7 @@ import efterlatte.prosessering.TaskStep
 import efterlatte.prosessering.spring.TaskService
 import no.nav.grunn.og.hjelpestonad.oppgave.OppgaveService
 import no.nav.grunn.og.hjelpestonad.saksbehandler.EntraProxyClient
+import no.nav.grunn.og.hjelpestonad.task.lagRetryPolicy
 import no.nav.grunn.og.hjelpestonad.task.lagTaskType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -20,6 +21,7 @@ class LagBehandleSakOppgaveTask(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override val type = TYPE
+    override val retry = lagRetryPolicy()
 
     override fun utfor(kontekst: TaskKontekst<OpprettOppgavePayload>) {
         logger.info("LagBehandleSakOppgaveTask task: ${kontekst.payload.behandlingsId}, saksbehandler: ${kontekst.payload.saksbehandler}")
@@ -27,6 +29,7 @@ class LagBehandleSakOppgaveTask(
             behandling = behandlingService.hentBehandlingEllerKast(kontekst.payload.behandlingsId),
             saksbehandler = kontekst.payload.saksbehandler,
             tildeltEnhetsnr = kontekst.payload.tildeltEnhetsnr,
+            idempotensUuid = kontekst.payload.idempotensUuid,
         )
     }
 
@@ -51,6 +54,6 @@ class LagBehandleSakOppgaveTask(
 data class OpprettOppgavePayload(
     val behandlingsId: UUID,
     val saksbehandler: String,
-    val uniqueTaskPayloadId: UUID = UUID.randomUUID(),
     val tildeltEnhetsnr: String,
+    val idempotensUuid: UUID = UUID.randomUUID(),
 )

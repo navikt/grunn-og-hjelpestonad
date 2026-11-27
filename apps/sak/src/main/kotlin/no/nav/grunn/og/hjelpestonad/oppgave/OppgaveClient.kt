@@ -1,11 +1,14 @@
 package no.nav.grunn.og.hjelpestonad.oppgave
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.grunn.og.hjelpestonad.texas.TexasClient
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientResponseException
 import org.springframework.web.client.body
 import java.net.URI
 import java.util.UUID
@@ -28,18 +31,41 @@ class OppgaveClient(
         val maskinToken = texasClient.hentMaskinToken(oppgaveScope.toString())
 
         return hentOppgaveRespons("opprette oppgave") {
-            restClient
-                .post()
-                .uri(API_BASE_URL)
-                .headers { headers ->
-                    headers.setBearerAuth(maskinToken)
-                    headers.set("X-Correlation-ID", correlationId())
-                }.body(oppgaveRequest)
-                .retrieve()
-                .body<OppgaveDto>()
+            try {
+                restClient
+                    .post()
+                    .uri(API_BASE_URL)
+                    .headers { headers ->
+                        headers.setBearerAuth(maskinToken)
+                        headers.set("X-Correlation-ID", correlationId())
+                    }.body(oppgaveRequest)
+                    .retrieve()
+                    .body<OppgaveDto>()
+            } catch (feil: RestClientResponseException) {
+                if (feil.statusCode != HttpStatus.CONFLICT) throw feil
+                hentOppgaveFraDuplikatsvar(oppgaveRequest, feil)
+            }
         }.also { response ->
             logger.info("Oppgave opprettet med id: {}", response.id)
         }
+    }
+
+    private fun hentOppgaveFraDuplikatsvar(
+        oppgaveRequest: LagOppgaveRequest,
+        feil: RestClientResponseException,
+    ): OppgaveDto {
+        val duplikatsvar =
+            checkNotNull(feil.getResponseBodyAs(OppgaveDuplikatsvar::class.java)) { "Oppgave returnerte et tomt konfliktsvar" }
+        check(duplikatsvar.oppgaveId > 0) { "Konfliktsvaret fra Oppgave mangler en gyldig oppgave-ID" }
+
+        val gosysOppgave = hentOppgaveM2M(duplikatsvar.oppgaveId)
+        check(
+            gosysOppgave.id == duplikatsvar.oppgaveId &&
+                gosysOppgave.saksreferanse == oppgaveRequest.saksreferanse &&
+                gosysOppgave.oppgavetype == oppgaveRequest.oppgavetype.name &&
+                gosysOppgave.behandlesAvApplikasjon == oppgaveRequest.behandlesAvApplikasjon,
+        ) { "Oppgaven fra duplikatsvaret samsvarer ikke med opprettelseskallet" }
+        return gosysOppgave
     }
 
     // TODO: Dette må kanskje gjøres med OBO, vi ser på dette siden.
@@ -154,6 +180,11 @@ class OppgaveClient(
     }
 }
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+private data class OppgaveDuplikatsvar(
+    val oppgaveId: Long,
+)
+
 data class LagOppgaveRequest(
     val personident: String,
     val saksreferanse: String,
@@ -168,4 +199,6 @@ data class LagOppgaveRequest(
     val tilordnetRessurs: String? = null,
     val behandlesAvApplikasjon: String,
     val tildeltEnhetsnr: String,
+    // Idempotensnøkkel for duplikatkontroll i Oppgave v1, ikke oppgave-ID eller sporings-ID
+    val uuid: UUID,
 )
