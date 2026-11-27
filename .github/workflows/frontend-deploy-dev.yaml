@@ -22,13 +22,13 @@ jobs:
       id-token: "write"
       actions: "read"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # ratchet:pnpm/action-setup@v6.1.1
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115
         with:
           package_json_file: apps/frontend/package.json
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # ratchet:actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 26
           cache: "pnpm"
@@ -50,7 +50,7 @@ jobs:
         run: |
           pnpm run build
           pnpm run build:server
-      - uses: nais/docker-build-push@6394144a53cad0332745f24a8302f5efaf81719a # ratchet:nais/docker-build-push@v1.0.0
+      - uses: nais/docker-build-push@6394144a53cad0332745f24a8302f5efaf81719a
         id: docker-push
         with:
           team: grunn-og-hjelp
@@ -69,10 +69,10 @@ jobs:
       id-token: "write"
       actions: "read"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: nais/deploy/actions/deploy@427e29c94d911626a023a76f402f6dcae1f840b7 # ratchet:nais/deploy/actions/deploy@v3
+      - uses: nais/deploy/actions/deploy@427e29c94d911626a023a76f402f6dcae1f840b7
         env:
           CLUSTER: dev-gcp
           RESOURCE: apps/frontend/.nais/dev.yaml
