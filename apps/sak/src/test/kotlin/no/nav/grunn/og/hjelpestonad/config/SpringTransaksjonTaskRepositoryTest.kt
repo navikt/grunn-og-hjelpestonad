@@ -2,12 +2,18 @@ package no.nav.grunn.og.hjelpestonad.config
 
 import efterlatte.prosessering.Status
 import efterlatte.prosessering.TaskRepository
+import efterlatte.prosessering.spring.TaskService
 import no.nav.grunn.og.hjelpestonad.SpringContextTest
+import no.nav.grunn.og.hjelpestonad.logging.Korrelasjonsfilter
+import no.nav.grunn.og.hjelpestonad.task.lagUuidTaskType
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpServletResponse
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -19,9 +25,33 @@ class SpringTransaksjonTaskRepositoryTest : SpringContextTest() {
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
 
+    @Autowired
+    private lateinit var taskService: TaskService
+
+    @Autowired
+    private lateinit var korrelasjonsfilter: Korrelasjonsfilter
+
     @Test
     fun `bruker adapteren og ikke bibliotekets standardrepository`() {
         assertThat(taskRepository).isInstanceOf(SpringTransaksjonTaskRepository::class.java)
+    }
+
+    @Test
+    fun `task opprettet fra HTTP lagrer korrelasjons-ID i metadata`() {
+        korrelasjonsfilter.doFilter(MockHttpServletRequest(), MockHttpServletResponse()) { _, _ ->
+            val taskId =
+                taskRepository.iEgenTransaksjon {
+                    taskService.opprett(
+                        type = lagUuidTaskType("korrelasjonstest"),
+                        payload = UUID.randomUUID(),
+                        triggerTid = Instant.now().plus(1, ChronoUnit.DAYS),
+                    )
+                }
+
+            val lagretTask = requireNotNull(taskRepository.finn(taskId.verdi))
+            assertThat(lagretTask.metadata).containsEntry("traceId", MDC.get("callId"))
+            assertThat(lagretTask.metadata["traceId"]).isNotBlank()
+        }
     }
 
     @Test
