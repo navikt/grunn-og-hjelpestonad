@@ -92,7 +92,8 @@
             }
           ],
           "oppholdsadresse": [],
-          "doedsfall": []
+          "doedsfall": [],
+          "falskIdentitet": null
         }
       }
     }

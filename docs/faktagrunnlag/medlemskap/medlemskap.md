@@ -290,11 +290,15 @@ avgjør hvilke regler som gjelder for den som bor her:
 | `oppholdsadresse` | `utenlandskAdresse.landkode`, `gyldigFraOgMed`, `gyldigTilOgMed`. Bare utenlandske adresser. | Kan vise at søker har vært borte i mer enn 12 måneder selv om hen er registrert som bosatt. Vises bare, brukes ikke i reglene. |
 | `doedsfall` | `doedsdato` | Avslutter tidslinjen. Felles grunnlag for hele behandlingen. |
 
-Oppholdsadresse og dødsfall vises under bosted i svaret til frontend.
+Oppholdsadresse vises under bosted i svaret til frontend, mens dødsfall returneres i et eget felt og vises som varsel ved medlemskapsvilkåret.
 
 For alle opplysningene henter vi også `metadata.historisk` og
 `metadata.master`, og `gyldighetstidspunkt` og `opphoerstidspunkt` fra
 `folkeregistermetadata`. For noen opplysninger står perioden bare der.
+For `doedsfall` bruker vi ikke `gyldighetstidspunkt` når `doedsdato` mangler,
+fordi Folkeregisterets `gyldighetstidspunkt` ikke nødvendigvis stemmer med
+dødsdatoen. Da returnerer vi dødsfallet uten dato slik at saksbehandler får
+varsel om å finne dødsdatoen selv.
 
 Vi henter med historikk (`historikk: true`). Medlemskapsperiodene dekker hele
 tidslinjen, så vi trenger å vite hvor søker bodde og hvilket statsborgerskap

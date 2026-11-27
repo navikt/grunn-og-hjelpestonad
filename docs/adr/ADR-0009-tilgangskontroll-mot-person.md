@@ -70,9 +70,9 @@ anbefalingen i dokumentasjonen, se «Komplett regelsett» under alternativer.
   plassert som «med personsjekk» eller «uten personsjekk». Testen ser ikke
   controllere som bare finnes i andre profiler.
 
-Endepunkter uten personsjekk: `DiagnosekodeController`, `UnleashController` og
-`TestDbController`. Task-endepunktene (`/api/task/**`) forsvant da sak byttet fra
-familie-prosessering til efterlatte-prosessering, som ikke har endepunkter.
+Endepunkter uten personsjekk: `DiagnosekodeController`, `UnleashController`,
+`TestDbController` og `/api/prosessering/**`. Tilgangskravene for prosessering
+er beskrevet i [backendens README](../../apps/sak/README.md#prosessering-i-efterlatte-verktoy-kun-dev).
 
 ### Svar ved avslag og feil
 
@@ -200,8 +200,8 @@ beslutninger. Forkastet fordi appen ikke er i prod og ikke har egen tilgangslogi
 - [ ] Test i dev med testbrukere: én med kode 6 og én skjermet.
 - [ ] Prod-manifest: outbound-regel til `populasjonstilgangskontroll` i namespace
       `tilgangsmaskin`.
-- [x] Sjekk tilgangskontrollen på `/api/task/**`. Endepunktene er fjernet sammen
-      med familie-prosessering.
+- [ ] Sjekk tilgangskontrollen på `/api/prosessering/**`. Endepunktene har
+      gruppekrav, men ingen personsjekk.
 - [ ] Sjekk barn når barn blir en del av saken.
 - [ ] Vurder regelsettet på nytt når Nav stiller krav om å sjekke avdøde brukere.
 - [ ] Auditlogg: database for økonominære handlinger og ArcSight via `AuditLogger`.

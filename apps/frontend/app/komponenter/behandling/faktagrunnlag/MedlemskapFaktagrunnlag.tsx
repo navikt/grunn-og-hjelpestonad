@@ -7,15 +7,20 @@ import { useErLesevisning } from "~/hooks/useErLesevisning";
 import { formaterIsoDatoTid } from "~/utils/utils";
 import { feilmeldingFra } from "../vilkår/felles/feilmeldingFra";
 import { visDato } from "../vilkår/felles/useVilkårSkjema";
-import { useMedlemskapFaktagrunnlag } from "./useMedlemskapFaktagrunnlag";
+import { useVilkårContext } from "../vilkår/VilkårContext";
 import { MedlemskapOpplysningstabell } from "./MedlemskapOpplysningstabell";
+import { lagDødsfallVarselTekst } from "./dødsfallVarselTekst";
 
 export const MedlemskapFaktagrunnlag: React.FC = () => {
   const { behandlingId } = useBehandlingContext();
   const erLesevisning = useErLesevisning();
+  const { medlemskapFaktagrunnlagTilstand } = useVilkårContext();
   const { medlemskapFaktagrunnlag, error, laster, hentPåNytt, innhentFraPdl } =
-    useMedlemskapFaktagrunnlag(behandlingId);
+    medlemskapFaktagrunnlagTilstand;
   const [innhentingsfeil, settInnhentingsfeil] = React.useState<string>();
+  const dødsfallVarsel = medlemskapFaktagrunnlag
+    ? lagDødsfallVarselTekst(medlemskapFaktagrunnlag.dødsfall)
+    : undefined;
 
   const innhentFraFolkeregisteret = () => {
     settInnhentingsfeil(undefined);
@@ -85,6 +90,14 @@ export const MedlemskapFaktagrunnlag: React.FC = () => {
               </Button>
             )}
           </HStack>
+          {dødsfallVarsel && (
+            <LocalAlert status="warning">
+              <LocalAlert.Header>
+                <LocalAlert.Title as="h4">{dødsfallVarsel.tittel}</LocalAlert.Title>
+              </LocalAlert.Header>
+              <LocalAlert.Content>{dødsfallVarsel.beskrivelse}</LocalAlert.Content>
+            </LocalAlert>
+          )}
           <MedlemskapOpplysningstabell
             medlemskapFaktagrunnlag={medlemskapFaktagrunnlag}
             visOpplysningsperiode={visOpplysningsperiode}

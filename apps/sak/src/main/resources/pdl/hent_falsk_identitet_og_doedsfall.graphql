@@ -1,0 +1,10 @@
+query ($ident: ID!) {
+    hentPerson(ident: $ident) {
+        falskIdentitet {
+            erFalsk
+        }
+        doedsfall {
+            doedsdato
+        }
+    }
+}

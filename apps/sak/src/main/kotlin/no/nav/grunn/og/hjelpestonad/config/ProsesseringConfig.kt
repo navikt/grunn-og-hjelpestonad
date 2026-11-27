@@ -40,8 +40,9 @@ class ProsesseringConfig {
  * skriver via repositoryene og `markerFullført` committes eller rulles tilbake samlet.
  *
  * Exceptions fra steget kan inneholde personopplysninger, for eksempel feilsvar fra dokarkiv.
- * Biblioteket logger exceptionen til vanlig logg, så vi logger den fullstendig til team logs og
- * kaster videre en exception uten `cause` og uten opprinnelig melding.
+ * Biblioteket logger exceptionen til vanlig logg og lagrer stacktrace i kjørehistorikken.
+ * Vi logger den fullstendig til team logs og kaster videre en exception uten `cause`,
+ * suppressed-unntak og opprinnelig melding.
  */
 class SpringTransaksjonTaskRepository(
     private val delegate: TaskRepository,

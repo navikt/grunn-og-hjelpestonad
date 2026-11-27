@@ -280,7 +280,12 @@ class PdlClientWiremockTest {
                       "metadata": { "historisk": false, "master": "FREG" },
                       "folkeregistermetadata": null
                     }
-                  ]
+                  ],
+                  "falskIdentitet": {
+                    "erFalsk": true,
+                    "metadata": { "historisk": false, "master": "FREG" },
+                    "folkeregistermetadata": { "gyldighetstidspunkt": "2024-05-01T10:00:00", "opphoerstidspunkt": null }
+                  }
                 }
               }
             }
@@ -307,6 +312,9 @@ class PdlClientWiremockTest {
                 ?.landkode,
         ).isEqualTo("ESP")
         assertThat(person.doedsfall.single().doedsdato).isEqualTo(LocalDate.of(2026, 9, 1))
+        assertThat(person.falskIdentitet?.erFalsk).isTrue()
+        assertThat(person.falskIdentitet?.metadata?.master).isEqualTo("FREG")
+        assertThat(person.falskIdentitet?.folkeregistermetadata?.gyldighetstidspunkt).isEqualTo(LocalDateTime.of(2024, 5, 1, 10, 0))
         assertEquals(listOf("pdlScope"), texasClient.requestedOboAudiences)
     }
 
@@ -319,6 +327,113 @@ class PdlClientWiremockTest {
 
         assertThrows<PdlException> {
             pdlClient.hentFaktagrunnlag(PdlRequest(query = "query {}", variables = emptyMap()))
+        }
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallOBOToken bruker OBO-token og leser falsk identitet og dødsfall`() {
+        stubForGraphql(
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "falskIdentitet": { "erFalsk": true },
+                  "doedsfall": [ { "doedsdato": "2025-11-20" } ]
+                }
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val personopplysningerForMigrering =
+            pdlClient.hentFalskIdentitetOgDødsfallOBOToken(
+                PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
+            )
+
+        assertThat(personopplysningerForMigrering).isNotNull
+        assertThat(personopplysningerForMigrering!!.falskIdentitet?.erFalsk).isTrue()
+        assertThat(personopplysningerForMigrering.dødsfall.single().dødsdato).isEqualTo(LocalDate.of(2025, 11, 20))
+        assertEquals(listOf("pdlScope"), texasClient.requestedOboAudiences)
+        assertThat(texasClient.requestedMaskinAudiences).isEmpty()
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallMaskinToken bruker maskintoken og leser falsk identitet og dødsfall`() {
+        stubForGraphql(
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "falskIdentitet": { "erFalsk": true },
+                  "doedsfall": [ { "doedsdato": "2025-11-20" } ]
+                }
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val personopplysningerForMigrering =
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(
+                PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
+            )
+
+        assertThat(personopplysningerForMigrering).isNotNull
+        assertThat(personopplysningerForMigrering!!.falskIdentitet?.erFalsk).isTrue()
+        assertThat(personopplysningerForMigrering.dødsfall.single().dødsdato).isEqualTo(LocalDate.of(2025, 11, 20))
+        assertEquals(listOf("pdlScope"), texasClient.requestedMaskinAudiences)
+        assertThat(texasClient.requestedOboAudiences).isEmpty()
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallMaskinToken håndterer null falskIdentitet og tom dødsfall-liste`() {
+        stubForGraphql(
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "falskIdentitet": null,
+                  "doedsfall": []
+                }
+              }
+            }
+            """.trimIndent(),
+        )
+
+        val personopplysningerForMigrering =
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(
+                PdlRequest(query = "query {}", variables = mapOf("ident" to "123")),
+            )
+
+        assertThat(personopplysningerForMigrering).isNotNull
+        assertThat(personopplysningerForMigrering!!.falskIdentitet).isNull()
+        assertThat(personopplysningerForMigrering.dødsfall).isEmpty()
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallMaskinToken kaster PdlException ved teknisk feil`() {
+        wireMockServer.stubFor(
+            post(urlEqualTo("/graphql"))
+                .willReturn(serverError()),
+        )
+
+        assertThrows<PdlException> {
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(PdlRequest(query = "query {}", variables = emptyMap()))
+        }
+    }
+
+    @Test
+    fun `hentFalskIdentitetOgDødsfallMaskinToken kaster PdlException ved PDL errors`() {
+        stubForGraphql(
+            """
+            {
+              "data": { "hentPerson": null },
+              "errors": [ { "message": "Fant ikke person", "extensions": { "code": "not_found" } } ]
+            }
+            """.trimIndent(),
+        )
+
+        assertThrows<PdlException> {
+            pdlClient.hentFalskIdentitetOgDødsfallMaskinToken(PdlRequest(query = "query {}", variables = mapOf("ident" to "123")))
         }
     }
 

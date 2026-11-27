@@ -1,22 +1,29 @@
 import { useCallback, useRef, useState } from "react";
 import { fullførInngangsvilkår } from "~/api/generated/sdk.gen";
-import type { InngangsvilkårResponse } from "~/api/generated/types.gen";
+import type {
+  InngangsvilkårBlokkertResponse,
+  InngangsvilkårResponse,
+} from "~/api/generated/types.gen";
 import { feilmeldingFra } from "./feilmeldingFra";
+import { inngangsvilkårBlokkertFeilFra } from "./inngangsvilkårBlokkertFeilFra";
 import { useApiKall } from "./useApiKall";
 import { valideringsfeilFra, type Valideringsfeil } from "./valideringsfeilFra";
 
 type FullførOptions = Parameters<typeof fullførInngangsvilkår>[0];
 
+export type FullførInngangsvilkårFeil =
+  | { type: "validering"; feil: Valideringsfeil[] }
+  | { type: "blokkert"; feil: InngangsvilkårBlokkertResponse }
+  | { type: "generell"; melding: string };
+
 export interface FullførInngangsvilkårResult {
   fullfør: (onSuccess: (resultat: InngangsvilkårResponse) => void) => void;
   laster: boolean;
-  valideringsfeil: Valideringsfeil[];
-  feilmelding?: string;
+  feil?: FullførInngangsvilkårFeil;
 }
 
 export function useFullførInngangsvilkår(behandlingId: string): FullførInngangsvilkårResult {
-  const [valideringsfeil, settValideringsfeil] = useState<Valideringsfeil[]>([]);
-  const [feilmelding, settFeilmelding] = useState<string | undefined>(undefined);
+  const [feil, settFeil] = useState<FullførInngangsvilkårFeil | undefined>(undefined);
   const resultatRef = useRef<InngangsvilkårResponse | undefined>(undefined);
 
   const apiKall = useCallback(async (options: FullførOptions) => {
@@ -27,8 +34,7 @@ export function useFullførInngangsvilkår(behandlingId: string): FullførInngan
   const { kall, laster } = useApiKall(apiKall);
 
   const fullfør = (onSuccess: (resultat: InngangsvilkårResponse) => void) => {
-    settValideringsfeil([]);
-    settFeilmelding(undefined);
+    settFeil(undefined);
 
     kall(
       { path: { behandlingId } },
@@ -38,18 +44,25 @@ export function useFullførInngangsvilkår(behandlingId: string): FullførInngan
           if (resultat) onSuccess(resultat);
         },
         onError: (error) => {
-          const feil = valideringsfeilFra(error);
-          if (feil.length > 0) {
-            settValideringsfeil(feil);
+          const blokkertFeilFraBackend = inngangsvilkårBlokkertFeilFra(error);
+          if (blokkertFeilFraBackend) {
+            settFeil({ type: "blokkert", feil: blokkertFeilFraBackend });
+            return;
+          }
+
+          const valideringsfeilFraBackend = valideringsfeilFra(error);
+          if (valideringsfeilFraBackend.length > 0) {
+            settFeil({ type: "validering", feil: valideringsfeilFraBackend });
           } else {
-            settFeilmelding(
-              feilmeldingFra(error, "Kunne ikke fullføre vurderingen av inngangsvilkår.")
-            );
+            settFeil({
+              type: "generell",
+              melding: feilmeldingFra(error, "Kunne ikke fullføre vurderingen av inngangsvilkår."),
+            });
           }
         },
       }
     );
   };
 
-  return { fullfør, laster, valideringsfeil, feilmelding };
+  return { fullfør, laster, feil };
 }

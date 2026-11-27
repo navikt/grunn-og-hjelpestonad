@@ -4,11 +4,16 @@ import { lagVilkårStatus, type VilkårStatus } from "./vilkårStatus";
 import { hentDiagnosePerioderFraBackend } from "./diagnose/useDiagnoseVilkår";
 import { hentMedlemskapPerioderFraBackend } from "./medlemskap/useMedlemskapVilkår";
 import { usePerioder, type PerioderResult } from "./felles/usePerioder";
+import { usePdlFaktagrunnlag } from "../faktagrunnlag/usePdlFaktagrunnlag";
 import type { VilkårDiagnoseResponse, VilkårMedlemskapResponse } from "~/api/generated/types.gen";
+
+type PdlFaktagrunnlag = ReturnType<typeof usePdlFaktagrunnlag>;
 
 interface VilkårContextValue {
   medlemskapsPerioder: PerioderResult<VilkårMedlemskapResponse>;
   diagnosePerioder: PerioderResult<VilkårDiagnoseResponse>;
+  medlemskapFaktagrunnlagTilstand: PdlFaktagrunnlag["medlemskapFaktagrunnlagTilstand"];
+  falskIdentitetTilstand: PdlFaktagrunnlag["falskIdentitetTilstand"];
   status: VilkårStatus;
 }
 
@@ -18,6 +23,8 @@ export function VilkårProvider({ children }: { children: React.ReactNode }) {
   const { behandlingId } = useBehandlingContext();
   const medlemskapsPerioder = usePerioder(behandlingId, hentMedlemskapPerioderFraBackend);
   const diagnosePerioder = usePerioder(behandlingId, hentDiagnosePerioderFraBackend);
+  const { medlemskapFaktagrunnlagTilstand, falskIdentitetTilstand } =
+    usePdlFaktagrunnlag(behandlingId);
 
   const status = lagVilkårStatus({
     medlemskapsPerioder,
@@ -29,6 +36,8 @@ export function VilkårProvider({ children }: { children: React.ReactNode }) {
       value={{
         diagnosePerioder,
         medlemskapsPerioder,
+        medlemskapFaktagrunnlagTilstand,
+        falskIdentitetTilstand,
         status,
       }}
     >

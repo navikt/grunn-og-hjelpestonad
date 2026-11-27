@@ -21,6 +21,7 @@ data class PersonFaktagrunnlag(
     val utflyttingFraNorge: List<UtflyttingFraNorge> = emptyList(),
     val oppholdsadresse: List<Oppholdsadresse> = emptyList(),
     val doedsfall: List<Doedsfall> = emptyList(),
+    val falskIdentitet: FalskIdentitet? = null,
 )
 
 data class Metadata(
@@ -110,6 +111,12 @@ data class Oppholdsadresse(
 
 data class Doedsfall(
     val doedsdato: LocalDate? = null,
+    val metadata: Metadata,
+    val folkeregistermetadata: Folkeregistermetadata? = null,
+)
+
+data class FalskIdentitet(
+    val erFalsk: Boolean,
     val metadata: Metadata,
     val folkeregistermetadata: Folkeregistermetadata? = null,
 )

@@ -7,11 +7,10 @@ import { structuredLog } from "./structured-log.js";
 import type { Saksbehandler } from "./types.js";
 
 const LOCAL_AUTH_TENANT = "trygdeetaten.no";
-const LOCAL_AUTH_DEFAULT_AUTHORIZATION_ENDPOINT =
-  `https://login.microsoftonline.com/${LOCAL_AUTH_TENANT}/oauth2/v2.0/authorize`;
-const LOCAL_AUTH_DEFAULT_TOKEN_ENDPOINT =
-  `https://login.microsoftonline.com/${LOCAL_AUTH_TENANT}/oauth2/v2.0/token`;
+const LOCAL_AUTH_DEFAULT_AUTHORIZATION_ENDPOINT = `https://login.microsoftonline.com/${LOCAL_AUTH_TENANT}/oauth2/v2.0/authorize`;
+const LOCAL_AUTH_DEFAULT_TOKEN_ENDPOINT = `https://login.microsoftonline.com/${LOCAL_AUTH_TENANT}/oauth2/v2.0/token`;
 const LOCAL_AUTH_SESSION_MAX_AGE = 1000 * 60 * 60 * 8;
+const LOCAL_AUTH_BESLUTTER_CLIENT_ID = "beslutter";
 const LOCAL_AUTH_PUBLIC_PATHS = [
   "/oauth2/login",
   "/oauth2/callback",
@@ -34,6 +33,8 @@ declare module "express-session" {
     localAuthState?: string;
     localAuthNonce?: string;
     localAuthCodeVerifier?: string;
+    localAuthClientId?: string;
+    localAuthRedirect?: string;
   }
 }
 
@@ -66,6 +67,13 @@ export function registerLocalAuthRoutes(app: Express): void {
   app.get("/oauth2/callback", handleLocalAuthCallback);
   app.get("/oauth2/logout", handleLocalLogout);
   app.use(requireLocalAuthentication);
+}
+
+export function finnLokalClientId(brukerParameter: unknown, standardClientId: string): string {
+  if (brukerParameter === "beslutter") {
+    return LOCAL_AUTH_BESLUTTER_CLIENT_ID;
+  }
+  return standardClientId;
 }
 
 function createLocalAuthSessionOptions(): SessionOptions {
@@ -115,10 +123,14 @@ async function handleLocalLogin(req: Request, res: Response): Promise<void> {
   const localAuthNonce = generateLocalAuthRandomString();
   const localAuthCodeVerifier = generateLocalAuthCodeVerifier();
   const localAuthCodeChallenge = await generateLocalAuthCodeChallenge(localAuthCodeVerifier);
+  const valgtClientId = finnLokalClientId(req.query.bruker, localAuthConfig.clientId);
+  const redirectSti = typeof req.query.redirect === "string" ? req.query.redirect : "/";
 
   req.session.localAuthState = localAuthState;
   req.session.localAuthNonce = localAuthNonce;
   req.session.localAuthCodeVerifier = localAuthCodeVerifier;
+  req.session.localAuthClientId = valgtClientId;
+  req.session.localAuthRedirect = redirectSti;
 
   const localAuthBackendScope = process.env.GRUNN_OG_HJELPESTONAD_SCOPE;
   if (!localAuthBackendScope) {
@@ -127,7 +139,7 @@ async function handleLocalLogin(req: Request, res: Response): Promise<void> {
   }
 
   const localAuthRequestParams = new URLSearchParams({
-    client_id: localAuthConfig.clientId,
+    client_id: valgtClientId,
     response_type: "code",
     redirect_uri: localAuthConfig.redirectUri,
     response_mode: "query",
@@ -163,9 +175,11 @@ async function handleLocalAuthCallback(req: Request, res: Response): Promise<voi
   }
 
   try {
+    const valgtClientId = req.session.localAuthClientId ?? localAuthConfig.clientId;
+    const redirectSti = req.session.localAuthRedirect ?? "/";
     const localAuthTokenParams = new URLSearchParams({
       grant_type: "authorization_code",
-      client_id: localAuthConfig.clientId,
+      client_id: valgtClientId,
       client_secret: localAuthConfig.clientSecret,
       code,
       redirect_uri: localAuthConfig.redirectUri,
@@ -207,8 +221,10 @@ async function handleLocalAuthCallback(req: Request, res: Response): Promise<voi
     delete req.session.localAuthState;
     delete req.session.localAuthNonce;
     delete req.session.localAuthCodeVerifier;
+    delete req.session.localAuthClientId;
+    delete req.session.localAuthRedirect;
 
-    res.redirect("/");
+    res.redirect(redirectSti);
   } catch (error) {
     structuredLog("error", "local_authentication_failed", {
       error_type: error instanceof Error ? error.name : "unknown",

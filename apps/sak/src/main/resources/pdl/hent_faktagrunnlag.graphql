@@ -57,5 +57,16 @@ query ($ident: ID!) {
             metadata { historisk master }
             folkeregistermetadata { gyldighetstidspunkt opphoerstidspunkt }
         }
+        falskIdentitet {
+            erFalsk
+            metadata {
+                historisk
+                master
+            }
+            folkeregistermetadata {
+                gyldighetstidspunkt
+                opphoerstidspunkt
+            }
+        }
     }
 }

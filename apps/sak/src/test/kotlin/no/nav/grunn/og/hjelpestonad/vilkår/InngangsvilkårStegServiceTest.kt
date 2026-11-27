@@ -10,9 +10,15 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.behandling.utledStegEtterInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
+import no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl.PdlFaktagrunnlag
+import no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl.PdlFaktagrunnlagService
+import no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl.PdlFalskIdentitet
+import no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl.PdlMetadata
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.Feil
 import no.nav.grunn.og.hjelpestonad.infrastruktur.exception.IkkeAnsvarligSaksbehandlerFeil
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.InngangsvilkårBlokkertFeil
+import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.InngangsvilkårFeilkode
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.InngangsvilkårStegService
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.PeriodeMedOppfylteInngangsvilkår
 import no.nav.grunn.og.hjelpestonad.steg.vilkårVurdering.Valideringsnøkkel
@@ -26,12 +32,14 @@ import no.nav.grunn.og.hjelpestonad.vilkår.medlemskap.VilkårMedlemskapService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.Test
 
 class InngangsvilkårStegServiceTest {
     private val vilkårMedlemskapService = mockk<VilkårMedlemskapService>(relaxed = true)
     private val vilkårDiagnoseService = mockk<VilkårDiagnoseService>(relaxed = true)
+    private val pdlFaktagrunnlagService = mockk<PdlFaktagrunnlagService>(relaxed = true)
     private val behandlingStegService = mockk<BehandlingStegService>(relaxed = true)
     private val ansvarligSaksbehandlerService = mockk<AnsvarligSaksbehandlerService>(relaxed = true)
     private val endringshistorikkService = mockk<EndringshistorikkService>(relaxed = true)
@@ -41,6 +49,7 @@ class InngangsvilkårStegServiceTest {
         InngangsvilkårStegService(
             vilkårMedlemskapService,
             vilkårDiagnoseService,
+            pdlFaktagrunnlagService,
             behandlingStegService,
             ansvarligSaksbehandlerService,
             endringshistorikkService,
@@ -51,6 +60,7 @@ class InngangsvilkårStegServiceTest {
 
     init {
         medKomplettGrunnlag()
+        every { pdlFaktagrunnlagService.hent(behandlingId) } returns null
         every { behandlingStegService.registrerFullførteInngangsvilkår(any(), any()) } answers { utledStegEtterInngangsvilkår(secondArg()) }
     }
 
@@ -86,11 +96,55 @@ class InngangsvilkårStegServiceTest {
         verifyOrder {
             ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
             behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
+            pdlFaktagrunnlagService.hent(behandlingId)
             vilkårMedlemskapService.hentPerioder(behandlingId)
             vilkårDiagnoseService.hentPerioder(behandlingId)
             endringshistorikkService.registrerEndring(behandlingId, EndringType.INNGANGSVILKÅR_VURDERING_FULLFØRT, any())
         }
     }
+
+    @Test
+    fun `fullførSteg blokkerer videre behandling når personen har falsk identitet`() {
+        every { pdlFaktagrunnlagService.hent(behandlingId) } returns
+            pdlFaktagrunnlagMedFalskIdentitet(erFalsk = true)
+
+        assertThatThrownBy { service.fullførSteg(behandlingId) }
+            .isInstanceOf(InngangsvilkårBlokkertFeil::class.java)
+            .extracting { (it as InngangsvilkårBlokkertFeil).feilkode }
+            .isEqualTo(InngangsvilkårFeilkode.FALSK_IDENTITET)
+
+        verify(exactly = 0) { behandlingStegService.registrerFullførteInngangsvilkår(any(), any()) }
+        verify(exactly = 0) { endringshistorikkService.registrerEndring(any(), any(), any()) }
+    }
+
+    @Test
+    fun `fullførSteg lar behandlingen gå videre når falskIdentitet har erFalsk false`() {
+        every { pdlFaktagrunnlagService.hent(behandlingId) } returns
+            pdlFaktagrunnlagMedFalskIdentitet(erFalsk = false)
+
+        val inngangsvilkårResultat = service.fullførSteg(behandlingId)
+
+        assertThat(inngangsvilkårResultat.nesteSteg).isEqualTo(BehandlingSteg.SATS_OG_TRYGDETID)
+    }
+
+    private fun pdlFaktagrunnlagMedFalskIdentitet(erFalsk: Boolean) =
+        PdlFaktagrunnlag(
+            hentetTidspunkt = LocalDateTime.of(2026, 1, 1, 12, 0),
+            folkeregisterpersonstatus = emptyList(),
+            bostedsadresse = emptyList(),
+            statsborgerskap = emptyList(),
+            opphold = emptyList(),
+            innflyttingTilNorge = emptyList(),
+            utflyttingFraNorge = emptyList(),
+            oppholdsadresse = emptyList(),
+            doedsfall = emptyList(),
+            falskIdentitet =
+                PdlFalskIdentitet(
+                    behandlingId = behandlingId,
+                    erFalsk = erFalsk,
+                    metadata = PdlMetadata(historisk = false, master = "FREG"),
+                ),
+        )
 
     @Test
     fun `fullførSteg setter SATS_OG_TRYGDETID når det finnes perioder med oppfylte inngangsvilkår`() {

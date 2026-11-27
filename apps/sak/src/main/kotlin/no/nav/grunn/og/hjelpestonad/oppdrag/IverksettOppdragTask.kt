@@ -3,6 +3,8 @@ package no.nav.grunn.og.hjelpestonad.oppdrag
 import efterlatte.prosessering.RetryPolicy
 import efterlatte.prosessering.TaskKontekst
 import efterlatte.prosessering.TaskStep
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingService
+import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStatus
 import no.nav.grunn.og.hjelpestonad.task.lagTaskType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -21,6 +23,7 @@ import kotlin.time.Duration.Companion.minutes
 @Service
 class IverksettOppdragTask(
     private val oppdragIverksettingService: OppdragIverksettingService,
+    private val behandlingService: BehandlingService,
     private val clock: Clock = Clock.systemDefaultZone(),
 ) : TaskStep<IverksettOppdragTask.IverksettOppdragTaskData> {
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -33,15 +36,10 @@ class IverksettOppdragTask(
         val iverksettingsresultat = oppdragIverksettingService.iverksett(behandlingId, kontekst.payload.saksbehandlerId)
 
         when (iverksettingsresultat) {
-            is Iverksettingsresultat.Sendt -> {
+            is Iverksettingsresultat.Sendt,
+            is Iverksettingsresultat.AlleredeIverksatt,
+            -> {
                 opprettHentOppdragStatusTask(kontekst, behandlingId)
-            }
-
-            is Iverksettingsresultat.AlleredeIverksatt -> {
-                // Testendepunktet sender uten å opprette statustask. Har OS kvittert, er statusen hentet fra før.
-                if (iverksettingsresultat.oppdragResultat.status == OppdragStatus.LAGT_PÅ_KØ) {
-                    opprettHentOppdragStatusTask(kontekst, behandlingId)
-                }
             }
 
             // Ingenting er sendt til OS, så det finnes ingen kvittering å hente. Tasken er ferdig.
@@ -49,6 +47,7 @@ class IverksettOppdragTask(
             is Iverksettingsresultat.IngenEndring,
             -> {
                 logger.info("Behandling={} er ikke iverksatt mot oppdrag fordi den ikke endrer utbetalingen", behandlingId)
+                behandlingService.oppdaterBehandlingStatus(behandlingId, BehandlingStatus.FERDIGSTILT)
             }
         }
     }

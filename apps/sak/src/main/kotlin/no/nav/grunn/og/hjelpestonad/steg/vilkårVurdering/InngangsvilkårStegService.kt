@@ -4,6 +4,7 @@ import no.nav.grunn.og.hjelpestonad.behandling.BehandlingSteg
 import no.nav.grunn.og.hjelpestonad.behandling.BehandlingStegService
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringType
 import no.nav.grunn.og.hjelpestonad.endringshistorikk.EndringshistorikkService
+import no.nav.grunn.og.hjelpestonad.faktagrunnlag.pdl.PdlFaktagrunnlagService
 import no.nav.grunn.og.hjelpestonad.felles.periode.formaterPeriode
 import no.nav.grunn.og.hjelpestonad.oppgave.AnsvarligSaksbehandlerService
 import no.nav.grunn.og.hjelpestonad.tilkjentytelse.BeregnTilkjentYtelseService
@@ -22,6 +23,7 @@ data class InngangsvilkårResultat(
 class InngangsvilkårStegService(
     private val vilkårMedlemskapService: VilkårMedlemskapService,
     private val vilkårDiagnoseService: VilkårDiagnoseService,
+    private val pdlFaktagrunnlagService: PdlFaktagrunnlagService,
     private val behandlingStegService: BehandlingStegService,
     private val ansvarligSaksbehandlerService: AnsvarligSaksbehandlerService,
     private val endringshistorikkService: EndringshistorikkService,
@@ -31,6 +33,15 @@ class InngangsvilkårStegService(
     fun fullførSteg(behandlingId: UUID): InngangsvilkårResultat {
         ansvarligSaksbehandlerService.validerErAnsvarligSaksbehandler(behandlingId)
         behandlingStegService.validerKanEndreSteg(behandlingId, BehandlingSteg.INNGANGSVILKÅR)
+
+        val pdlFaktagrunnlag = pdlFaktagrunnlagService.hent(behandlingId)
+        if (pdlFaktagrunnlag?.harFalskIdentitet == true) {
+            throw InngangsvilkårBlokkertFeil(
+                behandlingId = behandlingId,
+                feilkode = InngangsvilkårFeilkode.FALSK_IDENTITET,
+                melding = "Personen er registrert med falsk identitet i Folkeregisteret. Behandlingen kan ikke gå videre fra Vilkår.",
+            )
+        }
 
         val vurderteInngangsvilkår = hentVurderteInngangsvilkår(behandlingId)
         val feil = VilkårVurderingValidering.valider(vurderteInngangsvilkår)

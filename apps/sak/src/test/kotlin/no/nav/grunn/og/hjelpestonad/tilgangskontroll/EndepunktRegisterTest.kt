@@ -104,6 +104,7 @@ class EndepunktRegisterTest {
                 "SøkController#søkPerson",
                 "SøkController#søkPersonMedFagsakPersonId",
                 "PdlFaktagrunnlagController#hentMedlemskapFaktagrunnlag",
+                "PdlFaktagrunnlagController#hentFalskIdentitet",
                 "PdlFaktagrunnlagController#innhentFaktagrunnlagFraPdl",
                 "InfotrygdController#hentStønaderForPerson",
                 "InfotrygdController#hentGjeldendePerioderForPerson",
@@ -125,9 +126,6 @@ class EndepunktRegisterTest {
                 "TrygdetidController#lagreTrygdetidPeriode",
                 "TrygdetidController#slettTrygdetidPeriode",
                 "VedtakController#hentVedtak",
-                "VedtakController#lagreVedtak",
-                "VedtakController#beregn",
-                "VedtakController#hentHistoriskVedtakForBehanling",
                 "VilkårDiagnoseController#hentDiagnosePerioder",
                 "VilkårDiagnoseController#lagreDiagnosePeriode",
                 "VilkårDiagnoseController#slettDiagnosePeriode",
@@ -141,9 +139,17 @@ class EndepunktRegisterTest {
                 "ÅrsakBehandlingController#lagreÅrsakBehandling",
             )
 
-        // Tar ikke imot noe som peker på en person.
+        // Prosessering har gruppekrav uten personsjekk (ADR-0009); øvrige peker ikke på en person.
         private val UTEN_PERSONSJEKK =
             setOf(
+                "ProsesseringController#hentStatusoversikt",
+                "ProsesseringController#hentTyper",
+                "ProsesseringController#hentTasks",
+                "ProsesseringController#hentTask",
+                "ProsesseringController#hentLogg",
+                "ProsesseringController#rekjor",
+                "ProsesseringController#avbryt",
+                "ProsesseringController#registrerAvvik",
                 "DiagnosekodeController#søkDiagnosekoder",
                 "UnleashController#hentFeatureToggles",
                 "TestDbController#hentTestData",
