@@ -24,7 +24,7 @@ spec:
         sqlInstances:
             -   name: grunn-og-hjelp-infotrygd
                 type: POSTGRES_18
-                tier: db-g1-small
+                tier: db-custom-1-3840
                 diskAutoresize: true
                 cascadingDelete: false
                 highAvailability: false
