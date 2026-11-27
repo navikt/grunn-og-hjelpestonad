@@ -136,7 +136,7 @@ class PeriodeMedBegrunnelseServiceTest {
 
         val feil = assertFailsWith<Feil> { lagService(BehandlingSteg.SATS_OG_TRYGDETID).lagrePeriode(behandlingId, TestPeriodeRequest()) }
 
-        assertThat(feil.melding).isEqualTo("Fullfør «Vilkår» før du går videre.")
+        assertThat(feil.melding).isEqualTo("Fullfør «Inngangsvilkår» før du går videre.")
         assertThat(feil.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
         verify(exactly = 0) { repository.deleteByBehandlingId(any()) }
         verify(exactly = 0) { repository.insertAll(any()) }
@@ -152,7 +152,7 @@ class PeriodeMedBegrunnelseServiceTest {
 
         val feil = assertFailsWith<Feil> { lagService(BehandlingSteg.SATS_OG_TRYGDETID).slettPeriode(behandlingId, periode.id) }
 
-        assertThat(feil.melding).isEqualTo("Fullfør «Vilkår» før du går videre.")
+        assertThat(feil.melding).isEqualTo("Fullfør «Inngangsvilkår» før du går videre.")
         assertThat(feil.httpStatus).isEqualTo(HttpStatus.BAD_REQUEST)
         verify(exactly = 0) { repository.deleteById(any()) }
         verify(exactly = 0) { tilkjentYtelseService.slettTilkjentYtelseHvisFinnes(any()) }

@@ -30,7 +30,7 @@ const BEHANDLING_STEG_LISTE: BehandlingSteg[] = [
   },
   {
     path: "vilkar",
-    navn: "Vilkår",
+    navn: "Inngangsvilkår",
     behandlingssteg: "INNGANGSVILKÅR",
   },
   {

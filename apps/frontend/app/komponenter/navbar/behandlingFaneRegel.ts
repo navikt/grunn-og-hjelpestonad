@@ -14,7 +14,7 @@ const GJELDENDE_STEG_REKKEFØLGE: readonly GjeldendeSteg[] = [
 // Visningsnavnene må samsvare med backend, fordi de vises i meldingen «Fullfør «…» før du går videre.».
 const VISNINGSNAVN_FOR_GJELDENDE_STEG: Record<GjeldendeSteg, string> = {
   ÅRSAK: "Årsak behandling",
-  INNGANGSVILKÅR: "Vilkår",
+  INNGANGSVILKÅR: "Inngangsvilkår",
   SATS_OG_TRYGDETID: "Sats og trygdetid",
   VEDTAK_OG_BREV: "Simulering og brev",
 };

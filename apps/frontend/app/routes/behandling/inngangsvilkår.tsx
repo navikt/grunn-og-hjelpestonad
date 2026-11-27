@@ -12,7 +12,7 @@ import { useBehandlingContext } from "~/fellesContext/BehandlingContext";
 import { useStegNavigering } from "~/hooks/useStegNavigering";
 
 export function meta(_: Route.MetaArgs) {
-  return [{ title: "Vilkår" }];
+  return [{ title: "Inngangsvilkår" }];
 }
 
 const STEG_PATH: StegPath = "vilkar";
